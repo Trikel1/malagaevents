@@ -9,12 +9,16 @@ interface UseEventsOptions {
   limit?: number;
   todayOnly?: boolean;
   weekendOnly?: boolean;
+  venueIds?: string[];
+  locationIds?: string[];
+  page?: number;
+  pageSize?: number;
 }
 
-const fetchEvents = async (options: UseEventsOptions): Promise<Event[]> => {
+const fetchEvents = async (options: UseEventsOptions): Promise<{ events: Event[]; count: number }> => {
   let query = supabase
     .from('events')
-    .select('*')
+    .select('*, venues(*), locations(*)', { count: 'exact' })
     .eq('status', 'published')
     .order('start_at', { ascending: true });
 
@@ -59,26 +63,54 @@ const fetchEvents = async (options: UseEventsOptions): Promise<Event[]> => {
     query = query.eq('is_free', true);
   }
 
+  // Venue filter
+  if (options.venueIds && options.venueIds.length > 0) {
+    query = query.in('venue_id', options.venueIds);
+  }
+
+  // Location filter
+  if (options.locationIds && options.locationIds.length > 0) {
+    query = query.in('location_id', options.locationIds);
+  }
+
   // Search query
   if (options.searchQuery) {
     query = query.or(`title.ilike.%${options.searchQuery}%,venue_name.ilike.%${options.searchQuery}%,description.ilike.%${options.searchQuery}%`);
   }
 
-  // Limit
-  if (options.limit) {
-    query = query.limit(options.limit);
-  }
+  // Pagination
+  const page = options.page || 0;
+  const pageSize = options.pageSize || options.limit || 20;
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  
+  query = query.range(from, to);
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
 
   if (error) throw error;
   
-  return (data || []) as Event[];
+  // Map the joined data
+  const events = (data || []).map((item: any) => ({
+    ...item,
+    venue: item.venues || undefined,
+    location: item.locations || undefined,
+  })) as Event[];
+
+  return { events, count: count || 0 };
 };
 
 export const useEvents = (options: UseEventsOptions = {}) => {
   return useQuery({
     queryKey: ['events', options],
+    queryFn: () => fetchEvents(options),
+    select: (data) => data.events, // For backward compatibility
+  });
+};
+
+export const useEventsPaginated = (options: UseEventsOptions = {}) => {
+  return useQuery({
+    queryKey: ['events-paginated', options],
     queryFn: () => fetchEvents(options),
   });
 };
@@ -91,13 +123,20 @@ export const useEvent = (id: string | undefined) => {
       
       const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select('*, venues(*), locations(*)')
         .eq('id', id)
         .eq('status', 'published')
         .maybeSingle();
 
       if (error) throw error;
-      return data as Event | null;
+      
+      if (!data) return null;
+      
+      return {
+        ...data,
+        venue: data.venues || undefined,
+        location: data.locations || undefined,
+      } as Event;
     },
     enabled: !!id,
   });
@@ -105,22 +144,37 @@ export const useEvent = (id: string | undefined) => {
 
 export const useSimilarEvents = (event: Event | null | undefined, limit = 6) => {
   return useQuery({
-    queryKey: ['similar-events', event?.id, event?.category],
+    queryKey: ['similar-events', event?.id, event?.category, event?.location_id],
     queryFn: async () => {
       if (!event) return [];
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('events')
-        .select('*')
+        .select('*, venues(*), locations(*)')
         .eq('status', 'published')
-        .eq('category', event.category)
         .neq('id', event.id)
         .gte('start_at', new Date().toISOString())
         .order('start_at', { ascending: true })
         .limit(limit);
 
+      // Prefer same location, then same category
+      if (event.location_id) {
+        query = query.eq('location_id', event.location_id);
+      } else if (event.category) {
+        query = query.eq('category', event.category);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
-      return (data || []) as Event[];
+      
+      const events = (data || []).map((item: any) => ({
+        ...item,
+        venue: item.venues || undefined,
+        location: item.locations || undefined,
+      })) as Event[];
+
+      return events;
     },
     enabled: !!event,
   });
