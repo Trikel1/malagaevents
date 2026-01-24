@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown, Building2, Theater, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,24 +29,37 @@ interface VenueGroupDropdownProps {
   onVenueIdsChange: (venueIds: string[]) => void;
 }
 
-// CANONICAL CLASSIFICATION: Only these 3 are theaters, everything else is "salas"
-const THEATER_VENUE_NAMES = [
-  'teatro cervantes',
-  'teatro echegaray',
-  'teatro del soho',
-  'teatro soho',
-  'soho caixabank',
+// CANONICAL THEATERS - ONLY these 3 are theaters, matched by normalized_name patterns
+const CANONICAL_THEATERS = [
+  'teatro-cervantes',
+  'teatro-echegaray', 
+  'teatro-del-soho-caixabank',
+  'teatro-soho',
+  'teatro-del-soho',
 ];
 
 function classifyVenue(venue: Venue): VenueGroup {
-  const name = venue.normalized_name?.toLowerCase() || venue.name?.toLowerCase() || '';
+  const normalizedName = venue.normalized_name?.toLowerCase() || '';
+  const name = venue.name?.toLowerCase() || '';
   
-  // Only the 3 canonical theaters
-  if (THEATER_VENUE_NAMES.some(pattern => name.includes(pattern))) {
+  // Check normalized_name first (more reliable)
+  for (const pattern of CANONICAL_THEATERS) {
+    if (normalizedName === pattern || normalizedName.includes(pattern)) {
+      return 'theaters';
+    }
+  }
+  
+  // Also check display name for "Teatro Cervantes", "Teatro Echegaray", "Teatro del Soho"
+  if (
+    name.includes('teatro cervantes') ||
+    name.includes('teatro echegaray') ||
+    name.includes('teatro del soho') ||
+    name.includes('teatro soho')
+  ) {
     return 'theaters';
   }
   
-  // Everything else is a "sala" (including Cochera, Trinchera, París 15, etc.)
+  // Everything else is a "sala"
   return 'halls';
 }
 
@@ -165,17 +178,24 @@ export function VenueGroupDropdown({
             )}
           >
             <Icon className="h-3.5 w-3.5" />
-            {label}
+            <span className="hidden xs:inline">{label}</span>
             {selectedLabel && (
-              <span className="ml-1 text-[10px] opacity-80">({selectedLabel})</span>
+              <span className="ml-1 text-[10px] opacity-80 max-w-[60px] truncate">({selectedLabel})</span>
             )}
             <ChevronDown className="h-3 w-3 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72 p-0" align="start">
+        <PopoverContent 
+          className="w-72 p-0" 
+          align="start"
+          side="bottom"
+          sideOffset={4}
+          collisionPadding={16}
+          avoidCollisions={true}
+        >
           <Command>
             <CommandInput placeholder={t('common.search')} className="h-9" />
-            <CommandList>
+            <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain">
               {isLoading ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -206,31 +226,34 @@ export function VenueGroupDropdown({
                       ({groupVenues.length})
                     </span>
                   </CommandItem>
-                  <ScrollArea className="max-h-[240px]">
-                    {groupVenues.map((venue) => (
-                      <CommandItem
-                        key={venue.id}
-                        onSelect={() => handleSelectVenue(venue, group)}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center">
-                          <Check
-                            className={cn(
-                              'mr-2 h-4 w-4',
-                              selectedVenueIds.includes(venue.id) ? 'opacity-100' : 'opacity-0'
-                            )}
-                          />
-                          <div>
-                            <span>{venue.name}</span>
-                            {venue.city && (
-                              <span className="ml-2 text-xs text-muted-foreground">
-                                {venue.city}
-                              </span>
-                            )}
+                  <ScrollArea className="max-h-[220px]">
+                    <div className="[&_[data-radix-scroll-area-viewport]]:overscroll-contain">
+                      {groupVenues.map((venue) => (
+                        <CommandItem
+                          key={venue.id}
+                          value={venue.name}
+                          onSelect={() => handleSelectVenue(venue, group)}
+                          className="flex items-center justify-between"
+                        >
+                          <div className="flex items-center min-w-0">
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4 shrink-0',
+                                selectedVenueIds.includes(venue.id) ? 'opacity-100' : 'opacity-0'
+                              )}
+                            />
+                            <div className="min-w-0">
+                              <span className="truncate block">{venue.name}</span>
+                              {venue.city && (
+                                <span className="text-xs text-muted-foreground block">
+                                  {venue.city}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CommandItem>
-                    ))}
+                        </CommandItem>
+                      ))}
+                    </div>
                   </ScrollArea>
                 </CommandGroup>
               )}
@@ -242,7 +265,7 @@ export function VenueGroupDropdown({
   };
 
   return (
-    <div className="flex gap-1.5 py-1">
+    <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-1 -mx-1 px-1">
       {/* All Button */}
       <Button
         variant={selectedGroup === 'all' ? 'default' : 'outline'}
@@ -264,3 +287,5 @@ export function VenueGroupDropdown({
     </div>
   );
 }
+
+export default VenueGroupDropdown;

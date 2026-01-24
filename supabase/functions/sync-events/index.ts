@@ -57,6 +57,7 @@ const SOURCE_CONFIGS: Record<string, Partial<SourceConfig>> = {
     maxRetries: 2,
     totalTimeoutMs: 30000,
     useHeadless: false,
+    alternativeEndpoint: 'https://lacocheracabaret.com/wp-json/tribe/events/v1/events', // Try WP API
   },
   'la-termica': {
     maxRetries: 2,
