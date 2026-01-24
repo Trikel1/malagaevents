@@ -22,10 +22,11 @@ export interface Event {
   organizer_user_id?: string;
   status: string;
   created_at: string;
-  // New fields for location/venue
+  // Extended fields
   source?: string;
   external_id?: string;
   url?: string;
+  buy_url?: string;
   venue_name_raw?: string;
   venue_normalized?: string;
   venue_id?: string;
@@ -36,9 +37,27 @@ export interface Event {
   country?: string;
   dedupe_key?: string;
   updated_at?: string;
+  last_synced_at?: string;
+  description_short?: string;
+  description_full?: string;
+  title_normalized?: string;
+  venue_name_normalized?: string;
   // Joined data
   venue?: Venue;
   location?: Location;
+}
+
+export interface EventOccurrence {
+  id: string;
+  event_id: string;
+  start_datetime: string;
+  end_datetime?: string;
+  buy_url?: string;
+  sold_out?: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  event?: Event;
 }
 
 export interface Venue {
@@ -47,6 +66,7 @@ export interface Venue {
   normalized_name: string;
   city?: string;
   address?: string;
+  website?: string;
   lat?: number;
   lng?: number;
   created_at: string;
@@ -60,7 +80,7 @@ export interface Location {
   country: string;
   is_in_province_malaga: boolean;
   is_enabled: boolean;
-  needs_review: boolean;
+  needs_review?: boolean;
   created_at: string;
 }
 
@@ -74,6 +94,8 @@ export interface SyncRun {
   updated: number;
   skipped: number;
   errors: number;
+  occurrences_created?: number;
+  events_archived?: number;
   error_details?: any;
   created_at: string;
 }
@@ -148,6 +170,7 @@ export const EVENT_CATEGORIES = [
   'festivals',
   'workshops',
   'conferences',
+  'nightlife',
   'other',
 ] as const;
 

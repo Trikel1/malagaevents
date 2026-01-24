@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.scrape-pharmacies]
 verify_jwt = false
+
+[functions.sync-events]
+verify_jwt = false
