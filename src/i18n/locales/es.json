@@ -97,6 +97,7 @@
   },
   "pharmacies": {
     "title": "Farmacias de guardia",
+    "short": "Farmacia",
     "today": "Hoy",
     "selectDate": "Seleccionar fecha",
     "call": "Llamar",

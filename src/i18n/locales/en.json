@@ -97,6 +97,7 @@
   },
   "pharmacies": {
     "title": "Pharmacies on duty",
+    "short": "Pharmacy",
     "today": "Today",
     "selectDate": "Select date",
     "call": "Call",
