@@ -1,6 +1,6 @@
-import { useState, useMemo, forwardRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronDown, Building2, Theater, Loader2 } from 'lucide-react';
+import { Check, ChevronDown, Building2, Theater, Loader2, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -15,7 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useVenues } from '@/hooks/useVenues';
 import type { Venue } from '@/types';
@@ -29,7 +29,7 @@ interface VenueGroupDropdownProps {
   onVenueIdsChange: (venueIds: string[]) => void;
 }
 
-// CANONICAL THEATERS - ONLY these 3 are theaters, matched by normalized_name patterns
+// CANONICAL THEATERS - ONLY these 3 are theaters
 const CANONICAL_THEATERS = [
   'teatro-cervantes',
   'teatro-echegaray', 
@@ -71,8 +71,8 @@ export function VenueGroupDropdown({
 }: VenueGroupDropdownProps) {
   const { t } = useTranslation();
   const { data: venues = [], isLoading, isError } = useVenues();
-  const [theatersOpen, setTheatersOpen] = useState(false);
   const [hallsOpen, setHallsOpen] = useState(false);
+  const [theatersOpen, setTheatersOpen] = useState(false);
 
   // Classify all venues into groups (exclude placeholder venues)
   const venuesByGroup = useMemo(() => {
@@ -97,21 +97,27 @@ export function VenueGroupDropdown({
     return grouped;
   }, [venues]);
 
+  // Handle "Todos" button
   const handleSelectAll = () => {
     onGroupChange('all');
     onVenueIdsChange([]);
-    setTheatersOpen(false);
     setHallsOpen(false);
+    setTheatersOpen(false);
   };
 
-  const handleSelectVenue = (venue: Venue, group: VenueGroup) => {
+  // Toggle individual venue in multi-select
+  const handleToggleVenue = (venue: Venue, group: VenueGroup) => {
     const isSelected = selectedVenueIds.includes(venue.id);
     let newIds: string[];
     
     if (isSelected) {
       newIds = selectedVenueIds.filter(id => id !== venue.id);
     } else {
-      newIds = [...selectedVenueIds, venue.id];
+      // When adding from a group, ensure we're in that group's context
+      // and only keep venues from that group
+      const groupVenueIds = venuesByGroup[group].map(v => v.id);
+      const currentGroupVenues = selectedVenueIds.filter(id => groupVenueIds.includes(id));
+      newIds = [...currentGroupVenues, venue.id];
     }
     
     // If no venues selected, reset to all
@@ -124,80 +130,96 @@ export function VenueGroupDropdown({
     }
   };
 
-  const handleSelectAllFromGroup = (group: VenueGroup) => {
-    const groupVenueIds = venuesByGroup[group].map(v => v.id);
-    onGroupChange(group);
-    onVenueIdsChange(groupVenueIds);
-    if (group === 'theaters') setTheatersOpen(false);
+  // Toggle "all" within a group
+  const handleToggleAllInGroup = (group: VenueGroup, allSelected: boolean) => {
+    if (allSelected) {
+      // Deselect all -> go back to 'all'
+      onGroupChange('all');
+      onVenueIdsChange([]);
+    } else {
+      // Select all in this group
+      const groupVenueIds = venuesByGroup[group].map(v => v.id);
+      onGroupChange(group);
+      onVenueIdsChange(groupVenueIds);
+    }
+    
     if (group === 'halls') setHallsOpen(false);
+    if (group === 'theaters') setTheatersOpen(false);
   };
 
-  // Get selected venue names for display
-  const getSelectedLabel = (group: VenueGroup): string => {
-    if (selectedGroup !== group) return '';
-    if (selectedVenueIds.length === 0) return '';
-    
-    const groupVenues = venuesByGroup[group];
-    const allGroupSelected = groupVenues.length > 0 && 
-      groupVenues.every(v => selectedVenueIds.includes(v.id));
-    
-    if (allGroupSelected) {
-      return group === 'theaters' ? t('events.allTheaters', 'Todos') : t('events.allHalls', 'Todas');
-    }
-    
-    const selectedInGroup = groupVenues.filter(v => selectedVenueIds.includes(v.id));
-    if (selectedInGroup.length === 1) {
-      return selectedInGroup[0].name;
-    }
-    return `${selectedInGroup.length} selec.`;
+  // Check if all venues in a group are selected
+  const isGroupFullySelected = (group: VenueGroup): boolean => {
+    if (selectedGroup !== group) return false;
+    const groupVenueIds = venuesByGroup[group].map(v => v.id);
+    return groupVenueIds.length > 0 && groupVenueIds.every(id => selectedVenueIds.includes(id));
   };
 
-  const theatersLabel = getSelectedLabel('theaters');
-  const hallsLabel = getSelectedLabel('halls');
+  // Get selected count for display
+  const getSelectedCount = (group: VenueGroup): number => {
+    if (selectedGroup !== group) return 0;
+    const groupVenueIds = venuesByGroup[group].map(v => v.id);
+    return selectedVenueIds.filter(id => groupVenueIds.includes(id)).length;
+  };
 
-  const renderVenueList = (group: VenueGroup, isOpen: boolean, setOpen: (v: boolean) => void) => {
+  // Render dropdown for a group
+  const renderGroupDropdown = (group: VenueGroup, isOpen: boolean, setOpen: (v: boolean) => void) => {
     const groupVenues = venuesByGroup[group];
-    const label = group === 'theaters' ? t('events.theaters') : t('events.halls');
-    const allLabel = group === 'theaters' 
-      ? t('events.allTheaters', 'Todos los teatros') 
-      : t('events.allHalls', 'Todas las salas');
-    const selectedLabel = group === 'theaters' ? theatersLabel : hallsLabel;
-    const Icon = group === 'theaters' ? Theater : Building2;
+    const isHalls = group === 'halls';
+    const label = isHalls ? t('events.halls', 'Salas') : t('events.theaters', 'Teatros');
+    const allLabel = isHalls 
+      ? t('events.allHalls', 'Todas las salas') 
+      : t('events.allTheaters', 'Todos los teatros');
+    const Icon = isHalls ? Building2 : Theater;
+    const allSelected = isGroupFullySelected(group);
+    const selectedCount = getSelectedCount(group);
+    const isActive = selectedGroup === group;
 
     return (
       <Popover open={isOpen} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant={selectedGroup === group ? 'default' : 'outline'}
-            size="sm"
-            role="combobox"
-            aria-expanded={isOpen}
+            variant={isActive ? 'default' : 'outline'}
             className={cn(
-              'shrink-0 text-xs h-8 px-3 gap-1',
-              selectedGroup === group && 'shadow-sm'
+              'flex-1 h-10 text-sm gap-1.5 justify-center',
+              isActive && 'shadow-sm'
             )}
           >
-            <Icon className="h-3.5 w-3.5" />
-            <span className="hidden xs:inline">{label}</span>
-            {selectedLabel && (
-              <span className="ml-1 text-[10px] opacity-80 max-w-[60px] truncate">({selectedLabel})</span>
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="truncate">{label}</span>
+            {selectedCount > 0 && !allSelected && (
+              <span className="text-xs opacity-80">({selectedCount})</span>
             )}
-            <ChevronDown className="h-3 w-3 opacity-50" />
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-72 p-0" 
-          align="start"
+          className="w-[min(320px,calc(100vw-32px))] p-0 bg-popover border shadow-lg"
+          align="center"
           side="bottom"
-          sideOffset={4}
+          sideOffset={8}
           collisionPadding={16}
           avoidCollisions={true}
+          sticky="always"
         >
-          <Command>
-            <CommandInput placeholder={t('common.search')} className="h-9" />
-            <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain">
+          <Command className="max-h-[60vh]">
+            <CommandInput 
+              placeholder={t('common.search', 'Buscar...')} 
+              className="h-10 border-b"
+            />
+            <CommandList 
+              className={cn(
+                "max-h-[50vh] overflow-y-auto",
+                "[&::-webkit-scrollbar]:w-2",
+                "[&::-webkit-scrollbar-track]:bg-transparent",
+                "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
+                "[&::-webkit-scrollbar-thumb]:rounded-full",
+                // iOS scroll bounce
+                "overscroll-contain",
+                "[-webkit-overflow-scrolling:touch]"
+              )}
+            >
               {isLoading ? (
-                <div className="flex items-center justify-center py-6">
+                <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
               ) : isError ? (
@@ -205,56 +227,56 @@ export function VenueGroupDropdown({
                   {t('errors.generic', 'Error al cargar')}
                 </div>
               ) : groupVenues.length === 0 ? (
-                <CommandEmpty>{t('events.noVenuesFound', 'No se encontraron venues')}</CommandEmpty>
+                <CommandEmpty className="py-6 text-center text-muted-foreground">
+                  {t('events.noVenuesFound', 'No se encontraron venues')}
+                </CommandEmpty>
               ) : (
-                <CommandGroup>
+                <CommandGroup className="p-1">
+                  {/* "All" option with checkbox */}
                   <CommandItem
-                    onSelect={() => handleSelectAllFromGroup(group)}
-                    className="font-medium"
+                    onSelect={() => handleToggleAllInGroup(group, allSelected)}
+                    className="flex items-center gap-3 px-3 py-2.5 cursor-pointer font-medium border-b mb-1"
                   >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedGroup === group && 
-                        groupVenues.every(v => selectedVenueIds.includes(v.id))
-                          ? 'opacity-100'
-                          : 'opacity-0'
-                      )}
+                    <Checkbox
+                      checked={allSelected}
+                      className="h-4 w-4"
                     />
-                    {allLabel}
-                    <span className="ml-auto text-xs text-muted-foreground">
+                    <span className="flex-1">{allLabel}</span>
+                    <span className="text-xs text-muted-foreground">
                       ({groupVenues.length})
                     </span>
                   </CommandItem>
-                  <ScrollArea className="max-h-[220px]">
-                    <div className="[&_[data-radix-scroll-area-viewport]]:overscroll-contain">
-                      {groupVenues.map((venue) => (
-                        <CommandItem
-                          key={venue.id}
-                          value={venue.name}
-                          onSelect={() => handleSelectVenue(venue, group)}
-                          className="flex items-center justify-between"
-                        >
-                          <div className="flex items-center min-w-0">
-                            <Check
-                              className={cn(
-                                'mr-2 h-4 w-4 shrink-0',
-                                selectedVenueIds.includes(venue.id) ? 'opacity-100' : 'opacity-0'
-                              )}
-                            />
-                            <div className="min-w-0">
-                              <span className="truncate block">{venue.name}</span>
-                              {venue.city && (
-                                <span className="text-xs text-muted-foreground block">
-                                  {venue.city}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                  
+                  {/* Individual venues with checkboxes */}
+                  {groupVenues.map((venue) => {
+                    const isSelected = selectedVenueIds.includes(venue.id);
+                    // Only show city if it's NOT Málaga
+                    const showCity = venue.city && 
+                      !venue.city.toLowerCase().includes('málaga') &&
+                      !venue.city.toLowerCase().includes('malaga');
+                    
+                    return (
+                      <CommandItem
+                        key={venue.id}
+                        value={venue.name}
+                        onSelect={() => handleToggleVenue(venue, group)}
+                        className="flex items-center gap-3 px-3 py-2 cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          className="h-4 w-4"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="block truncate">{venue.name}</span>
+                          {showCity && (
+                            <span className="text-xs text-muted-foreground block truncate">
+                              {venue.city}
+                            </span>
+                          )}
+                        </div>
+                      </CommandItem>
+                    );
+                  })}
                 </CommandGroup>
               )}
             </CommandList>
@@ -265,25 +287,25 @@ export function VenueGroupDropdown({
   };
 
   return (
-    <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-1 -mx-1 px-1">
-      {/* All Button */}
+    <div className="flex gap-2 w-full">
+      {/* Todos Button */}
       <Button
         variant={selectedGroup === 'all' ? 'default' : 'outline'}
-        size="sm"
         onClick={handleSelectAll}
         className={cn(
-          'shrink-0 text-xs h-8 px-3',
+          'flex-1 h-10 text-sm gap-1.5 justify-center',
           selectedGroup === 'all' && 'shadow-sm'
         )}
       >
-        {t('events.allVenues', 'Todos')}
+        <LayoutGrid className="h-4 w-4 shrink-0" />
+        <span>{t('events.allVenues', 'Todos')}</span>
       </Button>
 
       {/* Salas Dropdown */}
-      {renderVenueList('halls', hallsOpen, setHallsOpen)}
+      {renderGroupDropdown('halls', hallsOpen, setHallsOpen)}
 
       {/* Teatros Dropdown */}
-      {renderVenueList('theaters', theatersOpen, setTheatersOpen)}
+      {renderGroupDropdown('theaters', theatersOpen, setTheatersOpen)}
     </div>
   );
 }
