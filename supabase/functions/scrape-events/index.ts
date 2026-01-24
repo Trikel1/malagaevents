@@ -27,6 +27,46 @@ const EVENT_SOURCES = [
     url: 'https://www.latermicamalaga.com/agenda/',
     category: 'music',
   },
+  {
+    name: 'Museo Picasso Málaga',
+    url: 'https://www.museopicassomalaga.org/actividades',
+    category: 'exhibitions',
+  },
+  {
+    name: 'Centre Pompidou Málaga',
+    url: 'https://centrepompidou-malaga.eu/actividades/',
+    category: 'exhibitions',
+  },
+  {
+    name: 'Diputación de Málaga Cultura',
+    url: 'https://www.malaga.es/cultura/agenda/',
+    category: 'other',
+  },
+  {
+    name: 'Más Málaga',
+    url: 'https://mmalaga.es/agenda/',
+    category: 'other',
+  },
+  {
+    name: 'Más Málaga Conciertos',
+    url: 'https://mmalaga.es/conciertos-malaga/',
+    category: 'music',
+  },
+  {
+    name: 'Más Málaga Teatro',
+    url: 'https://mmalaga.es/teatro-malaga/',
+    category: 'theater',
+  },
+  {
+    name: 'Teatro Echegaray',
+    url: 'https://www.teatroechegaray.es/programacion/',
+    category: 'theater',
+  },
+  {
+    name: 'Fundación Unicaja',
+    url: 'https://fundacionunicaja.com/agenda/',
+    category: 'exhibitions',
+  },
 ];
 
 interface ScrapedEvent {
