@@ -15,6 +15,7 @@ import AuthPage from "./pages/AuthPage";
 import TicketsPage from "./pages/TicketsPage";
 import AddTicketPage from "./pages/AddTicketPage";
 import SubmitEventPage from "./pages/SubmitEventPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/tickets/add" element={<AddTicketPage />} />
             <Route path="/submit-event" element={<SubmitEventPage />} />
+            <Route path="/admin" element={<AdminPage />} />
             
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

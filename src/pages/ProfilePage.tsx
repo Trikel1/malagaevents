@@ -1,16 +1,18 @@
 import { useTranslation } from 'react-i18next';
-import { User, Globe, LogOut, Bell, Ticket, PlusCircle } from 'lucide-react';
+import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useIsAdmin } from '@/hooks/useAdmin';
 
 const ProfilePage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading, signOut } = useAuthContext();
+  const { data: isAdmin } = useIsAdmin();
 
   const handleLogout = async () => {
     await signOut();
@@ -36,6 +38,12 @@ const ProfilePage = () => {
       to: '/profile/notifications',
       requiresAuth: true,
     },
+    ...(isAdmin ? [{
+      icon: Shield,
+      label: 'Panel de administración',
+      to: '/admin',
+      requiresAuth: true,
+    }] : []),
   ];
 
   return (
