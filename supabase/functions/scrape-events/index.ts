@@ -69,18 +69,80 @@ const EVENT_SOURCES = [
   },
 ];
 
-interface ScrapedEvent {
+// JSON schema for structured event extraction
+const EVENT_EXTRACTION_SCHEMA = {
+  type: 'object',
+  properties: {
+    events: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          title: {
+            type: 'string',
+            description: 'The name/title of the event',
+          },
+          description: {
+            type: 'string',
+            description: 'A brief description of the event (max 500 chars)',
+          },
+          date: {
+            type: 'string',
+            description: 'The date of the event in format DD/MM/YYYY or descriptive like "15 de enero de 2025"',
+          },
+          time: {
+            type: 'string',
+            description: 'The start time of the event like "20:00" or "8pm"',
+          },
+          venue: {
+            type: 'string',
+            description: 'The venue or location name where the event takes place',
+          },
+          address: {
+            type: 'string',
+            description: 'The street address of the venue',
+          },
+          price: {
+            type: 'string',
+            description: 'The ticket price or "Gratis" if free',
+          },
+          image_url: {
+            type: 'string',
+            description: 'URL of the event image or poster',
+          },
+          ticket_url: {
+            type: 'string',
+            description: 'URL to buy tickets',
+          },
+          is_free: {
+            type: 'boolean',
+            description: 'Whether the event is free',
+          },
+        },
+        required: ['title'],
+      },
+    },
+  },
+  required: ['events'],
+};
+
+interface ExtractedEvent {
   title: string;
   description?: string;
-  venue_name?: string;
-  date_text?: string;
-  url?: string;
+  date?: string;
+  time?: string;
+  venue?: string;
+  address?: string;
+  price?: string;
   image_url?: string;
+  ticket_url?: string;
+  is_free?: boolean;
 }
 
 async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<any> {
   console.log(`Scraping URL: ${url}`);
   
+  // First try with JSON extraction
   const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
     method: 'POST',
     headers: {
@@ -89,7 +151,11 @@ async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<any> {
     },
     body: JSON.stringify({
       url,
-      formats: ['markdown', 'links'],
+      formats: ['markdown', 'json'],
+      jsonOptions: {
+        schema: EVENT_EXTRACTION_SCHEMA,
+        prompt: 'Extract all upcoming cultural events from this page. For each event get: title, description, date (in DD/MM/YYYY format), time (in HH:MM format), venue name, address, price, image URL, ticket URL, and whether it is free.',
+      },
       onlyMainContent: true,
       waitFor: 3000,
     }),
@@ -104,96 +170,96 @@ async function scrapeWithFirecrawl(url: string, apiKey: string): Promise<any> {
   return response.json();
 }
 
-function parseEventsFromMarkdown(markdown: string, sourceName: string, category: string): ScrapedEvent[] {
-  const events: ScrapedEvent[] = [];
+function parseSpanishDate(dateText: string, timeText?: string): Date | null {
+  if (!dateText) return null;
   
-  // Split by common event patterns (headers, list items)
-  const lines = markdown.split('\n');
-  let currentEvent: Partial<ScrapedEvent> | null = null;
-  
-  for (const line of lines) {
-    // Look for event titles (headers or bold text)
-    const headerMatch = line.match(/^#{1,3}\s+(.+)/) || line.match(/^\*\*(.+)\*\*/);
-    if (headerMatch) {
-      if (currentEvent?.title) {
-        events.push(currentEvent as ScrapedEvent);
-      }
-      currentEvent = {
-        title: headerMatch[1].trim(),
-        venue_name: sourceName,
-      };
-      continue;
-    }
-    
-    // Look for dates
-    const datePatterns = [
-      /(\d{1,2})\s+de\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/i,
-      /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
-      /(\d{1,2})-(\d{1,2})-(\d{4})/,
-    ];
-    
-    for (const pattern of datePatterns) {
-      const dateMatch = line.match(pattern);
-      if (dateMatch && currentEvent) {
-        currentEvent.date_text = dateMatch[0];
-        break;
-      }
-    }
-    
-    // Look for descriptions (any text after a title)
-    if (currentEvent && !currentEvent.description && line.trim().length > 20 && !line.startsWith('#') && !line.startsWith('*')) {
-      currentEvent.description = line.trim().substring(0, 500);
-    }
-  }
-  
-  // Add last event
-  if (currentEvent?.title) {
-    events.push(currentEvent as ScrapedEvent);
-  }
-  
-  // Filter and clean events
-  return events
-    .filter(e => e.title && e.title.length > 3 && e.title.length < 200)
-    .map(e => ({
-      ...e,
-      title: e.title.replace(/\[|\]/g, '').trim(),
-    }))
-    .slice(0, 20); // Limit to 20 events per source
-}
-
-function parseSpanishDate(dateText: string): Date | null {
   const months: Record<string, number> = {
     'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
     'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
     'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11,
+    'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+    'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11,
   };
   
-  // Try Spanish format: "15 de enero"
-  const spanishMatch = dateText.match(/(\d{1,2})\s+de\s+(\w+)/i);
+  let hour = 20, minute = 0;
+  
+  // Parse time if provided
+  if (timeText) {
+    const timeMatch = timeText.match(/(\d{1,2})[:\.]?(\d{2})?/);
+    if (timeMatch) {
+      hour = parseInt(timeMatch[1]);
+      minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+      if (timeText.toLowerCase().includes('pm') && hour < 12) hour += 12;
+    }
+  }
+  
+  // Try Spanish format: "15 de enero" or "15 de enero de 2025"
+  const spanishMatch = dateText.match(/(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?/i);
   if (spanishMatch) {
     const day = parseInt(spanishMatch[1]);
-    const month = months[spanishMatch[2].toLowerCase()];
+    const monthStr = spanishMatch[2].toLowerCase();
+    const month = months[monthStr];
     if (!isNaN(day) && month !== undefined) {
-      const year = new Date().getFullYear();
-      const date = new Date(year, month, day, 20, 0); // Default to 8pm
-      // If date is in the past, use next year
-      if (date < new Date()) {
+      let year = spanishMatch[3] ? parseInt(spanishMatch[3]) : new Date().getFullYear();
+      const date = new Date(year, month, day, hour, minute);
+      // If date is in the past and no year specified, use next year
+      if (date < new Date() && !spanishMatch[3]) {
         date.setFullYear(year + 1);
       }
       return date;
     }
   }
   
-  // Try numeric format: "15/01/2025"
-  const numericMatch = dateText.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  // Try numeric format: "15/01/2025" or "15-01-2025"
+  const numericMatch = dateText.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if (numericMatch) {
     const day = parseInt(numericMatch[1]);
     const month = parseInt(numericMatch[2]) - 1;
-    const year = parseInt(numericMatch[3]);
-    return new Date(year, month, day, 20, 0);
+    let year = parseInt(numericMatch[3]);
+    if (year < 100) year += 2000;
+    return new Date(year, month, day, hour, minute);
+  }
+  
+  // Try ISO format
+  const isoMatch = dateText.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1]);
+    const month = parseInt(isoMatch[2]) - 1;
+    const day = parseInt(isoMatch[3]);
+    return new Date(year, month, day, hour, minute);
   }
   
   return null;
+}
+
+function cleanTitle(title: string): string {
+  return title
+    .replace(/\[.*?\]/g, '') // Remove markdown links
+    .replace(/\(https?:\/\/[^)]+\)/g, '') // Remove URLs in parens
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim()
+    .substring(0, 200);
+}
+
+function isValidEventTitle(title: string): boolean {
+  if (!title || title.length < 4 || title.length > 200) return false;
+  
+  // Filter out navigation/UI elements
+  const invalidPatterns = [
+    /^(menu|inicio|home|contacto|about|cookies|privacidad|legal|newsletter)/i,
+    /^(ver más|leer más|read more|see more|siguiente|anterior)/i,
+    /^(aceptar|rechazar|cerrar|close|accept|reject)/i,
+    /^(agenda|programación|programa|calendar|eventos)$/i,
+    /^(facebook|twitter|instagram|youtube|linkedin)/i,
+    /^\d+$/, // Just numbers
+    /^[^a-záéíóúñ]+$/i, // No letters
+  ];
+  
+  for (const pattern of invalidPatterns) {
+    if (pattern.test(title)) return false;
+  }
+  
+  return true;
 }
 
 Deno.serve(async (req) => {
@@ -215,12 +281,13 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log('Starting event scraping from official sources...');
+    console.log('Starting structured event scraping from official sources...');
     
     const results = {
       sources_scraped: 0,
       events_found: 0,
       events_inserted: 0,
+      events_skipped: 0,
       errors: [] as string[],
     };
 
@@ -231,79 +298,111 @@ Deno.serve(async (req) => {
         const scrapeResult = await scrapeWithFirecrawl(source.url, firecrawlApiKey);
         results.sources_scraped++;
         
-        if (!scrapeResult.success || !scrapeResult.data?.markdown) {
-          console.log(`No content from ${source.name}`);
+        if (!scrapeResult.success) {
+          console.log(`Scrape failed for ${source.name}`);
+          results.errors.push(`${source.name}: Scrape failed`);
           continue;
         }
         
-        const events = parseEventsFromMarkdown(
-          scrapeResult.data.markdown,
-          source.name,
-          source.category
-        );
+        // Get events from structured JSON extraction
+        let events: ExtractedEvent[] = [];
         
-        console.log(`Found ${events.length} events from ${source.name}`);
-        results.events_found += events.length;
+        if (scrapeResult.data?.json?.events) {
+          events = scrapeResult.data.json.events;
+          console.log(`JSON extraction found ${events.length} events from ${source.name}`);
+        }
         
-        for (const event of events) {
+        // Filter and process events
+        const validEvents = events.filter(e => e.title && isValidEventTitle(e.title));
+        results.events_found += validEvents.length;
+        
+        console.log(`${validEvents.length} valid events from ${source.name}`);
+        
+        for (const event of validEvents) {
+          const cleanedTitle = cleanTitle(event.title);
+          
           // Check if event already exists
           const { data: existing } = await supabase
             .from('events')
             .select('id')
-            .eq('title', event.title)
+            .eq('title', cleanedTitle)
             .eq('source_type', 'official_feed')
             .maybeSingle();
           
           if (existing) {
-            console.log(`Event already exists: ${event.title}`);
+            results.events_skipped++;
             continue;
           }
           
-          // Parse date or use a default future date
-          let startAt = event.date_text ? parseSpanishDate(event.date_text) : null;
+          // Parse date
+          let startAt = parseSpanishDate(event.date || '', event.time);
           if (!startAt) {
-            // Default to a week from now
+            // Default to a week from now if no date found
             startAt = new Date();
             startAt.setDate(startAt.getDate() + 7);
             startAt.setHours(20, 0, 0, 0);
+          }
+          
+          // Skip events that are too far in the past
+          const oneMonthAgo = new Date();
+          oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+          if (startAt < oneMonthAgo) {
+            results.events_skipped++;
+            continue;
+          }
+          
+          // Determine if free
+          const isFree = event.is_free || 
+            (event.price && /gratis|free|entrada libre|0\s*€/i.test(event.price)) ||
+            false;
+          
+          // Build price info
+          let priceInfo = event.price;
+          if (isFree) {
+            priceInfo = 'Gratis';
+          } else if (!priceInfo) {
+            priceInfo = undefined;
           }
           
           // Insert the event
           const { error: insertError } = await supabase
             .from('events')
             .insert({
-              title: event.title,
-              description: event.description || `Evento en ${event.venue_name || source.name}`,
+              title: cleanedTitle,
+              description: event.description?.substring(0, 1000) || `Evento en ${event.venue || source.name}`,
               category: source.category,
               start_at: startAt.toISOString(),
-              venue_name: event.venue_name || source.name,
-              address: `${source.name}, Málaga`,
+              venue_name: event.venue || source.name,
+              address: event.address || `${source.name}, Málaga`,
               source_type: 'official_feed',
               source_ref: source.url,
               status: 'published',
-              is_free: false,
-              image_url: event.image_url,
+              is_free: isFree,
+              price_info: priceInfo,
+              image_url: event.image_url || undefined,
+              ticket_url: event.ticket_url || undefined,
             });
           
           if (insertError) {
-            console.error(`Error inserting event ${event.title}:`, insertError);
-            results.errors.push(`Insert error: ${event.title}`);
+            console.error(`Error inserting event "${cleanedTitle}":`, insertError.message);
+            results.errors.push(`Insert error: ${cleanedTitle}`);
           } else {
-            console.log(`Inserted event: ${event.title}`);
+            console.log(`Inserted: ${cleanedTitle}`);
             results.events_inserted++;
           }
         }
         
-        // Small delay between sources to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Delay between sources to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
       } catch (error) {
-        console.error(`Error processing ${source.name}:`, error);
-        results.errors.push(`${source.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`Error processing ${source.name}:`, errorMsg);
+        results.errors.push(`${source.name}: ${errorMsg}`);
       }
     }
 
-    console.log('Scraping completed:', results);
+    console.log('Scraping completed:', JSON.stringify(results));
 
     return new Response(
       JSON.stringify({ success: true, results }),
