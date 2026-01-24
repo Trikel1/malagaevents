@@ -38,6 +38,100 @@ const VARIANT_CLASSES: Record<EventImageVariant, string> = {
   compact: 'w-24 h-24 flex-shrink-0',
 };
 
+// Image sizes per variant (width in pixels)
+const IMAGE_SIZES: Record<EventImageVariant, { small: number; medium: number; large: number }> = {
+  compact: { small: 96, medium: 192, large: 288 },
+  card: { small: 320, medium: 640, large: 960 },
+  list: { small: 320, medium: 640, large: 960 },
+  grid: { small: 280, medium: 560, large: 840 },
+  detail: { small: 640, medium: 1024, large: 1920 },
+  hero: { small: 640, medium: 1280, large: 1920 },
+};
+
+// Sizes attribute per variant for responsive loading
+const SIZES_ATTR: Record<EventImageVariant, string> = {
+  compact: '96px',
+  card: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px',
+  list: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px',
+  grid: '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 280px',
+  detail: '100vw',
+  hero: '100vw',
+};
+
+// Detect image provider and generate optimized URL
+const getOptimizedUrl = (src: string, width: number, quality: number = 80): string | null => {
+  try {
+    const url = new URL(src);
+    
+    // Unsplash - supports w, q, fit params
+    if (url.hostname.includes('unsplash.com') || url.hostname.includes('images.unsplash.com')) {
+      url.searchParams.set('w', width.toString());
+      url.searchParams.set('q', quality.toString());
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('auto', 'format');
+      return url.toString();
+    }
+    
+    // Cloudinary - supports transformation params
+    if (url.hostname.includes('cloudinary.com')) {
+      const pathParts = url.pathname.split('/upload/');
+      if (pathParts.length === 2) {
+        const transformations = `w_${width},q_${quality},c_fill,f_auto`;
+        url.pathname = `${pathParts[0]}/upload/${transformations}/${pathParts[1]}`;
+        return url.toString();
+      }
+    }
+    
+    // Supabase Storage - supports transform params
+    if (url.hostname.includes('supabase')) {
+      url.searchParams.set('width', width.toString());
+      url.searchParams.set('quality', quality.toString());
+      return url.toString();
+    }
+    
+    // Imgix - supports w, q params
+    if (url.hostname.includes('imgix.net')) {
+      url.searchParams.set('w', width.toString());
+      url.searchParams.set('q', quality.toString());
+      url.searchParams.set('auto', 'format');
+      return url.toString();
+    }
+    
+    // For other providers, return null (use original)
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+// Generate srcset for responsive images
+const generateSrcSet = (src: string, variant: EventImageVariant): string | undefined => {
+  const sizes = IMAGE_SIZES[variant];
+  const srcSetParts: string[] = [];
+  
+  // Try to generate optimized URLs for each size
+  const smallUrl = getOptimizedUrl(src, sizes.small);
+  const mediumUrl = getOptimizedUrl(src, sizes.medium);
+  const largeUrl = getOptimizedUrl(src, sizes.large);
+  
+  if (smallUrl) srcSetParts.push(`${smallUrl} ${sizes.small}w`);
+  if (mediumUrl) srcSetParts.push(`${mediumUrl} ${sizes.medium}w`);
+  if (largeUrl) srcSetParts.push(`${largeUrl} ${sizes.large}w`);
+  
+  // If we couldn't generate any optimized URLs, return undefined
+  if (srcSetParts.length === 0) return undefined;
+  
+  return srcSetParts.join(', ');
+};
+
+// Get the best default src for the variant
+const getDefaultSrc = (src: string, variant: EventImageVariant): string => {
+  const sizes = IMAGE_SIZES[variant];
+  // Use medium size as default for good balance
+  const optimizedUrl = getOptimizedUrl(src, sizes.medium);
+  return optimizedUrl || src;
+};
+
 const EventImage = ({
   src,
   alt,
@@ -69,14 +163,16 @@ const EventImage = ({
     setHasError(true);
   };
 
-  // Generate srcset for responsive images
-  const srcSet = useMemo(() => {
-    if (!src) return undefined;
+  // Generate srcset and optimized src
+  const { srcSet, optimizedSrc, sizesAttr } = useMemo(() => {
+    if (!src) return { srcSet: undefined, optimizedSrc: undefined, sizesAttr: undefined };
     
-    // If it's a Supabase storage URL or supports transformations, we could add srcset
-    // For now, we return undefined as external images may not support this
-    return undefined;
-  }, [src]);
+    return {
+      srcSet: generateSrcSet(src, variant),
+      optimizedSrc: getDefaultSrc(src, variant),
+      sizesAttr: SIZES_ATTR[variant],
+    };
+  }, [src, variant]);
 
   // Fallback placeholder component
   const FallbackPlaceholder = () => (
@@ -111,11 +207,13 @@ const EventImage = ({
       {/* Main image */}
       {shouldShowImage ? (
         <img
-          src={src}
-          alt={alt}
+          src={optimizedSrc || src}
           srcSet={srcSet}
+          sizes={srcSet ? sizesAttr : undefined}
+          alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
+          fetchPriority={priority ? 'high' : 'auto'}
           onLoad={handleLoad}
           onError={handleError}
           className={cn(
@@ -133,6 +231,9 @@ const EventImage = ({
 
   // If lightbox is enabled, wrap with dialog
   if (showLightbox && shouldShowImage) {
+    // For lightbox, use the largest available size
+    const lightboxSrc = src ? (getOptimizedUrl(src, IMAGE_SIZES.detail.large, 90) || src) : src;
+    
     return (
       <>
         {imageElement}
@@ -149,7 +250,7 @@ const EventImage = ({
             </DialogClose>
             <div className="flex items-center justify-center min-h-[50vh] max-h-[90vh] p-4">
               <img
-                src={src!}
+                src={lightboxSrc!}
                 alt={alt}
                 className="max-w-full max-h-full object-contain"
               />
