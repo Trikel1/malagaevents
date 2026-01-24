@@ -1,5 +1,20 @@
 project_id = "nfmrmndskkbiwlnaiztw"
 
+[functions.discover-sources]
+verify_jwt = false
+
+[functions.sync-events]
+verify_jwt = false
+
+[functions.scrape-events]
+verify_jwt = false
+
+[functions.submit-event]
+verify_jwt = false
+
+[functions.scrape-pharmacies]
+verify_jwt = false
+
 [functions.submit-event]
 verify_jwt = false
 
