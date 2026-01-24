@@ -9,6 +9,7 @@ export const useLocations = (searchQuery?: string, includeDisabled = false) => {
       let query = supabase
         .from('locations')
         .select('*')
+        .eq('is_in_province_malaga', true) // Only Málaga province locations
         .order('name', { ascending: true });
 
       if (!includeDisabled) {
@@ -46,7 +47,7 @@ export const useLocation = (id: string | undefined) => {
   });
 };
 
-// Get locations that have events
+// Get locations that have events (only Málaga province)
 export const useLocationsWithEvents = () => {
   return useQuery({
     queryKey: ['locations-with-events'],
@@ -58,6 +59,7 @@ export const useLocationsWithEvents = () => {
           events!inner(id)
         `)
         .eq('is_enabled', true)
+        .eq('is_in_province_malaga', true) // Only Málaga province
         .order('name', { ascending: true });
 
       if (error) throw error;
