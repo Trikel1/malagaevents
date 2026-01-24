@@ -52,7 +52,7 @@ const Index = () => {
     { icon: Calendar, label: t('common.today'), color: 'bg-primary text-primary-foreground', action: () => navigate('/events?filter=today') },
     { icon: Calendar, label: t('common.thisWeekend'), color: 'bg-secondary text-secondary-foreground', action: () => navigate('/events?filter=weekend') },
     { icon: MapPin, label: t('common.nearby'), color: 'bg-accent text-accent-foreground', action: () => navigate('/events?filter=nearby') },
-    { icon: Pill, label: t('home.pharmaciesGuard'), color: 'bg-green-500 text-white', action: () => navigate('/pharmacies') },
+    { icon: Pill, label: t('pharmacies.short'), color: 'bg-green-500 text-white', action: () => navigate('/pharmacies') },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -85,7 +85,7 @@ const Index = () => {
 
       <main className="px-4 -mt-6 space-y-6">
         {/* Quick Actions */}
-        <div className="flex justify-around py-2">
+        <div className="grid grid-cols-4 gap-4 py-2">
           {quickActions.map((action, i) => (
             <button
               key={i}
@@ -95,7 +95,7 @@ const Index = () => {
               <div className={`p-4 rounded-2xl ${action.color} shadow-lg group-hover:scale-110 group-active:scale-95 transition-transform duration-200`}>
                 <action.icon className="h-6 w-6" />
               </div>
-              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
                 {action.label}
               </span>
             </button>
