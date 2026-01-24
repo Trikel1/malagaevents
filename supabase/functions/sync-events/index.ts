@@ -34,28 +34,22 @@ const DEFAULT_CONFIG: SourceConfig = {
   useHeadless: false,
 };
 
-// Problematic sources get special treatment
+// Problematic sources get special treatment - use simpler scraping
 const SOURCE_CONFIGS: Record<string, Partial<SourceConfig>> = {
   'teatro-cervantes': {
-    maxRetries: 5,
-    initialDelayMs: 3000,
-    maxDelayMs: 32000,
-    requestDelayMs: 4000,
-    jitterMs: 1000,
-    connectTimeoutMs: 15000,
-    readTimeoutMs: 60000,
-    totalTimeoutMs: 90000,
-    useHeadless: true,
+    maxRetries: 3,
+    initialDelayMs: 2000,
+    requestDelayMs: 3000,
+    jitterMs: 500,
+    totalTimeoutMs: 45000,
+    useHeadless: false, // Disable headless - too slow
   },
   'paris-15': {
-    maxRetries: 5,
-    initialDelayMs: 3000,
-    maxDelayMs: 32000,
-    requestDelayMs: 3000,
-    jitterMs: 800,
-    connectTimeoutMs: 15000,
-    readTimeoutMs: 45000,
-    totalTimeoutMs: 75000,
+    maxRetries: 3,
+    initialDelayMs: 2000,
+    requestDelayMs: 2500,
+    jitterMs: 500,
+    totalTimeoutMs: 45000,
     useHeadless: false,
   },
 };
@@ -406,6 +400,7 @@ async function scrapeWithConfig(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), config.totalTimeoutMs);
       
+      // Use simpler scraping with markdown + LLM extraction - faster than json schema
       const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
         method: 'POST',
         headers: {
@@ -420,8 +415,8 @@ async function scrapeWithConfig(
             prompt: extractionPrompt,
           },
           onlyMainContent: true,
-          waitFor: config.useHeadless ? 8000 : 5000,
-          timeout: config.readTimeoutMs,
+          waitFor: 3000, // Reduced from 5000-8000
+          timeout: 30000, // Reduced timeout
         }),
         signal: controller.signal,
       });
