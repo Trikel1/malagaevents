@@ -1,10 +1,11 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import { EventImageSkeleton } from '@/components/events/EventImage';
 
-export const EventCardSkeleton = () => (
-  <Card className="overflow-hidden">
-    <Skeleton className="h-40 w-full" />
-    <CardContent className="p-3 space-y-2">
+export const EventCardSkeleton = ({ compact = false }: { compact?: boolean }) => (
+  <Card className={compact ? 'flex-row flex overflow-hidden' : 'overflow-hidden'}>
+    <EventImageSkeleton variant={compact ? 'compact' : 'card'} />
+    <CardContent className={compact ? 'p-3 flex-1 flex flex-col justify-center space-y-2' : 'p-3 space-y-2'}>
       <Skeleton className="h-5 w-16" />
       <Skeleton className="h-5 w-full" />
       <Skeleton className="h-4 w-3/4" />
@@ -13,10 +14,10 @@ export const EventCardSkeleton = () => (
   </Card>
 );
 
-export const EventListSkeleton = ({ count = 4 }: { count?: number }) => (
+export const EventListSkeleton = ({ count = 4, compact = false }: { count?: number; compact?: boolean }) => (
   <div className="space-y-4">
     {Array.from({ length: count }).map((_, i) => (
-      <EventCardSkeleton key={i} />
+      <EventCardSkeleton key={i} compact={compact} />
     ))}
   </div>
 );
