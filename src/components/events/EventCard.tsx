@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MapPin, Heart, Calendar, Building2 } from 'lucide-react';
@@ -22,7 +23,7 @@ interface EventCardProps {
   compact?: boolean;
 }
 
-const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardProps) => {
+const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact }, ref) => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
@@ -38,6 +39,7 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
 
   return (
     <Link 
+      ref={ref}
       to={`/events/${event.id}`}
       aria-label={`${eventTitle}, ${formattedDate}, ${venueName}`}
     >
@@ -134,6 +136,8 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
       </Card>
     </Link>
   );
-};
+});
+
+EventCard.displayName = 'EventCard';
 
 export default EventCard;

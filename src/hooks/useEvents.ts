@@ -51,10 +51,32 @@ const fetchEvents = async (options: UseEventsOptions): Promise<{ events: Event[]
       .gte('start_at', todayStart.toISOString())
       .lt('start_at', todayEnd.toISOString());
   } else if (options.weekendOnly) {
-    const dayOfWeek = now.getDay();
-    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7 || 7;
-    const weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSaturday);
-    const weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000);
+    // "Este finde" logic with day exclusion based on current day
+    // Uses Europe/Madrid timezone logic
+    const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
+    
+    let weekendStart: Date;
+    let weekendEnd: Date;
+    
+    if (dayOfWeek === 0) {
+      // Sunday: only show Sunday (today)
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      weekendEnd = new Date(weekendStart.getTime() + 24 * 60 * 60 * 1000); // End of Sunday
+    } else if (dayOfWeek === 6) {
+      // Saturday: show Saturday (today) + Sunday
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000); // End of Sunday
+    } else if (dayOfWeek === 5) {
+      // Friday: show Friday (today) + Saturday + Sunday
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000); // End of Sunday
+    } else {
+      // Monday-Thursday: show next Friday + Saturday + Sunday
+      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilFriday);
+      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000); // End of Sunday
+    }
+    
     query = query
       .gte('start_at', weekendStart.toISOString())
       .lt('start_at', weekendEnd.toISOString());

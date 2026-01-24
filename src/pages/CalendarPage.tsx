@@ -10,13 +10,21 @@ import {
   isToday,
   startOfWeek,
   endOfWeek,
+  setMonth,
+  setYear,
 } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
 import EmptyState from '@/components/common/EmptyState';
@@ -32,6 +40,12 @@ const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
 };
 
+// Month names for the selector
+const MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
 const CalendarPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -40,6 +54,7 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
   const [eventSource, setEventSource] = useState<'all' | 'favorites'>('all');
+  const [monthSelectorOpen, setMonthSelectorOpen] = useState(false);
   const { isAuthenticated } = useAuthContext();
 
   // Calculate grid range (includes days from prev/next month visible in grid)
@@ -111,6 +126,19 @@ const CalendarPage = () => {
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
 
+  // Handle month selection from dropdown
+  const handleMonthSelect = (monthIndex: number) => {
+    const newDate = setMonth(currentDate, monthIndex);
+    setCurrentDate(newDate);
+    setMonthSelectorOpen(false);
+  };
+
+  // Handle year change
+  const handleYearChange = (delta: number) => {
+    const newDate = setYear(currentDate, currentDate.getFullYear() + delta);
+    setCurrentDate(newDate);
+  };
+
   // For list view, get unique events from occurrences (deduped by event_id)
   const uniqueEventsForList = useMemo(() => {
     const seen = new Set<string>();
@@ -123,6 +151,9 @@ const CalendarPage = () => {
       .map(occ => occ.event)
       .filter(Boolean);
   }, [filteredOccurrences]);
+
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,14 +185,89 @@ const CalendarPage = () => {
       <main className="p-4">
         {viewMode === 'month' ? (
           <>
-            {/* Month Navigation */}
+            {/* Month Navigation with Dropdown */}
             <div className="flex items-center justify-between mb-4">
               <Button variant="ghost" size="icon" onClick={prevMonth}>
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <h2 className="text-lg font-semibold capitalize">
-                {format(currentDate, 'MMMM yyyy', { locale })}
-              </h2>
+              
+              {/* Month/Year Selector */}
+              <Popover open={monthSelectorOpen} onOpenChange={setMonthSelectorOpen}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="text-lg font-semibold capitalize gap-1 hover:bg-muted"
+                  >
+                    {format(currentDate, 'MMMM yyyy', { locale })}
+                    <ChevronDown className={cn(
+                      "h-4 w-4 transition-transform",
+                      monthSelectorOpen && "rotate-180"
+                    )} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-64 p-0 bg-popover z-50" 
+                  align="center"
+                  side="bottom"
+                  sideOffset={4}
+                  collisionPadding={16}
+                  avoidCollisions={true}
+                >
+                  {/* Year Navigation */}
+                  <div className="flex items-center justify-between p-3 border-b">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => handleYearChange(-1)}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="font-semibold">{currentYear}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => handleYearChange(1)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  {/* Month Grid */}
+                  <ScrollArea className="h-auto max-h-64 overscroll-contain">
+                    <div 
+                      className="grid grid-cols-3 gap-1 p-2"
+                      style={{ WebkitOverflowScrolling: 'touch' }}
+                    >
+                      {MONTHS.map((month, index) => {
+                        const isSelected = index === currentMonth;
+                        const isCurrentMonth = index === new Date().getMonth() && currentYear === new Date().getFullYear();
+                        
+                        return (
+                          <button
+                            key={month}
+                            onClick={() => handleMonthSelect(index)}
+                            className={cn(
+                              "relative px-2 py-2.5 text-sm rounded-md transition-colors",
+                              "hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring",
+                              isSelected && "bg-primary text-primary-foreground hover:bg-primary/90",
+                              !isSelected && isCurrentMonth && "bg-primary/10 font-medium",
+                              !isSelected && !isCurrentMonth && "hover:bg-muted"
+                            )}
+                          >
+                            {month.substring(0, 3)}
+                            {isSelected && (
+                              <Check className="absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+              
               <Button variant="ghost" size="icon" onClick={nextMonth}>
                 <ChevronRight className="h-5 w-5" />
               </Button>
