@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield } from 'lucide-react';
+import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield, Palette } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import { ThemeSelector } from '@/components/theme/ThemeSelector';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useAdmin';
 
@@ -83,6 +84,19 @@ const ProfilePage = () => {
       </header>
 
       <main className="p-4 -mt-6 space-y-4">
+        {/* Appearance - Theme */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              {t('profile.appearance')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ThemeSelector />
+          </CardContent>
+        </Card>
+
         {/* Language */}
         <Card>
           <CardHeader className="pb-3">

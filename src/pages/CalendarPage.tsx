@@ -1,7 +1,18 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isSameMonth, 
+  isSameDay, 
+  isToday,
+  startOfWeek,
+  endOfWeek,
+} from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,10 +21,12 @@ import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
 import EmptyState from '@/components/common/EmptyState';
 import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
-import { useEvents } from '@/hooks/useEvents';
+import { useCalendarOccurrences } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+
+const TIMEZONE = 'Europe/Madrid';
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
@@ -29,19 +42,18 @@ const CalendarPage = () => {
   const [eventSource, setEventSource] = useState<'all' | 'favorites'>('all');
   const { isAuthenticated } = useAuthContext();
 
-  // Get start and end of current month for fetching
+  // Calculate grid range (includes days from prev/next month visible in grid)
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 }); // Sunday
+  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  
+  // All days in the month grid
+  const allGridDays = eachDayOfInterval({ start: gridStart, end: gridEnd });
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Fetch events for the month
-  const { data: events, isLoading } = useEvents({
-    filters: {
-      dateFrom: monthStart,
-      dateTo: monthEnd,
-      categories: [],
-    },
-  });
+  // Fetch occurrences for the visible grid range
+  const { data: occurrencesGrouped, occurrences, isLoading } = useCalendarOccurrences(gridStart, gridEnd);
 
   // Favorites
   const { data: favorites } = useFavorites();
@@ -59,37 +71,58 @@ const CalendarPage = () => {
   };
 
   // Filter by source (all or favorites)
-  const filteredEvents = useMemo(() => {
-    if (!events) return [];
+  const filteredOccurrences = useMemo(() => {
+    if (!occurrences) return [];
     if (eventSource === 'favorites' && favorites) {
       const favoriteIds = new Set(favorites.map(f => f.event_id));
-      return events.filter(e => favoriteIds.has(e.id));
+      return occurrences.filter(occ => favoriteIds.has(occ.event_id));
     }
-    return events;
-  }, [events, eventSource, favorites]);
+    return occurrences;
+  }, [occurrences, eventSource, favorites]);
 
   // Get day of week for first day (0 = Sunday)
   const startDayOfWeek = monthStart.getDay();
   const emptyDays = Array.from({ length: startDayOfWeek }, (_, i) => i);
 
-  const getEventsForDay = (date: Date) => {
-    return filteredEvents.filter((event) => isSameDay(new Date(event.start_at), date));
+  // Get occurrences for a specific day (using Europe/Madrid timezone)
+  const getOccurrencesForDay = (date: Date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return filteredOccurrences.filter((occ) => {
+      // Parse the occurrence datetime and convert to Madrid timezone
+      const occDate = toZonedTime(new Date(occ.start_datetime), TIMEZONE);
+      const occDateKey = format(occDate, 'yyyy-MM-dd');
+      return occDateKey === dateKey;
+    });
   };
 
-  // Get events with counts per day for the month
+  // Get event count per day for the dots
   const daysWithEvents = useMemo(() => {
     const map = new Map<string, number>();
-    filteredEvents.forEach(event => {
-      const dateKey = format(new Date(event.start_at), 'yyyy-MM-dd');
+    filteredOccurrences.forEach(occ => {
+      const occDate = toZonedTime(new Date(occ.start_datetime), TIMEZONE);
+      const dateKey = format(occDate, 'yyyy-MM-dd');
       map.set(dateKey, (map.get(dateKey) || 0) + 1);
     });
     return map;
-  }, [filteredEvents]);
+  }, [filteredOccurrences]);
 
-  const selectedDayEvents = selectedDate ? getEventsForDay(selectedDate) : [];
+  const selectedDayOccurrences = selectedDate ? getOccurrencesForDay(selectedDate) : [];
 
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+
+  // For list view, get unique events from occurrences (deduped by event_id)
+  const uniqueEventsForList = useMemo(() => {
+    const seen = new Set<string>();
+    return filteredOccurrences
+      .filter(occ => {
+        if (seen.has(occ.event_id)) return false;
+        seen.add(occ.event_id);
+        return true;
+      })
+      .map(occ => occ.event)
+      .filter(Boolean);
+  }, [filteredOccurrences]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,7 +184,7 @@ const CalendarPage = () => {
                   {emptyDays.map((_, i) => (
                     <div key={`empty-${i}`} className="aspect-square" />
                   ))}
-                  {days.map((day) => {
+                  {monthDays.map((day) => {
                     const dateKey = format(day, 'yyyy-MM-dd');
                     const eventCount = daysWithEvents.get(dateKey) || 0;
                     const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -194,13 +227,13 @@ const CalendarPage = () => {
                     <EventCardSkeleton />
                     <EventCardSkeleton />
                   </div>
-                ) : selectedDayEvents.length > 0 ? (
-                  selectedDayEvents.map((event) => (
+                ) : selectedDayOccurrences.length > 0 ? (
+                  selectedDayOccurrences.map((occ) => occ.event && (
                     <EventCard 
-                      key={event.id} 
-                      event={event} 
+                      key={occ.id} 
+                      event={occ.event} 
                       compact
-                      isFavorite={isFavorite(event.id)}
+                      isFavorite={isFavorite(occ.event_id)}
                       onToggleFavorite={handleToggleFavorite}
                     />
                   ))
@@ -223,8 +256,8 @@ const CalendarPage = () => {
                 <EventCardSkeleton />
                 <EventCardSkeleton />
               </>
-            ) : filteredEvents.length > 0 ? (
-              filteredEvents.map((event) => (
+            ) : uniqueEventsForList.length > 0 ? (
+              uniqueEventsForList.map((event) => event && (
                 <EventCard 
                   key={event.id} 
                   event={event}
