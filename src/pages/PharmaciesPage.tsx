@@ -117,14 +117,14 @@ const PharmaciesPage = () => {
           <TabsList className="grid w-full grid-cols-2 bg-white/20">
             <TabsTrigger 
               value="duty" 
-              className="data-[state=active]:bg-white data-[state=active]:text-green-600"
+              className="text-white/90 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
               <Clock className="h-4 w-4 mr-2" />
               {t('pharmacies.onDuty')}
             </TabsTrigger>
             <TabsTrigger 
               value="all"
-              className="data-[state=active]:bg-white data-[state=active]:text-green-600"
+              className="text-white/90 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
               <Filter className="h-4 w-4 mr-2" />
               {t('pharmacies.all')}

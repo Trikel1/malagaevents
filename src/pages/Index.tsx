@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 import CategoryChip from '@/components/events/CategoryChip';
 import EventCard from '@/components/events/EventCard';
 import EmptyState from '@/components/common/EmptyState';
@@ -49,10 +50,10 @@ const Index = () => {
   };
 
   const quickActions = [
-    { icon: Calendar, label: t('common.today'), color: 'bg-primary text-primary-foreground', action: () => navigate('/events?filter=today') },
-    { icon: Calendar, label: t('common.thisWeekend'), color: 'bg-secondary text-secondary-foreground', action: () => navigate('/events?filter=weekend') },
-    { icon: MapPin, label: t('common.nearby'), color: 'bg-accent text-accent-foreground', action: () => navigate('/events?filter=nearby') },
-    { icon: Pill, label: t('pharmacies.short'), color: 'bg-green-500 text-white', action: () => navigate('/pharmacies') },
+    { icon: Calendar, label: t('common.today'), action: () => navigate('/events?filter=today') },
+    { icon: Calendar, label: t('common.thisWeekend'), action: () => navigate('/events?filter=weekend') },
+    { icon: MapPin, label: t('common.nearby'), action: () => navigate('/events?filter=nearby') },
+    { icon: Pill, label: t('pharmacies.short'), action: () => navigate('/pharmacies') },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -68,7 +69,10 @@ const Index = () => {
       <header className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800 text-white p-6 pb-14 rounded-b-3xl">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Málaga Events</h1>
-          <LanguageSelector variant="compact" />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSelector variant="compact" />
+          </div>
         </div>
         
         {/* Search */}
@@ -84,16 +88,16 @@ const Index = () => {
       </header>
 
       <main className="px-4 -mt-6 space-y-6">
-        {/* Quick Actions */}
-        <div className="grid grid-cols-4 gap-4 py-2">
+        {/* Quick Actions - Glass/Tech Style */}
+        <div className="grid grid-cols-4 gap-3 py-2">
           {quickActions.map((action, i) => (
             <button
               key={i}
               onClick={action.action}
               className="flex flex-col items-center gap-2 group"
             >
-              <div className={`p-4 rounded-2xl ${action.color} shadow-lg group-hover:scale-110 group-active:scale-95 transition-transform duration-200`}>
-                <action.icon className="h-6 w-6" />
+              <div className="p-4 rounded-2xl bg-background/40 backdrop-blur-md border border-border/60 shadow-sm hover:shadow-lg hover:bg-accent/10 group-hover:scale-105 group-active:scale-95 transition-all duration-200">
+                <action.icon className="h-6 w-6 text-primary" />
               </div>
               <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
                 {action.label}

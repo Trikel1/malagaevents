@@ -45,11 +45,22 @@ const SOURCE_CONFIGS: Record<string, Partial<SourceConfig>> = {
     useHeadless: false, // Disable headless - too slow
   },
   'paris-15': {
-    maxRetries: 3,
-    initialDelayMs: 2000,
-    requestDelayMs: 2500,
+    maxRetries: 2, // Reduced retries since WP API fallback is faster
+    initialDelayMs: 1500,
+    requestDelayMs: 2000,
     jitterMs: 500,
-    totalTimeoutMs: 45000,
+    totalTimeoutMs: 30000, // Shorter timeout, will fallback to WP API
+    useHeadless: false,
+    alternativeEndpoint: 'https://paris15.es/wp-json/tribe/events/v1/events', // WordPress Events Calendar API
+  },
+  'la-cochera-cabaret': {
+    maxRetries: 2,
+    totalTimeoutMs: 30000,
+    useHeadless: false,
+  },
+  'la-termica': {
+    maxRetries: 2,
+    totalTimeoutMs: 30000,
     useHeadless: false,
   },
 };
@@ -780,7 +791,11 @@ async function syncSingleSource(
     
     const extractionPrompt = `Extrae TODOS los eventos de esta página de programación. Para cada evento: title, description (breve), occurrences (TODAS las fechas en formato DD/MM/YYYY y hora HH:MM para los próximos 6 meses), venue, city, image_url, ticket_url, price.`;
     
-    const scrapeResult = await scrapeWithConfig(
+    let events: any[] = [];
+    let scrapeResult: { success: boolean; data?: any; error?: string; attempts: number; totalTimeMs: number } | null = null;
+    
+    // Try main scrape first
+    scrapeResult = await scrapeWithConfig(
       urlToScrape,
       extractionPrompt,
       firecrawlApiKey,
@@ -792,22 +807,63 @@ async function syncSingleSource(
     result.totalTimeMs = scrapeResult.totalTimeMs;
     result.urlExamples = logger.getUrlExamples();
     
-    if (!scrapeResult.success) {
-      if (scrapeResult.error?.includes('Throttled')) {
-        result.status = 'throttled';
-      }
-      result.error = scrapeResult.error;
-      throw new Error(scrapeResult.error);
-    }
-    
-    // Extract events
-    let events: any[] = [];
-    if (scrapeResult.data?.success && scrapeResult.data?.data) {
+    // Extract events from main scrape
+    if (scrapeResult.success && scrapeResult.data?.success && scrapeResult.data?.data) {
       if (scrapeResult.data.data.json?.events) {
         events = scrapeResult.data.data.json.events;
       } else if (scrapeResult.data.data.events) {
         events = scrapeResult.data.data.events;
       }
+    }
+    
+    // If main scrape failed or no events, try WordPress API fallback for sources that have it
+    if ((events.length === 0 || !scrapeResult.success) && config.alternativeEndpoint) {
+      logger.info('scrape', `Trying WordPress API fallback: ${config.alternativeEndpoint}`);
+      
+      try {
+        const wpResponse = await fetch(config.alternativeEndpoint, {
+          headers: { 'Accept': 'application/json' },
+        });
+        
+        if (wpResponse.ok) {
+          const wpData = await wpResponse.json();
+          
+          // Handle WordPress Tribe Events API format
+          if (wpData.events && Array.isArray(wpData.events)) {
+            events = wpData.events.map((e: any) => ({
+              title: e.title || e.name,
+              description: e.description?.replace(/<[^>]*>/g, '').substring(0, 400),
+              occurrences: [{
+                date: e.start_date ? new Date(e.start_date).toLocaleDateString('es-ES') : null,
+                time: e.start_date ? new Date(e.start_date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : null,
+              }].filter(o => o.date),
+              venue: e.venue?.venue || source.default_venue,
+              city: e.venue?.city || source.default_location,
+              image_url: e.image?.url,
+              ticket_url: e.website || e.url,
+              price: e.cost,
+              is_free: e.cost === '' || e.cost === 'Free' || e.cost === 'Gratis',
+            }));
+            
+            logger.info('scrape', `WordPress API returned ${events.length} events`);
+            logger.setUrlExample('listado', config.alternativeEndpoint);
+            scrapeResult = { success: true, data: { events }, attempts: 1, totalTimeMs: Date.now() - startTime };
+          }
+        } else {
+          logger.warn('scrape', `WordPress API failed: ${wpResponse.status}`);
+        }
+      } catch (wpError) {
+        logger.warn('scrape', `WordPress API error: ${wpError instanceof Error ? wpError.message : 'Unknown'}`);
+      }
+    }
+    
+    // If still no events and main scrape failed, throw error
+    if (events.length === 0 && !scrapeResult.success) {
+      if (scrapeResult.error?.includes('Throttled')) {
+        result.status = 'throttled';
+      }
+      result.error = scrapeResult.error;
+      throw new Error(scrapeResult.error);
     }
     
     events = events.filter((e: any) => e.title && isValidEventTitle(e.title));
@@ -816,9 +872,9 @@ async function syncSingleSource(
     logger.info('parse', `Found ${events.length} valid events`);
     
     if (events.length === 0) {
-      logger.warn('parse', 'No valid events found - possible JS rendering issue');
+      logger.warn('parse', 'No valid events found - possible JS rendering issue or empty calendar');
       result.status = 'partial';
-      result.error = 'No events extracted (possible JS rendering)';
+      result.error = 'No events extracted (possible JS rendering or empty calendar)';
     } else {
       // Process events
       for (const event of events) {
@@ -830,6 +886,7 @@ async function syncSingleSource(
         
         if (occurrences.length === 0) {
           result.skipped++;
+          logger.debug('persist', `Skipped event without dates: ${event.title?.substring(0, 50)}`);
           continue;
         }
         
@@ -839,8 +896,10 @@ async function syncSingleSource(
           result.skipped++;
         } else if (upsertResult.inserted) {
           result.inserted++;
+          logger.debug('persist', `Inserted: ${event.title?.substring(0, 50)}`);
         } else if (upsertResult.updated) {
           result.updated++;
+          logger.debug('persist', `Updated: ${event.title?.substring(0, 50)}`);
         }
         
         result.occurrencesCreated += upsertResult.occurrences_created;
