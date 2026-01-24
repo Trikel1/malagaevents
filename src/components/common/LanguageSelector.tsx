@@ -21,9 +21,8 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
   if (variant === 'compact') {
     return (
       <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
-        <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-white/10 gap-1 px-2 py-1 h-auto focus:ring-0 focus:ring-offset-0">
+        <SelectTrigger className="w-auto border-0 bg-transparent hover:bg-white/10 px-2 py-1 h-auto focus:ring-0 focus:ring-offset-0 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:opacity-70">
           <span className="text-2xl">{currentLang.flag}</span>
-          <ChevronDown className="h-4 w-4 opacity-70" />
         </SelectTrigger>
         <SelectContent className="bg-popover z-50 min-w-[160px]">
           {languages.map((lang) => (
