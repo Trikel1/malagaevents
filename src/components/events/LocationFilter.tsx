@@ -62,12 +62,12 @@ const LocationFilter = ({
       variant={selectedLocationIds.length > 0 ? 'default' : 'ghost'} 
       size="sm"
       className={cn(
-        "h-9 px-2.5 gap-1.5 relative",
+        "h-9 px-2.5 gap-1.5 relative whitespace-nowrap",
         selectedLocationIds.length > 0 && "shadow-sm"
       )}
     >
-      <MapPin className="h-4 w-4" />
-      <span className="text-sm hidden xs:inline">{t('events.locations', 'Localidades')}</span>
+      <MapPin className="h-4 w-4 shrink-0" />
+      <span className="text-sm">{t('events.locations', 'Localidades')}</span>
       {selectedLocationIds.length > 0 && (
         <Badge 
           variant="secondary" 

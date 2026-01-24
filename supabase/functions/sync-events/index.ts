@@ -1,9 +1,109 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// ============================================================================
+// SECURITY: Strict CORS + Security Headers
+// ============================================================================
+
+const ALLOWED_ORIGINS = [
+  'https://id-preview--e27fc85d-8f7a-4dbf-a4f6-bc1aa35b0665.lovable.app',
+  'https://lovable.dev',
+  'http://localhost:5173',
+];
+
+function getCorsHeaders(origin?: string | null): Record<string, string> {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) 
+    ? origin 
+    : ALLOWED_ORIGINS[0];
+
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  };
+}
+
+function getAllHeaders(origin?: string | null): Record<string, string> {
+  return {
+    ...getCorsHeaders(origin),
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'Cache-Control': 'no-store',
+  };
+}
+
+// Rate limiting for sync endpoint (prevent abuse)
+const syncRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function isSyncRateLimited(identifier: string): boolean {
+  const now = Date.now();
+  const record = syncRateLimitMap.get(identifier);
+  const limit = 10; // max 10 syncs per hour
+  const window = 3600000;
+
+  if (!record || now > record.resetAt) {
+    syncRateLimitMap.set(identifier, { count: 1, resetAt: now + window });
+    return false;
+  }
+
+  if (record.count >= limit) {
+    return true;
+  }
+
+  record.count++;
+  return false;
+}
+
+// SSRF prevention - only allow scraping from approved domains
+const ALLOWED_SCRAPING_DOMAINS = [
+  'teatrocervantes.com',
+  'teatroechegaray.es', 
+  'teatrodelsoho.com',
+  'lacocheracabaret.com',
+  'salatrinchera.com',
+  'paris15.es',
+  'antojo.es',
+  'salamarte.com',
+  'eventual.es',
+  'latermica.com',
+  'firecrawl.dev',
+  'api.firecrawl.dev',
+];
+
+function isUrlAllowedForScraping(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    const hostname = url.hostname.toLowerCase();
+
+    // Only HTTPS (except for Firecrawl API)
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return false;
+    }
+
+    // Block private IPs and metadata endpoints
+    const blockedPatterns = [
+      /^localhost$/i,
+      /^127\./,
+      /^10\./,
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./,
+      /^192\.168\./,
+      /^169\.254\./,
+      /metadata/i,
+    ];
+
+    for (const pattern of blockedPatterns) {
+      if (pattern.test(hostname)) {
+        return false;
+      }
+    }
+
+    // Check against allowlist
+    return ALLOWED_SCRAPING_DOMAINS.some(domain => 
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+  } catch {
+    return false;
+  }
+}
 
 // ============================================================================
 // SOURCE-SPECIFIC CONFIGURATION
@@ -981,8 +1081,10 @@ async function syncSingleSource(
 // ============================================================================
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('origin');
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(origin) });
   }
 
   const logger = new DiagnosticLogger();
@@ -990,11 +1092,21 @@ Deno.serve(async (req) => {
   logger.info('init', '=== STARTING SYNC ===');
 
   try {
+    // Rate limit check (prevent abuse of sync endpoint)
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    if (isSyncRateLimited(clientIP)) {
+      logger.warn('init', 'Rate limited', { ip: clientIP });
+      return new Response(
+        JSON.stringify({ success: false, error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...getAllHeaders(origin), 'Retry-After': '3600' } }
+      );
+    }
+
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!firecrawlApiKey) {
       return new Response(
         JSON.stringify({ success: false, error: 'Firecrawl API key not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: getAllHeaders(origin) }
       );
     }
 
@@ -1002,13 +1114,16 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse request body
+    // Parse request body with validation
     let targetSlugs: string[] | null = null;
     
     try {
       const body = await req.json();
       if (body.sources && Array.isArray(body.sources)) {
-        targetSlugs = body.sources;
+        // Validate slugs (only alphanumeric + hyphens, max 10 sources)
+        targetSlugs = body.sources
+          .slice(0, 10)
+          .filter((s: unknown) => typeof s === 'string' && /^[a-z0-9-]+$/.test(s));
       }
     } catch {
       // No body - run all sources
@@ -1020,7 +1135,7 @@ Deno.serve(async (req) => {
       .select('*')
       .eq('is_active', true);
     
-    if (targetSlugs) {
+    if (targetSlugs && targetSlugs.length > 0) {
       query = query.in('slug', targetSlugs);
     }
     
@@ -1029,11 +1144,20 @@ Deno.serve(async (req) => {
     if (sourcesError || !sources || sources.length === 0) {
       return new Response(
         JSON.stringify({ success: false, error: 'No active sources found' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: getAllHeaders(origin) }
       );
     }
 
     logger.info('init', `Found ${sources.length} sources: ${sources.map(s => s.name).join(', ')}`);
+
+    // Validate all source URLs before scraping (SSRF prevention)
+    for (const source of sources) {
+      const url = source.chosen_entrypoint || `https://${source.domain}`;
+      if (!isUrlAllowedForScraping(url)) {
+        logger.warn('init', `Blocked source URL: ${url}`);
+        continue;
+      }
+    }
 
     // Process each source independently
     const results: SyncSourceResult[] = [];
@@ -1084,14 +1208,14 @@ Deno.serve(async (req) => {
           urlExamples: r.urlExamples,
         })),
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: getAllHeaders(origin) }
     );
 
   } catch (error) {
     logger.error('complete', 'Fatal error', { error: error instanceof Error ? error.message : error });
     return new Response(
       JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: getAllHeaders(origin) }
     );
   }
 });

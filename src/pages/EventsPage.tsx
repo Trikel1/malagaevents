@@ -165,10 +165,10 @@ const EventsPage = () => {
                 variant="ghost" 
                 size="sm"
                 onClick={() => setIsFilterOpen(true)}
-                className="h-9 px-2.5 gap-1.5 relative"
+                className="h-9 px-2.5 gap-1.5 relative whitespace-nowrap"
               >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="text-sm hidden xs:inline">{t('events.filters', 'Filtros')}</span>
+                <SlidersHorizontal className="h-4 w-4 shrink-0" />
+                <span className="text-sm">{t('events.filters', 'Filtros')}</span>
                 {activeFilterCount > 0 && (
                   <Badge 
                     variant="secondary" 
@@ -184,10 +184,10 @@ const EventsPage = () => {
                 variant={showSearchInput ? 'default' : 'ghost'} 
                 size="sm"
                 onClick={() => setShowSearchInput(!showSearchInput)}
-                className="h-9 px-2.5 gap-1.5"
+                className="h-9 px-2.5 gap-1.5 whitespace-nowrap"
               >
-                <Search className="h-4 w-4" />
-                <span className="text-sm hidden xs:inline">{t('common.search', 'Buscar')}</span>
+                <Search className="h-4 w-4 shrink-0" />
+                <span className="text-sm">{t('common.search', 'Buscar')}</span>
               </Button>
             </div>
           </div>
