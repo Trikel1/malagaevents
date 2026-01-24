@@ -1,9 +1,50 @@
 import { useState, useMemo } from 'react';
-import { Calendar, X } from 'lucide-react';
+import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+
+// Event type for category-specific fallbacks
+export type EventType = 'music' | 'theater' | 'comedy' | 'festival' | 'nightlife' | 'other';
+
+// Category-specific fallback configurations
+const CATEGORY_FALLBACKS: Record<EventType, { 
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  label: string;
+}> = {
+  music: {
+    icon: Music,
+    gradient: 'from-violet-500/30 via-purple-500/20 to-fuchsia-500/30',
+    label: 'Música',
+  },
+  theater: {
+    icon: Theater,
+    gradient: 'from-rose-500/30 via-red-500/20 to-orange-500/30',
+    label: 'Teatro',
+  },
+  comedy: {
+    icon: Mic2,
+    gradient: 'from-amber-500/30 via-yellow-500/20 to-orange-500/30',
+    label: 'Comedia',
+  },
+  festival: {
+    icon: PartyPopper,
+    gradient: 'from-cyan-500/30 via-teal-500/20 to-emerald-500/30',
+    label: 'Festival',
+  },
+  nightlife: {
+    icon: Sparkles,
+    gradient: 'from-indigo-500/30 via-blue-500/20 to-purple-500/30',
+    label: 'Noche',
+  },
+  other: {
+    icon: Calendar,
+    gradient: 'from-primary/20 to-secondary/20',
+    label: 'Evento',
+  },
+};
 
 export type EventImageVariant = 'card' | 'list' | 'grid' | 'detail' | 'hero' | 'compact';
 
@@ -16,6 +57,8 @@ interface EventImageProps {
   className?: string;
   showLightbox?: boolean;
   priority?: boolean;
+  eventType?: EventType;
+  category?: string;
 }
 
 // Aspect ratios per variant (16:9 for consistency)
@@ -132,6 +175,18 @@ const getDefaultSrc = (src: string, variant: EventImageVariant): string => {
   return optimizedUrl || src;
 };
 
+// Helper to determine event type from category string
+const getEventTypeFromCategory = (category?: string): EventType => {
+  if (!category) return 'other';
+  const cat = category.toLowerCase();
+  if (cat.includes('music') || cat.includes('concierto') || cat.includes('música')) return 'music';
+  if (cat.includes('theater') || cat.includes('teatro')) return 'theater';
+  if (cat.includes('comedy') || cat.includes('comedia') || cat.includes('humor')) return 'comedy';
+  if (cat.includes('festival')) return 'festival';
+  if (cat.includes('nightlife') || cat.includes('noche') || cat.includes('fiesta') || cat.includes('party')) return 'nightlife';
+  return 'other';
+};
+
 const EventImage = ({
   src,
   alt,
@@ -141,10 +196,15 @@ const EventImage = ({
   className,
   showLightbox = false,
   priority = false,
+  eventType,
+  category,
 }: EventImageProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  
+  // Determine the event type for fallback styling
+  const resolvedEventType: EventType = eventType || getEventTypeFromCategory(category);
 
   const finalAspectRatio = aspectRatio || ASPECT_RATIOS[variant];
   const isCompact = variant === 'compact';
@@ -174,14 +234,25 @@ const EventImage = ({
     };
   }, [src, variant]);
 
-  // Fallback placeholder component
-  const FallbackPlaceholder = () => (
-    fallback || (
-      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
-        <Calendar className="h-10 w-10 text-muted-foreground/50" />
+  // Fallback placeholder component with category-specific styling
+  const FallbackPlaceholder = () => {
+    if (fallback) return <>{fallback}</>;
+    
+    const config = CATEGORY_FALLBACKS[resolvedEventType];
+    const IconComponent = config.icon;
+    
+    return (
+      <div className={cn(
+        "w-full h-full flex flex-col items-center justify-center bg-gradient-to-br",
+        config.gradient
+      )}>
+        <IconComponent className="h-12 w-12 text-foreground/40 mb-2" />
+        <span className="text-xs font-medium text-foreground/50 uppercase tracking-wider">
+          {config.label}
+        </span>
       </div>
-    )
-  );
+    );
+  };
 
   // Loading skeleton
   const LoadingSkeleton = () => (

@@ -141,6 +141,7 @@ END:VCALENDAR`;
           src={event.image_url}
           alt={event.title}
           variant="detail"
+          category={event.category}
           showLightbox={!!event.image_url}
           priority
         />

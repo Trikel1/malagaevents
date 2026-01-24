@@ -13,7 +13,9 @@ interface SourceAdapter {
   name: string;
   slug: string;
   url: string;
+  programUrl?: string; // Some sites have a separate programming page
   category: string;
+  eventType: string;
   defaultVenue: string;
   defaultLocation: string;
   extractionPrompt: string;
@@ -24,116 +26,150 @@ const SOURCE_ADAPTERS: SourceAdapter[] = [
     name: 'Teatro del Soho CaixaBank',
     slug: 'teatro-soho',
     url: 'https://teatrodelsoho.com/',
+    programUrl: 'https://teatrodelsoho.com/programacion/',
     category: 'theater',
+    eventType: 'theater',
     defaultVenue: 'Teatro del Soho CaixaBank',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extract ALL theater shows/events from this page. For each show:
-- title: exact show name
-- description: brief description
-- dates: ALL performance dates (may be a range like "del 15 al 30 de enero" - list each date)
-- times: ALL showtimes for each date (e.g., "20:00", "17:00 y 20:00")
-- image_url: main poster/image
-- ticket_url: link to buy tickets
-- price: ticket price if shown
-For shows with multiple dates/times, list EACH occurrence separately.`,
+    extractionPrompt: `IMPORTANTE: Extrae TODOS los espectáculos/obras de teatro de esta página de programación.
+Para CADA espectáculo, proporciona:
+- title: nombre exacto del espectáculo (ej: "El médico", "Nine", "Malinche")
+- description: sinopsis o descripción breve (máximo 400 caracteres)
+- occurrences: LISTA de TODAS las fechas y horas de funciones. Si hay un rango "del 15 al 30 de enero", convierte a fechas individuales. Formatos aceptados: DD/MM/YYYY para fecha, HH:MM para hora.
+- image_url: URL completa del cartel/imagen principal del espectáculo
+- ticket_url: enlace para comprar entradas
+- price: precio de las entradas si aparece
+- venue: "Teatro del Soho CaixaBank" siempre
+- is_free: false (casi todos son de pago)
+
+CRÍTICO: Captura CADA función individual con su fecha y hora. Un espectáculo puede tener múltiples funciones.`,
   },
   {
     name: 'Teatro Cervantes',
     slug: 'teatro-cervantes',
     url: 'https://www.teatrocervantes.com/',
+    programUrl: 'https://www.teatrocervantes.com/es/programacion',
     category: 'theater',
+    eventType: 'theater',
     defaultVenue: 'Teatro Cervantes',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extract ALL theater/dance/music events from the programming. For each event:
-- title: exact event name
-- description: brief description
-- dates: ALL performance dates (convert ranges to individual dates)
-- times: ALL showtimes
-- venue: specific hall/sala if mentioned (Cervantes, Echegaray)
-- image_url: event poster
-- ticket_url: purchase link
-- price: ticket prices
-List EACH date+time as a separate occurrence.`,
+    extractionPrompt: `IMPORTANTE: Extrae TODOS los eventos de la programación del Teatro Cervantes y Teatro Echegaray.
+Para CADA evento (teatro, danza, música, circo, etc.):
+- title: nombre exacto del espectáculo
+- description: descripción breve (máximo 400 caracteres)
+- occurrences: TODAS las fechas y horas de las funciones. Convierte rangos a fechas individuales.
+- venue: especifica si es "Teatro Cervantes" o "Teatro Echegaray"
+- image_url: cartel o imagen del evento
+- ticket_url: enlace de venta de entradas
+- price: precios disponibles
+- is_free: true solo si es entrada gratuita
+
+CRÍTICO: Cada función en una fecha diferente debe ser una occurrence separada.`,
   },
   {
     name: 'Sala Eventual',
     slug: 'eventual-music',
     url: 'https://www.eventualmusic.com/',
+    programUrl: 'https://www.eventualmusic.com/agenda',
     category: 'music',
+    eventType: 'music',
     defaultVenue: 'Sala Eventual',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extract ALL concerts/events from this music venue page. For each event:
-- title: artist/band name + event title
-- description: event description
-- date: concert date
-- time: doors open / start time
-- image_url: event flyer/poster
-- ticket_url: ticket purchase link
-- price: ticket price`,
+    extractionPrompt: `Extrae TODOS los conciertos y eventos musicales de la agenda.
+Para CADA concierto:
+- title: nombre del artista/banda + título del evento si existe
+- description: información del concierto (máximo 400 caracteres)
+- occurrences: fecha y hora del concierto (formato DD/MM/YYYY y HH:MM)
+- image_url: flyer o imagen promocional del evento
+- ticket_url: enlace para comprar entradas
+- price: precio de la entrada
+- is_free: true solo si es entrada libre
+
+Incluye todos los géneros: rock, indie, electrónica, jazz, etc.`,
   },
   {
     name: 'Sala Trinchera',
     slug: 'sala-trinchera',
     url: 'https://salatrinchera.com/',
+    programUrl: 'https://salatrinchera.com/agenda/',
     category: 'music',
+    eventType: 'music',
     defaultVenue: 'Sala Trinchera',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extract ALL concerts/events from this venue. For each:
-- title: artist/event name
-- description: event info
-- date: event date
-- time: start time
-- image_url: event image/flyer
-- ticket_url: ticket link
-- price: entry price`,
+    extractionPrompt: `Extrae TODOS los eventos y conciertos de la agenda de Sala Trinchera.
+Para CADA evento:
+- title: nombre del artista/evento
+- description: información del evento (máximo 400 caracteres)
+- occurrences: fecha y hora (DD/MM/YYYY, HH:MM)
+- image_url: cartel o flyer del evento
+- ticket_url: link de entradas
+- price: precio
+- is_free: si es entrada gratuita
+
+Captura conciertos, fiestas, jam sessions, etc.`,
   },
   {
     name: 'París 15',
     slug: 'paris-15',
     url: 'https://paris15.es/',
-    category: 'music',
+    programUrl: 'https://paris15.es/agenda/',
+    category: 'nightlife',
+    eventType: 'nightlife',
     defaultVenue: 'París 15',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extract ALL upcoming events/concerts/parties from this venue. For each:
-- title: event/artist name
-- description: event description
-- date: event date
-- time: start time
-- image_url: event poster/flyer
-- ticket_url: ticket purchase link
-- price: entry price`,
+    extractionPrompt: `Extrae TODOS los eventos, fiestas y conciertos de París 15.
+Para CADA evento:
+- title: nombre del evento o artista
+- description: descripción del evento (máximo 400 caracteres)
+- occurrences: fecha y hora del evento (DD/MM/YYYY, HH:MM)
+- image_url: cartel promocional
+- ticket_url: enlace de entradas si existe
+- price: precio de entrada
+- is_free: si es entrada libre
+
+Incluye DJ sets, fiestas temáticas, conciertos, etc.`,
   },
   {
     name: 'Sala Marte',
     slug: 'sala-marte',
     url: 'https://salamartemalaga.com/',
+    programUrl: 'https://salamartemalaga.com/agenda/',
     category: 'music',
+    eventType: 'music',
     defaultVenue: 'Sala Marte',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extract ALL concerts/events from this venue page. For each:
-- title: artist/event name
-- description: event info
-- date: event date
-- time: doors/start time
-- image_url: event flyer
-- ticket_url: ticket link
-- price: entry fee`,
+    extractionPrompt: `Extrae TODOS los conciertos y eventos de Sala Marte.
+Para CADA evento:
+- title: nombre del artista/banda
+- description: información del concierto (máximo 400 caracteres)
+- occurrences: fecha y hora (DD/MM/YYYY, HH:MM)
+- image_url: flyer del concierto
+- ticket_url: link de venta
+- price: precio de entrada
+- is_free: true si entrada gratuita
+
+Captura todos los estilos musicales.`,
   },
   {
     name: 'Antojo Málaga',
     slug: 'antojo-malaga',
     url: 'https://antojomalaga.es/',
+    programUrl: 'https://antojomalaga.es/eventos/',
     category: 'music',
+    eventType: 'music',
     defaultVenue: 'Antojo Málaga',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extract ALL events/concerts from this venue. For each:
-- title: event/artist name
-- description: event details
-- date: event date
-- time: start time
-- image_url: event image
-- ticket_url: ticket link
-- price: entry price`,
+    extractionPrompt: `Extrae TODOS los eventos de Antojo Málaga.
+Para CADA evento:
+- title: nombre del evento o artista
+- description: descripción (máximo 400 caracteres)
+- occurrences: fecha y hora (DD/MM/YYYY, HH:MM)
+- image_url: imagen del evento
+- ticket_url: enlace de entradas
+- price: precio
+- is_free: si es gratuito
+
+Incluye conciertos, DJ sessions, eventos gastronómicos con música, etc.`,
   },
 ];
 
@@ -145,12 +181,14 @@ const VENUE_ALIASES: Record<string, string> = {
   'teatro del soho': 'Teatro del Soho CaixaBank',
   'teatro soho': 'Teatro del Soho CaixaBank',
   'soho caixabank': 'Teatro del Soho CaixaBank',
+  'soho': 'Teatro del Soho CaixaBank',
   'teatro cervantes': 'Teatro Cervantes',
   'cervantes': 'Teatro Cervantes',
   'teatro echegaray': 'Teatro Echegaray',
   'echegaray': 'Teatro Echegaray',
   'sala trinchera': 'Sala Trinchera',
   'trinchera': 'Sala Trinchera',
+  'la trinchera': 'Sala Trinchera',
   'cochera cabaret': 'Cochera Cabaret',
   'la cochera cabaret': 'Cochera Cabaret',
   'cochera': 'Cochera Cabaret',
@@ -176,7 +214,7 @@ const MALAGA_MUNICIPALITIES = [
 ];
 
 // ============================================================================
-// EXTRACTION SCHEMA
+// EXTRACTION SCHEMA FOR FIRECRAWL
 // ============================================================================
 
 const EVENT_EXTRACTION_SCHEMA = {
@@ -187,27 +225,27 @@ const EVENT_EXTRACTION_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          title: { type: 'string', description: 'Event/show name' },
-          description: { type: 'string', description: 'Brief description (max 500 chars)' },
+          title: { type: 'string', description: 'Nombre del evento/espectáculo' },
+          description: { type: 'string', description: 'Descripción breve (max 400 chars)' },
           occurrences: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                date: { type: 'string', description: 'Date in DD/MM/YYYY format' },
-                time: { type: 'string', description: 'Start time in HH:MM format' },
-                end_time: { type: 'string', description: 'End time if available' },
+                date: { type: 'string', description: 'Fecha en formato DD/MM/YYYY' },
+                time: { type: 'string', description: 'Hora en formato HH:MM' },
+                end_time: { type: 'string', description: 'Hora fin si disponible' },
               },
               required: ['date'],
             },
-            description: 'All dates/times when this event occurs',
+            description: 'Todas las fechas/horas cuando ocurre el evento',
           },
-          venue: { type: 'string', description: 'Venue/hall name' },
-          city: { type: 'string', description: 'City/town name' },
-          image_url: { type: 'string', description: 'Main event image URL' },
-          ticket_url: { type: 'string', description: 'Ticket purchase URL' },
-          price: { type: 'string', description: 'Ticket price' },
-          is_free: { type: 'boolean', description: 'Whether event is free' },
+          venue: { type: 'string', description: 'Nombre del venue/sala' },
+          city: { type: 'string', description: 'Ciudad/municipio' },
+          image_url: { type: 'string', description: 'URL de la imagen principal' },
+          ticket_url: { type: 'string', description: 'URL para comprar entradas' },
+          price: { type: 'string', description: 'Precio de las entradas' },
+          is_free: { type: 'boolean', description: 'Si es entrada gratuita' },
         },
         required: ['title'],
       },
@@ -231,6 +269,7 @@ function normalizeText(text: string): string {
 }
 
 function normalizeVenue(venueRaw: string, defaultVenue: string): string {
+  if (!venueRaw) return defaultVenue;
   const lower = venueRaw.toLowerCase().trim();
   return VENUE_ALIASES[lower] || defaultVenue;
 }
@@ -241,6 +280,8 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
   const months: Record<string, number> = {
     'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
     'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11,
+    'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
+    'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
   };
   
   let hour = 20, minute = 0;
@@ -253,8 +294,8 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     }
   }
   
-  // Spanish format: "15 de enero de 2025"
-  const spanishMatch = dateText.match(/(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?/i);
+  // Spanish format: "15 de enero de 2025" or "15 enero 2025"
+  const spanishMatch = dateText.match(/(\d{1,2})\s+(?:de\s+)?(\w+)(?:\s+(?:de\s+)?(\d{4}))?/i);
   if (spanishMatch) {
     const day = parseInt(spanishMatch[1]);
     const monthStr = spanishMatch[2].toLowerCase();
@@ -262,6 +303,7 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     if (!isNaN(day) && month !== undefined) {
       let year = spanishMatch[3] ? parseInt(spanishMatch[3]) : new Date().getFullYear();
       const date = new Date(year, month, day, hour, minute);
+      // If date is in the past and no year specified, assume next year
       if (date < new Date() && !spanishMatch[3]) {
         date.setFullYear(year + 1);
       }
@@ -269,14 +311,15 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     }
   }
   
-  // Numeric: "15/01/2025" or "15-01-2025"
-  const numericMatch = dateText.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  // Numeric: "15/01/2025" or "15-01-2025" or "15.01.2025"
+  const numericMatch = dateText.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
   if (numericMatch) {
     const day = parseInt(numericMatch[1]);
     const month = parseInt(numericMatch[2]) - 1;
     let year = parseInt(numericMatch[3]);
     if (year < 100) year += 2000;
-    return new Date(year, month, day, hour, minute);
+    const date = new Date(year, month, day, hour, minute);
+    return date;
   }
   
   // ISO: "2025-01-15"
@@ -289,24 +332,28 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
 }
 
 function cleanTitle(title: string): string {
+  if (!title) return '';
   return title
     .replace(/\[.*?\]/g, '')
     .replace(/\(https?:\/\/[^)]+\)/g, '')
+    .replace(/<[^>]*>/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .substring(0, 200);
 }
 
 function isValidEventTitle(title: string): boolean {
-  if (!title || title.length < 4 || title.length > 200) return false;
+  if (!title || title.length < 3 || title.length > 200) return false;
   
   const invalidPatterns = [
-    /^(menu|inicio|home|contacto|about|cookies|privacidad|legal|newsletter)/i,
-    /^(ver más|leer más|read more|see more|siguiente|anterior)/i,
-    /^(aceptar|rechazar|cerrar|close|accept|reject)/i,
-    /^(agenda|programación|programa|calendar|eventos)$/i,
-    /^(facebook|twitter|instagram|youtube|linkedin)/i,
+    /^(menu|menú|inicio|home|contacto|contact|about|cookies|privacidad|legal|newsletter)/i,
+    /^(ver más|leer más|read more|see more|siguiente|anterior|next|prev)/i,
+    /^(aceptar|rechazar|cerrar|close|accept|reject|ok|cancel)/i,
+    /^(agenda|programación|programa|calendar|eventos|events)$/i,
+    /^(facebook|twitter|instagram|youtube|linkedin|tiktok)/i,
+    /^(reservar|comprar|buy|book|tickets|entradas)$/i,
     /^\d+$/,
+    /^[^a-záéíóúñ]+$/i,
   ];
   
   for (const pattern of invalidPatterns) {
@@ -319,32 +366,58 @@ function isValidEventTitle(title: string): boolean {
 function normalizeImageUrl(url: string | undefined, baseUrl: string): string | undefined {
   if (!url) return undefined;
   
-  // Skip logos and icons
-  if (/logo|icon|favicon/i.test(url)) return undefined;
+  // Skip logos, icons, and very small likely placeholder images
+  if (/logo|icon|favicon|placeholder|default|avatar/i.test(url)) return undefined;
+  
+  // Skip data URIs that are likely placeholders
+  if (url.startsWith('data:')) return undefined;
   
   // Make absolute
-  if (url.startsWith('//')) {
-    url = 'https:' + url;
-  } else if (url.startsWith('/')) {
-    const base = new URL(baseUrl);
-    url = base.origin + url;
+  try {
+    if (url.startsWith('//')) {
+      url = 'https:' + url;
+    } else if (url.startsWith('/')) {
+      const base = new URL(baseUrl);
+      url = base.origin + url;
+    } else if (!url.startsWith('http')) {
+      const base = new URL(baseUrl);
+      url = base.origin + '/' + url;
+    }
+    
+    // Force HTTPS
+    url = url.replace(/^http:/, 'https:');
+    
+    // Validate URL
+    new URL(url);
+    return url;
+  } catch {
+    return undefined;
   }
-  
-  // Force HTTPS
-  url = url.replace(/^http:/, 'https:');
-  
-  return url;
 }
 
-function generateDedupeKey(sourceSlug: string, title: string, startAt: string): string {
-  const combined = `${sourceSlug}|${title}|${startAt}`;
+function generateDedupeKey(sourceSlug: string, title: string, venue: string): string {
+  const normalized = `${sourceSlug}|${normalizeText(title)}|${normalizeText(venue)}`;
   let hash = 0;
-  for (let i = 0; i < combined.length; i++) {
-    const char = combined.charCodeAt(i);
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
   return `${sourceSlug}_${Math.abs(hash).toString(36)}`;
+}
+
+function determineEventType(title: string, description: string, sourceEventType: string): string {
+  const text = `${title} ${description}`.toLowerCase();
+  
+  // Check for specific keywords
+  if (/comedia|comedy|monólogo|humor|stand.?up|risas/i.test(text)) return 'comedy';
+  if (/festival/i.test(text)) return 'festival';
+  if (/teatro|theatre|obra|musical|danza|dance|circo|circus/i.test(text)) return 'theater';
+  if (/dj|disco|fiesta|party|club|noche/i.test(text)) return 'nightlife';
+  if (/concierto|concert|música|music|banda|band|live|directo/i.test(text)) return 'music';
+  
+  // Default to source's event type
+  return sourceEventType;
 }
 
 // ============================================================================
@@ -352,7 +425,9 @@ function generateDedupeKey(sourceSlug: string, title: string, startAt: string): 
 // ============================================================================
 
 async function scrapeSource(adapter: SourceAdapter, apiKey: string): Promise<any> {
-  console.log(`Scraping ${adapter.name} from ${adapter.url}`);
+  // Use program URL if available, otherwise main URL
+  const urlToScrape = adapter.programUrl || adapter.url;
+  console.log(`Scraping ${adapter.name} from ${urlToScrape}`);
   
   const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
     method: 'POST',
@@ -361,24 +436,27 @@ async function scrapeSource(adapter: SourceAdapter, apiKey: string): Promise<any
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      url: adapter.url,
-      formats: ['markdown', 'json'],
+      url: urlToScrape,
+      formats: ['json'],
       jsonOptions: {
         schema: EVENT_EXTRACTION_SCHEMA,
         prompt: adapter.extractionPrompt,
       },
       onlyMainContent: true,
-      waitFor: 5000,
+      waitFor: 8000, // Wait for dynamic content
+      timeout: 60000,
     }),
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    console.error(`Firecrawl error for ${adapter.name}:`, error);
-    throw new Error(`Firecrawl request failed: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`Firecrawl error for ${adapter.name}:`, errorText);
+    throw new Error(`Firecrawl request failed: ${response.status} - ${errorText.substring(0, 200)}`);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log(`Firecrawl response for ${adapter.name}:`, JSON.stringify(result).substring(0, 500));
+  return result;
 }
 
 // ============================================================================
@@ -398,7 +476,12 @@ async function getOrCreateVenue(supabase: any, venueName: string, city: string):
   
   const { data: created, error } = await supabase
     .from('venues')
-    .insert({ name: venueName, normalized_name: normalized, city })
+    .insert({ 
+      name: venueName, 
+      normalized_name: normalized, 
+      city: city,
+      province: 'Málaga',
+    })
     .select('id')
     .single();
   
@@ -429,6 +512,7 @@ async function getOrCreateLocation(supabase: any, locationName: string): Promise
       name: locationName,
       normalized_name: normalized,
       province: 'Málaga',
+      country: 'ES',
       is_in_province_malaga: isInMalaga,
       is_enabled: true,
     })
@@ -448,55 +532,68 @@ async function upsertEventWithOccurrences(
   adapter: SourceAdapter,
   eventData: any,
   occurrences: Array<{ date: string; time?: string; end_time?: string }>
-): Promise<{ inserted: boolean; occurrences_created: number }> {
+): Promise<{ inserted: boolean; updated: boolean; occurrences_created: number; skipped: boolean }> {
   const title = cleanTitle(eventData.title);
+  if (!title) {
+    return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
+  }
+  
   const venueName = normalizeVenue(eventData.venue || '', adapter.defaultVenue);
   const locationName = eventData.city || adapter.defaultLocation;
+  const eventType = determineEventType(title, eventData.description || '', adapter.eventType);
   
   // Get or create venue and location
   const venueId = await getOrCreateVenue(supabase, venueName, locationName);
   const locationId = await getOrCreateLocation(supabase, locationName);
   
-  // Check if event exists by source + title
+  const dedupeKey = generateDedupeKey(adapter.slug, title, venueName);
+  
+  // Check if event exists by dedupe_key
   const { data: existingEvent } = await supabase
     .from('events')
     .select('id')
-    .eq('source', adapter.slug)
-    .eq('title', title)
+    .eq('dedupe_key', dedupeKey)
     .maybeSingle();
   
   let eventId: string;
   let isNew = false;
+  let isUpdated = false;
   
-  const isFree = eventData.is_free || 
+  const isFree = eventData.is_free === true || 
     (eventData.price && /gratis|free|entrada libre|0\s*€/i.test(eventData.price));
+  
+  const imageUrl = normalizeImageUrl(eventData.image_url, adapter.url);
+  const imageStatus = imageUrl ? 'ok' : 'missing';
   
   const eventPayload = {
     title,
     description: eventData.description?.substring(0, 500) || `Evento en ${venueName}`,
-    description_short: eventData.description?.substring(0, 150),
-    description_full: eventData.description,
+    description_short: eventData.description?.substring(0, 150) || null,
+    description_full: eventData.description || null,
     category: adapter.category,
+    event_type: eventType,
     source: adapter.slug,
     source_type: 'official_feed',
-    source_ref: adapter.url,
-    url: adapter.url,
+    source_ref: adapter.programUrl || adapter.url,
+    url: adapter.programUrl || adapter.url,
     venue_name: venueName,
     venue_id: venueId,
-    venue_name_raw: eventData.venue,
+    venue_name_raw: eventData.venue || null,
     venue_normalized: normalizeText(venueName),
     location_id: locationId,
     location_name_raw: locationName,
     location_normalized: normalizeText(locationName),
     province: 'Málaga',
     country: 'ES',
-    image_url: normalizeImageUrl(eventData.image_url, adapter.url),
-    buy_url: eventData.ticket_url,
-    ticket_url: eventData.ticket_url,
+    image_url: imageUrl,
+    image_status: imageStatus,
+    buy_url: eventData.ticket_url || null,
+    ticket_url: eventData.ticket_url || null,
     is_free: isFree,
-    price_info: isFree ? 'Gratis' : eventData.price,
+    price_info: isFree ? 'Gratis' : (eventData.price || null),
     status: 'published',
     last_synced_at: new Date().toISOString(),
+    dedupe_key: dedupeKey,
   };
   
   if (existingEvent) {
@@ -506,6 +603,7 @@ async function upsertEventWithOccurrences(
       .from('events')
       .update(eventPayload)
       .eq('id', eventId);
+    isUpdated = true;
   } else {
     // Insert new
     const firstOccurrence = occurrences[0];
@@ -517,14 +615,13 @@ async function upsertEventWithOccurrences(
         ...eventPayload,
         start_at: startAt?.toISOString() || new Date().toISOString(),
         address: `${venueName}, ${locationName}`,
-        dedupe_key: generateDedupeKey(adapter.slug, title, startAt?.toISOString() || ''),
       })
       .select('id')
       .single();
     
     if (error) {
-      console.error('Error inserting event:', error);
-      return { inserted: false, occurrences_created: 0 };
+      console.error('Error inserting event:', error.message);
+      return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
     }
     
     eventId = newEvent.id;
@@ -533,13 +630,14 @@ async function upsertEventWithOccurrences(
   
   // Upsert occurrences
   let occurrencesCreated = 0;
+  const now = new Date();
   
   for (const occ of occurrences) {
     const startDatetime = parseSpanishDate(occ.date, occ.time);
     if (!startDatetime) continue;
     
     // Skip past occurrences
-    if (startDatetime < new Date()) continue;
+    if (startDatetime < now) continue;
     
     const endDatetime = occ.end_time ? parseSpanishDate(occ.date, occ.end_time) : null;
     
@@ -557,8 +655,8 @@ async function upsertEventWithOccurrences(
         .insert({
           event_id: eventId,
           start_datetime: startDatetime.toISOString(),
-          end_datetime: endDatetime?.toISOString(),
-          buy_url: eventData.ticket_url,
+          end_datetime: endDatetime?.toISOString() || null,
+          buy_url: eventData.ticket_url || null,
         });
       
       if (!occError) {
@@ -572,7 +670,7 @@ async function upsertEventWithOccurrences(
     .from('event_occurrences')
     .select('start_datetime')
     .eq('event_id', eventId)
-    .gte('start_datetime', new Date().toISOString())
+    .gte('start_datetime', now.toISOString())
     .order('start_datetime', { ascending: true })
     .limit(1)
     .maybeSingle();
@@ -584,7 +682,7 @@ async function upsertEventWithOccurrences(
       .eq('id', eventId);
   }
   
-  return { inserted: isNew, occurrences_created: occurrencesCreated };
+  return { inserted: isNew, updated: isUpdated, occurrences_created: occurrencesCreated, skipped: false };
 }
 
 // ============================================================================
@@ -599,8 +697,9 @@ Deno.serve(async (req) => {
   try {
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!firecrawlApiKey) {
+      console.error('FIRECRAWL_API_KEY not configured');
       return new Response(
-        JSON.stringify({ success: false, error: 'Firecrawl not configured' }),
+        JSON.stringify({ success: false, error: 'Firecrawl API key not configured. Please add FIRECRAWL_API_KEY secret.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -624,18 +723,25 @@ Deno.serve(async (req) => {
       ? SOURCE_ADAPTERS.filter(a => targetSources!.includes(a.slug))
       : SOURCE_ADAPTERS;
 
-    console.log(`Starting sync for ${adaptersToRun.length} sources...`);
+    console.log(`=== STARTING FULL SYNC ===`);
+    console.log(`Sources to process: ${adaptersToRun.map(a => a.name).join(', ')}`);
 
     const results = {
       sources_processed: 0,
+      sources_success: 0,
+      sources_failed: 0,
       events_found: 0,
       events_inserted: 0,
       events_updated: 0,
+      events_skipped: 0,
       occurrences_created: 0,
       errors: [] as string[],
+      details: [] as any[],
     };
 
     for (const adapter of adaptersToRun) {
+      console.log(`\n--- Processing: ${adapter.name} ---`);
+      
       // Create sync run record
       const { data: syncRun } = await supabase
         .from('sync_runs')
@@ -644,30 +750,48 @@ Deno.serve(async (req) => {
         .single();
 
       const sourceResults = {
+        source: adapter.name,
+        slug: adapter.slug,
         inserted: 0,
         updated: 0,
+        skipped: 0,
         occurrences: 0,
-        errors: 0,
+        eventsFound: 0,
+        error: null as string | null,
       };
 
       try {
-        console.log(`Processing: ${adapter.name}`);
-        
         const scrapeResult = await scrapeSource(adapter, firecrawlApiKey);
         results.sources_processed++;
         
-        if (!scrapeResult.success || !scrapeResult.data?.json?.events) {
-          console.log(`No events found for ${adapter.name}`);
-          results.errors.push(`${adapter.name}: No events extracted`);
-          continue;
+        // Extract events from response - handle different response structures
+        let events: any[] = [];
+        
+        if (scrapeResult.success && scrapeResult.data) {
+          // Check for json property (Firecrawl v1 structure)
+          if (scrapeResult.data.json?.events) {
+            events = scrapeResult.data.json.events;
+          } else if (scrapeResult.data.events) {
+            events = scrapeResult.data.events;
+          } else if (Array.isArray(scrapeResult.data)) {
+            events = scrapeResult.data;
+          }
+        } else if (scrapeResult.events) {
+          events = scrapeResult.events;
         }
         
-        const events = scrapeResult.data.json.events.filter(
-          (e: any) => e.title && isValidEventTitle(e.title)
-        );
+        // Filter valid events
+        events = events.filter((e: any) => e.title && isValidEventTitle(e.title));
         
+        sourceResults.eventsFound = events.length;
         results.events_found += events.length;
+        
         console.log(`Found ${events.length} valid events from ${adapter.name}`);
+        
+        if (events.length === 0) {
+          sourceResults.error = 'No valid events extracted';
+          results.errors.push(`${adapter.name}: No events found`);
+        }
         
         for (const event of events) {
           // Build occurrences array
@@ -678,34 +802,36 @@ Deno.serve(async (req) => {
             occurrences = [{ date: event.date, time: event.time }];
           }
           
-          // If still no occurrences, create one for next week
+          // If still no occurrences, skip this event (we need at least one date)
           if (occurrences.length === 0) {
-            const nextWeek = new Date();
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            occurrences = [{ 
-              date: `${nextWeek.getDate()}/${nextWeek.getMonth() + 1}/${nextWeek.getFullYear()}`,
-              time: '20:00'
-            }];
+            console.log(`Skipping event without dates: ${event.title}`);
+            sourceResults.skipped++;
+            continue;
           }
           
-          const { inserted, occurrences_created } = await upsertEventWithOccurrences(
+          const result = await upsertEventWithOccurrences(
             supabase,
             adapter,
             event,
             occurrences
           );
           
-          if (inserted) {
-            results.events_inserted++;
+          if (result.skipped) {
+            sourceResults.skipped++;
+            results.events_skipped++;
+          } else if (result.inserted) {
             sourceResults.inserted++;
-          } else {
-            results.events_updated++;
+            results.events_inserted++;
+          } else if (result.updated) {
             sourceResults.updated++;
+            results.events_updated++;
           }
           
-          results.occurrences_created += occurrences_created;
-          sourceResults.occurrences += occurrences_created;
+          sourceResults.occurrences += result.occurrences_created;
+          results.occurrences_created += result.occurrences_created;
         }
+        
+        results.sources_success++;
         
         // Update sync run
         if (syncRun?.id) {
@@ -716,18 +842,18 @@ Deno.serve(async (req) => {
               finished_at: new Date().toISOString(),
               inserted: sourceResults.inserted,
               updated: sourceResults.updated,
+              skipped: sourceResults.skipped,
               occurrences_created: sourceResults.occurrences,
             })
             .eq('id', syncRun.id);
         }
         
-        // Rate limiting delay
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error(`Error processing ${adapter.name}:`, errorMsg);
+        sourceResults.error = errorMsg;
         results.errors.push(`${adapter.name}: ${errorMsg}`);
+        results.sources_failed++;
         
         if (syncRun?.id) {
           await supabase
@@ -736,14 +862,25 @@ Deno.serve(async (req) => {
               status: 'failed',
               finished_at: new Date().toISOString(),
               errors: 1,
-              error_details: [errorMsg],
+              error_details: { message: errorMsg },
             })
             .eq('id', syncRun.id);
         }
       }
+      
+      results.details.push(sourceResults);
+      
+      // Rate limiting delay between sources
+      if (adaptersToRun.indexOf(adapter) < adaptersToRun.length - 1) {
+        console.log('Waiting 3 seconds before next source...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
     }
 
-    console.log('Sync completed:', JSON.stringify(results));
+    console.log(`\n=== SYNC COMPLETED ===`);
+    console.log(`Sources: ${results.sources_success}/${results.sources_processed} successful`);
+    console.log(`Events: ${results.events_inserted} new, ${results.events_updated} updated, ${results.events_skipped} skipped`);
+    console.log(`Occurrences created: ${results.occurrences_created}`);
 
     return new Response(
       JSON.stringify({ success: true, results }),
@@ -753,7 +890,10 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Error in sync-events:', error);
     return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

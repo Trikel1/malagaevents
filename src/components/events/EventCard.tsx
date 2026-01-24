@@ -46,6 +46,7 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
             src={event.image_url}
             alt={event.title}
             variant={compact ? 'compact' : 'card'}
+            category={event.category}
             className="group-hover:scale-105 transition-transform duration-300"
           />
           
