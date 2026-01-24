@@ -231,7 +231,12 @@ const CalendarPage = () => {
                   selectedDayOccurrences.map((occ) => occ.event && (
                     <EventCard 
                       key={occ.id} 
-                      event={occ.event} 
+                      event={{
+                        ...occ.event,
+                        // Use occurrence start_datetime as the event's start_at for display
+                        start_at: occ.start_datetime,
+                        end_at: occ.end_datetime,
+                      }} 
                       compact
                       isFavorite={isFavorite(occ.event_id)}
                       onToggleFavorite={handleToggleFavorite}
@@ -257,11 +262,15 @@ const CalendarPage = () => {
                 <EventCardSkeleton />
               </>
             ) : uniqueEventsForList.length > 0 ? (
-              uniqueEventsForList.map((event) => event && (
+              filteredOccurrences.map((occ) => occ.event && (
                 <EventCard 
-                  key={event.id} 
-                  event={event}
-                  isFavorite={isFavorite(event.id)}
+                  key={occ.id} 
+                  event={{
+                    ...occ.event,
+                    start_at: occ.start_datetime,
+                    end_at: occ.end_datetime,
+                  }}
+                  isFavorite={isFavorite(occ.event_id)}
                   onToggleFavorite={handleToggleFavorite}
                 />
               ))
