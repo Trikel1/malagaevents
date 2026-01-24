@@ -65,7 +65,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-6 pb-14 rounded-b-3xl">
+      <header className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800 text-white p-6 pb-14 rounded-b-3xl">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Málaga Events</h1>
           <LanguageSelector variant="compact" />
