@@ -67,6 +67,32 @@ const EVENT_SOURCES = [
     url: 'https://fundacionunicaja.com/agenda/',
     category: 'exhibitions',
   },
+  // New sources - Music venues & nightlife
+  {
+    name: 'Eventual Music',
+    url: 'https://www.eventualmusic.com/',
+    category: 'music',
+  },
+  {
+    name: 'Sala Trinchera',
+    url: 'https://salatrinchera.com/',
+    category: 'music',
+  },
+  {
+    name: 'Paris 15',
+    url: 'https://paris15.es/',
+    category: 'nightlife',
+  },
+  {
+    name: 'Sala Marte Málaga',
+    url: 'https://salamartemalaga.com/',
+    category: 'music',
+  },
+  {
+    name: 'Antojo Málaga',
+    url: 'https://antojomalaga.es/',
+    category: 'music',
+  },
 ];
 
 // JSON schema for structured event extraction
