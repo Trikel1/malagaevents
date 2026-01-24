@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronDown, Building2, Theater } from 'lucide-react';
+import { Check, ChevronDown, Building2, Theater, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -15,11 +15,12 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useVenues } from '@/hooks/useVenues';
 import type { Venue } from '@/types';
 
-export type VenueGroup = 'all' | 'theaters' | 'halls' | 'others';
+export type VenueGroup = 'all' | 'theaters' | 'halls';
 
 interface VenueGroupDropdownProps {
   selectedGroup: VenueGroup;
@@ -28,38 +29,25 @@ interface VenueGroupDropdownProps {
   onVenueIdsChange: (venueIds: string[]) => void;
 }
 
-// Venue classification by normalized name patterns
-const THEATER_PATTERNS = [
-  'teatro del soho',
+// CANONICAL CLASSIFICATION: Only these 3 are theaters, everything else is "salas"
+const THEATER_VENUE_NAMES = [
   'teatro cervantes',
   'teatro echegaray',
-  'factoria echegaray',
-  'factoría echegaray',
-  'la cochera cabaret',
-  'cochera cabaret',
-];
-
-const HALL_PATTERNS = [
-  'paris 15',
-  'parís 15',
-  'sala trinchera',
-  'sala marte',
-  'eventual',
-  'antojo',
+  'teatro del soho',
+  'teatro soho',
+  'soho caixabank',
 ];
 
 function classifyVenue(venue: Venue): VenueGroup {
   const name = venue.normalized_name?.toLowerCase() || venue.name?.toLowerCase() || '';
   
-  if (THEATER_PATTERNS.some(pattern => name.includes(pattern))) {
+  // Only the 3 canonical theaters
+  if (THEATER_VENUE_NAMES.some(pattern => name.includes(pattern))) {
     return 'theaters';
   }
   
-  if (HALL_PATTERNS.some(pattern => name.includes(pattern))) {
-    return 'halls';
-  }
-  
-  return 'others';
+  // Everything else is a "sala" (including Cochera, Trinchera, París 15, etc.)
+  return 'halls';
 }
 
 export function VenueGroupDropdown({
@@ -69,24 +57,29 @@ export function VenueGroupDropdown({
   onVenueIdsChange,
 }: VenueGroupDropdownProps) {
   const { t } = useTranslation();
-  const { data: venues = [] } = useVenues();
+  const { data: venues = [], isLoading, isError } = useVenues();
   const [theatersOpen, setTheatersOpen] = useState(false);
   const [hallsOpen, setHallsOpen] = useState(false);
 
-  // Classify all venues into groups
+  // Classify all venues into groups (exclude placeholder venues)
   const venuesByGroup = useMemo(() => {
     const grouped: Record<VenueGroup, Venue[]> = {
       all: [],
       theaters: [],
       halls: [],
-      others: [],
     };
 
-    venues.forEach((venue) => {
-      const group = classifyVenue(venue);
-      grouped[group].push(venue);
-      grouped.all.push(venue);
-    });
+    venues
+      .filter(v => v.name && !v.name.toLowerCase().includes('sin sala'))
+      .forEach((venue) => {
+        const group = classifyVenue(venue);
+        grouped[group].push(venue);
+        grouped.all.push(venue);
+      });
+
+    // Sort alphabetically
+    grouped.theaters.sort((a, b) => a.name.localeCompare(b.name));
+    grouped.halls.sort((a, b) => a.name.localeCompare(b.name));
 
     return grouped;
   }, [venues]);
@@ -149,8 +142,107 @@ export function VenueGroupDropdown({
   const theatersLabel = getSelectedLabel('theaters');
   const hallsLabel = getSelectedLabel('halls');
 
+  const renderVenueList = (group: VenueGroup, isOpen: boolean, setOpen: (v: boolean) => void) => {
+    const groupVenues = venuesByGroup[group];
+    const label = group === 'theaters' ? t('events.theaters') : t('events.halls');
+    const allLabel = group === 'theaters' 
+      ? t('events.allTheaters', 'Todos los teatros') 
+      : t('events.allHalls', 'Todas las salas');
+    const selectedLabel = group === 'theaters' ? theatersLabel : hallsLabel;
+    const Icon = group === 'theaters' ? Theater : Building2;
+
+    return (
+      <Popover open={isOpen} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant={selectedGroup === group ? 'default' : 'outline'}
+            size="sm"
+            role="combobox"
+            aria-expanded={isOpen}
+            className={cn(
+              'shrink-0 text-xs h-8 px-3 gap-1',
+              selectedGroup === group && 'shadow-sm'
+            )}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {label}
+            {selectedLabel && (
+              <span className="ml-1 text-[10px] opacity-80">({selectedLabel})</span>
+            )}
+            <ChevronDown className="h-3 w-3 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0" align="start">
+          <Command>
+            <CommandInput placeholder={t('common.search')} className="h-9" />
+            <CommandList>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : isError ? (
+                <div className="py-6 text-center text-sm text-destructive">
+                  {t('errors.generic', 'Error al cargar')}
+                </div>
+              ) : groupVenues.length === 0 ? (
+                <CommandEmpty>{t('events.noVenuesFound', 'No se encontraron venues')}</CommandEmpty>
+              ) : (
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => handleSelectAllFromGroup(group)}
+                    className="font-medium"
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        selectedGroup === group && 
+                        groupVenues.every(v => selectedVenueIds.includes(v.id))
+                          ? 'opacity-100'
+                          : 'opacity-0'
+                      )}
+                    />
+                    {allLabel}
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      ({groupVenues.length})
+                    </span>
+                  </CommandItem>
+                  <ScrollArea className="max-h-[240px]">
+                    {groupVenues.map((venue) => (
+                      <CommandItem
+                        key={venue.id}
+                        onSelect={() => handleSelectVenue(venue, group)}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center">
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              selectedVenueIds.includes(venue.id) ? 'opacity-100' : 'opacity-0'
+                            )}
+                          />
+                          <div>
+                            <span>{venue.name}</span>
+                            {venue.city && (
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                {venue.city}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </ScrollArea>
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
   return (
-    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide py-1">
+    <div className="flex gap-1.5 py-1">
       {/* All Button */}
       <Button
         variant={selectedGroup === 'all' ? 'default' : 'outline'}
@@ -161,160 +253,14 @@ export function VenueGroupDropdown({
           selectedGroup === 'all' && 'shadow-sm'
         )}
       >
-        {t('events.allVenues')}
+        {t('events.allVenues', 'Todos')}
       </Button>
 
-      {/* Theaters Dropdown */}
-      <Popover open={theatersOpen} onOpenChange={setTheatersOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant={selectedGroup === 'theaters' ? 'default' : 'outline'}
-            size="sm"
-            role="combobox"
-            aria-expanded={theatersOpen}
-            className={cn(
-              'shrink-0 text-xs h-8 px-3 gap-1',
-              selectedGroup === 'theaters' && 'shadow-sm'
-            )}
-          >
-            <Theater className="h-3.5 w-3.5" />
-            {t('events.theaters')}
-            {theatersLabel && (
-              <span className="ml-1 text-[10px] opacity-80">({theatersLabel})</span>
-            )}
-            <ChevronDown className="h-3 w-3 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-64 p-0" align="start">
-          <Command>
-            <CommandInput placeholder={t('common.search')} className="h-9" />
-            <CommandList>
-              <CommandEmpty>{t('events.noVenuesFound', 'No se encontraron salas')}</CommandEmpty>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => handleSelectAllFromGroup('theaters')}
-                  className="font-medium"
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedGroup === 'theaters' && 
-                      venuesByGroup.theaters.every(v => selectedVenueIds.includes(v.id))
-                        ? 'opacity-100'
-                        : 'opacity-0'
-                    )}
-                  />
-                  {t('events.allTheaters', 'Todos los teatros')}
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    ({venuesByGroup.theaters.length})
-                  </span>
-                </CommandItem>
-                {venuesByGroup.theaters.map((venue) => (
-                  <CommandItem
-                    key={venue.id}
-                    onSelect={() => handleSelectVenue(venue, 'theaters')}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedVenueIds.includes(venue.id) ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    {venue.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      {/* Salas Dropdown */}
+      {renderVenueList('halls', hallsOpen, setHallsOpen)}
 
-      {/* Halls (Salas) Dropdown */}
-      <Popover open={hallsOpen} onOpenChange={setHallsOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant={selectedGroup === 'halls' ? 'default' : 'outline'}
-            size="sm"
-            role="combobox"
-            aria-expanded={hallsOpen}
-            className={cn(
-              'shrink-0 text-xs h-8 px-3 gap-1',
-              selectedGroup === 'halls' && 'shadow-sm'
-            )}
-          >
-            <Building2 className="h-3.5 w-3.5" />
-            {t('events.halls')}
-            {hallsLabel && (
-              <span className="ml-1 text-[10px] opacity-80">({hallsLabel})</span>
-            )}
-            <ChevronDown className="h-3 w-3 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-64 p-0" align="start">
-          <Command>
-            <CommandInput placeholder={t('common.search')} className="h-9" />
-            <CommandList>
-              <CommandEmpty>{t('events.noVenuesFound', 'No se encontraron salas')}</CommandEmpty>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => handleSelectAllFromGroup('halls')}
-                  className="font-medium"
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedGroup === 'halls' && 
-                      venuesByGroup.halls.every(v => selectedVenueIds.includes(v.id))
-                        ? 'opacity-100'
-                        : 'opacity-0'
-                    )}
-                  />
-                  {t('events.allHalls', 'Todas las salas')}
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    ({venuesByGroup.halls.length})
-                  </span>
-                </CommandItem>
-                {venuesByGroup.halls.map((venue) => (
-                  <CommandItem
-                    key={venue.id}
-                    onSelect={() => handleSelectVenue(venue, 'halls')}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedVenueIds.includes(venue.id) ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    {venue.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      {/* Others count badge */}
-      {venuesByGroup.others.length > 0 && (
-        <Button
-          variant={selectedGroup === 'others' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => {
-            const otherIds = venuesByGroup.others.map(v => v.id);
-            onGroupChange('others');
-            onVenueIdsChange(otherIds);
-          }}
-          className={cn(
-            'shrink-0 text-xs h-8 px-3',
-            selectedGroup === 'others' && 'shadow-sm'
-          )}
-        >
-          {t('events.otherVenues')}
-          <span className="ml-1.5 text-[10px] opacity-80">
-            ({venuesByGroup.others.length})
-          </span>
-        </Button>
-      )}
+      {/* Teatros Dropdown */}
+      {renderVenueList('theaters', theatersOpen, setTheatersOpen)}
     </div>
   );
 }

@@ -123,38 +123,21 @@ const EventsPage = () => {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40">
         <div className="p-4 space-y-3">
-          {/* Title + Clear + More filters */}
+          {/* Title row */}
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-xl font-bold shrink-0">{t('events.title')}</h1>
             
-            <div className="flex items-center gap-2">
-              {totalActiveFilters > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="text-muted-foreground h-8 px-2"
-                >
-                  <X className="h-4 w-4 mr-1" />
-                  <span className="hidden sm:inline">{t('events.clearFilters')}</span>
-                </Button>
-              )}
-              
-              <Button 
-                variant="outline" 
+            {totalActiveFilters > 0 && (
+              <Button
+                variant="ghost"
                 size="sm"
-                onClick={() => setIsFilterOpen(true)}
-                className="relative gap-1.5 h-8"
+                onClick={clearAllFilters}
+                className="text-muted-foreground h-8 px-2"
               >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('events.moreFilters')}</span>
-                {activeFilterCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                    {activeFilterCount}
-                  </Badge>
-                )}
+                <X className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">{t('events.clearFilters')}</span>
               </Button>
-            </div>
+            )}
           </div>
           
           {/* Search */}
@@ -190,9 +173,10 @@ const EventsPage = () => {
             )}
           </form>
 
-          {/* Quick venue group dropdowns + location filter */}
-          <div className="flex items-center gap-2">
-            <div className="flex-1 overflow-hidden">
+          {/* Filter row: LEFT [Todos] [Salas] [Teatros] | RIGHT [Localidades] [Filtros] */}
+          <div className="flex items-center justify-between gap-2">
+            {/* Left: Venue group buttons */}
+            <div className="flex-shrink-0">
               <VenueGroupDropdown
                 selectedGroup={selectedVenueGroup}
                 selectedVenueIds={selectedVenueIds}
@@ -200,10 +184,29 @@ const EventsPage = () => {
                 onVenueIdsChange={setSelectedVenueIds}
               />
             </div>
-            <LocationFilter
-              selectedLocationIds={selectedLocationIds}
-              onSelectionChange={setSelectedLocationIds}
-            />
+
+            {/* Right: Location + Filters */}
+            <div className="flex items-center gap-1.5">
+              <LocationFilter
+                selectedLocationIds={selectedLocationIds}
+                onSelectionChange={setSelectedLocationIds}
+              />
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsFilterOpen(true)}
+                className="relative gap-1.5 h-8 text-xs"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="hidden sm:inline">{t('events.moreFilters')}</span>
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
