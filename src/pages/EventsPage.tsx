@@ -131,41 +131,27 @@ const EventsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header - Centered actions taking full width */}
       <header className="bg-card border-b border-border sticky top-0 z-40">
         <div className="p-4 space-y-3">
-          {/* Row 1: Title + Actions (Localidades, Filtros, Buscar) */}
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <h1 className="text-xl font-bold shrink-0">{t('events.title')}</h1>
-              {totalActiveFilters > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="text-muted-foreground h-7 px-2 text-xs shrink-0"
-                >
-                  <X className="h-3.5 w-3.5 mr-1" />
-                  {t('events.clearFilters')}
-                </Button>
-              )}
-            </div>
-            
-            {/* Right: Action buttons with icon + text */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              {/* Localidades - icon + text */}
+          {/* Row 1: 3 centered action buttons (no title) */}
+          <div className="flex items-center justify-center gap-2">
+            {/* Localidades - icon + text, flex:1 */}
+            <div className="flex-1 flex justify-center">
               <LocationFilter
                 selectedLocationIds={selectedLocationIds}
                 onSelectionChange={setSelectedLocationIds}
                 showLabel={true}
               />
+            </div>
 
-              {/* Filtros - icon + text */}
+            {/* Filtros - icon + text, flex:1 */}
+            <div className="flex-1 flex justify-center">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => setIsFilterOpen(true)}
-                className="h-9 px-2.5 gap-1.5 relative whitespace-nowrap"
+                className="h-9 px-3 gap-1.5 relative whitespace-nowrap"
               >
                 <SlidersHorizontal className="h-4 w-4 shrink-0" />
                 <span className="text-sm">{t('events.filters', 'Filtros')}</span>
@@ -178,13 +164,15 @@ const EventsPage = () => {
                   </Badge>
                 )}
               </Button>
+            </div>
 
-              {/* Buscar - icon + text toggle */}
+            {/* Buscar - icon + text toggle, flex:1 */}
+            <div className="flex-1 flex justify-center">
               <Button 
                 variant={showSearchInput ? 'default' : 'ghost'} 
                 size="sm"
                 onClick={() => setShowSearchInput(!showSearchInput)}
-                className="h-9 px-2.5 gap-1.5 whitespace-nowrap"
+                className="h-9 px-3 gap-1.5 whitespace-nowrap"
               >
                 <Search className="h-4 w-4 shrink-0" />
                 <span className="text-sm">{t('common.search', 'Buscar')}</span>
@@ -192,7 +180,22 @@ const EventsPage = () => {
             </div>
           </div>
 
-          {/* Row 1.5: Search input (collapsible) */}
+          {/* Clear filters button (only when filters active) */}
+          {totalActiveFilters > 0 && (
+            <div className="flex justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-muted-foreground h-7 px-2 text-xs"
+              >
+                <X className="h-3.5 w-3.5 mr-1" />
+                {t('events.clearFilters')}
+              </Button>
+            </div>
+          )}
+
+          {/* Search input (collapsible) */}
           {showSearchInput && (
             <form onSubmit={handleSearch} className="relative" role="search">
               <label htmlFor="event-search" className="sr-only">{t('common.search')}</label>

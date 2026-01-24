@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
-import { Phone, MapPin, Calendar as CalendarIcon, Navigation, Filter, Clock } from 'lucide-react';
+import { Phone, MapPin, Calendar as CalendarIcon, Filter, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -22,6 +22,26 @@ const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
 };
 
+// Helper to generate maps URL
+const getMapsUrl = (pharmacy: Pharmacy): string => {
+  if (pharmacy.lat && pharmacy.lng) {
+    // Use coordinates for accurate directions
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    return isIOS
+      ? `maps://maps.apple.com/?daddr=${pharmacy.lat},${pharmacy.lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${pharmacy.lat},${pharmacy.lng}`;
+  }
+  // Fallback to address search
+  const fullAddress = `${pharmacy.address}, Málaga, España`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+};
+
+// Helper to format phone for tel: link
+const formatPhoneForLink = (phone: string): string => {
+  // Remove spaces and special chars, keep + and digits
+  return phone.replace(/[^\d+]/g, '');
+};
+
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
@@ -31,29 +51,6 @@ const PharmaciesPage = () => {
   // Fetch pharmacies
   const { data: dutyPharmacies, isLoading: isLoadingDuty } = usePharmaciesOnDuty(selectedDate);
   const { data: allPharmacies, isLoading: isLoadingAll } = useAllPharmacies();
-
-  const handleCall = (phone: string) => {
-    window.location.href = `tel:${phone.replace(/\s/g, '')}`;
-  };
-
-  const handleDirections = (pharmacy: Pharmacy) => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
-    if (pharmacy.lat && pharmacy.lng) {
-      // Use coordinates for accurate directions
-      const url = isIOS
-        ? `maps://maps.apple.com/?daddr=${pharmacy.lat},${pharmacy.lng}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${pharmacy.lat},${pharmacy.lng}`;
-      window.open(url, '_blank');
-    } else {
-      // Fallback to address search
-      const fullAddress = `${pharmacy.address}, Málaga, España`;
-      const url = isIOS
-        ? `maps://maps.apple.com/?daddr=${encodeURIComponent(fullAddress)}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}`;
-      window.open(url, '_blank');
-    }
-  };
 
   const PharmacyCard = ({ pharmacy, showDutyBadge = false }: { pharmacy: Pharmacy; showDutyBadge?: boolean }) => (
     <Card className="overflow-hidden">
@@ -68,40 +65,31 @@ const PharmaciesPage = () => {
           )}
         </div>
         
-        <div className="flex items-start gap-2 text-muted-foreground mb-3">
-          <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <span className="text-sm">{pharmacy.address}</span>
-        </div>
+        {/* Address - Clickable for directions */}
+        <a 
+          href={getMapsUrl(pharmacy)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start gap-2 text-muted-foreground mb-3 hover:text-foreground transition-colors group"
+        >
+          <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary group-hover:scale-110 transition-transform" />
+          <span className="text-sm underline decoration-dotted underline-offset-2 group-hover:decoration-solid">
+            {pharmacy.address}
+          </span>
+        </a>
 
+        {/* Phone - Clickable to call */}
         {pharmacy.phone && (
-          <div className="flex items-center gap-2 text-muted-foreground mb-4">
-            <Phone className="h-4 w-4 flex-shrink-0" />
-            <span className="text-sm">{pharmacy.phone}</span>
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          {pharmacy.phone && (
-            <Button
-              variant="default"
-              size="sm"
-              className="flex-1 bg-green-500 hover:bg-green-600"
-              onClick={() => handleCall(pharmacy.phone!)}
-            >
-              <Phone className="h-4 w-4 mr-1" />
-              {t('pharmacies.call')}
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => handleDirections(pharmacy)}
+          <a 
+            href={`tel:${formatPhoneForLink(pharmacy.phone)}`}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
           >
-            <Navigation className="h-4 w-4 mr-1" />
-            {t('pharmacies.directions')}
-          </Button>
-        </div>
+            <Phone className="h-4 w-4 flex-shrink-0 text-green-600 group-hover:scale-110 transition-transform" />
+            <span className="text-sm underline decoration-dotted underline-offset-2 group-hover:decoration-solid font-medium">
+              {pharmacy.phone}
+            </span>
+          </a>
+        )}
       </CardContent>
     </Card>
   );
