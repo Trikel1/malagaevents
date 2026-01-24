@@ -26,150 +26,78 @@ const SOURCE_ADAPTERS: SourceAdapter[] = [
     name: 'Teatro del Soho CaixaBank',
     slug: 'teatro-soho',
     url: 'https://teatrodelsoho.com/',
-    programUrl: 'https://teatrodelsoho.com/programacion/',
+    programUrl: 'https://teatrodelsoho.com/', // Main page shows programming
     category: 'theater',
     eventType: 'theater',
     defaultVenue: 'Teatro del Soho CaixaBank',
     defaultLocation: 'Málaga',
-    extractionPrompt: `IMPORTANTE: Extrae TODOS los espectáculos/obras de teatro de esta página de programación.
-Para CADA espectáculo, proporciona:
-- title: nombre exacto del espectáculo (ej: "El médico", "Nine", "Malinche")
-- description: sinopsis o descripción breve (máximo 400 caracteres)
-- occurrences: LISTA de TODAS las fechas y horas de funciones. Si hay un rango "del 15 al 30 de enero", convierte a fechas individuales. Formatos aceptados: DD/MM/YYYY para fecha, HH:MM para hora.
-- image_url: URL completa del cartel/imagen principal del espectáculo
-- ticket_url: enlace para comprar entradas
-- price: precio de las entradas si aparece
-- venue: "Teatro del Soho CaixaBank" siempre
-- is_free: false (casi todos son de pago)
-
-CRÍTICO: Captura CADA función individual con su fecha y hora. Un espectáculo puede tener múltiples funciones.`,
+    extractionPrompt: `Extrae los espectáculos de teatro. Para cada uno: title (nombre), description (breve), occurrences (fechas en DD/MM/YYYY y horas en HH:MM), image_url, ticket_url, price.`,
   },
   {
     name: 'Teatro Cervantes',
     slug: 'teatro-cervantes',
     url: 'https://www.teatrocervantes.com/',
-    programUrl: 'https://www.teatrocervantes.com/es/programacion',
+    programUrl: 'https://www.teatrocervantes.com/', // Main page
     category: 'theater',
     eventType: 'theater',
     defaultVenue: 'Teatro Cervantes',
     defaultLocation: 'Málaga',
-    extractionPrompt: `IMPORTANTE: Extrae TODOS los eventos de la programación del Teatro Cervantes y Teatro Echegaray.
-Para CADA evento (teatro, danza, música, circo, etc.):
-- title: nombre exacto del espectáculo
-- description: descripción breve (máximo 400 caracteres)
-- occurrences: TODAS las fechas y horas de las funciones. Convierte rangos a fechas individuales.
-- venue: especifica si es "Teatro Cervantes" o "Teatro Echegaray"
-- image_url: cartel o imagen del evento
-- ticket_url: enlace de venta de entradas
-- price: precios disponibles
-- is_free: true solo si es entrada gratuita
-
-CRÍTICO: Cada función en una fecha diferente debe ser una occurrence separada.`,
+    extractionPrompt: `Extrae eventos de la programación. Para cada uno: title, description, occurrences (fechas DD/MM/YYYY, horas HH:MM), venue (Cervantes o Echegaray), image_url, ticket_url, price.`,
   },
   {
     name: 'Sala Eventual',
     slug: 'eventual-music',
     url: 'https://www.eventualmusic.com/',
-    programUrl: 'https://www.eventualmusic.com/agenda',
+    programUrl: 'https://www.eventualmusic.com/',
     category: 'music',
     eventType: 'music',
     defaultVenue: 'Sala Eventual',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae TODOS los conciertos y eventos musicales de la agenda.
-Para CADA concierto:
-- title: nombre del artista/banda + título del evento si existe
-- description: información del concierto (máximo 400 caracteres)
-- occurrences: fecha y hora del concierto (formato DD/MM/YYYY y HH:MM)
-- image_url: flyer o imagen promocional del evento
-- ticket_url: enlace para comprar entradas
-- price: precio de la entrada
-- is_free: true solo si es entrada libre
-
-Incluye todos los géneros: rock, indie, electrónica, jazz, etc.`,
+    extractionPrompt: `Extrae conciertos y eventos. Para cada uno: title (artista/evento), description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
   },
   {
     name: 'Sala Trinchera',
     slug: 'sala-trinchera',
     url: 'https://salatrinchera.com/',
-    programUrl: 'https://salatrinchera.com/agenda/',
+    programUrl: 'https://salatrinchera.com/',
     category: 'music',
     eventType: 'music',
     defaultVenue: 'Sala Trinchera',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae TODOS los eventos y conciertos de la agenda de Sala Trinchera.
-Para CADA evento:
-- title: nombre del artista/evento
-- description: información del evento (máximo 400 caracteres)
-- occurrences: fecha y hora (DD/MM/YYYY, HH:MM)
-- image_url: cartel o flyer del evento
-- ticket_url: link de entradas
-- price: precio
-- is_free: si es entrada gratuita
-
-Captura conciertos, fiestas, jam sessions, etc.`,
+    extractionPrompt: `Extrae eventos y conciertos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
   },
   {
     name: 'París 15',
     slug: 'paris-15',
     url: 'https://paris15.es/',
-    programUrl: 'https://paris15.es/agenda/',
+    programUrl: 'https://paris15.es/',
     category: 'nightlife',
     eventType: 'nightlife',
     defaultVenue: 'París 15',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae TODOS los eventos, fiestas y conciertos de París 15.
-Para CADA evento:
-- title: nombre del evento o artista
-- description: descripción del evento (máximo 400 caracteres)
-- occurrences: fecha y hora del evento (DD/MM/YYYY, HH:MM)
-- image_url: cartel promocional
-- ticket_url: enlace de entradas si existe
-- price: precio de entrada
-- is_free: si es entrada libre
-
-Incluye DJ sets, fiestas temáticas, conciertos, etc.`,
+    extractionPrompt: `Extrae eventos y fiestas. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
   },
   {
     name: 'Sala Marte',
     slug: 'sala-marte',
     url: 'https://salamartemalaga.com/',
-    programUrl: 'https://salamartemalaga.com/agenda/',
+    programUrl: 'https://salamartemalaga.com/',
     category: 'music',
     eventType: 'music',
     defaultVenue: 'Sala Marte',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae TODOS los conciertos y eventos de Sala Marte.
-Para CADA evento:
-- title: nombre del artista/banda
-- description: información del concierto (máximo 400 caracteres)
-- occurrences: fecha y hora (DD/MM/YYYY, HH:MM)
-- image_url: flyer del concierto
-- ticket_url: link de venta
-- price: precio de entrada
-- is_free: true si entrada gratuita
-
-Captura todos los estilos musicales.`,
+    extractionPrompt: `Extrae conciertos y eventos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
   },
   {
     name: 'Antojo Málaga',
     slug: 'antojo-malaga',
     url: 'https://antojomalaga.es/',
-    programUrl: 'https://antojomalaga.es/eventos/',
+    programUrl: 'https://antojomalaga.es/',
     category: 'music',
     eventType: 'music',
     defaultVenue: 'Antojo Málaga',
     defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae TODOS los eventos de Antojo Málaga.
-Para CADA evento:
-- title: nombre del evento o artista
-- description: descripción (máximo 400 caracteres)
-- occurrences: fecha y hora (DD/MM/YYYY, HH:MM)
-- image_url: imagen del evento
-- ticket_url: enlace de entradas
-- price: precio
-- is_free: si es gratuito
-
-Incluye conciertos, DJ sessions, eventos gastronómicos con música, etc.`,
+    extractionPrompt: `Extrae eventos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
   },
 ];
 
@@ -443,8 +371,8 @@ async function scrapeSource(adapter: SourceAdapter, apiKey: string): Promise<any
         prompt: adapter.extractionPrompt,
       },
       onlyMainContent: true,
-      waitFor: 8000, // Wait for dynamic content
-      timeout: 60000,
+      waitFor: 3000, // Reduced wait time
+      timeout: 30000, // 30 second timeout
     }),
   });
 
