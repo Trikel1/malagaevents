@@ -69,7 +69,11 @@
     "moreFilters": "Más filtros",
     "venues": "Salas",
     "locations": "Localidad",
-    "noVenue": "Sin sala"
+    "noVenue": "Sin sala",
+    "allVenues": "Todos",
+    "theaters": "Teatros",
+    "halls": "Salas",
+    "otherVenues": "Otros"
   },
   "eventDetail": {
     "when": "Cuándo",
@@ -163,6 +167,7 @@
     "noAccount": "¿No tienes cuenta?",
     "hasAccount": "¿Ya tienes cuenta?",
     "language": "Idioma",
+    "appearance": "Apariencia",
     "notifications": "Notificaciones",
     "notifFavorites": "Recordatorios de favoritos",
     "notifCategories": "Alertas por categorías",
@@ -175,6 +180,11 @@
     "savePreferences": "Guardar preferencias",
     "loginRequired": "Inicia sesión para acceder",
     "loginRequiredDesc": "Necesitas una cuenta para usar esta función"
+  },
+  "theme": {
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
   },
   "categories": {
     "music": "Música",
