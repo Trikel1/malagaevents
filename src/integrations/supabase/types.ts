@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       event_submissions: {
         Row: {
           captcha_passed: boolean
@@ -69,16 +96,24 @@ export type Database = {
           age_restriction: string | null
           capacity_info: string | null
           category: string
+          country: string | null
           created_at: string
+          dedupe_key: string | null
           description: string
           end_at: string | null
+          external_id: string | null
           id: string
           image_url: string | null
           is_free: boolean
           lat: number | null
           lng: number | null
+          location_id: string | null
+          location_name_raw: string | null
+          location_normalized: string | null
           organizer_user_id: string | null
           price_info: string | null
+          province: string | null
+          source: string | null
           source_ref: string | null
           source_type: string
           start_at: string
@@ -86,7 +121,12 @@ export type Database = {
           tags: string[] | null
           ticket_url: string | null
           title: string
+          updated_at: string | null
+          url: string | null
+          venue_id: string | null
           venue_name: string
+          venue_name_raw: string | null
+          venue_normalized: string | null
         }
         Insert: {
           accessibility_info?: string | null
@@ -94,16 +134,24 @@ export type Database = {
           age_restriction?: string | null
           capacity_info?: string | null
           category: string
+          country?: string | null
           created_at?: string
+          dedupe_key?: string | null
           description: string
           end_at?: string | null
+          external_id?: string | null
           id?: string
           image_url?: string | null
           is_free?: boolean
           lat?: number | null
           lng?: number | null
+          location_id?: string | null
+          location_name_raw?: string | null
+          location_normalized?: string | null
           organizer_user_id?: string | null
           price_info?: string | null
+          province?: string | null
+          source?: string | null
           source_ref?: string | null
           source_type?: string
           start_at: string
@@ -111,7 +159,12 @@ export type Database = {
           tags?: string[] | null
           ticket_url?: string | null
           title: string
+          updated_at?: string | null
+          url?: string | null
+          venue_id?: string | null
           venue_name: string
+          venue_name_raw?: string | null
+          venue_normalized?: string | null
         }
         Update: {
           accessibility_info?: string | null
@@ -119,16 +172,24 @@ export type Database = {
           age_restriction?: string | null
           capacity_info?: string | null
           category?: string
+          country?: string | null
           created_at?: string
+          dedupe_key?: string | null
           description?: string
           end_at?: string | null
+          external_id?: string | null
           id?: string
           image_url?: string | null
           is_free?: boolean
           lat?: number | null
           lng?: number | null
+          location_id?: string | null
+          location_name_raw?: string | null
+          location_normalized?: string | null
           organizer_user_id?: string | null
           price_info?: string | null
+          province?: string | null
+          source?: string | null
           source_ref?: string | null
           source_type?: string
           start_at?: string
@@ -136,14 +197,33 @@ export type Database = {
           tags?: string[] | null
           ticket_url?: string | null
           title?: string
+          updated_at?: string | null
+          url?: string | null
+          venue_id?: string | null
           venue_name?: string
+          venue_name_raw?: string | null
+          venue_normalized?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "events_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_organizer_user_id_fkey"
             columns: ["organizer_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
             referencedColumns: ["id"]
           },
         ]
@@ -183,6 +263,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      locations: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          is_in_province_malaga: boolean
+          name: string
+          needs_review: boolean
+          normalized_name: string
+          province: string
+        }
+        Insert: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          is_in_province_malaga?: boolean
+          name: string
+          needs_review?: boolean
+          normalized_name: string
+          province?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          is_in_province_malaga?: boolean
+          name?: string
+          needs_review?: boolean
+          normalized_name?: string
+          province?: string
+        }
+        Relationships: []
       }
       notification_prefs: {
         Row: {
@@ -306,6 +422,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_runs: {
+        Row: {
+          created_at: string
+          error_details: Json | null
+          errors: number | null
+          finished_at: string | null
+          id: string
+          inserted: number | null
+          skipped: number | null
+          source: string
+          started_at: string
+          status: string
+          updated: number | null
+        }
+        Insert: {
+          created_at?: string
+          error_details?: Json | null
+          errors?: number | null
+          finished_at?: string | null
+          id?: string
+          inserted?: number | null
+          skipped?: number | null
+          source: string
+          started_at?: string
+          status?: string
+          updated?: number | null
+        }
+        Update: {
+          created_at?: string
+          error_details?: Json | null
+          errors?: number | null
+          finished_at?: string | null
+          id?: string
+          inserted?: number | null
+          skipped?: number | null
+          source?: string
+          started_at?: string
+          status?: string
+          updated?: number | null
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           created_at: string
@@ -396,6 +554,39 @@ export type Database = {
           display_name?: string | null
           id?: string
           locale?: string | null
+        }
+        Relationships: []
+      }
+      venues: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          name: string
+          normalized_name: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          normalized_name: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          normalized_name?: string
         }
         Relationships: []
       }

@@ -65,7 +65,11 @@
     "applyFilters": "Apply",
     "noEvents": "No events",
     "noEventsDesc": "Try changing the filters",
-    "similarEvents": "Similar events"
+    "similarEvents": "Similar events",
+    "moreFilters": "More filters",
+    "venues": "Venues",
+    "locations": "Location",
+    "noVenue": "No venue"
   },
   "eventDetail": {
     "when": "When",

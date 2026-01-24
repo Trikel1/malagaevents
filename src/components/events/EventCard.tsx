@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { MapPin, Heart, Calendar } from 'lucide-react';
+import { MapPin, Heart, Calendar, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +26,10 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
   const locale = locales[i18n.language] || es;
 
   const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale });
+
+  // Get venue and location display names
+  const venueName = event.venue?.name || event.venue_name || event.venue_normalized || t('events.noVenue', 'Sin sala');
+  const locationName = event.location?.name || event.location_normalized || event.province || 'Málaga';
 
   return (
     <Link to={`/events/${event.id}`}>
@@ -95,8 +99,12 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
               <span className="capitalize">{formattedDate}</span>
             </div>
             <div className="flex items-center gap-1.5">
+              <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="line-clamp-1">{venueName}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-              <span className="line-clamp-1">{event.venue_name}</span>
+              <span className="line-clamp-1">{locationName}</span>
             </div>
           </div>
 
