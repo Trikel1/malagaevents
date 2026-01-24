@@ -1,10 +1,15 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import EventCard from '@/components/events/EventCard';
 import FilterDrawer, { type EventFilters } from '@/components/events/FilterDrawer';
 import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
@@ -29,6 +34,7 @@ const EventsPage = () => {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [debouncedSearch, setDebouncedSearch] = useState(initialQuery);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [showSearchInput, setShowSearchInput] = useState(!!initialQuery);
   const [filters, setFilters] = useState<EventFilters>({
     categories: initialCategory ? [initialCategory] : [],
   });
@@ -40,6 +46,7 @@ const EventsPage = () => {
 
   // Debounce search input
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   
   useEffect(() => {
     if (debounceTimeout.current) {
@@ -55,6 +62,13 @@ const EventsPage = () => {
       }
     };
   }, [searchQuery]);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (showSearchInput && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearchInput]);
 
   // Determine query options based on filters
   const queryOptions = useMemo(() => ({
@@ -104,6 +118,7 @@ const EventsPage = () => {
     setSelectedVenueGroup('all');
     setSelectedLocationIds([]);
     setSearchQuery('');
+    setShowSearchInput(false);
     setSearchParams({});
   }, [setSearchParams]);
 
@@ -116,98 +131,124 @@ const EventsPage = () => {
 
   const totalActiveFilters = activeFilterCount + 
     (selectedVenueGroup !== 'all' ? 1 : 0) + 
-    selectedLocationIds.length;
+    selectedLocationIds.length +
+    (debouncedSearch ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40">
         <div className="p-4 space-y-3">
-          {/* Title row */}
+          {/* Row 1: Title + Icons (right side: Search, Locations, Filters) */}
           <div className="flex items-center justify-between gap-2">
-            <h1 className="text-xl font-bold shrink-0">{t('events.title')}</h1>
-            
-            {totalActiveFilters > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-                className="text-muted-foreground h-8 px-2"
-              >
-                <X className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">{t('events.clearFilters')}</span>
-              </Button>
-            )}
-          </div>
-          
-          {/* Search */}
-          <form onSubmit={handleSearch} className="relative" role="search">
-            <label htmlFor="event-search" className="sr-only">{t('common.search')}</label>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            <Input
-              id="event-search"
-              type="search"
-              placeholder={t('common.search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-10"
-              aria-describedby="search-hint"
-            />
-            <span id="search-hint" className="sr-only">
-              {t('events.searchHint', 'Buscar por nombre de evento, sala o descripción')}
-            </span>
-            {searchQuery && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 min-h-[44px] min-w-[44px]"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSearchParams({});
-                }}
-                aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            )}
-          </form>
-
-          {/* Filter row: LEFT [Todos] [Salas] [Teatros] | RIGHT [Localidades] [Filtros] */}
-          <div className="flex items-center justify-between gap-2">
-            {/* Left: Venue group buttons */}
-            <div className="flex-shrink-0">
-              <VenueGroupDropdown
-                selectedGroup={selectedVenueGroup}
-                selectedVenueIds={selectedVenueIds}
-                onGroupChange={setSelectedVenueGroup}
-                onVenueIdsChange={setSelectedVenueIds}
-              />
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold shrink-0">{t('events.title')}</h1>
+              {totalActiveFilters > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="text-muted-foreground h-7 px-2 text-xs"
+                >
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  {t('events.clearFilters')}
+                </Button>
+              )}
             </div>
+            
+            {/* Right: Icon buttons */}
+            <div className="flex items-center gap-1">
+              {/* Search Toggle */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant={showSearchInput ? 'default' : 'ghost'} 
+                    size="icon"
+                    onClick={() => setShowSearchInput(!showSearchInput)}
+                    className="h-9 w-9"
+                    aria-label={t('common.search')}
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('common.search')}</TooltipContent>
+              </Tooltip>
 
-            {/* Right: Location + Filters */}
-            <div className="flex items-center gap-1.5">
+              {/* Locations */}
               <LocationFilter
                 selectedLocationIds={selectedLocationIds}
                 onSelectionChange={setSelectedLocationIds}
               />
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setIsFilterOpen(true)}
-                className="relative gap-1.5 h-8 text-xs"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('events.moreFilters')}</span>
-                {activeFilterCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                    {activeFilterCount}
-                  </Badge>
-                )}
-              </Button>
+
+              {/* Filters */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setIsFilterOpen(true)}
+                    className="h-9 w-9 relative"
+                    aria-label={t('events.moreFilters')}
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {activeFilterCount > 0 && (
+                      <Badge 
+                        variant="secondary" 
+                        className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
+                      >
+                        {activeFilterCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('events.moreFilters')}</TooltipContent>
+              </Tooltip>
             </div>
           </div>
+
+          {/* Row 1.5: Search input (collapsible) */}
+          {showSearchInput && (
+            <form onSubmit={handleSearch} className="relative" role="search">
+              <label htmlFor="event-search" className="sr-only">{t('common.search')}</label>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Input
+                ref={searchInputRef}
+                id="event-search"
+                type="search"
+                placeholder={t('common.search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-10"
+                aria-describedby="search-hint"
+              />
+              <span id="search-hint" className="sr-only">
+                {t('events.searchHint', 'Buscar por nombre de evento, sala o descripción')}
+              </span>
+              {searchQuery && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSearchParams({});
+                  }}
+                  aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              )}
+            </form>
+          )}
+
+          {/* Row 2: Venue chips [Todos] [Salas] [Teatros] */}
+          <VenueGroupDropdown
+            selectedGroup={selectedVenueGroup}
+            selectedVenueIds={selectedVenueIds}
+            onGroupChange={setSelectedVenueGroup}
+            onVenueIdsChange={setSelectedVenueIds}
+          />
         </div>
       </header>
 
