@@ -170,16 +170,12 @@
   "categories": {
     "music": "Música",
     "theater": "Teatro",
-    "cinema": "Cine",
-    "art": "Arte",
+    "exhibitions": "Exposiciones",
+    "kids": "Infantil",
     "sports": "Deportes",
-    "gastronomy": "Gastronomía",
     "festivals": "Festivales",
-    "family": "Familia",
-    "nightlife": "Vida nocturna",
     "workshops": "Talleres",
     "conferences": "Conferencias",
-    "markets": "Mercados",
     "other": "Otros"
   },
   "errors": {

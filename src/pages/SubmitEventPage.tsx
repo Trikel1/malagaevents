@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,14 +15,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { EVENT_CATEGORIES } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 const SubmitEventPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -46,23 +50,81 @@ const SubmitEventPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      // TODO: Implement actual submission with Edge Function
+      // Parse tags
+      const tags = formData.tags
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        start_at: new Date(formData.start_at).toISOString(),
+        end_at: formData.end_at ? new Date(formData.end_at).toISOString() : undefined,
+        venue_name: formData.venue_name,
+        address: formData.address,
+        ticket_url: formData.ticket_url || undefined,
+        price_info: formData.price_info || undefined,
+        is_free: formData.is_free,
+        image_url: formData.image_url || undefined,
+        age_restriction: formData.age_restriction || undefined,
+        accessibility_info: formData.accessibility_info || undefined,
+        capacity_info: formData.capacity_info || undefined,
+        tags: tags.length > 0 ? tags : undefined,
+        email: formData.email,
+      };
+
+      const { data, error: fnError } = await supabase.functions.invoke('submit-event', {
+        body: payload,
+      });
+
+      if (fnError) {
+        throw new Error(fnError.message);
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Unknown error');
+      }
+
+      setSubmitted(true);
       toast({
         title: t('submitEvent.success'),
         description: t('submitEvent.successDesc'),
       });
-      navigate('/');
-    } catch (error) {
+    } catch (err) {
+      console.error('Error submitting event:', err);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(message);
       toast({
         title: t('submitEvent.error'),
+        description: message,
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-6">
+            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">{t('submitEvent.success')}</h2>
+            <p className="text-muted-foreground mb-6">{t('submitEvent.successDesc')}</p>
+            <Button onClick={() => navigate('/')} className="w-full">
+              {t('common.back')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -78,6 +140,14 @@ const SubmitEventPage = () => {
       </header>
 
       <main className="p-4">
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{t('submitEvent.error')}</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
           <Card>
@@ -92,6 +162,8 @@ const SubmitEventPage = () => {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
+                  minLength={3}
+                  maxLength={200}
                 />
               </div>
 
@@ -103,6 +175,8 @@ const SubmitEventPage = () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={4}
                   required
+                  minLength={10}
+                  maxLength={2000}
                 />
               </div>
 
@@ -163,6 +237,7 @@ const SubmitEventPage = () => {
                   value={formData.venue_name}
                   onChange={(e) => setFormData({ ...formData, venue_name: e.target.value })}
                   required
+                  minLength={2}
                 />
               </div>
 
@@ -173,6 +248,7 @@ const SubmitEventPage = () => {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   required
+                  minLength={5}
                 />
               </div>
             </CardContent>
@@ -274,7 +350,7 @@ const SubmitEventPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Contacto</CardTitle>
-              <CardDescription>Te enviaremos un email para verificar el evento</CardDescription>
+              <CardDescription>Te enviaremos un email cuando se publique el evento</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
