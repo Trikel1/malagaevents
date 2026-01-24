@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
+import EventImage, { EventImageSkeleton } from '@/components/events/EventImage';
 import EmptyState from '@/components/common/EmptyState';
 import { useEvent, useSimilarEvents } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
@@ -54,11 +54,11 @@ const EventDetailPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Skeleton className="h-64 w-full" />
+        <EventImageSkeleton variant="detail" />
         <div className="p-4 space-y-4">
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-32 w-full" />
+          <div className="h-8 w-3/4 bg-muted animate-pulse rounded" />
+          <div className="h-6 w-1/2 bg-muted animate-pulse rounded" />
+          <div className="h-32 w-full bg-muted animate-pulse rounded" />
         </div>
       </div>
     );
@@ -136,15 +136,15 @@ END:VCALENDAR`;
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Hero Image */}
-      <div className="relative h-64 bg-muted">
-        {event.image_url && (
-          <img
-            src={event.image_url}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      <div className="relative">
+        <EventImage
+          src={event.image_url}
+          alt={event.title}
+          variant="detail"
+          showLightbox={!!event.image_url}
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
         
         {/* Back button */}
         <Button

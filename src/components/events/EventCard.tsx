@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Heart } from 'lucide-react';
+import { MapPin, Heart, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import EventImage from '@/components/events/EventImage';
 import type { Event } from '@/types';
 
 const locales: Record<string, Locale> = {
@@ -34,34 +35,29 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
       )}>
         {/* Image */}
         <div className={cn(
-          'relative bg-muted overflow-hidden',
-          compact ? 'w-24 h-24 flex-shrink-0' : 'h-40'
+          'relative overflow-hidden',
+          compact ? 'w-24 flex-shrink-0' : ''
         )}>
-          {event.image_url ? (
-            <img
-              src={event.image_url}
-              alt={event.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
-              <Calendar className="h-10 w-10 text-muted-foreground/50" />
-            </div>
-          )}
+          <EventImage
+            src={event.image_url}
+            alt={event.title}
+            variant={compact ? 'compact' : 'card'}
+            className="group-hover:scale-105 transition-transform duration-300"
+          />
           
           {/* Free badge */}
-          {event.is_free && (
-            <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-500">
+          {event.is_free && !compact && (
+            <Badge className="absolute top-2 left-2 bg-green-500 hover:bg-green-500 z-10">
               {t('common.free')}
             </Badge>
           )}
           
           {/* Favorite button */}
-          {onToggleFavorite && (
+          {onToggleFavorite && !compact && (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background"
+              className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background z-10"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -95,11 +91,11 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
           {/* Date & Location */}
           <div className="space-y-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" />
+              <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="capitalize">{formattedDate}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" />
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="line-clamp-1">{event.venue_name}</span>
             </div>
           </div>
