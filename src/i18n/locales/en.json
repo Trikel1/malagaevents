@@ -97,8 +97,12 @@
     "selectDate": "Select date",
     "call": "Call",
     "directions": "Directions",
-    "noPharmacies": "No pharmacies on duty",
-    "noPharmaciesDesc": "Select another date"
+    "noPharmacies": "No pharmacies found",
+    "noPharmaciesDesc": "No pharmacies available",
+    "onDuty": "On duty",
+    "all": "All",
+    "dutyCount": "{{count}} pharmacies on duty",
+    "totalCount": "{{count}} pharmacies in Málaga"
   },
   "tickets": {
     "title": "My tickets",

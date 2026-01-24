@@ -97,8 +97,12 @@
     "selectDate": "Seleccionar fecha",
     "call": "Llamar",
     "directions": "Cómo llegar",
-    "noPharmacies": "No hay farmacias de guardia",
-    "noPharmaciesDesc": "Selecciona otra fecha"
+    "noPharmacies": "No hay farmacias",
+    "noPharmaciesDesc": "No se encontraron farmacias",
+    "onDuty": "De guardia",
+    "all": "Todas",
+    "dutyCount": "{{count}} farmacias de guardia",
+    "totalCount": "{{count}} farmacias en Málaga"
   },
   "tickets": {
     "title": "Mis entradas",
