@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import EventCard from '@/components/events/EventCard';
 import FilterDrawer, { type EventFilters } from '@/components/events/FilterDrawer';
-import { VenueGroupFilter, type VenueGroup } from '@/components/events/VenueGroupFilter';
+import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
@@ -190,11 +190,12 @@ const EventsPage = () => {
             )}
           </form>
 
-          {/* Quick venue group chips + location filter */}
+          {/* Quick venue group dropdowns + location filter */}
           <div className="flex items-center gap-2">
             <div className="flex-1 overflow-hidden">
-              <VenueGroupFilter
+              <VenueGroupDropdown
                 selectedGroup={selectedVenueGroup}
+                selectedVenueIds={selectedVenueIds}
                 onGroupChange={setSelectedVenueGroup}
                 onVenueIdsChange={setSelectedVenueIds}
               />
