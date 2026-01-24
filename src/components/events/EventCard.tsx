@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import EventImage from '@/components/events/EventImage';
+import { sanitizeText, generateAltText } from '@/lib/sanitize';
 import type { Event } from '@/types';
 
 const locales: Record<string, Locale> = {
@@ -27,14 +28,21 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
 
   const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale });
 
-  // Get venue and location display names
-  const venueName = event.venue?.name || event.venue_name || event.venue_normalized || t('events.noVenue', 'Sin sala');
-  const locationName = event.location?.name || event.location_normalized || event.province || 'Málaga';
+  // Get venue and location display names with fallbacks
+  const venueName = sanitizeText(event.venue?.name || event.venue_name || event.venue_normalized) || t('events.venueUnconfirmed', 'Por confirmar');
+  const locationName = sanitizeText(event.location?.name || event.location_normalized || event.province) || 'Málaga';
+  const eventTitle = sanitizeText(event.title) || t('events.untitled', 'Sin título');
+
+  // Generate accessible alt text
+  const imageAlt = generateAltText(event.title, event.venue_name);
 
   return (
-    <Link to={`/events/${event.id}`}>
+    <Link 
+      to={`/events/${event.id}`}
+      aria-label={`${eventTitle}, ${formattedDate}, ${venueName}`}
+    >
       <Card className={cn(
-        'overflow-hidden hover:shadow-lg transition-shadow group',
+        'overflow-hidden hover:shadow-lg transition-shadow group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
         compact ? 'flex-row flex' : ''
       )}>
         {/* Image */}
@@ -44,7 +52,7 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
         )}>
           <EventImage
             src={event.image_url}
-            alt={event.title}
+            alt={imageAlt}
             variant={compact ? 'compact' : 'card'}
             category={event.category}
             className="group-hover:scale-105 transition-transform duration-300"
@@ -57,23 +65,26 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
             </Badge>
           )}
           
-          {/* Favorite button */}
+          {/* Favorite button - ensure minimum 44px tap target */}
           {onToggleFavorite && !compact && (
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background z-10"
+              className="absolute top-2 right-2 h-11 w-11 min-h-[44px] min-w-[44px] bg-background/80 hover:bg-background z-10 focus:ring-2 focus:ring-primary"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onToggleFavorite(event.id);
               }}
+              aria-label={isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Añadir a favoritos')}
+              aria-pressed={isFavorite}
             >
               <Heart
                 className={cn(
-                  'h-4 w-4',
+                  'h-5 w-5',
                   isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
                 )}
+                aria-hidden="true"
               />
             </Button>
           )}
@@ -90,31 +101,31 @@ const EventCard = ({ event, isFavorite, onToggleFavorite, compact }: EventCardPr
             'font-semibold line-clamp-2 mb-2',
             compact ? 'text-sm' : 'text-base'
           )}>
-            {event.title}
+            {eventTitle}
           </h3>
 
           {/* Date & Location */}
           <div className="space-y-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
-              <span className="capitalize">{formattedDate}</span>
+              <Calendar className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+              <time dateTime={event.start_at} className="capitalize">{formattedDate}</time>
             </div>
             <div className="flex items-center gap-1.5">
-              <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
+              <Building2 className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               <span className="line-clamp-1">{venueName}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               <span className="line-clamp-1">{locationName}</span>
             </div>
           </div>
 
           {/* Tags */}
           {!compact && event.tags && event.tags.length > 0 && (
-            <div className="flex gap-1 mt-2 flex-wrap">
+            <div className="flex gap-1 mt-2 flex-wrap" role="list" aria-label={t('events.tags', 'Etiquetas')}>
               {event.tags.slice(0, 3).map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
+                <Badge key={tag} variant="outline" className="text-xs" role="listitem">
+                  {sanitizeText(tag)}
                 </Badge>
               ))}
             </div>

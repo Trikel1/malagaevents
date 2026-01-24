@@ -6,6 +6,15 @@ const corsHeaders = {
 };
 
 // ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2000;
+const RATE_LIMIT_DELAY_MS = 3000;
+const SCRAPE_TIMEOUT_MS = 45000;
+
+// ============================================================================
 // VENUE AND LOCATION NORMALIZATION
 // ============================================================================
 
@@ -85,6 +94,67 @@ const EVENT_EXTRACTION_SCHEMA = {
   },
   required: ['events'],
 };
+
+// ============================================================================
+// LOGGING UTILITY
+// ============================================================================
+
+interface LogEntry {
+  timestamp: string;
+  level: 'info' | 'warn' | 'error';
+  source: string;
+  message: string;
+  details?: any;
+}
+
+class SyncLogger {
+  private logs: LogEntry[] = [];
+  private currentSource: string = 'sync';
+
+  setSource(source: string) {
+    this.currentSource = source;
+  }
+
+  info(message: string, details?: any) {
+    this.log('info', message, details);
+  }
+
+  warn(message: string, details?: any) {
+    this.log('warn', message, details);
+  }
+
+  error(message: string, details?: any) {
+    this.log('error', message, details);
+  }
+
+  private log(level: 'info' | 'warn' | 'error', message: string, details?: any) {
+    const entry: LogEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      source: this.currentSource,
+      message,
+      details,
+    };
+    this.logs.push(entry);
+    
+    const prefix = `[${level.toUpperCase()}][${this.currentSource}]`;
+    if (level === 'error') {
+      console.error(`${prefix} ${message}`, details || '');
+    } else if (level === 'warn') {
+      console.warn(`${prefix} ${message}`, details || '');
+    } else {
+      console.log(`${prefix} ${message}`, details || '');
+    }
+  }
+
+  getLogs() {
+    return this.logs;
+  }
+
+  getErrorLogs() {
+    return this.logs.filter(l => l.level === 'error');
+  }
+}
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -242,38 +312,74 @@ function determineEventType(title: string, description: string, sourceEventType:
 }
 
 // ============================================================================
-// SCRAPING WITH FIRECRAWL
+// SCRAPING WITH FIRECRAWL (WITH RETRIES AND BACKOFF)
 // ============================================================================
 
-async function scrapeUrl(url: string, extractionPrompt: string, apiKey: string): Promise<any> {
-  console.log(`Scraping: ${url}`);
+async function scrapeUrlWithRetry(
+  url: string, 
+  extractionPrompt: string, 
+  apiKey: string,
+  logger: SyncLogger,
+  maxRetries = MAX_RETRIES
+): Promise<any> {
+  let lastError: Error | null = null;
   
-  const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      url,
-      formats: ['json'],
-      jsonOptions: {
-        schema: EVENT_EXTRACTION_SCHEMA,
-        prompt: extractionPrompt,
-      },
-      onlyMainContent: true,
-      waitFor: 3000,
-      timeout: 30000,
-    }),
-  });
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      logger.info(`Scraping attempt ${attempt}/${maxRetries}: ${url}`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), SCRAPE_TIMEOUT_MS);
+      
+      const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url,
+          formats: ['json'],
+          jsonOptions: {
+            schema: EVENT_EXTRACTION_SCHEMA,
+            prompt: extractionPrompt,
+          },
+          onlyMainContent: true,
+          waitFor: 5000,
+          timeout: 40000,
+        }),
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`Firecrawl error:`, errorText.substring(0, 200));
-    throw new Error(`Firecrawl failed: ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Firecrawl error ${response.status}: ${errorText.substring(0, 100)}`);
+      }
+
+      const result = await response.json();
+      logger.info(`Scrape successful on attempt ${attempt}`);
+      return result;
+      
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        logger.warn(`Request timed out on attempt ${attempt}`);
+      } else {
+        logger.warn(`Attempt ${attempt} failed: ${lastError.message}`);
+      }
+      
+      if (attempt < maxRetries) {
+        const delay = RETRY_DELAY_MS * attempt;
+        logger.info(`Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
   }
-
-  return response.json();
+  
+  throw lastError || new Error('All retry attempts failed');
 }
 
 // ============================================================================
@@ -343,10 +449,12 @@ async function upsertEventWithOccurrences(
   supabase: any,
   source: any,
   eventData: any,
-  occurrences: Array<{ date: string; time?: string; end_time?: string }>
+  occurrences: Array<{ date: string; time?: string; end_time?: string }>,
+  logger: SyncLogger
 ): Promise<{ inserted: boolean; updated: boolean; occurrences_created: number; skipped: boolean }> {
   const title = cleanTitle(eventData.title);
   if (!title) {
+    logger.warn(`Skipping event with empty title`);
     return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
   }
   
@@ -411,6 +519,7 @@ async function upsertEventWithOccurrences(
     eventId = existingEvent.id;
     await supabase.from('events').update(eventPayload).eq('id', eventId);
     isUpdated = true;
+    logger.info(`Updated event: ${title}`);
   } else {
     const firstOccurrence = occurrences[0];
     const startAt = parseSpanishDate(firstOccurrence?.date || '', firstOccurrence?.time);
@@ -426,12 +535,13 @@ async function upsertEventWithOccurrences(
       .single();
     
     if (error) {
-      console.error('Error inserting event:', error.message);
+      logger.error(`Error inserting event "${title}": ${error.message}`);
       return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
     }
     
     eventId = newEvent.id;
     isNew = true;
+    logger.info(`Inserted new event: ${title}`);
   }
   
   // Upsert occurrences
@@ -483,6 +593,34 @@ async function upsertEventWithOccurrences(
 }
 
 // ============================================================================
+// ARCHIVE OLD EVENTS
+// ============================================================================
+
+async function archiveStaleEvents(supabase: any, logger: SyncLogger): Promise<number> {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 7); // Archive if not synced in 7 days
+  
+  const { data: staleEvents, error } = await supabase
+    .from('events')
+    .update({ status: 'archived' })
+    .lt('last_synced_at', cutoffDate.toISOString())
+    .eq('status', 'published')
+    .select('id');
+  
+  if (error) {
+    logger.error('Error archiving stale events', error);
+    return 0;
+  }
+  
+  const count = staleEvents?.length || 0;
+  if (count > 0) {
+    logger.info(`Archived ${count} stale events`);
+  }
+  
+  return count;
+}
+
+// ============================================================================
 // MAIN HANDLER
 // ============================================================================
 
@@ -491,11 +629,16 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const logger = new SyncLogger();
+  logger.setSource('main');
+  logger.info('=== STARTING SYNC ===');
+
   try {
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!firecrawlApiKey) {
+      logger.error('Firecrawl API key not configured');
       return new Response(
-        JSON.stringify({ success: false, error: 'Firecrawl API key not configured' }),
+        JSON.stringify({ success: false, error: 'Firecrawl API key not configured', logs: logger.getLogs() }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -533,14 +676,14 @@ Deno.serve(async (req) => {
     const { data: sources, error: sourcesError } = await query;
     
     if (sourcesError || !sources || sources.length === 0) {
+      logger.error('No active sources found');
       return new Response(
-        JSON.stringify({ success: false, error: 'No active sources found' }),
+        JSON.stringify({ success: false, error: 'No active sources found', logs: logger.getLogs() }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`=== STARTING SYNC ===`);
-    console.log(`Sources: ${sources.map(s => s.name).join(', ')}`);
+    logger.info(`Found ${sources.length} active sources: ${sources.map(s => s.name).join(', ')}`);
 
     const results = {
       sources_processed: 0,
@@ -550,13 +693,15 @@ Deno.serve(async (req) => {
       events_inserted: 0,
       events_updated: 0,
       events_skipped: 0,
+      events_archived: 0,
       occurrences_created: 0,
       errors: [] as string[],
       details: [] as any[],
     };
 
     for (const source of sources) {
-      console.log(`\n--- Processing: ${source.name} ---`);
+      logger.setSource(source.slug);
+      logger.info(`--- Processing: ${source.name} ---`);
       
       // Create sync run record
       const { data: syncRun } = await supabase
@@ -579,9 +724,14 @@ Deno.serve(async (req) => {
 
       try {
         const urlToScrape = source.chosen_entrypoint || source.fallback_entrypoint;
-        const extractionPrompt = `Extrae todos los eventos/espectáculos/conciertos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price, venue.`;
         
-        const scrapeResult = await scrapeUrl(urlToScrape, extractionPrompt, firecrawlApiKey);
+        if (!urlToScrape) {
+          throw new Error('No entrypoint URL configured');
+        }
+        
+        const extractionPrompt = `Extrae todos los eventos/espectáculos/conciertos de la página. Para cada evento: title, description (breve), occurrences (todas las fechas en formato DD/MM/YYYY y hora HH:MM), venue, city, image_url, ticket_url, price.`;
+        
+        const scrapeResult = await scrapeUrlWithRetry(urlToScrape, extractionPrompt, firecrawlApiKey, logger);
         results.sources_processed++;
         
         // Extract events
@@ -599,11 +749,12 @@ Deno.serve(async (req) => {
         sourceResults.eventsFound = events.length;
         results.events_found += events.length;
         
-        console.log(`Found ${events.length} valid events from ${source.name}`);
+        logger.info(`Found ${events.length} valid events`);
         
         if (events.length === 0) {
           sourceResults.error = 'No valid events extracted';
           results.errors.push(`${source.name}: No events found`);
+          logger.warn('No valid events found in scrape result');
         }
         
         for (const event of events) {
@@ -618,7 +769,7 @@ Deno.serve(async (req) => {
             continue;
           }
           
-          const result = await upsertEventWithOccurrences(supabase, source, event, occurrences);
+          const result = await upsertEventWithOccurrences(supabase, source, event, occurrences, logger);
           
           if (result.skipped) {
             sourceResults.skipped++;
@@ -660,7 +811,7 @@ Deno.serve(async (req) => {
         
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error processing ${source.name}:`, errorMsg);
+        logger.error(`Processing failed: ${errorMsg}`);
         sourceResults.error = errorMsg;
         results.errors.push(`${source.name}: ${errorMsg}`);
         results.sources_failed++;
@@ -672,7 +823,7 @@ Deno.serve(async (req) => {
               status: 'failed',
               finished_at: new Date().toISOString(),
               errors: 1,
-              error_details: { message: errorMsg },
+              error_details: { message: errorMsg, logs: logger.getErrorLogs() },
             })
             .eq('id', syncRun.id);
         }
@@ -680,25 +831,31 @@ Deno.serve(async (req) => {
       
       results.details.push(sourceResults);
       
-      // Rate limiting
+      // Rate limiting between sources
       if (sources.indexOf(source) < sources.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        logger.info(`Rate limiting: waiting ${RATE_LIMIT_DELAY_MS}ms`);
+        await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY_MS));
       }
     }
 
-    console.log(`\n=== SYNC COMPLETED ===`);
-    console.log(`Sources: ${results.sources_success}/${results.sources_processed} successful`);
-    console.log(`Events: ${results.events_inserted} new, ${results.events_updated} updated`);
+    // Archive stale events
+    logger.setSource('archiver');
+    results.events_archived = await archiveStaleEvents(supabase, logger);
+
+    logger.setSource('main');
+    logger.info('=== SYNC COMPLETED ===');
+    logger.info(`Sources: ${results.sources_success}/${results.sources_processed} successful`);
+    logger.info(`Events: ${results.events_inserted} new, ${results.events_updated} updated, ${results.events_archived} archived`);
 
     return new Response(
-      JSON.stringify({ success: true, results }),
+      JSON.stringify({ success: true, results, logs: logger.getLogs() }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Sync error:', error);
+    logger.error('Fatal sync error', error);
     return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error', logs: logger.getLogs() }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

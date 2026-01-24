@@ -244,7 +244,7 @@ export const useRunScraping = () => {
   
   return useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('scrape-events', {
+      const { data, error } = await supabase.functions.invoke('sync-events', {
         body: {},
       });
       
@@ -255,6 +255,8 @@ export const useRunScraping = () => {
       queryClient.invalidateQueries({ queryKey: ['scraping-sources'] });
       queryClient.invalidateQueries({ queryKey: ['admin-events'] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['events-optimized'] });
+      queryClient.invalidateQueries({ queryKey: ['sync-stats'] });
     },
   });
 };
@@ -263,17 +265,20 @@ export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [eventsRes, pendingRes, sourcesRes] = await Promise.all([
+      const [eventsRes, pendingRes, sourcesRes, syncRunsRes] = await Promise.all([
         supabase.from('events').select('id', { count: 'exact', head: true }).eq('status', 'published'),
         supabase.from('events').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('scraping_sources').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('sources_config').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('sync_runs').select('finished_at').order('finished_at', { ascending: false }).limit(1),
       ]);
       
       return {
         totalEvents: eventsRes.count || 0,
         pendingEvents: pendingRes.count || 0,
         activeSources: sourcesRes.count || 0,
+        lastSyncAt: syncRunsRes.data?.[0]?.finished_at || null,
       };
     },
+    refetchInterval: 30000,
   });
 };
