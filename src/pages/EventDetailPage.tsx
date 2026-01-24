@@ -3,97 +3,82 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { 
-  ArrowLeft, Calendar, MapPin, Clock, Euro, Users, Baby, 
-  Accessibility, Heart, Share2, ExternalLink, Navigation
+  ArrowLeft, Calendar, MapPin, Euro, Users, Baby, 
+  Accessibility, Heart, Share2, ExternalLink, Navigation, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
-import type { Event as EventType } from '@/types';
+import EmptyState from '@/components/common/EmptyState';
+import { useEvent, useSimilarEvents } from '@/hooks/useEvents';
+import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
 };
-
-// Mock event for demo
-const mockEvent: EventType = {
-  id: '1',
-  title: 'Festival de Música de Málaga 2024',
-  description: `Un festival único que celebra la música en todas sus formas. Durante tres días, disfruta de conciertos al aire libre, talleres musicales y actividades para toda la familia.
-
-El evento contará con artistas locales e internacionales, zonas de food trucks y espacios de descanso. No te pierdas esta oportunidad de vivir la música en el corazón de Málaga.
-
-Actividades incluidas:
-- Conciertos en directo
-- Talleres de instrumentos
-- Zona infantil
-- Mercadillo artesanal`,
-  category: 'music',
-  start_at: new Date().toISOString(),
-  end_at: new Date(Date.now() + 10800000).toISOString(),
-  venue_name: 'Plaza de la Constitución',
-  address: 'Plaza de la Constitución, Centro Histórico, 29015 Málaga',
-  lat: 36.7213,
-  lng: -4.4214,
-  is_free: true,
-  status: 'published',
-  source_type: 'official_feed',
-  created_at: new Date().toISOString(),
-  image_url: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800',
-  tags: ['música', 'festival', 'verano', 'familia'],
-  age_restriction: 'Todos los públicos',
-  accessibility_info: 'Acceso adaptado para personas con movilidad reducida',
-  capacity_info: 'Aforo limitado a 5.000 personas',
-};
-
-const similarEvents: EventType[] = [
-  {
-    id: '2',
-    title: 'Concierto Jazz en la Playa',
-    description: 'Jazz al atardecer',
-    category: 'music',
-    start_at: new Date(Date.now() + 86400000).toISOString(),
-    venue_name: 'Playa de la Malagueta',
-    address: 'Playa de la Malagueta, Málaga',
-    is_free: false,
-    price_info: '20€',
-    status: 'published',
-    source_type: 'official_feed',
-    created_at: new Date().toISOString(),
-    image_url: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=400',
-  },
-  {
-    id: '3',
-    title: 'Flamenco en Vivo',
-    description: 'Espectáculo flamenco',
-    category: 'music',
-    start_at: new Date(Date.now() + 172800000).toISOString(),
-    venue_name: 'Tablao Los Amayas',
-    address: 'Calle Cruz del Molinillo, Málaga',
-    is_free: false,
-    price_info: '25€ - 40€',
-    status: 'published',
-    source_type: 'official_feed',
-    created_at: new Date().toISOString(),
-    image_url: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=400',
-  },
-];
 
 const EventDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
+  const { isAuthenticated } = useAuthContext();
 
-  // TODO: Fetch event by ID
-  const event = mockEvent;
-  const isFavorite = false;
+  // Fetch event
+  const { data: event, isLoading, error } = useEvent(id);
+  
+  // Fetch similar events
+  const { data: similarEvents } = useSimilarEvents(event);
+  
+  // Favorites
+  const { data: favorites } = useFavorites();
+  const toggleFavorite = useToggleFavorite();
+  
+  const isFavorite = favorites?.some((f) => f.event_id === id) ?? false;
 
-  if (!event) {
-    return null;
+  const handleToggleFavorite = () => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+    if (id) {
+      toggleFavorite.mutate({ eventId: id, isFavorite });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Skeleton className="h-64 w-full" />
+        <div className="p-4 space-y-4">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <EmptyState
+          icon={Calendar}
+          title={t('errors.notFound')}
+          description={t('events.noEventsDesc')}
+          actionLabel={t('common.back')}
+          onAction={() => navigate('/events')}
+        />
+      </div>
+    );
   }
 
   const formattedDate = format(new Date(event.start_at), "EEEE d 'de' MMMM", { locale });
@@ -106,6 +91,10 @@ const EventDetailPage = () => {
       const url = isIOS
         ? `maps://maps.apple.com/?daddr=${event.lat},${event.lng}`
         : `https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`;
+      window.open(url, '_blank');
+    } else {
+      // Fallback to address search
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`;
       window.open(url, '_blank');
     }
   };
@@ -180,9 +169,15 @@ END:VCALENDAR`;
           <Button
             variant="ghost"
             size="icon"
+            onClick={handleToggleFavorite}
+            disabled={toggleFavorite.isPending}
             className="bg-background/80 hover:bg-background"
           >
-            <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
+            {toggleFavorite.isPending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
+            )}
           </Button>
         </div>
 
@@ -260,7 +255,7 @@ END:VCALENDAR`;
 
         {/* Description */}
         <div>
-          <h2 className="font-semibold mb-2">Descripción</h2>
+          <h2 className="font-semibold mb-2">{t('eventDetail.when')}</h2>
           <p className="text-muted-foreground whitespace-pre-line">{event.description}</p>
         </div>
 
@@ -324,17 +319,21 @@ END:VCALENDAR`;
         )}
 
         {/* Similar Events */}
-        <Separator />
-        <div>
-          <h2 className="font-semibold mb-3">{t('events.similarEvents')}</h2>
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {similarEvents.map((evt) => (
-              <div key={evt.id} className="min-w-[240px] max-w-[240px]">
-                <EventCard event={evt} compact />
+        {similarEvents && similarEvents.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <h2 className="font-semibold mb-3">{t('events.similarEvents')}</h2>
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {similarEvents.map((evt) => (
+                  <div key={evt.id} className="min-w-[240px] max-w-[240px]">
+                    <EventCard event={evt} compact />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
       </main>
     </div>
   );

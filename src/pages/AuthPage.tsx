@@ -7,13 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 const AuthPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();
+  const { signIn, signUp, resetPassword, isLoading: authLoading } = useAuthContext();
   
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
@@ -24,6 +24,7 @@ const AuthPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    displayName: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,31 +32,28 @@ const AuthPage = () => {
     setIsLoading(true);
 
     try {
-      if (mode === 'signup' && formData.password !== formData.confirmPassword) {
-        toast({
-          title: t('errors.passwordsDontMatch'),
-          variant: 'destructive',
-        });
-        return;
+      if (mode === 'signup') {
+        if (formData.password !== formData.confirmPassword) {
+          return;
+        }
+        const { error } = await signUp(formData.email, formData.password, formData.displayName);
+        if (!error) {
+          navigate('/');
+        }
+      } else {
+        const { error } = await signIn(formData.email, formData.password);
+        if (!error) {
+          navigate('/');
+        }
       }
-
-      // TODO: Implement actual auth with Supabase
-      toast({
-        title: mode === 'login' ? t('profile.login') : t('profile.signup'),
-        description: 'Autenticación próximamente...',
-      });
-      
-      // Simulate success and redirect
-      setTimeout(() => {
-        navigate('/');
-      }, 1000);
-    } catch (error) {
-      toast({
-        title: t('errors.generic'),
-        variant: 'destructive',
-      });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (formData.email) {
+      await resetPassword(formData.email);
     }
   };
 
@@ -94,6 +92,19 @@ const AuthPage = () => {
               </TabsList>
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {mode === 'signup' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">Nombre</Label>
+                    <Input
+                      id="displayName"
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={formData.displayName}
+                      onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                    />
+                  </div>
+                )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="email">{t('profile.email')}</Label>
                   <div className="relative">
@@ -161,16 +172,17 @@ const AuthPage = () => {
 
                 {mode === 'login' && (
                   <div className="text-right">
-                    <Link 
-                      to="/auth/reset-password" 
+                    <button 
+                      type="button"
+                      onClick={handleForgotPassword}
                       className="text-sm text-primary hover:underline"
                     >
                       {t('profile.forgotPassword')}
-                    </Link>
+                    </button>
                   </div>
                 )}
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || authLoading}>
                   {isLoading ? t('common.loading') : (mode === 'login' ? t('profile.login') : t('profile.signup'))}
                 </Button>
               </form>
