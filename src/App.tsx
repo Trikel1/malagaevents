@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
 import Index from "./pages/Index";
 import EventsPage from "./pages/EventsPage";
@@ -20,32 +21,34 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Main layout with bottom nav */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/pharmacies" element={<PharmaciesPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/tickets" element={<TicketsPage />} />
-          </Route>
-          
-          {/* Pages without bottom nav */}
-          <Route path="/events/:id" element={<EventDetailPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/tickets/add" element={<AddTicketPage />} />
-          <Route path="/submit-event" element={<SubmitEventPage />} />
-          
-          {/* Catch-all */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Main layout with bottom nav */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/pharmacies" element={<PharmaciesPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/tickets" element={<TicketsPage />} />
+            </Route>
+            
+            {/* Pages without bottom nav */}
+            <Route path="/events/:id" element={<EventDetailPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/tickets/add" element={<AddTicketPage />} />
+            <Route path="/submit-event" element={<SubmitEventPage />} />
+            
+            {/* Catch-all */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

@@ -14,62 +14,30 @@ import {
 import { cn } from '@/lib/utils';
 import EmptyState from '@/components/common/EmptyState';
 import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
-import type { Pharmacy } from '@/types';
+import { usePharmacies } from '@/hooks/usePharmacies';
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
 };
 
-// Mock pharmacies
-const mockPharmacies: Pharmacy[] = [
-  {
-    id: '1',
-    name: 'Farmacia Central',
-    address: 'Calle Larios 15, Málaga',
-    phone: '+34 952 123 456',
-    date_from: format(new Date(), 'yyyy-MM-dd'),
-    date_to: format(new Date(), 'yyyy-MM-dd'),
-    lat: 36.7213,
-    lng: -4.4214,
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Farmacia Plaza Mayor',
-    address: 'Plaza de la Constitución 8, Málaga',
-    phone: '+34 952 234 567',
-    date_from: format(new Date(), 'yyyy-MM-dd'),
-    date_to: format(new Date(), 'yyyy-MM-dd'),
-    lat: 36.7220,
-    lng: -4.4200,
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Farmacia El Carmen',
-    address: 'Alameda Principal 42, Málaga',
-    phone: '+34 952 345 678',
-    date_from: format(new Date(), 'yyyy-MM-dd'),
-    date_to: format(new Date(), 'yyyy-MM-dd'),
-    lat: 36.7180,
-    lng: -4.4250,
-    updated_at: new Date().toISOString(),
-  },
-];
-
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [isLoading] = useState(false);
+
+  // Fetch pharmacies for selected date
+  const { data: pharmacies, isLoading } = usePharmacies(selectedDate);
 
   const handleCall = (phone: string) => {
     window.location.href = `tel:${phone}`;
   };
 
-  const handleDirections = (pharmacy: Pharmacy) => {
+  const handleDirections = (pharmacy: { lat?: number; lng?: number; address: string }) => {
     if (pharmacy.lat && pharmacy.lng) {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${pharmacy.lat},${pharmacy.lng}`;
+      window.open(url, '_blank');
+    } else {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pharmacy.address)}`;
       window.open(url, '_blank');
     }
   };
@@ -121,8 +89,8 @@ const PharmaciesPage = () => {
             <PharmacyCardSkeleton />
             <PharmacyCardSkeleton />
           </>
-        ) : mockPharmacies.length > 0 ? (
-          mockPharmacies.map((pharmacy) => (
+        ) : pharmacies && pharmacies.length > 0 ? (
+          pharmacies.map((pharmacy) => (
             <Card key={pharmacy.id} className="overflow-hidden">
               <CardContent className="p-4">
                 <h3 className="font-semibold text-lg mb-2">{pharmacy.name}</h3>

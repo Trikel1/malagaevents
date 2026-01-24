@@ -9,63 +9,44 @@ import LanguageSelector from '@/components/common/LanguageSelector';
 import CategoryChip from '@/components/events/CategoryChip';
 import EventCard from '@/components/events/EventCard';
 import EmptyState from '@/components/common/EmptyState';
-import { EVENT_CATEGORIES, type Event as EventType } from '@/types';
-
-// Mock events for demo
-const mockEvents: EventType[] = [
-  {
-    id: '1',
-    title: 'Festival de Música de Málaga',
-    description: 'Gran festival de música en el centro histórico',
-    category: 'music',
-    start_at: new Date().toISOString(),
-    venue_name: 'Plaza de la Constitución',
-    address: 'Plaza de la Constitución, Málaga',
-    is_free: true,
-    status: 'published',
-    source_type: 'official_feed',
-    created_at: new Date().toISOString(),
-    image_url: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400',
-    tags: ['música', 'festival', 'verano'],
-  },
-  {
-    id: '2',
-    title: 'Exposición Picasso: Orígenes',
-    description: 'Exposición temporal en el Museo Picasso',
-    category: 'art',
-    start_at: new Date(Date.now() + 86400000).toISOString(),
-    venue_name: 'Museo Picasso Málaga',
-    address: 'Palacio de Buenavista, Málaga',
-    is_free: false,
-    price_info: '12€ - 18€',
-    status: 'published',
-    source_type: 'official_feed',
-    created_at: new Date().toISOString(),
-    image_url: 'https://images.unsplash.com/photo-1578926288207-a90a5366759d?w=400',
-    tags: ['arte', 'picasso', 'exposición'],
-  },
-  {
-    id: '3',
-    title: 'Teatro: La Casa de Bernarda Alba',
-    description: 'Obra clásica de Federico García Lorca',
-    category: 'theater',
-    start_at: new Date(Date.now() + 172800000).toISOString(),
-    venue_name: 'Teatro Cervantes',
-    address: 'Calle Ramos Marín, Málaga',
-    is_free: false,
-    price_info: '15€ - 35€',
-    status: 'published',
-    source_type: 'official_feed',
-    created_at: new Date().toISOString(),
-    image_url: 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=400',
-    tags: ['teatro', 'lorca', 'clásico'],
-  },
-];
+import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
+import { useEvents } from '@/hooks/useEvents';
+import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { EVENT_CATEGORIES } from '@/types';
 
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const { isAuthenticated } = useAuthContext();
+
+  // Fetch today's events
+  const { data: todayEvents, isLoading: loadingToday } = useEvents({ 
+    todayOnly: true, 
+    limit: 6 
+  });
+
+  // Fetch weekend events
+  const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({ 
+    weekendOnly: true, 
+    limit: 6 
+  });
+
+  // Favorites
+  const { data: favorites } = useFavorites();
+  const toggleFavorite = useToggleFavorite();
+
+  const isFavorite = (eventId: string) => 
+    favorites?.some((f) => f.event_id === eventId) ?? false;
+
+  const handleToggleFavorite = (eventId: string) => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+    toggleFavorite.mutate({ eventId, isFavorite: isFavorite(eventId) });
+  };
 
   const quickActions = [
     { icon: Calendar, label: t('common.today'), color: 'bg-primary text-primary-foreground', action: () => navigate('/events?filter=today') },
@@ -150,11 +131,23 @@ const Index = () => {
             </Button>
           </div>
           
-          {mockEvents.length > 0 ? (
+          {loadingToday ? (
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {mockEvents.slice(0, 3).map((event) => (
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="min-w-[280px] max-w-[280px]">
+                  <EventCardSkeleton />
+                </div>
+              ))}
+            </div>
+          ) : todayEvents && todayEvents.length > 0 ? (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {todayEvents.map((event) => (
                 <div key={event.id} className="min-w-[280px] max-w-[280px]">
-                  <EventCard event={event} />
+                  <EventCard 
+                    event={event} 
+                    isFavorite={isFavorite(event.id)}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
                 </div>
               ))}
             </div>
@@ -182,13 +175,34 @@ const Index = () => {
             </Button>
           </div>
           
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {mockEvents.slice(1).map((event) => (
-              <div key={event.id} className="min-w-[280px] max-w-[280px]">
-                <EventCard event={event} />
-              </div>
-            ))}
-          </div>
+          {loadingWeekend ? (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {[1, 2].map((i) => (
+                <div key={i} className="min-w-[280px] max-w-[280px]">
+                  <EventCardSkeleton />
+                </div>
+              ))}
+            </div>
+          ) : weekendEvents && weekendEvents.length > 0 ? (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              {weekendEvents.map((event) => (
+                <div key={event.id} className="min-w-[280px] max-w-[280px]">
+                  <EventCard 
+                    event={event}
+                    isFavorite={isFavorite(event.id)}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-muted/50 border-dashed">
+              <CardContent className="py-8 text-center text-muted-foreground">
+                <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">{t('events.noEvents')}</p>
+              </CardContent>
+            </Card>
+          )}
         </section>
 
         {/* Nearby - Location CTA */}

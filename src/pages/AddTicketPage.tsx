@@ -8,13 +8,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
+import { useCreateTicket } from '@/hooks/useTickets';
+import { useAuthContext } from '@/contexts/AuthContext';
+import EmptyState from '@/components/common/EmptyState';
+import { Ticket } from 'lucide-react';
 
 const AddTicketPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  const createTicket = useCreateTicket();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -25,6 +28,21 @@ const AddTicketPage = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  // Redirect to auth if not logged in
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <EmptyState
+          icon={Ticket}
+          title={t('profile.loginRequired')}
+          description={t('profile.loginRequiredDesc')}
+          actionLabel={t('profile.login')}
+          onAction={() => navigate('/auth')}
+        />
+      </div>
+    );
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -34,23 +52,16 @@ const AddTicketPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    await createTicket.mutateAsync({
+      title: formData.title,
+      note: formData.note || undefined,
+      qr_text: formData.qr_text || undefined,
+      event_date: formData.event_date || undefined,
+      file: selectedFile || undefined,
+    });
 
-    try {
-      // TODO: Implement actual ticket creation with Supabase
-      toast({
-        title: t('tickets.addTicket'),
-        description: 'Entrada guardada correctamente',
-      });
-      navigate('/tickets');
-    } catch (error) {
-      toast({
-        title: t('errors.generic'),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    navigate('/tickets');
   };
 
   return (
@@ -150,8 +161,12 @@ const AddTicketPage = () => {
           </div>
 
           {/* Submit */}
-          <Button type="submit" className="w-full" disabled={isLoading || !formData.title}>
-            {isLoading ? t('common.loading') : t('common.save')}
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={createTicket.isPending || !formData.title}
+          >
+            {createTicket.isPending ? t('common.loading') : t('common.save')}
           </Button>
         </form>
       </main>

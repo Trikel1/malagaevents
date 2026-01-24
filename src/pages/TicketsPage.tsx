@@ -1,37 +1,48 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { Plus, Ticket, FileText, QrCode, Calendar, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus, Ticket, FileText, QrCode, Calendar, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import EmptyState from '@/components/common/EmptyState';
+import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
+import { useTickets, useDeleteTicket } from '@/hooks/useTickets';
+import { useAuthContext } from '@/contexts/AuthContext';
 import type { Ticket as TicketType } from '@/types';
-
-// Mock tickets for demo
-const mockTickets: TicketType[] = [
-  {
-    id: '1',
-    user_id: 'user1',
-    title: 'Festival de Música de Málaga',
-    event_date: new Date(Date.now() + 86400000 * 7).toISOString(),
-    file_path: '/tickets/festival.pdf',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    user_id: 'user1',
-    title: 'Museo Picasso - Entrada',
-    event_date: new Date(Date.now() + 86400000 * 3).toISOString(),
-    qr_text: 'TICKET-12345-ABCDE',
-    note: 'Entrada para 2 adultos',
-    created_at: new Date().toISOString(),
-  },
-];
 
 const TicketsPage = () => {
   const { t } = useTranslation();
-  const [tickets] = useState<TicketType[]>(mockTickets);
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuthContext();
+  
+  const { data: tickets, isLoading } = useTickets();
+  const deleteTicket = useDeleteTicket();
+
+  // Redirect to auth if not logged in
+  if (!authLoading && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <EmptyState
+          icon={Ticket}
+          title={t('profile.loginRequired')}
+          description={t('profile.loginRequiredDesc')}
+          actionLabel={t('profile.login')}
+          onAction={() => navigate('/auth')}
+        />
+      </div>
+    );
+  }
 
   const getTicketIcon = (ticket: TicketType) => {
     if (ticket.file_path) return FileText;
@@ -62,7 +73,12 @@ const TicketsPage = () => {
 
       {/* Content */}
       <main className="p-4">
-        {tickets.length > 0 ? (
+        {isLoading ? (
+          <div className="space-y-3">
+            <EventCardSkeleton />
+            <EventCardSkeleton />
+          </div>
+        ) : tickets && tickets.length > 0 ? (
           <div className="space-y-3">
             {tickets.map((ticket) => {
               const Icon = getTicketIcon(ticket);
@@ -96,10 +112,40 @@ const TicketsPage = () => {
                           </p>
                         )}
 
-                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                        <div className="flex items-center justify-between mt-3">
                           <Badge variant="outline" className="text-xs">
                             {t('tickets.offlineAvailable')}
                           </Badge>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t('tickets.deleteConfirm')}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {ticket.title}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteTicket.mutate(ticket)}
+                                  disabled={deleteTicket.isPending}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {deleteTicket.isPending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    t('common.delete')
+                                  )}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
@@ -114,7 +160,7 @@ const TicketsPage = () => {
             title={t('tickets.noTickets')}
             description={t('tickets.noTicketsDesc')}
             actionLabel={t('tickets.addTicket')}
-            onAction={() => {}}
+            onAction={() => navigate('/tickets/add')}
           />
         )}
       </main>

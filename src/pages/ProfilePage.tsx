@@ -1,15 +1,21 @@
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Settings, LogIn, LogOut, Bell, Globe, Ticket, PlusCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { User, Globe, LogOut, Bell, Ticket, PlusCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import LanguageSelector from '@/components/common/LanguageSelector';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 const ProfilePage = () => {
   const { t } = useTranslation();
-  const [isLoggedIn] = useState(false); // Will be connected to auth later
+  const navigate = useNavigate();
+  const { user, isAuthenticated, isLoading, signOut } = useAuthContext();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   const menuItems = [
     {
@@ -38,14 +44,16 @@ const ProfilePage = () => {
       <header className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-6 pb-12 rounded-b-3xl">
         <h1 className="text-xl font-bold mb-4">{t('profile.title')}</h1>
         
-        {isLoggedIn ? (
+        {isLoading ? (
+          <div className="h-20 animate-pulse bg-white/10 rounded-lg" />
+        ) : isAuthenticated && user ? (
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full bg-primary-foreground/20 flex items-center justify-center">
               <User className="h-8 w-8" />
             </div>
             <div>
-              <p className="font-semibold">Usuario</p>
-              <p className="text-sm opacity-80">usuario@ejemplo.com</p>
+              <p className="font-semibold">{user.user_metadata?.display_name || 'Usuario'}</p>
+              <p className="text-sm opacity-80">{user.email}</p>
             </div>
           </div>
         ) : (
@@ -85,7 +93,7 @@ const ProfilePage = () => {
           <CardContent className="p-0">
             {menuItems.map((item, index) => (
               <div key={item.to}>
-                {item.requiresAuth && !isLoggedIn ? (
+                {item.requiresAuth && !isAuthenticated ? (
                   <Link
                     to="/auth"
                     className="flex items-center gap-3 p-4 hover:bg-muted transition-colors"
@@ -112,8 +120,12 @@ const ProfilePage = () => {
         </Card>
 
         {/* Logout */}
-        {isLoggedIn && (
-          <Button variant="outline" className="w-full text-destructive hover:text-destructive">
+        {isAuthenticated && (
+          <Button 
+            variant="outline" 
+            className="w-full text-destructive hover:text-destructive"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4 mr-2" />
             {t('profile.logout')}
           </Button>
