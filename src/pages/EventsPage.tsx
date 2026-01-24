@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
@@ -11,7 +11,7 @@ import VenueFilter from '@/components/events/VenueFilter';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
-import { useEvents } from '@/hooks/useEvents';
+import { useEventsOptimized } from '@/hooks/useEventsOptimized';
 import { useFavorites, useToggleFavorite, useFavoriteEvents } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import type { EventCategory } from '@/types';
@@ -27,10 +27,29 @@ const EventsPage = () => {
   const initialFilter = searchParams.get('filter');
   
   const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialQuery);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<EventFilters>({
     categories: initialCategory ? [initialCategory] : [],
   });
+
+  // Debounce search input
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, [searchQuery]);
 
   // New filters for venue and location
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
@@ -38,16 +57,16 @@ const EventsPage = () => {
 
   // Determine query options based on filters
   const queryOptions = useMemo(() => ({
-    searchQuery: searchQuery || undefined,
+    searchQuery: debouncedSearch || undefined,
     filters: filters.onlyFavorites ? undefined : filters,
     todayOnly: initialFilter === 'today',
     weekendOnly: initialFilter === 'weekend',
     venueIds: selectedVenueIds.length > 0 ? selectedVenueIds : undefined,
     locationIds: selectedLocationIds.length > 0 ? selectedLocationIds : undefined,
-  }), [searchQuery, filters, initialFilter, selectedVenueIds, selectedLocationIds]);
+  }), [debouncedSearch, filters, initialFilter, selectedVenueIds, selectedLocationIds]);
 
-  // Fetch events
-  const { data: events, isLoading } = useEvents(queryOptions);
+  // Fetch events with optimized hook (includes request cancellation)
+  const { data: events, isLoading } = useEventsOptimized(queryOptions);
   
   // Fetch favorites
   const { data: favorites } = useFavorites();
@@ -116,26 +135,34 @@ const EventsPage = () => {
           </div>
           
           {/* Search */}
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <form onSubmit={handleSearch} className="relative" role="search">
+            <label htmlFor="event-search" className="sr-only">{t('common.search')}</label>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
             <Input
+              id="event-search"
+              type="search"
               placeholder={t('common.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 pr-10"
+              aria-describedby="search-hint"
             />
+            <span id="search-hint" className="sr-only">
+              {t('events.searchHint', 'Buscar por nombre de evento, sala o descripción')}
+            </span>
             {searchQuery && (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 min-h-[44px] min-w-[44px]"
                 onClick={() => {
                   setSearchQuery('');
                   setSearchParams({});
                 }}
+                aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
           </form>
