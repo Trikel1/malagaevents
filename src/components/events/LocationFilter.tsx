@@ -23,12 +23,14 @@ interface LocationFilterProps {
   selectedLocationIds: string[];
   onSelectionChange: (locationIds: string[]) => void;
   variant?: 'button' | 'icon';
+  showLabel?: boolean;
 }
 
 const LocationFilter = ({ 
   selectedLocationIds, 
   onSelectionChange,
-  variant = 'icon'
+  variant = 'icon',
+  showLabel = false,
 }: LocationFilterProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -55,7 +57,27 @@ const LocationFilter = ({
     setSearchQuery('');
   };
 
-  const triggerButton = variant === 'icon' ? (
+  const triggerButton = showLabel ? (
+    <Button 
+      variant={selectedLocationIds.length > 0 ? 'default' : 'ghost'} 
+      size="sm"
+      className={cn(
+        "h-9 px-2.5 gap-1.5 relative",
+        selectedLocationIds.length > 0 && "shadow-sm"
+      )}
+    >
+      <MapPin className="h-4 w-4" />
+      <span className="text-sm hidden xs:inline">{t('events.locations', 'Localidades')}</span>
+      {selectedLocationIds.length > 0 && (
+        <Badge 
+          variant="secondary" 
+          className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
+        >
+          {selectedLocationIds.length}
+        </Badge>
+      )}
+    </Button>
+  ) : variant === 'icon' ? (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button 

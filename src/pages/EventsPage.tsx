@@ -5,11 +5,6 @@ import { Search, SlidersHorizontal, X, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import EventCard from '@/components/events/EventCard';
 import FilterDrawer, { type EventFilters } from '@/components/events/FilterDrawer';
 import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
@@ -139,16 +134,16 @@ const EventsPage = () => {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40">
         <div className="p-4 space-y-3">
-          {/* Row 1: Title + Icons (right side: Search, Locations, Filters) */}
+          {/* Row 1: Title + Actions (Localidades, Filtros, Buscar) */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <h1 className="text-xl font-bold shrink-0">{t('events.title')}</h1>
               {totalActiveFilters > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearAllFilters}
-                  className="text-muted-foreground h-7 px-2 text-xs"
+                  className="text-muted-foreground h-7 px-2 text-xs shrink-0"
                 >
                   <X className="h-3.5 w-3.5 mr-1" />
                   {t('events.clearFilters')}
@@ -156,53 +151,44 @@ const EventsPage = () => {
               )}
             </div>
             
-            {/* Right: Icon buttons */}
-            <div className="flex items-center gap-1">
-              {/* Search Toggle */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant={showSearchInput ? 'default' : 'ghost'} 
-                    size="icon"
-                    onClick={() => setShowSearchInput(!showSearchInput)}
-                    className="h-9 w-9"
-                    aria-label={t('common.search')}
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('common.search')}</TooltipContent>
-              </Tooltip>
-
-              {/* Locations */}
+            {/* Right: Action buttons with icon + text */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* Localidades - icon + text */}
               <LocationFilter
                 selectedLocationIds={selectedLocationIds}
                 onSelectionChange={setSelectedLocationIds}
+                showLabel={true}
               />
 
-              {/* Filters */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => setIsFilterOpen(true)}
-                    className="h-9 w-9 relative"
-                    aria-label={t('events.moreFilters')}
+              {/* Filtros - icon + text */}
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setIsFilterOpen(true)}
+                className="h-9 px-2.5 gap-1.5 relative"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span className="text-sm hidden xs:inline">{t('events.filters', 'Filtros')}</span>
+                {activeFilterCount > 0 && (
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
                   >
-                    <SlidersHorizontal className="h-4 w-4" />
-                    {activeFilterCount > 0 && (
-                      <Badge 
-                        variant="secondary" 
-                        className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
-                      >
-                        {activeFilterCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('events.moreFilters')}</TooltipContent>
-              </Tooltip>
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </Button>
+
+              {/* Buscar - icon + text toggle */}
+              <Button 
+                variant={showSearchInput ? 'default' : 'ghost'} 
+                size="sm"
+                onClick={() => setShowSearchInput(!showSearchInput)}
+                className="h-9 px-2.5 gap-1.5"
+              >
+                <Search className="h-4 w-4" />
+                <span className="text-sm hidden xs:inline">{t('common.search', 'Buscar')}</span>
+              </Button>
             </div>
           </div>
 
@@ -242,7 +228,7 @@ const EventsPage = () => {
             </form>
           )}
 
-          {/* Row 2: Venue chips [Todos] [Salas] [Teatros] */}
+          {/* Row 2: Venue segmented control [Todos] [Salas] [Teatros] - 100% width */}
           <VenueGroupDropdown
             selectedGroup={selectedVenueGroup}
             selectedVenueIds={selectedVenueIds}
