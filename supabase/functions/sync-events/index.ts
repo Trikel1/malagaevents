@@ -75,6 +75,7 @@ function getSourceConfig(slug: string): SourceConfig {
 // ============================================================================
 
 const VENUE_ALIASES: Record<string, string> = {
+  // Teatros (only 3)
   'teatro del soho': 'Teatro del Soho CaixaBank',
   'teatro soho': 'Teatro del Soho CaixaBank',
   'soho caixabank': 'Teatro del Soho CaixaBank',
@@ -83,12 +84,16 @@ const VENUE_ALIASES: Record<string, string> = {
   'cervantes': 'Teatro Cervantes',
   'teatro echegaray': 'Teatro Echegaray',
   'echegaray': 'Teatro Echegaray',
+  // Salas - La Cochera Cabaret (aliases)
+  'la cochera cabaret': 'La Cochera Cabaret',
+  'cochera cabaret': 'La Cochera Cabaret',
+  'la cochera': 'La Cochera Cabaret',
+  'cochera': 'La Cochera Cabaret',
+  // Salas - Sala Trinchera (aliases)
   'sala trinchera': 'Sala Trinchera',
   'trinchera': 'Sala Trinchera',
   'la trinchera': 'Sala Trinchera',
-  'cochera cabaret': 'Cochera Cabaret',
-  'la cochera cabaret': 'Cochera Cabaret',
-  'cochera': 'Cochera Cabaret',
+  // Otras salas
   'paris 15': 'París 15',
   'parís 15': 'París 15',
   'paris15': 'París 15',
