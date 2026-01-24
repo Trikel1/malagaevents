@@ -6,102 +6,6 @@ const corsHeaders = {
 };
 
 // ============================================================================
-// SOURCE ADAPTERS - Each source has its own configuration and parsing logic
-// ============================================================================
-
-interface SourceAdapter {
-  name: string;
-  slug: string;
-  url: string;
-  programUrl?: string; // Some sites have a separate programming page
-  category: string;
-  eventType: string;
-  defaultVenue: string;
-  defaultLocation: string;
-  extractionPrompt: string;
-}
-
-const SOURCE_ADAPTERS: SourceAdapter[] = [
-  {
-    name: 'Teatro del Soho CaixaBank',
-    slug: 'teatro-soho',
-    url: 'https://teatrodelsoho.com/',
-    programUrl: 'https://teatrodelsoho.com/', // Main page shows programming
-    category: 'theater',
-    eventType: 'theater',
-    defaultVenue: 'Teatro del Soho CaixaBank',
-    defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae los espectáculos de teatro. Para cada uno: title (nombre), description (breve), occurrences (fechas en DD/MM/YYYY y horas en HH:MM), image_url, ticket_url, price.`,
-  },
-  {
-    name: 'Teatro Cervantes',
-    slug: 'teatro-cervantes',
-    url: 'https://www.teatrocervantes.com/',
-    programUrl: 'https://www.teatrocervantes.com/', // Main page
-    category: 'theater',
-    eventType: 'theater',
-    defaultVenue: 'Teatro Cervantes',
-    defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae eventos de la programación. Para cada uno: title, description, occurrences (fechas DD/MM/YYYY, horas HH:MM), venue (Cervantes o Echegaray), image_url, ticket_url, price.`,
-  },
-  {
-    name: 'Sala Eventual',
-    slug: 'eventual-music',
-    url: 'https://www.eventualmusic.com/',
-    programUrl: 'https://www.eventualmusic.com/',
-    category: 'music',
-    eventType: 'music',
-    defaultVenue: 'Sala Eventual',
-    defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae conciertos y eventos. Para cada uno: title (artista/evento), description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
-  },
-  {
-    name: 'Sala Trinchera',
-    slug: 'sala-trinchera',
-    url: 'https://salatrinchera.com/',
-    programUrl: 'https://salatrinchera.com/',
-    category: 'music',
-    eventType: 'music',
-    defaultVenue: 'Sala Trinchera',
-    defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae eventos y conciertos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
-  },
-  {
-    name: 'París 15',
-    slug: 'paris-15',
-    url: 'https://paris15.es/',
-    programUrl: 'https://paris15.es/',
-    category: 'nightlife',
-    eventType: 'nightlife',
-    defaultVenue: 'París 15',
-    defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae eventos y fiestas. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
-  },
-  {
-    name: 'Sala Marte',
-    slug: 'sala-marte',
-    url: 'https://salamartemalaga.com/',
-    programUrl: 'https://salamartemalaga.com/',
-    category: 'music',
-    eventType: 'music',
-    defaultVenue: 'Sala Marte',
-    defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae conciertos y eventos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
-  },
-  {
-    name: 'Antojo Málaga',
-    slug: 'antojo-malaga',
-    url: 'https://antojomalaga.es/',
-    programUrl: 'https://antojomalaga.es/',
-    category: 'music',
-    eventType: 'music',
-    defaultVenue: 'Antojo Málaga',
-    defaultLocation: 'Málaga',
-    extractionPrompt: `Extrae eventos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price.`,
-  },
-];
-
-// ============================================================================
 // VENUE AND LOCATION NORMALIZATION
 // ============================================================================
 
@@ -142,7 +46,7 @@ const MALAGA_MUNICIPALITIES = [
 ];
 
 // ============================================================================
-// EXTRACTION SCHEMA FOR FIRECRAWL
+// EVENT EXTRACTION SCHEMA FOR FIRECRAWL
 // ============================================================================
 
 const EVENT_EXTRACTION_SCHEMA = {
@@ -153,27 +57,27 @@ const EVENT_EXTRACTION_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          title: { type: 'string', description: 'Nombre del evento/espectáculo' },
-          description: { type: 'string', description: 'Descripción breve (max 400 chars)' },
+          title: { type: 'string', description: 'Event/show name' },
+          description: { type: 'string', description: 'Brief description (max 400 chars)' },
           occurrences: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                date: { type: 'string', description: 'Fecha en formato DD/MM/YYYY' },
-                time: { type: 'string', description: 'Hora en formato HH:MM' },
-                end_time: { type: 'string', description: 'Hora fin si disponible' },
+                date: { type: 'string', description: 'Date in DD/MM/YYYY format' },
+                time: { type: 'string', description: 'Start time in HH:MM format' },
+                end_time: { type: 'string', description: 'End time if available' },
               },
               required: ['date'],
             },
-            description: 'Todas las fechas/horas cuando ocurre el evento',
+            description: 'All dates/times when this event occurs',
           },
-          venue: { type: 'string', description: 'Nombre del venue/sala' },
-          city: { type: 'string', description: 'Ciudad/municipio' },
-          image_url: { type: 'string', description: 'URL de la imagen principal' },
-          ticket_url: { type: 'string', description: 'URL para comprar entradas' },
-          price: { type: 'string', description: 'Precio de las entradas' },
-          is_free: { type: 'boolean', description: 'Si es entrada gratuita' },
+          venue: { type: 'string', description: 'Venue/hall name' },
+          city: { type: 'string', description: 'City/town name' },
+          image_url: { type: 'string', description: 'Main event image URL' },
+          ticket_url: { type: 'string', description: 'Ticket purchase URL' },
+          price: { type: 'string', description: 'Ticket price' },
+          is_free: { type: 'boolean', description: 'Whether event is free' },
         },
         required: ['title'],
       },
@@ -231,7 +135,6 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     if (!isNaN(day) && month !== undefined) {
       let year = spanishMatch[3] ? parseInt(spanishMatch[3]) : new Date().getFullYear();
       const date = new Date(year, month, day, hour, minute);
-      // If date is in the past and no year specified, assume next year
       if (date < new Date() && !spanishMatch[3]) {
         date.setFullYear(year + 1);
       }
@@ -246,8 +149,7 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     const month = parseInt(numericMatch[2]) - 1;
     let year = parseInt(numericMatch[3]);
     if (year < 100) year += 2000;
-    const date = new Date(year, month, day, hour, minute);
-    return date;
+    return new Date(year, month, day, hour, minute);
   }
   
   // ISO: "2025-01-15"
@@ -294,13 +196,9 @@ function isValidEventTitle(title: string): boolean {
 function normalizeImageUrl(url: string | undefined, baseUrl: string): string | undefined {
   if (!url) return undefined;
   
-  // Skip logos, icons, and very small likely placeholder images
   if (/logo|icon|favicon|placeholder|default|avatar/i.test(url)) return undefined;
-  
-  // Skip data URIs that are likely placeholders
   if (url.startsWith('data:')) return undefined;
   
-  // Make absolute
   try {
     if (url.startsWith('//')) {
       url = 'https:' + url;
@@ -312,10 +210,7 @@ function normalizeImageUrl(url: string | undefined, baseUrl: string): string | u
       url = base.origin + '/' + url;
     }
     
-    // Force HTTPS
     url = url.replace(/^http:/, 'https:');
-    
-    // Validate URL
     new URL(url);
     return url;
   } catch {
@@ -337,14 +232,12 @@ function generateDedupeKey(sourceSlug: string, title: string, venue: string): st
 function determineEventType(title: string, description: string, sourceEventType: string): string {
   const text = `${title} ${description}`.toLowerCase();
   
-  // Check for specific keywords
   if (/comedia|comedy|monólogo|humor|stand.?up|risas/i.test(text)) return 'comedy';
   if (/festival/i.test(text)) return 'festival';
   if (/teatro|theatre|obra|musical|danza|dance|circo|circus/i.test(text)) return 'theater';
   if (/dj|disco|fiesta|party|club|noche/i.test(text)) return 'nightlife';
   if (/concierto|concert|música|music|banda|band|live|directo/i.test(text)) return 'music';
   
-  // Default to source's event type
   return sourceEventType;
 }
 
@@ -352,10 +245,8 @@ function determineEventType(title: string, description: string, sourceEventType:
 // SCRAPING WITH FIRECRAWL
 // ============================================================================
 
-async function scrapeSource(adapter: SourceAdapter, apiKey: string): Promise<any> {
-  // Use program URL if available, otherwise main URL
-  const urlToScrape = adapter.programUrl || adapter.url;
-  console.log(`Scraping ${adapter.name} from ${urlToScrape}`);
+async function scrapeUrl(url: string, extractionPrompt: string, apiKey: string): Promise<any> {
+  console.log(`Scraping: ${url}`);
   
   const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
     method: 'POST',
@@ -364,27 +255,25 @@ async function scrapeSource(adapter: SourceAdapter, apiKey: string): Promise<any
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      url: urlToScrape,
+      url,
       formats: ['json'],
       jsonOptions: {
         schema: EVENT_EXTRACTION_SCHEMA,
-        prompt: adapter.extractionPrompt,
+        prompt: extractionPrompt,
       },
       onlyMainContent: true,
-      waitFor: 3000, // Reduced wait time
-      timeout: 30000, // 30 second timeout
+      waitFor: 3000,
+      timeout: 30000,
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`Firecrawl error for ${adapter.name}:`, errorText);
-    throw new Error(`Firecrawl request failed: ${response.status} - ${errorText.substring(0, 200)}`);
+    console.error(`Firecrawl error:`, errorText.substring(0, 200));
+    throw new Error(`Firecrawl failed: ${response.status}`);
   }
 
-  const result = await response.json();
-  console.log(`Firecrawl response for ${adapter.name}:`, JSON.stringify(result).substring(0, 500));
-  return result;
+  return response.json();
 }
 
 // ============================================================================
@@ -404,12 +293,7 @@ async function getOrCreateVenue(supabase: any, venueName: string, city: string):
   
   const { data: created, error } = await supabase
     .from('venues')
-    .insert({ 
-      name: venueName, 
-      normalized_name: normalized, 
-      city: city,
-      province: 'Málaga',
-    })
+    .insert({ name: venueName, normalized_name: normalized, city, province: 'Málaga' })
     .select('id')
     .single();
   
@@ -457,7 +341,7 @@ async function getOrCreateLocation(supabase: any, locationName: string): Promise
 
 async function upsertEventWithOccurrences(
   supabase: any,
-  adapter: SourceAdapter,
+  source: any,
   eventData: any,
   occurrences: Array<{ date: string; time?: string; end_time?: string }>
 ): Promise<{ inserted: boolean; updated: boolean; occurrences_created: number; skipped: boolean }> {
@@ -466,17 +350,15 @@ async function upsertEventWithOccurrences(
     return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
   }
   
-  const venueName = normalizeVenue(eventData.venue || '', adapter.defaultVenue);
-  const locationName = eventData.city || adapter.defaultLocation;
-  const eventType = determineEventType(title, eventData.description || '', adapter.eventType);
+  const venueName = normalizeVenue(eventData.venue || '', source.default_venue);
+  const locationName = eventData.city || source.default_location || 'Málaga';
+  const eventType = determineEventType(title, eventData.description || '', source.event_type);
   
-  // Get or create venue and location
   const venueId = await getOrCreateVenue(supabase, venueName, locationName);
   const locationId = await getOrCreateLocation(supabase, locationName);
   
-  const dedupeKey = generateDedupeKey(adapter.slug, title, venueName);
+  const dedupeKey = generateDedupeKey(source.slug, title, venueName);
   
-  // Check if event exists by dedupe_key
   const { data: existingEvent } = await supabase
     .from('events')
     .select('id')
@@ -490,7 +372,8 @@ async function upsertEventWithOccurrences(
   const isFree = eventData.is_free === true || 
     (eventData.price && /gratis|free|entrada libre|0\s*€/i.test(eventData.price));
   
-  const imageUrl = normalizeImageUrl(eventData.image_url, adapter.url);
+  const sourceUrl = source.chosen_entrypoint || source.fallback_entrypoint;
+  const imageUrl = normalizeImageUrl(eventData.image_url, sourceUrl);
   const imageStatus = imageUrl ? 'ok' : 'missing';
   
   const eventPayload = {
@@ -498,12 +381,12 @@ async function upsertEventWithOccurrences(
     description: eventData.description?.substring(0, 500) || `Evento en ${venueName}`,
     description_short: eventData.description?.substring(0, 150) || null,
     description_full: eventData.description || null,
-    category: adapter.category,
+    category: source.category,
     event_type: eventType,
-    source: adapter.slug,
+    source: source.slug,
     source_type: 'official_feed',
-    source_ref: adapter.programUrl || adapter.url,
-    url: adapter.programUrl || adapter.url,
+    source_ref: sourceUrl,
+    url: sourceUrl,
     venue_name: venueName,
     venue_id: venueId,
     venue_name_raw: eventData.venue || null,
@@ -525,15 +408,10 @@ async function upsertEventWithOccurrences(
   };
   
   if (existingEvent) {
-    // Update existing
     eventId = existingEvent.id;
-    await supabase
-      .from('events')
-      .update(eventPayload)
-      .eq('id', eventId);
+    await supabase.from('events').update(eventPayload).eq('id', eventId);
     isUpdated = true;
   } else {
-    // Insert new
     const firstOccurrence = occurrences[0];
     const startAt = parseSpanishDate(firstOccurrence?.date || '', firstOccurrence?.time);
     
@@ -562,14 +440,10 @@ async function upsertEventWithOccurrences(
   
   for (const occ of occurrences) {
     const startDatetime = parseSpanishDate(occ.date, occ.time);
-    if (!startDatetime) continue;
-    
-    // Skip past occurrences
-    if (startDatetime < now) continue;
+    if (!startDatetime || startDatetime < now) continue;
     
     const endDatetime = occ.end_time ? parseSpanishDate(occ.date, occ.end_time) : null;
     
-    // Check if occurrence exists
     const { data: existingOcc } = await supabase
       .from('event_occurrences')
       .select('id')
@@ -587,13 +461,11 @@ async function upsertEventWithOccurrences(
           buy_url: eventData.ticket_url || null,
         });
       
-      if (!occError) {
-        occurrencesCreated++;
-      }
+      if (!occError) occurrencesCreated++;
     }
   }
   
-  // Update event's start_at to the next upcoming occurrence
+  // Update event's start_at to next upcoming occurrence
   const { data: nextOcc } = await supabase
     .from('event_occurrences')
     .select('start_datetime')
@@ -604,10 +476,7 @@ async function upsertEventWithOccurrences(
     .maybeSingle();
   
   if (nextOcc) {
-    await supabase
-      .from('events')
-      .update({ start_at: nextOcc.start_datetime })
-      .eq('id', eventId);
+    await supabase.from('events').update({ start_at: nextOcc.start_datetime }).eq('id', eventId);
   }
   
   return { inserted: isNew, updated: isUpdated, occurrences_created: occurrencesCreated, skipped: false };
@@ -625,9 +494,8 @@ Deno.serve(async (req) => {
   try {
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!firecrawlApiKey) {
-      console.error('FIRECRAWL_API_KEY not configured');
       return new Response(
-        JSON.stringify({ success: false, error: 'Firecrawl API key not configured. Please add FIRECRAWL_API_KEY secret.' }),
+        JSON.stringify({ success: false, error: 'Firecrawl API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -636,23 +504,43 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse request body for optional source filter
-    let targetSources: string[] | null = null;
+    // Parse request body
+    let targetSlugs: string[] | null = null;
+    let runDiscovery = false;
+    
     try {
       const body = await req.json();
       if (body.sources && Array.isArray(body.sources)) {
-        targetSources = body.sources;
+        targetSlugs = body.sources;
+      }
+      if (body.discover) {
+        runDiscovery = true;
       }
     } catch {
-      // No body or invalid JSON - run all sources
+      // No body - run all sources
     }
 
-    const adaptersToRun = targetSources 
-      ? SOURCE_ADAPTERS.filter(a => targetSources!.includes(a.slug))
-      : SOURCE_ADAPTERS;
+    // Get sources from database
+    let query = supabase
+      .from('sources_config')
+      .select('*')
+      .eq('is_active', true);
+    
+    if (targetSlugs) {
+      query = query.in('slug', targetSlugs);
+    }
+    
+    const { data: sources, error: sourcesError } = await query;
+    
+    if (sourcesError || !sources || sources.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'No active sources found' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    console.log(`=== STARTING FULL SYNC ===`);
-    console.log(`Sources to process: ${adaptersToRun.map(a => a.name).join(', ')}`);
+    console.log(`=== STARTING SYNC ===`);
+    console.log(`Sources: ${sources.map(s => s.name).join(', ')}`);
 
     const results = {
       sources_processed: 0,
@@ -667,19 +555,20 @@ Deno.serve(async (req) => {
       details: [] as any[],
     };
 
-    for (const adapter of adaptersToRun) {
-      console.log(`\n--- Processing: ${adapter.name} ---`);
+    for (const source of sources) {
+      console.log(`\n--- Processing: ${source.name} ---`);
       
       // Create sync run record
       const { data: syncRun } = await supabase
         .from('sync_runs')
-        .insert({ source: adapter.slug, status: 'running' })
+        .insert({ source: source.slug, status: 'running' })
         .select('id')
         .single();
 
       const sourceResults = {
-        source: adapter.name,
-        slug: adapter.slug,
+        source: source.name,
+        slug: source.slug,
+        url: source.chosen_entrypoint || source.fallback_entrypoint,
         inserted: 0,
         updated: 0,
         skipped: 0,
@@ -689,60 +578,47 @@ Deno.serve(async (req) => {
       };
 
       try {
-        const scrapeResult = await scrapeSource(adapter, firecrawlApiKey);
+        const urlToScrape = source.chosen_entrypoint || source.fallback_entrypoint;
+        const extractionPrompt = `Extrae todos los eventos/espectáculos/conciertos. Para cada uno: title, description, occurrences (fecha DD/MM/YYYY, hora HH:MM), image_url, ticket_url, price, venue.`;
+        
+        const scrapeResult = await scrapeUrl(urlToScrape, extractionPrompt, firecrawlApiKey);
         results.sources_processed++;
         
-        // Extract events from response - handle different response structures
+        // Extract events
         let events: any[] = [];
-        
         if (scrapeResult.success && scrapeResult.data) {
-          // Check for json property (Firecrawl v1 structure)
           if (scrapeResult.data.json?.events) {
             events = scrapeResult.data.json.events;
           } else if (scrapeResult.data.events) {
             events = scrapeResult.data.events;
-          } else if (Array.isArray(scrapeResult.data)) {
-            events = scrapeResult.data;
           }
-        } else if (scrapeResult.events) {
-          events = scrapeResult.events;
         }
         
-        // Filter valid events
         events = events.filter((e: any) => e.title && isValidEventTitle(e.title));
         
         sourceResults.eventsFound = events.length;
         results.events_found += events.length;
         
-        console.log(`Found ${events.length} valid events from ${adapter.name}`);
+        console.log(`Found ${events.length} valid events from ${source.name}`);
         
         if (events.length === 0) {
           sourceResults.error = 'No valid events extracted';
-          results.errors.push(`${adapter.name}: No events found`);
+          results.errors.push(`${source.name}: No events found`);
         }
         
         for (const event of events) {
-          // Build occurrences array
           let occurrences = event.occurrences || [];
           
-          // If no occurrences but has date field, create single occurrence
           if (occurrences.length === 0 && event.date) {
             occurrences = [{ date: event.date, time: event.time }];
           }
           
-          // If still no occurrences, skip this event (we need at least one date)
           if (occurrences.length === 0) {
-            console.log(`Skipping event without dates: ${event.title}`);
             sourceResults.skipped++;
             continue;
           }
           
-          const result = await upsertEventWithOccurrences(
-            supabase,
-            adapter,
-            event,
-            occurrences
-          );
+          const result = await upsertEventWithOccurrences(supabase, source, event, occurrences);
           
           if (result.skipped) {
             sourceResults.skipped++;
@@ -776,11 +652,17 @@ Deno.serve(async (req) => {
             .eq('id', syncRun.id);
         }
         
+        // Update source last_sync_at
+        await supabase
+          .from('sources_config')
+          .update({ last_sync_at: new Date().toISOString() })
+          .eq('slug', source.slug);
+        
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error processing ${adapter.name}:`, errorMsg);
+        console.error(`Error processing ${source.name}:`, errorMsg);
         sourceResults.error = errorMsg;
-        results.errors.push(`${adapter.name}: ${errorMsg}`);
+        results.errors.push(`${source.name}: ${errorMsg}`);
         results.sources_failed++;
         
         if (syncRun?.id) {
@@ -798,17 +680,15 @@ Deno.serve(async (req) => {
       
       results.details.push(sourceResults);
       
-      // Rate limiting delay between sources
-      if (adaptersToRun.indexOf(adapter) < adaptersToRun.length - 1) {
-        console.log('Waiting 3 seconds before next source...');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+      // Rate limiting
+      if (sources.indexOf(source) < sources.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
     console.log(`\n=== SYNC COMPLETED ===`);
     console.log(`Sources: ${results.sources_success}/${results.sources_processed} successful`);
-    console.log(`Events: ${results.events_inserted} new, ${results.events_updated} updated, ${results.events_skipped} skipped`);
-    console.log(`Occurrences created: ${results.occurrences_created}`);
+    console.log(`Events: ${results.events_inserted} new, ${results.events_updated} updated`);
 
     return new Response(
       JSON.stringify({ success: true, results }),
@@ -816,12 +696,9 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in sync-events:', error);
+    console.error('Sync error:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      }),
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

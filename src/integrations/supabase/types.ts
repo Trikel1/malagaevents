@@ -490,6 +490,69 @@ export type Database = {
         }
         Relationships: []
       }
+      sources_config: {
+        Row: {
+          category: string | null
+          chosen_entrypoint: string | null
+          created_at: string | null
+          default_location: string | null
+          default_venue: string | null
+          discovery_confidence: number | null
+          domain: string
+          entrypoints_detected: string[] | null
+          event_type: string | null
+          fallback_entrypoint: string | null
+          id: string
+          is_active: boolean | null
+          last_discovery_at: string | null
+          last_sync_at: string | null
+          name: string
+          notes: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          chosen_entrypoint?: string | null
+          created_at?: string | null
+          default_location?: string | null
+          default_venue?: string | null
+          discovery_confidence?: number | null
+          domain: string
+          entrypoints_detected?: string[] | null
+          event_type?: string | null
+          fallback_entrypoint?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_discovery_at?: string | null
+          last_sync_at?: string | null
+          name: string
+          notes?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          chosen_entrypoint?: string | null
+          created_at?: string | null
+          default_location?: string | null
+          default_venue?: string | null
+          discovery_confidence?: number | null
+          domain?: string
+          entrypoints_detected?: string[] | null
+          event_type?: string | null
+          fallback_entrypoint?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_discovery_at?: string | null
+          last_sync_at?: string | null
+          name?: string
+          notes?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sync_runs: {
         Row: {
           created_at: string
