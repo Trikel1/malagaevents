@@ -85,19 +85,20 @@ const Index = () => {
 
       <main className="px-4 -mt-6 space-y-6">
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex justify-around py-2">
           {quickActions.map((action, i) => (
-            <Button
+            <button
               key={i}
-              variant="outline"
               onClick={action.action}
-              className="h-auto py-4 flex flex-col gap-2 bg-card hover:bg-muted shadow-sm"
+              className="flex flex-col items-center gap-2 group"
             >
-              <div className={`p-2 rounded-full ${action.color}`}>
-                <action.icon className="h-5 w-5" />
+              <div className={`p-4 rounded-2xl ${action.color} shadow-lg group-hover:scale-110 group-active:scale-95 transition-transform duration-200`}>
+                <action.icon className="h-6 w-6" />
               </div>
-              <span className="text-sm font-medium">{action.label}</span>
-            </Button>
+              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                {action.label}
+              </span>
+            </button>
           ))}
         </div>
 
