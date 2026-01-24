@@ -148,8 +148,10 @@ export type Database = {
           description_full: string | null
           description_short: string | null
           end_at: string | null
+          event_type: string | null
           external_id: string | null
           id: string
+          image_status: string | null
           image_url: string | null
           is_free: boolean
           last_synced_at: string | null
@@ -192,8 +194,10 @@ export type Database = {
           description_full?: string | null
           description_short?: string | null
           end_at?: string | null
+          event_type?: string | null
           external_id?: string | null
           id?: string
+          image_status?: string | null
           image_url?: string | null
           is_free?: boolean
           last_synced_at?: string | null
@@ -236,8 +240,10 @@ export type Database = {
           description_full?: string | null
           description_short?: string | null
           end_at?: string | null
+          event_type?: string | null
           external_id?: string | null
           id?: string
+          image_status?: string | null
           image_url?: string | null
           is_free?: boolean
           last_synced_at?: string | null
