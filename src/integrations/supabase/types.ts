@@ -41,6 +41,50 @@ export type Database = {
         }
         Relationships: []
       }
+      event_occurrences: {
+        Row: {
+          buy_url: string | null
+          created_at: string
+          end_datetime: string | null
+          event_id: string
+          id: string
+          notes: string | null
+          sold_out: boolean | null
+          start_datetime: string
+          updated_at: string
+        }
+        Insert: {
+          buy_url?: string | null
+          created_at?: string
+          end_datetime?: string | null
+          event_id: string
+          id?: string
+          notes?: string | null
+          sold_out?: boolean | null
+          start_datetime: string
+          updated_at?: string
+        }
+        Update: {
+          buy_url?: string | null
+          created_at?: string
+          end_datetime?: string | null
+          event_id?: string
+          id?: string
+          notes?: string | null
+          sold_out?: boolean | null
+          start_datetime?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_occurrences_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_submissions: {
         Row: {
           captcha_passed: boolean
@@ -94,17 +138,21 @@ export type Database = {
           accessibility_info: string | null
           address: string
           age_restriction: string | null
+          buy_url: string | null
           capacity_info: string | null
           category: string
           country: string | null
           created_at: string
           dedupe_key: string | null
           description: string
+          description_full: string | null
+          description_short: string | null
           end_at: string | null
           external_id: string | null
           id: string
           image_url: string | null
           is_free: boolean
+          last_synced_at: string | null
           lat: number | null
           lng: number | null
           location_id: string | null
@@ -121,10 +169,12 @@ export type Database = {
           tags: string[] | null
           ticket_url: string | null
           title: string
+          title_normalized: string | null
           updated_at: string | null
           url: string | null
           venue_id: string | null
           venue_name: string
+          venue_name_normalized: string | null
           venue_name_raw: string | null
           venue_normalized: string | null
         }
@@ -132,17 +182,21 @@ export type Database = {
           accessibility_info?: string | null
           address: string
           age_restriction?: string | null
+          buy_url?: string | null
           capacity_info?: string | null
           category: string
           country?: string | null
           created_at?: string
           dedupe_key?: string | null
           description: string
+          description_full?: string | null
+          description_short?: string | null
           end_at?: string | null
           external_id?: string | null
           id?: string
           image_url?: string | null
           is_free?: boolean
+          last_synced_at?: string | null
           lat?: number | null
           lng?: number | null
           location_id?: string | null
@@ -159,10 +213,12 @@ export type Database = {
           tags?: string[] | null
           ticket_url?: string | null
           title: string
+          title_normalized?: string | null
           updated_at?: string | null
           url?: string | null
           venue_id?: string | null
           venue_name: string
+          venue_name_normalized?: string | null
           venue_name_raw?: string | null
           venue_normalized?: string | null
         }
@@ -170,17 +226,21 @@ export type Database = {
           accessibility_info?: string | null
           address?: string
           age_restriction?: string | null
+          buy_url?: string | null
           capacity_info?: string | null
           category?: string
           country?: string | null
           created_at?: string
           dedupe_key?: string | null
           description?: string
+          description_full?: string | null
+          description_short?: string | null
           end_at?: string | null
           external_id?: string | null
           id?: string
           image_url?: string | null
           is_free?: boolean
+          last_synced_at?: string | null
           lat?: number | null
           lng?: number | null
           location_id?: string | null
@@ -197,10 +257,12 @@ export type Database = {
           tags?: string[] | null
           ticket_url?: string | null
           title?: string
+          title_normalized?: string | null
           updated_at?: string | null
           url?: string | null
           venue_id?: string | null
           venue_name?: string
+          venue_name_normalized?: string | null
           venue_name_raw?: string | null
           venue_normalized?: string | null
         }
@@ -427,9 +489,11 @@ export type Database = {
           created_at: string
           error_details: Json | null
           errors: number | null
+          events_archived: number | null
           finished_at: string | null
           id: string
           inserted: number | null
+          occurrences_created: number | null
           skipped: number | null
           source: string
           started_at: string
@@ -440,9 +504,11 @@ export type Database = {
           created_at?: string
           error_details?: Json | null
           errors?: number | null
+          events_archived?: number | null
           finished_at?: string | null
           id?: string
           inserted?: number | null
+          occurrences_created?: number | null
           skipped?: number | null
           source: string
           started_at?: string
@@ -453,9 +519,11 @@ export type Database = {
           created_at?: string
           error_details?: Json | null
           errors?: number | null
+          events_archived?: number | null
           finished_at?: string | null
           id?: string
           inserted?: number | null
+          occurrences_created?: number | null
           skipped?: number | null
           source?: string
           started_at?: string
@@ -567,6 +635,7 @@ export type Database = {
           lng: number | null
           name: string
           normalized_name: string
+          website: string | null
         }
         Insert: {
           address?: string | null
@@ -577,6 +646,7 @@ export type Database = {
           lng?: number | null
           name: string
           normalized_name: string
+          website?: string | null
         }
         Update: {
           address?: string | null
@@ -587,6 +657,7 @@ export type Database = {
           lng?: number | null
           name?: string
           normalized_name?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -602,6 +673,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      normalize_text: { Args: { text_input: string }; Returns: string }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

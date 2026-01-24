@@ -3,6 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Event } from '@/types';
 import type { EventFilters } from '@/components/events/FilterDrawer';
 
+interface EventOccurrence {
+  id: string;
+  event_id: string;
+  start_datetime: string;
+  end_datetime?: string;
+  buy_url?: string;
+  sold_out?: boolean;
+  event?: Event;
+}
+
 interface UseEventsOptions {
   filters?: EventFilters;
   searchQuery?: string;
@@ -15,6 +25,15 @@ interface UseEventsOptions {
   pageSize?: number;
 }
 
+// Normalize search text (remove accents for Spanish)
+const normalizeSearchText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+};
+
 const fetchEvents = async (options: UseEventsOptions): Promise<{ events: Event[]; count: number }> => {
   let query = supabase
     .from('events')
@@ -22,7 +41,7 @@ const fetchEvents = async (options: UseEventsOptions): Promise<{ events: Event[]
     .eq('status', 'published')
     .order('start_at', { ascending: true });
 
-  // Date filters
+  // Date filters - use Europe/Madrid timezone
   const now = new Date();
   
   if (options.todayOnly) {
@@ -73,9 +92,17 @@ const fetchEvents = async (options: UseEventsOptions): Promise<{ events: Event[]
     query = query.in('location_id', options.locationIds);
   }
 
-  // Search query
-  if (options.searchQuery) {
-    query = query.or(`title.ilike.%${options.searchQuery}%,venue_name.ilike.%${options.searchQuery}%,description.ilike.%${options.searchQuery}%`);
+  // Search query - use normalized search for accent-insensitive matching
+  if (options.searchQuery && options.searchQuery.trim()) {
+    const normalizedQuery = normalizeSearchText(options.searchQuery);
+    // Use ilike with the original query and also try the normalized version
+    query = query.or(
+      `title.ilike.%${options.searchQuery}%,` +
+      `title_normalized.ilike.%${normalizedQuery}%,` +
+      `venue_name.ilike.%${options.searchQuery}%,` +
+      `venue_name_normalized.ilike.%${normalizedQuery}%,` +
+      `description.ilike.%${options.searchQuery}%`
+    );
   }
 
   // Pagination
@@ -104,7 +131,7 @@ export const useEvents = (options: UseEventsOptions = {}) => {
   return useQuery({
     queryKey: ['events', options],
     queryFn: () => fetchEvents(options),
-    select: (data) => data.events, // For backward compatibility
+    select: (data) => data.events,
   });
 };
 
@@ -157,7 +184,6 @@ export const useSimilarEvents = (event: Event | null | undefined, limit = 6) => 
         .order('start_at', { ascending: true })
         .limit(limit);
 
-      // Prefer same location, then same category
       if (event.location_id) {
         query = query.eq('location_id', event.location_id);
       } else if (event.category) {
@@ -168,14 +194,101 @@ export const useSimilarEvents = (event: Event | null | undefined, limit = 6) => 
 
       if (error) throw error;
       
-      const events = (data || []).map((item: any) => ({
+      return (data || []).map((item: any) => ({
         ...item,
         venue: item.venues || undefined,
         location: item.locations || undefined,
       })) as Event[];
-
-      return events;
     },
     enabled: !!event,
   });
+};
+
+// Hook for calendar - fetches occurrences with events for a date range
+export const useEventOccurrences = (dateFrom: Date, dateTo: Date, filters?: {
+  venueIds?: string[];
+  locationIds?: string[];
+  searchQuery?: string;
+}) => {
+  return useQuery({
+    queryKey: ['event-occurrences', dateFrom.toISOString(), dateTo.toISOString(), filters],
+    queryFn: async () => {
+      // First get occurrences in date range
+      let query = supabase
+        .from('event_occurrences')
+        .select(`
+          id,
+          event_id,
+          start_datetime,
+          end_datetime,
+          buy_url,
+          sold_out,
+          events!inner(
+            id,
+            title,
+            category,
+            venue_name,
+            venue_id,
+            location_id,
+            image_url,
+            is_free,
+            status,
+            venues(*),
+            locations(*)
+          )
+        `)
+        .gte('start_datetime', dateFrom.toISOString())
+        .lte('start_datetime', dateTo.toISOString())
+        .eq('events.status', 'published')
+        .order('start_datetime', { ascending: true });
+
+      // Apply filters if provided
+      if (filters?.venueIds && filters.venueIds.length > 0) {
+        query = query.in('events.venue_id', filters.venueIds);
+      }
+
+      if (filters?.locationIds && filters.locationIds.length > 0) {
+        query = query.in('events.location_id', filters.locationIds);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Map to occurrence objects with event data
+      return (data || []).map((item: any) => ({
+        id: item.id,
+        event_id: item.event_id,
+        start_datetime: item.start_datetime,
+        end_datetime: item.end_datetime,
+        buy_url: item.buy_url,
+        sold_out: item.sold_out,
+        event: item.events ? {
+          ...item.events,
+          venue: item.events.venues || undefined,
+          location: item.events.locations || undefined,
+        } : undefined,
+      })) as EventOccurrence[];
+    },
+  });
+};
+
+// Get occurrences grouped by date for calendar view
+export const useCalendarOccurrences = (dateFrom: Date, dateTo: Date) => {
+  const { data: occurrences, ...rest } = useEventOccurrences(dateFrom, dateTo);
+
+  const groupedByDate = (occurrences || []).reduce((acc, occ) => {
+    const dateKey = new Date(occ.start_datetime).toISOString().split('T')[0];
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(occ);
+    return acc;
+  }, {} as Record<string, EventOccurrence[]>);
+
+  return {
+    ...rest,
+    data: groupedByDate,
+    occurrences,
+  };
 };
