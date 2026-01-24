@@ -1,70 +1,90 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, List, Grid3X3 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
 import EmptyState from '@/components/common/EmptyState';
-import type { Event as EventType } from '@/types';
+import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
+import { useEvents } from '@/hooks/useEvents';
+import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
 };
 
-// Mock events
-const mockEvents: EventType[] = [
-  {
-    id: '1',
-    title: 'Festival de Música',
-    description: 'Concierto al aire libre',
-    category: 'music',
-    start_at: new Date().toISOString(),
-    venue_name: 'Plaza Mayor',
-    address: 'Plaza Mayor, Málaga',
-    is_free: true,
-    status: 'published',
-    source_type: 'official_feed',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Exposición de Arte',
-    description: 'Arte contemporáneo',
-    category: 'art',
-    start_at: new Date(Date.now() + 86400000 * 2).toISOString(),
-    venue_name: 'Museo Picasso',
-    address: 'Museo Picasso, Málaga',
-    is_free: false,
-    status: 'published',
-    source_type: 'official_feed',
-    created_at: new Date().toISOString(),
-  },
-];
-
 const CalendarPage = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const locale = locales[i18n.language] || es;
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
   const [eventSource, setEventSource] = useState<'all' | 'favorites'>('all');
+  const { isAuthenticated } = useAuthContext();
 
+  // Get start and end of current month for fetching
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Fetch events for the month
+  const { data: events, isLoading } = useEvents({
+    filters: {
+      dateFrom: monthStart,
+      dateTo: monthEnd,
+      categories: [],
+    },
+  });
+
+  // Favorites
+  const { data: favorites } = useFavorites();
+  const toggleFavorite = useToggleFavorite();
+
+  const isFavorite = (eventId: string) => 
+    favorites?.some((f) => f.event_id === eventId) ?? false;
+
+  const handleToggleFavorite = (eventId: string) => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+    toggleFavorite.mutate({ eventId, isFavorite: isFavorite(eventId) });
+  };
+
+  // Filter by source (all or favorites)
+  const filteredEvents = useMemo(() => {
+    if (!events) return [];
+    if (eventSource === 'favorites' && favorites) {
+      const favoriteIds = new Set(favorites.map(f => f.event_id));
+      return events.filter(e => favoriteIds.has(e.id));
+    }
+    return events;
+  }, [events, eventSource, favorites]);
 
   // Get day of week for first day (0 = Sunday)
   const startDayOfWeek = monthStart.getDay();
   const emptyDays = Array.from({ length: startDayOfWeek }, (_, i) => i);
 
   const getEventsForDay = (date: Date) => {
-    return mockEvents.filter((event) => isSameDay(new Date(event.start_at), date));
+    return filteredEvents.filter((event) => isSameDay(new Date(event.start_at), date));
   };
+
+  // Get events with counts per day for the month
+  const daysWithEvents = useMemo(() => {
+    const map = new Map<string, number>();
+    filteredEvents.forEach(event => {
+      const dateKey = format(new Date(event.start_at), 'yyyy-MM-dd');
+      map.set(dateKey, (map.get(dateKey) || 0) + 1);
+    });
+    return map;
+  }, [filteredEvents]);
 
   const selectedDayEvents = selectedDate ? getEventsForDay(selectedDate) : [];
 
@@ -132,9 +152,10 @@ const CalendarPage = () => {
                     <div key={`empty-${i}`} className="aspect-square" />
                   ))}
                   {days.map((day) => {
-                    const dayEvents = getEventsForDay(day);
+                    const dateKey = format(day, 'yyyy-MM-dd');
+                    const eventCount = daysWithEvents.get(dateKey) || 0;
                     const isSelected = selectedDate && isSameDay(day, selectedDate);
-                    const hasEvents = dayEvents.length > 0;
+                    const hasEvents = eventCount > 0;
 
                     return (
                       <button
@@ -151,7 +172,7 @@ const CalendarPage = () => {
                         {format(day, 'd')}
                         {hasEvents && (
                           <span className={cn(
-                            'absolute bottom-1 w-1 h-1 rounded-full',
+                            'absolute bottom-1 w-1.5 h-1.5 rounded-full',
                             isSelected ? 'bg-primary-foreground' : 'bg-primary'
                           )} />
                         )}
@@ -168,9 +189,20 @@ const CalendarPage = () => {
                 <h3 className="font-semibold capitalize">
                   {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
                 </h3>
-                {selectedDayEvents.length > 0 ? (
+                {isLoading ? (
+                  <div className="space-y-4">
+                    <EventCardSkeleton />
+                    <EventCardSkeleton />
+                  </div>
+                ) : selectedDayEvents.length > 0 ? (
                   selectedDayEvents.map((event) => (
-                    <EventCard key={event.id} event={event} compact />
+                    <EventCard 
+                      key={event.id} 
+                      event={event} 
+                      compact
+                      isFavorite={isFavorite(event.id)}
+                      onToggleFavorite={handleToggleFavorite}
+                    />
                   ))
                 ) : (
                   <Card className="bg-muted/50 border-dashed">
@@ -185,13 +217,24 @@ const CalendarPage = () => {
         ) : (
           /* List View */
           <div className="space-y-4">
-            {mockEvents.length > 0 ? (
-              mockEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
+            {isLoading ? (
+              <>
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+                <EventCardSkeleton />
+              </>
+            ) : filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
+                <EventCard 
+                  key={event.id} 
+                  event={event}
+                  isFavorite={isFavorite(event.id)}
+                  onToggleFavorite={handleToggleFavorite}
+                />
               ))
             ) : (
               <EmptyState
-                icon={List}
+                icon={Calendar}
                 title={t('events.noEvents')}
                 description={t('events.noEventsDesc')}
               />

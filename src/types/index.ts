@@ -79,16 +79,12 @@ export interface NotificationPrefs {
 export const EVENT_CATEGORIES = [
   'music',
   'theater',
-  'cinema',
-  'art',
+  'exhibitions',
+  'kids',
   'sports',
-  'gastronomy',
   'festivals',
-  'family',
-  'nightlife',
   'workshops',
   'conferences',
-  'markets',
   'other',
 ] as const;
 
