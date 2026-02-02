@@ -1,116 +1,112 @@
 
-# Plan: Imágenes Inteligentes para Danza y Festivales Específicos
+# Plan: Evitar Autofocus en los Dropdowns de Salas y Teatros
 
 ## Problema
 
-Cuando un evento es de **danza** pero contiene la palabra "festival" en el título (ej: "Festival de Danza"), el sistema lo clasifica como `festival` y muestra una imagen de multitud/fiesta que no tiene sentido.
+Cuando se abren los desplegables de **Salas** y **Teatros**, el cursor se posiciona automáticamente en la casilla de búsqueda, lo que en dispositivos móviles provoca que se abra el teclado virtual de forma molesta. El usuario solo quiere buscar si pulsa intencionadamente en el campo de búsqueda.
 
 **Causa técnica:**
-```typescript
-// Línea 230 - Se evalúa ANTES que danza
-if (cat.includes('festival')) return 'festival';
+- El componente `Command` de la librería `cmdk` tiene autofocus habilitado por defecto
+- Cuando el Popover se abre, `CommandInput` recibe el foco automáticamente
+- En móviles, cualquier input con foco activa el teclado virtual
 
-// Línea 226 - Danza está aquí, pero nunca se alcanza si hay "festival"
-if (cat.includes('danza')) return 'theater';
-```
+## Soluciones posibles
 
-## Solución
+### Opcion A: Usar `shouldFilter={false}` + Input manual (recomendada)
 
-### 1. Añadir nueva categoría `dance` con imagen específica
+Reemplazar `CommandInput` por un `Input` normal que no reciba foco automático, controlando la búsqueda manualmente.
 
-Crear una categoría dedicada para danza con una imagen apropiada de ballet/danza contemporánea.
+### Opcion B: Modificar el componente `CommandInput` 
 
-### 2. Mejorar la lógica de detección (orden de prioridad)
+Añadir una prop `autoFocus={false}` al componente global, pero esto afectaría a todos los usos.
 
-Reordenar las comprobaciones para que categorías más específicas (danza, música) se evalúen **antes** que "festival":
+### Opcion C: Pasar `shouldFilter={false}` y manejar filtrado manualmente
+
+La librería `cmdk` permite deshabilitar el filtrado automático, pero el autofocus sigue siendo un comportamiento interno.
+
+## Solucion elegida: Input manual sin autofocus
+
+Modificar `VenueGroupDropdown.tsx` para:
+
+1. Reemplazar `CommandInput` por un `Input` estándar con icono de búsqueda
+2. El input NO tendrá autofocus
+3. Filtrar los venues localmente con el valor del input
+4. Solo cuando el usuario pulse en el input, entonces recibirá foco
+
+## Cambios en `VenueGroupDropdown.tsx`
 
 ```text
-ANTES:                          DESPUÉS:
-1. music                        1. dance (NUEVO - más específico)
-2. theater (incluye danza)      2. music  
-3. comedy                       3. theater (sin danza)
-4. festival  ← atrapa todo      4. comedy
-5. ...                          5. festival ← ahora es fallback
+ANTES:
+┌──────────────────────────────┐
+│ 🔍 Buscar...                 │  ← Autofocus al abrir
+├──────────────────────────────┤
+│ [x] Todas las salas          │
+│ [ ] Paris 15                 │
+│ [ ] La Cochera               │
+└──────────────────────────────┘
+
+DESPUES:
+┌──────────────────────────────┐
+│ 🔍 Buscar...                 │  ← Sin autofocus (foco solo si se pulsa)
+├──────────────────────────────┤
+│ [x] Todas las salas          │
+│ [ ] Paris 15                 │
+│ [ ] La Cochera               │
+└──────────────────────────────┘
 ```
 
-## Cambios en `EventImage.tsx`
+### Implementacion tecnica
 
-### Nuevo tipo y configuración para `dance`
+1. Añadir estado para la búsqueda local: `const [searchQuery, setSearchQuery] = useState('')`
+2. Reemplazar `CommandInput` por un `Input` con `autoFocus={false}` (o sin la prop, ya que false es el default)
+3. Filtrar los venues en el `useMemo` basándose en `searchQuery`
+4. Limpiar el search query cuando se cierre el popover
+
+### Codigo clave
 
 ```typescript
-// Añadir 'dance' al tipo EventType
-export type EventType = 'music' | 'theater' | 'dance' | 'comedy' | ...
+// Estado para búsqueda
+const [searchQuery, setSearchQuery] = useState('');
 
-// Nueva imagen de danza (bailarines, ballet, danza contemporánea)
-const CATEGORY_FALLBACK_IMAGES = {
-  dance: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=640&q=80&fit=crop&auto=format',
-  // ... resto igual
+// Limpiar al cerrar
+const handleOpenChange = (open: boolean) => {
+  setOpen(open);
+  if (!open) setSearchQuery('');
 };
 
-// Nueva configuración visual para dance
-const CATEGORY_FALLBACKS = {
-  dance: {
-    icon: Theater, // o un icono personalizado
-    gradient: 'from-pink-500/30 via-purple-500/20 to-violet-500/30',
-    label: 'Danza',
-  },
-  // ... resto igual
-};
+// Filtrar venues localmente
+const filteredVenues = useMemo(() => {
+  if (!searchQuery) return groupVenues;
+  const query = searchQuery.toLowerCase();
+  return groupVenues.filter(v => 
+    v.name.toLowerCase().includes(query)
+  );
+}, [groupVenues, searchQuery]);
+
+// Input sin autofocus
+<div className="flex items-center border-b px-3 py-2">
+  <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+  <input
+    type="text"
+    placeholder={t('common.search', 'Buscar...')}
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+    // NO autoFocus - el usuario debe pulsar para activar
+  />
+</div>
 ```
 
-### Nueva lógica de detección (orden corregido)
-
-```typescript
-const getEventTypeFromCategory = (category?: string): EventType => {
-  if (!category) return 'other';
-  const cat = category.toLowerCase();
-  
-  // 1. DANZA primero (más específico que festival)
-  if (cat.includes('danza') || cat.includes('ballet') || cat.includes('baile') || cat.includes('dance')) {
-    return 'dance';
-  }
-  
-  // 2. Música
-  if (cat.includes('music') || cat.includes('concierto') || ...) return 'music';
-  
-  // 3. Teatro (sin danza, ya capturada arriba)
-  if (cat.includes('theater') || cat.includes('teatro') || cat.includes('circo')) return 'theater';
-  
-  // 4. Comedia
-  if (cat.includes('comedy') || ...) return 'comedy';
-  
-  // 5. Festival (ahora es fallback para festivales genéricos)
-  if (cat.includes('festival')) return 'festival';
-  
-  // ... resto igual
-};
-```
-
-## Archivos a Modificar
+## Archivos a modificar
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/components/events/EventImage.tsx` | Añadir categoría `dance`, reordenar detección |
+| `src/components/events/VenueGroupDropdown.tsx` | Reemplazar `CommandInput` con Input manual, añadir filtrado local |
 
-## Imágenes propuestas para Danza
+## Verificacion
 
-| Opción | URL Unsplash | Descripción |
-|--------|--------------|-------------|
-| A (Ballet) | photo-1508700929628-666bc8bd84ea | Bailarina de ballet elegante |
-| B (Contemporánea) | photo-1547153760-18fc86324498 | Danza contemporánea, movimiento |
-| C (Flamenco) | photo-1604251405925-aedc6c0c02b0 | Bailaora flamenca (más local a Málaga) |
-
-## Resultado
-
-| Evento | Antes | Después |
-|--------|-------|---------|
-| "Festival de Danza" | 🏊 Piscina/multitud | 💃 Bailarines/danza |
-| "Gala de Ballet" | ❓ Genérico | 🩰 Ballet |
-| "Festival de Rock" | 🎸 Festival (correcto) | 🎸 Festival (sin cambio) |
-
-## Verificación
-
-1. "Festival de Danza" → Imagen de danza
-2. "Ballet clásico" → Imagen de danza
-3. "Festival de Música" → Imagen de festival (multitud)
-4. "Obra de Teatro" → Imagen de teatro
+1. Abrir dropdown de Salas → El input NO tiene foco, el teclado NO se abre
+2. Abrir dropdown de Teatros → Mismo comportamiento
+3. Pulsar en el campo de búsqueda → Ahora sí se activa el foco y el teclado
+4. Escribir texto → Los venues se filtran correctamente
+5. Cerrar y reabrir → El campo de búsqueda está vacío
