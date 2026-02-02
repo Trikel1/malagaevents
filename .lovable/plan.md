@@ -1,114 +1,116 @@
 
-# Plan: Nombres de Eventos Legibles (Sin Caracteres Raros)
+# Plan: Imágenes Inteligentes para Danza y Festivales Específicos
 
-## Problema Identificado
+## Problema
 
-Los títulos de eventos pueden mostrar caracteres raros como:
-- `&amp;` en lugar de `&`
-- `&#39;` o `&apos;` en lugar de `'`
-- `&quot;` en lugar de `"`
-- `&#x27;` en lugar de `'`
+Cuando un evento es de **danza** pero contiene la palabra "festival" en el título (ej: "Festival de Danza"), el sistema lo clasifica como `festival` y muestra una imagen de multitud/fiesta que no tiene sentido.
 
-**Causas:**
-1. **Backend**: El scraping obtiene textos con entidades HTML que no se decodifican
-2. **Frontend**: La función `sanitizeText()` escapa caracteres que React ya escapa automáticamente (doble-escapado)
+**Causa técnica:**
+```typescript
+// Línea 230 - Se evalúa ANTES que danza
+if (cat.includes('festival')) return 'festival';
 
----
+// Línea 226 - Danza está aquí, pero nunca se alcanza si hay "festival"
+if (cat.includes('danza')) return 'theater';
+```
 
 ## Solución
 
-### 1. Backend: Decodificar entidades HTML al sincronizar
+### 1. Añadir nueva categoría `dance` con imagen específica
 
-Añadir función `decodeHtmlEntities()` en `sync-events` que convierta:
+Crear una categoría dedicada para danza con una imagen apropiada de ballet/danza contemporánea.
 
-| Entidad | Resultado |
-|---------|-----------|
-| `&amp;` | `&` |
-| `&lt;` | `<` |
-| `&gt;` | `>` |
-| `&quot;` | `"` |
-| `&#39;` / `&apos;` | `'` |
-| `&#x27;` | `'` |
-| `&nbsp;` | ` ` |
-| `&#NNN;` | carácter correspondiente |
+### 2. Mejorar la lógica de detección (orden de prioridad)
 
-Aplicar esta decodificación en:
-- `cleanTitle()` - para títulos
-- Descripciones antes de guardar
+Reordenar las comprobaciones para que categorías más específicas (danza, música) se evalúen **antes** que "festival":
 
-### 2. Frontend: Simplificar sanitización
-
-Modificar `sanitizeText()` para:
-- **Eliminar** el escapado HTML (React ya lo hace)
-- **Añadir** decodificación de entidades HTML residuales
-- **Mantener** la eliminación de tags HTML
-
-El flujo correcto será:
 ```text
-Texto con entidades HTML → Decodificar entidades → Eliminar tags → Texto limpio
+ANTES:                          DESPUÉS:
+1. music                        1. dance (NUEVO - más específico)
+2. theater (incluye danza)      2. music  
+3. comedy                       3. theater (sin danza)
+4. festival  ← atrapa todo      4. comedy
+5. ...                          5. festival ← ahora es fallback
 ```
 
----
+## Cambios en `EventImage.tsx`
+
+### Nuevo tipo y configuración para `dance`
+
+```typescript
+// Añadir 'dance' al tipo EventType
+export type EventType = 'music' | 'theater' | 'dance' | 'comedy' | ...
+
+// Nueva imagen de danza (bailarines, ballet, danza contemporánea)
+const CATEGORY_FALLBACK_IMAGES = {
+  dance: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=640&q=80&fit=crop&auto=format',
+  // ... resto igual
+};
+
+// Nueva configuración visual para dance
+const CATEGORY_FALLBACKS = {
+  dance: {
+    icon: Theater, // o un icono personalizado
+    gradient: 'from-pink-500/30 via-purple-500/20 to-violet-500/30',
+    label: 'Danza',
+  },
+  // ... resto igual
+};
+```
+
+### Nueva lógica de detección (orden corregido)
+
+```typescript
+const getEventTypeFromCategory = (category?: string): EventType => {
+  if (!category) return 'other';
+  const cat = category.toLowerCase();
+  
+  // 1. DANZA primero (más específico que festival)
+  if (cat.includes('danza') || cat.includes('ballet') || cat.includes('baile') || cat.includes('dance')) {
+    return 'dance';
+  }
+  
+  // 2. Música
+  if (cat.includes('music') || cat.includes('concierto') || ...) return 'music';
+  
+  // 3. Teatro (sin danza, ya capturada arriba)
+  if (cat.includes('theater') || cat.includes('teatro') || cat.includes('circo')) return 'theater';
+  
+  // 4. Comedia
+  if (cat.includes('comedy') || ...) return 'comedy';
+  
+  // 5. Festival (ahora es fallback para festivales genéricos)
+  if (cat.includes('festival')) return 'festival';
+  
+  // ... resto igual
+};
+```
 
 ## Archivos a Modificar
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/lib/sanitize.ts` | Añadir `decodeHtmlEntities()`, quitar `escapeHtml()` de `sanitizeText()` |
-| `supabase/functions/sync-events/index.ts` | Añadir decodificación en `cleanTitle()` |
+| `src/components/events/EventImage.tsx` | Añadir categoría `dance`, reordenar detección |
 
----
+## Imágenes propuestas para Danza
 
-## Implementación Técnica
+| Opción | URL Unsplash | Descripción |
+|--------|--------------|-------------|
+| A (Ballet) | photo-1508700929628-666bc8bd84ea | Bailarina de ballet elegante |
+| B (Contemporánea) | photo-1547153760-18fc86324498 | Danza contemporánea, movimiento |
+| C (Flamenco) | photo-1604251405925-aedc6c0c02b0 | Bailaora flamenca (más local a Málaga) |
 
-### Función `decodeHtmlEntities()`
+## Resultado
 
-```typescript
-function decodeHtmlEntities(text: string): string {
-  if (!text) return '';
-  
-  return text
-    // Named entities
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    // Numeric entities (decimal)
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
-    // Numeric entities (hex)
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
-}
-```
-
-### Nueva función `sanitizeText()`
-
-```typescript
-export function sanitizeText(text: string | null | undefined): string {
-  if (!text) return '';
-  
-  let clean = String(text);
-  
-  // 1. Decodificar entidades HTML
-  clean = decodeHtmlEntities(clean);
-  
-  // 2. Eliminar tags HTML
-  clean = clean.replace(/<[^>]*>/g, '');
-  
-  // 3. Normalizar espacios
-  clean = clean.replace(/\s+/g, ' ').trim();
-  
-  return clean;
-  // NO escapar - React lo hace automáticamente
-}
-```
-
----
+| Evento | Antes | Después |
+|--------|-------|---------|
+| "Festival de Danza" | 🏊 Piscina/multitud | 💃 Bailarines/danza |
+| "Gala de Ballet" | ❓ Genérico | 🩰 Ballet |
+| "Festival de Rock" | 🎸 Festival (correcto) | 🎸 Festival (sin cambio) |
 
 ## Verificación
 
-1. Eventos con `&` en título (ej: "H&T Salón") → Se muestra como "H&T Salón"
-2. Eventos con comillas → Se muestran correctamente
-3. Eventos con caracteres especiales españoles (ñ, á, é, etc.) → Se mantienen
-4. No hay vulnerabilidades XSS (React escapa automáticamente)
+1. "Festival de Danza" → Imagen de danza
+2. "Ballet clásico" → Imagen de danza
+3. "Festival de Música" → Imagen de festival (multitud)
+4. "Obra de Teatro" → Imagen de teatro
