@@ -18,6 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useLocations } from '@/hooks/useLocations';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LocationFilterProps {
   selectedLocationIds: string[];
@@ -35,6 +36,7 @@ const LocationFilter = ({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const isMobile = useIsMobile();
   
   const { data: locations = [], isLoading } = useLocations();
 
@@ -133,6 +135,7 @@ const LocationFilter = ({
         sideOffset={4}
         collisionPadding={16}
         avoidCollisions={true}
+        onOpenAutoFocus={(e) => { if (isMobile) e.preventDefault(); }}
       >
         <div className="p-3 border-b">
           <div className="relative">
