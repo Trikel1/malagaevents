@@ -411,9 +411,29 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
   return null;
 }
 
+/**
+ * Decode HTML entities to readable characters
+ */
+function decodeHtmlEntities(text: string): string {
+  if (!text) return '';
+  
+  return text
+    // Named entities
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    // Numeric entities (decimal)
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
+    // Numeric entities (hex)
+    .replace(/&#x([0-9a-fA-F]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
 function cleanTitle(title: string): string {
   if (!title) return '';
-  return title
+  return decodeHtmlEntities(title)
     .replace(/\[.*?\]/g, '')
     .replace(/\(https?:\/\/[^)]+\)/g, '')
     .replace(/<[^>]*>/g, '')
@@ -773,11 +793,14 @@ async function upsertEventWithOccurrences(
   const sourceUrl = source.chosen_entrypoint || source.fallback_entrypoint;
   const imageUrl = normalizeImageUrl(eventData.image_url, sourceUrl);
   
+  // Clean description using the same HTML entity decoding
+  const cleanDescription = eventData.description ? decodeHtmlEntities(eventData.description).replace(/<[^>]*>/g, '').trim() : '';
+  
   const eventPayload = {
     title,
-    description: eventData.description?.substring(0, 500) || `Evento en ${venueName}`,
-    description_short: eventData.description?.substring(0, 150) || null,
-    description_full: eventData.description || null,
+    description: cleanDescription.substring(0, 500) || `Evento en ${venueName}`,
+    description_short: cleanDescription.substring(0, 150) || null,
+    description_full: cleanDescription || null,
     category: source.category,
     event_type: eventType,
     source: source.slug,

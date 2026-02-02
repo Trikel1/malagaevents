@@ -1,36 +1,52 @@
 /**
  * Sanitization utilities for security (XSS prevention)
+ * Note: React automatically escapes content in JSX, so we focus on:
+ * - Decoding HTML entities from scraped content
+ * - Removing HTML tags
+ * - NOT double-escaping (React handles XSS prevention)
  */
-
-// HTML entities to escape
-const HTML_ENTITIES: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#x27;',
-  '/': '&#x2F;',
-  '`': '&#x60;',
-  '=': '&#x3D;',
-};
 
 /**
- * Escape HTML entities to prevent XSS
+ * Decode HTML entities to readable characters
+ * This is safe because React will escape any dangerous characters when rendering
  */
-export function escapeHtml(text: string | null | undefined): string {
+function decodeHtmlEntities(text: string): string {
   if (!text) return '';
-  return String(text).replace(/[&<>"'`=/]/g, (char) => HTML_ENTITIES[char] || char);
+  
+  return text
+    // Named entities (most common first for performance)
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    // Numeric entities (decimal) - e.g., &#39; -> '
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
+    // Numeric entities (hex) - e.g., &#x27; -> '
+    .replace(/&#x([0-9a-fA-F]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
 }
 
 /**
- * Sanitize text content - removes HTML tags and escapes entities
+ * Sanitize text content - decodes HTML entities and removes tags
+ * Safe for React rendering (React handles XSS automatically)
  */
 export function sanitizeText(text: string | null | undefined): string {
   if (!text) return '';
-  // First strip HTML tags
-  const withoutTags = String(text).replace(/<[^>]*>/g, '');
-  // Then escape any remaining entities
-  return escapeHtml(withoutTags);
+  
+  let clean = String(text);
+  
+  // 1. Decode HTML entities first (so &lt;script&gt; becomes <script>)
+  clean = decodeHtmlEntities(clean);
+  
+  // 2. Strip HTML tags (removes the <script> we just decoded)
+  clean = clean.replace(/<[^>]*>/g, '');
+  
+  // 3. Normalize whitespace
+  clean = clean.replace(/\s+/g, ' ').trim();
+  
+  return clean;
+  // Note: NO escaping here - React handles XSS prevention automatically
 }
 
 /**
@@ -52,23 +68,20 @@ export function sanitizeUrl(url: string | null | undefined): string {
 }
 
 /**
- * Sanitize description for display - allows limited formatting
+ * Sanitize description for display - decodes entities and limits length
  */
 export function sanitizeDescription(text: string | null | undefined, maxLength?: number): string {
   if (!text) return '';
   
-  // Strip all HTML tags
-  let clean = String(text).replace(/<[^>]*>/g, '');
-  
-  // Normalize whitespace
-  clean = clean.replace(/\s+/g, ' ').trim();
+  // Use sanitizeText for consistent processing
+  let clean = sanitizeText(text);
   
   // Truncate if needed
   if (maxLength && clean.length > maxLength) {
     clean = clean.substring(0, maxLength - 3) + '...';
   }
   
-  return escapeHtml(clean);
+  return clean;
 }
 
 /**
