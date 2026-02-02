@@ -145,8 +145,8 @@ const LocationFilter = ({
             />
           </div>
         </div>
-        <ScrollArea className="h-64 overscroll-contain">
-          <div className="p-2 [&_[data-radix-scroll-area-viewport]]:overscroll-contain">
+        <ScrollArea className="h-64 overscroll-contain [-webkit-overflow-scrolling:touch]">
+          <div className="p-2 [&_[data-radix-scroll-area-viewport]]:overscroll-contain [&_[data-radix-scroll-area-viewport]]:[-webkit-overflow-scrolling:touch]">
             {isLoading ? (
               <div className="py-6 text-center text-sm text-muted-foreground">
                 {t('common.loading', 'Cargando...')}

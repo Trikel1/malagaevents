@@ -85,7 +85,7 @@ const FilterDrawer = ({
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="px-4 overflow-y-auto space-y-6">
+        <div className="px-4 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
           {/* Date Range */}
           <div className="space-y-3">
             <Label>{t('events.date')}</Label>
