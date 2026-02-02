@@ -300,22 +300,31 @@ export function validateUUID(value: unknown, fieldName: string): { valid: boolea
 // TEXT SANITIZATION (for scraped content)
 // ============================================================================
 
-const HTML_ENTITIES: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#x27;',
-};
+/**
+ * Decode HTML entities to readable characters
+ */
+function decodeHtmlEntities(text: string): string {
+  if (!text) return '';
+  
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
 
 export function sanitizeText(text: string | null | undefined): string {
   if (!text) return '';
   
-  // Strip HTML tags
-  let clean = String(text).replace(/<[^>]*>/g, '');
+  // Decode HTML entities first
+  let clean = decodeHtmlEntities(String(text));
   
-  // Escape remaining entities
-  clean = clean.replace(/[&<>"']/g, char => HTML_ENTITIES[char] || char);
+  // Strip HTML tags
+  clean = clean.replace(/<[^>]*>/g, '');
   
   // Normalize whitespace
   clean = clean.replace(/\s+/g, ' ').trim();
