@@ -6,10 +6,11 @@ import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 // Extended event types for category-specific fallbacks
-export type EventType = 'music' | 'theater' | 'comedy' | 'festival' | 'nightlife' | 'exhibitions' | 'kids' | 'sports' | 'workshops' | 'conferences' | 'other';
+export type EventType = 'dance' | 'music' | 'theater' | 'comedy' | 'festival' | 'nightlife' | 'exhibitions' | 'kids' | 'sports' | 'workshops' | 'conferences' | 'other';
 
 // High-quality Unsplash images for each category (optimized URLs with parameters)
 const CATEGORY_FALLBACK_IMAGES: Record<EventType, string> = {
+  dance: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=640&q=80&fit=crop&auto=format',
   music: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=640&q=80&fit=crop&auto=format',
   theater: 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=640&q=80&fit=crop&auto=format',
   comedy: 'https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=640&q=80&fit=crop&auto=format',
@@ -29,6 +30,11 @@ const CATEGORY_FALLBACKS: Record<EventType, {
   gradient: string;
   label: string;
 }> = {
+  dance: {
+    icon: Theater,
+    gradient: 'from-pink-500/30 via-purple-500/20 to-violet-500/30',
+    label: 'Danza',
+  },
   music: {
     icon: Music,
     gradient: 'from-violet-500/30 via-purple-500/20 to-fuchsia-500/30',
@@ -216,29 +222,32 @@ const getDefaultSrc = (src: string, variant: EventImageVariant): string => {
 };
 
 // Helper to determine event type from category string (enhanced detection)
+// Priority order: specific categories (dance, music) before generic ones (festival)
 const getEventTypeFromCategory = (category?: string): EventType => {
   if (!category) return 'other';
   const cat = category.toLowerCase();
   
-  // Music
+  // 1. DANCE first (more specific than festival) - catches "Festival de Danza"
+  if (cat.includes('danza') || cat.includes('ballet') || cat.includes('baile') || cat.includes('dance') || cat.includes('flamenco')) return 'dance';
+  // 2. Music
   if (cat.includes('music') || cat.includes('concierto') || cat.includes('música') || cat.includes('concert')) return 'music';
-  // Theater
-  if (cat.includes('theater') || cat.includes('teatro') || cat.includes('danza') || cat.includes('circo')) return 'theater';
-  // Comedy
+  // 3. Theater (without dance, already captured above)
+  if (cat.includes('theater') || cat.includes('teatro') || cat.includes('circo')) return 'theater';
+  // 4. Comedy
   if (cat.includes('comedy') || cat.includes('comedia') || cat.includes('humor') || cat.includes('monólogo')) return 'comedy';
-  // Festival
+  // 5. Festival (now fallback for generic festivals like music/rock festivals)
   if (cat.includes('festival')) return 'festival';
-  // Nightlife
+  // 6. Nightlife
   if (cat.includes('nightlife') || cat.includes('noche') || cat.includes('fiesta') || cat.includes('party') || cat.includes('club')) return 'nightlife';
-  // Exhibitions
+  // 7. Exhibitions
   if (cat.includes('exhibition') || cat.includes('exposición') || cat.includes('exposicion') || cat.includes('museo') || cat.includes('galería') || cat.includes('arte')) return 'exhibitions';
-  // Kids
+  // 8. Kids
   if (cat.includes('kids') || cat.includes('infantil') || cat.includes('niños') || cat.includes('familia') || cat.includes('children')) return 'kids';
-  // Sports
+  // 9. Sports
   if (cat.includes('sport') || cat.includes('deporte') || cat.includes('carrera') || cat.includes('maratón')) return 'sports';
-  // Workshops
+  // 10. Workshops
   if (cat.includes('workshop') || cat.includes('taller') || cat.includes('curso') || cat.includes('clase')) return 'workshops';
-  // Conferences
+  // 11. Conferences
   if (cat.includes('conference') || cat.includes('conferencia') || cat.includes('charla') || cat.includes('ponencia')) return 'conferences';
   
   return 'other';
