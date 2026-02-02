@@ -17,6 +17,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useVenues } from '@/hooks/useVenues';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { Venue } from '@/types';
 
 export type VenueGroup = 'all' | 'theaters' | 'halls';
@@ -84,6 +85,7 @@ export function VenueGroupDropdown({
 }: VenueGroupDropdownProps) {
   const { t } = useTranslation();
   const { data: venues = [], isLoading, isError } = useVenues();
+  const isMobile = useIsMobile();
   const [hallsOpen, setHallsOpen] = useState(false);
   const [theatersOpen, setTheatersOpen] = useState(false);
   const [hallsSearchQuery, setHallsSearchQuery] = useState('');
@@ -258,6 +260,8 @@ export function VenueGroupDropdown({
           collisionPadding={16}
           avoidCollisions={true}
           sticky="always"
+          // Prevent auto-focus on mobile to avoid keyboard popup
+          onOpenAutoFocus={(e) => { if (isMobile) e.preventDefault(); }}
           // Stop propagation on content interactions
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
