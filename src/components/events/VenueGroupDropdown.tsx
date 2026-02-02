@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronDown, Building2, Theater, Loader2, LayoutGrid } from 'lucide-react';
+import { Check, ChevronDown, Building2, Theater, Loader2, LayoutGrid, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -11,7 +11,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
@@ -87,6 +86,9 @@ export function VenueGroupDropdown({
   const { data: venues = [], isLoading, isError } = useVenues();
   const [hallsOpen, setHallsOpen] = useState(false);
   const [theatersOpen, setTheatersOpen] = useState(false);
+  const [hallsSearchQuery, setHallsSearchQuery] = useState('');
+  const [theatersSearchQuery, setTheatersSearchQuery] = useState('');
+
 
   // Classify and filter venues into groups
   const venuesByGroup = useMemo(() => {
@@ -186,15 +188,23 @@ export function VenueGroupDropdown({
     return selectedVenueIds.filter(id => groupVenueIds.includes(id)).length;
   }, [selectedGroup, venuesByGroup, selectedVenueIds]);
 
-  // Handle popover open change with propagation stop
+  // Handle popover open change with propagation stop and search reset
   const handleHallsOpenChange = useCallback((open: boolean) => {
     setHallsOpen(open);
-    if (open) setTheatersOpen(false);
+    if (open) {
+      setTheatersOpen(false);
+    } else {
+      setHallsSearchQuery('');
+    }
   }, []);
 
   const handleTheatersOpenChange = useCallback((open: boolean) => {
     setTheatersOpen(open);
-    if (open) setHallsOpen(false);
+    if (open) {
+      setHallsOpen(false);
+    } else {
+      setTheatersSearchQuery('');
+    }
   }, []);
 
   // Render dropdown for a group
@@ -209,6 +219,15 @@ export function VenueGroupDropdown({
     const allSelected = isGroupFullySelected(group);
     const selectedCount = getSelectedCount(group);
     const isActive = selectedGroup === group;
+    
+    // Get search query for this group
+    const searchQuery = isHalls ? hallsSearchQuery : theatersSearchQuery;
+    const setSearchQuery = isHalls ? setHallsSearchQuery : setTheatersSearchQuery;
+    
+    // Filter venues based on search query
+    const filteredVenues = searchQuery
+      ? groupVenues.filter(v => v.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      : groupVenues;
 
     return (
       <Popover open={isOpen} onOpenChange={setOpen}>
@@ -243,11 +262,19 @@ export function VenueGroupDropdown({
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <Command className="max-h-[60vh]">
-            <CommandInput 
-              placeholder={t('common.search', 'Buscar...')} 
-              className="h-10 border-b"
-            />
+          <Command shouldFilter={false} className="max-h-[60vh]">
+            {/* Manual search input without autofocus */}
+            <div className="flex items-center border-b px-3">
+              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+              <input
+                type="text"
+                placeholder={t('common.search', 'Buscar...')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                // NO autoFocus - user must tap to activate keyboard
+              />
+            </div>
             <CommandList 
               className={cn(
                 "max-h-[50vh] overflow-y-auto",
@@ -268,29 +295,31 @@ export function VenueGroupDropdown({
                 <div className="py-6 text-center text-sm text-destructive">
                   {t('errors.generic', 'Error al cargar')}
                 </div>
-              ) : groupVenues.length === 0 ? (
+              ) : filteredVenues.length === 0 ? (
                 <CommandEmpty className="py-6 text-center text-muted-foreground">
                   {t('events.noVenuesFound', 'No se encontraron venues')}
                 </CommandEmpty>
               ) : (
                 <CommandGroup className="p-1">
-                  {/* "All" option with checkbox */}
-                  <CommandItem
-                    onSelect={() => handleToggleAllInGroup(group, allSelected)}
-                    className="flex items-center gap-3 px-3 py-2.5 cursor-pointer font-medium border-b mb-1"
-                  >
-                    <Checkbox
-                      checked={allSelected}
-                      className="h-4 w-4"
-                    />
-                    <span className="flex-1">{allLabel}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({groupVenues.length})
-                    </span>
-                  </CommandItem>
+                  {/* "All" option with checkbox - only show when not searching */}
+                  {!searchQuery && (
+                    <CommandItem
+                      onSelect={() => handleToggleAllInGroup(group, allSelected)}
+                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer font-medium border-b mb-1"
+                    >
+                      <Checkbox
+                        checked={allSelected}
+                        className="h-4 w-4"
+                      />
+                      <span className="flex-1">{allLabel}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ({groupVenues.length})
+                      </span>
+                    </CommandItem>
+                  )}
                   
                   {/* Individual venues with checkboxes */}
-                  {groupVenues.map((venue) => {
+                  {filteredVenues.map((venue) => {
                     const isSelected = selectedVenueIds.includes(venue.id);
                     const showCity = venue.city && 
                       !venue.city.toLowerCase().includes('málaga') &&
