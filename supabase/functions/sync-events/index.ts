@@ -244,7 +244,7 @@ const EVENT_EXTRACTION_SCHEMA = {
           },
           venue: { type: 'string', description: 'Venue/hall name' },
           city: { type: 'string', description: 'City/town name' },
-          image_url: { type: 'string', description: 'Main event image URL' },
+          image_url: { type: 'string', description: 'IMPORTANT: Main event poster/image URL. Look for og:image meta tag, large hero images, or event-specific images. Avoid logos, icons, or small thumbnails.' },
           ticket_url: { type: 'string', description: 'Ticket purchase URL' },
           price: { type: 'string', description: 'Ticket price' },
           is_free: { type: 'boolean', description: 'Whether event is free' },
@@ -481,13 +481,68 @@ function generateDedupeKey(sourceSlug: string, title: string, venue: string): st
 function determineEventType(title: string, description: string, sourceEventType: string): string {
   const text = `${title} ${description}`.toLowerCase();
   
-  if (/comedia|comedy|monólogo|humor|stand.?up|risas/i.test(text)) return 'comedy';
-  if (/festival/i.test(text)) return 'festival';
-  if (/teatro|theatre|obra|musical|danza|dance|circo|circus/i.test(text)) return 'theater';
-  if (/dj|disco|fiesta|party|club|noche/i.test(text)) return 'nightlife';
-  if (/concierto|concert|música|music|banda|band|live|directo/i.test(text)) return 'music';
+  // Comedy - check first as it's specific
+  if (/comedia|comedy|monólogo|monologo|humor|stand.?up|risas|humorista/i.test(text)) return 'comedy';
   
-  return sourceEventType;
+  // Festival
+  if (/festival/i.test(text)) return 'festival';
+  
+  // Exhibitions / Art
+  if (/exposici[oó]n|exposicion|muestra|galer[ií]a|galeria|museo|arte\s|artista/i.test(text)) return 'exhibitions';
+  
+  // Kids / Family
+  if (/infantil|ni[ñn]os|ninos|familia|familiar|peque[ñn]os|pequenos|cuentacuentos|títeres|titeres|marionetas/i.test(text)) return 'kids';
+  
+  // Sports
+  if (/carrera|marat[oó]n|maraton|partido|campeonato|deporte|deportivo|atletismo|ciclismo/i.test(text)) return 'sports';
+  
+  // Workshops
+  if (/taller\b|curso\b|clase\b|masterclass|formaci[oó]n|formacion|workshop/i.test(text)) return 'workshops';
+  
+  // Conferences
+  if (/conferencia|charla|ponencia|congreso|seminario|coloquio|mesa\s+redonda/i.test(text)) return 'conferences';
+  
+  // Theater / Dance / Circus
+  if (/teatro|theatre|obra\s|musical|danza|dance|circo|circus|ballet|flamenco|dramaturgia/i.test(text)) return 'theater';
+  
+  // Nightlife
+  if (/dj\b|disco|fiesta|party|club|noche|nocturno|after/i.test(text)) return 'nightlife';
+  
+  // Music - check last as it's broad
+  if (/concierto|concert|música|musica|music|banda|band|live|directo|orquesta|sinfónic/i.test(text)) return 'music';
+  
+  return sourceEventType || 'other';
+}
+
+// Validate if an image URL is accessible and returns an image content-type
+async function validateImageUrl(url: string): Promise<boolean> {
+  if (!url) return false;
+  
+  // Skip validation for known problematic patterns
+  if (/logo|icon|favicon|placeholder|default|avatar/i.test(url)) return false;
+  if (url.startsWith('data:')) return false;
+  
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch(url, { 
+      method: 'HEAD', 
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; MalagaEvents/1.0)',
+      }
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) return false;
+    
+    const contentType = response.headers.get('content-type');
+    return contentType?.startsWith('image/') || false;
+  } catch {
+    return false;
+  }
 }
 
 function addJitter(baseMs: number, jitterMs: number): number {

@@ -1,14 +1,29 @@
 import { useState, useMemo } from 'react';
-import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles } from 'lucide-react';
+import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles, Image as ImageIcon, Palette, Baby, Trophy, Wrench, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
-// Event type for category-specific fallbacks
-export type EventType = 'music' | 'theater' | 'comedy' | 'festival' | 'nightlife' | 'other';
+// Extended event types for category-specific fallbacks
+export type EventType = 'music' | 'theater' | 'comedy' | 'festival' | 'nightlife' | 'exhibitions' | 'kids' | 'sports' | 'workshops' | 'conferences' | 'other';
 
-// Category-specific fallback configurations
+// High-quality Unsplash images for each category (optimized URLs with parameters)
+const CATEGORY_FALLBACK_IMAGES: Record<EventType, string> = {
+  music: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=640&q=80&fit=crop&auto=format',
+  theater: 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=640&q=80&fit=crop&auto=format',
+  comedy: 'https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=640&q=80&fit=crop&auto=format',
+  festival: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=640&q=80&fit=crop&auto=format',
+  nightlife: 'https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=640&q=80&fit=crop&auto=format',
+  exhibitions: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=640&q=80&fit=crop&auto=format',
+  kids: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=640&q=80&fit=crop&auto=format',
+  sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=640&q=80&fit=crop&auto=format',
+  workshops: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=640&q=80&fit=crop&auto=format',
+  conferences: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=640&q=80&fit=crop&auto=format',
+  other: 'https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=640&q=80&fit=crop&auto=format',
+};
+
+// Category-specific fallback configurations (icons + gradients for final fallback)
 const CATEGORY_FALLBACKS: Record<EventType, { 
   icon: React.ComponentType<{ className?: string }>;
   gradient: string;
@@ -38,6 +53,31 @@ const CATEGORY_FALLBACKS: Record<EventType, {
     icon: Sparkles,
     gradient: 'from-indigo-500/30 via-blue-500/20 to-purple-500/30',
     label: 'Noche',
+  },
+  exhibitions: {
+    icon: Palette,
+    gradient: 'from-pink-500/30 via-rose-500/20 to-red-500/30',
+    label: 'Exposición',
+  },
+  kids: {
+    icon: Baby,
+    gradient: 'from-green-500/30 via-lime-500/20 to-yellow-500/30',
+    label: 'Infantil',
+  },
+  sports: {
+    icon: Trophy,
+    gradient: 'from-blue-500/30 via-cyan-500/20 to-teal-500/30',
+    label: 'Deportes',
+  },
+  workshops: {
+    icon: Wrench,
+    gradient: 'from-orange-500/30 via-amber-500/20 to-yellow-500/30',
+    label: 'Taller',
+  },
+  conferences: {
+    icon: Users,
+    gradient: 'from-slate-500/30 via-gray-500/20 to-zinc-500/30',
+    label: 'Conferencia',
   },
   other: {
     icon: Calendar,
@@ -175,15 +215,32 @@ const getDefaultSrc = (src: string, variant: EventImageVariant): string => {
   return optimizedUrl || src;
 };
 
-// Helper to determine event type from category string
+// Helper to determine event type from category string (enhanced detection)
 const getEventTypeFromCategory = (category?: string): EventType => {
   if (!category) return 'other';
   const cat = category.toLowerCase();
-  if (cat.includes('music') || cat.includes('concierto') || cat.includes('música')) return 'music';
-  if (cat.includes('theater') || cat.includes('teatro')) return 'theater';
-  if (cat.includes('comedy') || cat.includes('comedia') || cat.includes('humor')) return 'comedy';
+  
+  // Music
+  if (cat.includes('music') || cat.includes('concierto') || cat.includes('música') || cat.includes('concert')) return 'music';
+  // Theater
+  if (cat.includes('theater') || cat.includes('teatro') || cat.includes('danza') || cat.includes('circo')) return 'theater';
+  // Comedy
+  if (cat.includes('comedy') || cat.includes('comedia') || cat.includes('humor') || cat.includes('monólogo')) return 'comedy';
+  // Festival
   if (cat.includes('festival')) return 'festival';
-  if (cat.includes('nightlife') || cat.includes('noche') || cat.includes('fiesta') || cat.includes('party')) return 'nightlife';
+  // Nightlife
+  if (cat.includes('nightlife') || cat.includes('noche') || cat.includes('fiesta') || cat.includes('party') || cat.includes('club')) return 'nightlife';
+  // Exhibitions
+  if (cat.includes('exhibition') || cat.includes('exposición') || cat.includes('exposicion') || cat.includes('museo') || cat.includes('galería') || cat.includes('arte')) return 'exhibitions';
+  // Kids
+  if (cat.includes('kids') || cat.includes('infantil') || cat.includes('niños') || cat.includes('familia') || cat.includes('children')) return 'kids';
+  // Sports
+  if (cat.includes('sport') || cat.includes('deporte') || cat.includes('carrera') || cat.includes('maratón')) return 'sports';
+  // Workshops
+  if (cat.includes('workshop') || cat.includes('taller') || cat.includes('curso') || cat.includes('clase')) return 'workshops';
+  // Conferences
+  if (cat.includes('conference') || cat.includes('conferencia') || cat.includes('charla') || cat.includes('ponencia')) return 'conferences';
+  
   return 'other';
 };
 
@@ -201,6 +258,7 @@ const EventImage = ({
 }: EventImageProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [unsplashError, setUnsplashError] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   
   // Determine the event type for fallback styling
@@ -209,18 +267,32 @@ const EventImage = ({
   const finalAspectRatio = aspectRatio || ASPECT_RATIOS[variant];
   const isCompact = variant === 'compact';
 
-  // Determine if we should show the image
-  const shouldShowImage = src && !hasError;
+  // Get the category-specific Unsplash fallback image
+  const unsplashFallbackUrl = CATEGORY_FALLBACK_IMAGES[resolvedEventType];
 
-  // Handle image load
+  // Cascade logic:
+  // 1. If we have a valid src and no error → show real image
+  // 2. If real image failed but Unsplash hasn't failed → show Unsplash
+  // 3. If both failed → show gradient + icon fallback
+  const shouldShowRealImage = src && !hasError;
+  const shouldShowUnsplash = !shouldShowRealImage && !unsplashError;
+  const shouldShowIconFallback = !shouldShowRealImage && unsplashError;
+
+  // Handle real image load
   const handleLoad = () => {
     setIsLoading(false);
   };
 
-  // Handle image error
+  // Handle real image error - will trigger Unsplash fallback
   const handleError = () => {
     setIsLoading(false);
     setHasError(true);
+  };
+
+  // Handle Unsplash fallback error - will trigger icon fallback
+  const handleUnsplashError = () => {
+    setIsLoading(false);
+    setUnsplashError(true);
   };
 
   // Generate srcset and optimized src
@@ -234,8 +306,8 @@ const EventImage = ({
     };
   }, [src, variant]);
 
-  // Fallback placeholder component with category-specific styling
-  const FallbackPlaceholder = () => {
+  // Icon + Gradient fallback (final fallback)
+  const IconFallbackPlaceholder = () => {
     if (fallback) return <>{fallback}</>;
     
     const config = CATEGORY_FALLBACKS[resolvedEventType];
@@ -273,10 +345,10 @@ const EventImage = ({
       style={containerStyle}
     >
       {/* Loading skeleton - shown while loading */}
-      {isLoading && shouldShowImage && <LoadingSkeleton />}
+      {isLoading && (shouldShowRealImage || shouldShowUnsplash) && <LoadingSkeleton />}
 
-      {/* Main image */}
-      {shouldShowImage ? (
+      {/* Main image - cascade: real → unsplash → icon */}
+      {shouldShowRealImage ? (
         <img
           src={optimizedSrc || src}
           srcSet={srcSet}
@@ -294,14 +366,27 @@ const EventImage = ({
           )}
           onClick={showLightbox ? () => setIsLightboxOpen(true) : undefined}
         />
+      ) : shouldShowUnsplash ? (
+        <img
+          src={unsplashFallbackUrl}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={handleLoad}
+          onError={handleUnsplashError}
+          className={cn(
+            'w-full h-full object-cover object-center transition-opacity duration-300',
+            isLoading ? 'opacity-0' : 'opacity-100'
+          )}
+        />
       ) : (
-        <FallbackPlaceholder />
+        <IconFallbackPlaceholder />
       )}
     </div>
   );
 
   // If lightbox is enabled, wrap with dialog
-  if (showLightbox && shouldShowImage) {
+  if (showLightbox && shouldShowRealImage) {
     // For lightbox, use the largest available size
     const lightboxSrc = src ? (getOptimizedUrl(src, IMAGE_SIZES.detail.large, 90) || src) : src;
     
