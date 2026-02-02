@@ -120,3 +120,30 @@
     display: none;
   }
 }
+
+/* iOS scroll bounce / momentum - global */
+@layer base {
+  html, body {
+    /* Allow native overscroll/bounce on iOS */
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Smooth scrolling globally */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Scroll utilities for components */
+@layer utilities {
+  .ios-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  .ios-scroll-bounce {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+  }
+}

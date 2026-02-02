@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, ChevronDown, Building2, Theater, Loader2, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,34 +29,48 @@ interface VenueGroupDropdownProps {
   onVenueIdsChange: (venueIds: string[]) => void;
 }
 
-// CANONICAL THEATERS - ONLY these 3 are theaters
-const CANONICAL_THEATERS = [
-  'teatro-cervantes',
-  'teatro-echegaray', 
-  'teatro-del-soho-caixabank',
-  'teatro-soho',
-  'teatro-del-soho',
+// Extended Venue type with new DB columns
+interface VenueWithType extends Venue {
+  venue_type?: 'theater' | 'hall';
+  is_featured?: boolean;
+}
+
+// CANONICAL THEATERS - exact list as specified
+const CANONICAL_THEATER_NAMES = [
+  'teatro del soho',
+  'auditorio municipal de málaga',
+  'auditorio municipal de malaga',
+  'teatro cánovas',
+  'teatro canovas',
+  'centro de arte y creación joven',
+  'centro de arte y creacion joven',
+  'teatro cervantes',
+  'teatro echegaray',
+  'auditorio edgar neville',
+  'auditorio eduardo ocón',
+  'auditorio eduardo ocon',
+  'escuela superior de arte dramático',
+  'escuela superior de arte dramatico',
+  'sala maría cristina',
+  'sala maria cristina',
+  'teatro romano de málaga',
+  'teatro romano de malaga',
 ];
 
-function classifyVenue(venue: Venue): VenueGroup {
-  const normalizedName = venue.normalized_name?.toLowerCase() || '';
-  const name = venue.name?.toLowerCase() || '';
-  
-  // Check normalized_name first (more reliable)
-  for (const pattern of CANONICAL_THEATERS) {
-    if (normalizedName === pattern || normalizedName.includes(pattern)) {
-      return 'theaters';
-    }
+function classifyVenue(venue: VenueWithType): VenueGroup {
+  // First check the DB venue_type if available
+  if (venue.venue_type === 'theater') {
+    return 'theaters';
   }
   
-  // Also check display name for "Teatro Cervantes", "Teatro Echegaray", "Teatro del Soho"
-  if (
-    name.includes('teatro cervantes') ||
-    name.includes('teatro echegaray') ||
-    name.includes('teatro del soho') ||
-    name.includes('teatro soho')
-  ) {
-    return 'theaters';
+  const name = venue.name?.toLowerCase() || '';
+  const normalizedName = venue.normalized_name?.toLowerCase() || '';
+  
+  // Check against canonical theater names
+  for (const pattern of CANONICAL_THEATER_NAMES) {
+    if (name.includes(pattern) || normalizedName.includes(pattern.replace(/\s+/g, '-'))) {
+      return 'theaters';
+    }
   }
   
   // Everything else is a "sala"
@@ -74,20 +88,33 @@ export function VenueGroupDropdown({
   const [hallsOpen, setHallsOpen] = useState(false);
   const [theatersOpen, setTheatersOpen] = useState(false);
 
-  // Classify all venues into groups (exclude placeholder venues)
+  // Classify and filter venues into groups
   const venuesByGroup = useMemo(() => {
-    const grouped: Record<VenueGroup, Venue[]> = {
+    const grouped: Record<VenueGroup, VenueWithType[]> = {
       all: [],
       theaters: [],
       halls: [],
     };
 
-    venues
+    (venues as VenueWithType[])
       .filter(v => v.name && !v.name.toLowerCase().includes('sin sala'))
       .forEach((venue) => {
         const group = classifyVenue(venue);
-        grouped[group].push(venue);
-        grouped.all.push(venue);
+        
+        if (group === 'theaters') {
+          // Only add theaters that match our canonical list
+          grouped.theaters.push(venue);
+        } else {
+          // For halls, only show featured ones (main venues in Málaga city)
+          if (venue.is_featured) {
+            grouped.halls.push(venue);
+          }
+        }
+        
+        // All always includes both featured halls and theaters
+        if (group === 'theaters' || venue.is_featured) {
+          grouped.all.push(venue);
+        }
       });
 
     // Sort alphabetically
@@ -97,16 +124,17 @@ export function VenueGroupDropdown({
     return grouped;
   }, [venues]);
 
-  // Handle "Todos" button
-  const handleSelectAll = () => {
+  // Handle "Todos" button - STOP PROPAGATION to prevent Buscar activation
+  const handleSelectAll = useCallback((e: MouseEvent) => {
+    e.stopPropagation();
     onGroupChange('all');
     onVenueIdsChange([]);
     setHallsOpen(false);
     setTheatersOpen(false);
-  };
+  }, [onGroupChange, onVenueIdsChange]);
 
   // Toggle individual venue in multi-select
-  const handleToggleVenue = (venue: Venue, group: VenueGroup) => {
+  const handleToggleVenue = useCallback((venue: Venue, group: VenueGroup) => {
     const isSelected = selectedVenueIds.includes(venue.id);
     let newIds: string[];
     
@@ -114,7 +142,6 @@ export function VenueGroupDropdown({
       newIds = selectedVenueIds.filter(id => id !== venue.id);
     } else {
       // When adding from a group, ensure we're in that group's context
-      // and only keep venues from that group
       const groupVenueIds = venuesByGroup[group].map(v => v.id);
       const currentGroupVenues = selectedVenueIds.filter(id => groupVenueIds.includes(id));
       newIds = [...currentGroupVenues, venue.id];
@@ -128,16 +155,14 @@ export function VenueGroupDropdown({
       onGroupChange(group);
       onVenueIdsChange(newIds);
     }
-  };
+  }, [selectedVenueIds, venuesByGroup, onGroupChange, onVenueIdsChange]);
 
   // Toggle "all" within a group
-  const handleToggleAllInGroup = (group: VenueGroup, allSelected: boolean) => {
+  const handleToggleAllInGroup = useCallback((group: VenueGroup, allSelected: boolean) => {
     if (allSelected) {
-      // Deselect all -> go back to 'all'
       onGroupChange('all');
       onVenueIdsChange([]);
     } else {
-      // Select all in this group
       const groupVenueIds = venuesByGroup[group].map(v => v.id);
       onGroupChange(group);
       onVenueIdsChange(groupVenueIds);
@@ -145,21 +170,32 @@ export function VenueGroupDropdown({
     
     if (group === 'halls') setHallsOpen(false);
     if (group === 'theaters') setTheatersOpen(false);
-  };
+  }, [venuesByGroup, onGroupChange, onVenueIdsChange]);
 
   // Check if all venues in a group are selected
-  const isGroupFullySelected = (group: VenueGroup): boolean => {
+  const isGroupFullySelected = useCallback((group: VenueGroup): boolean => {
     if (selectedGroup !== group) return false;
     const groupVenueIds = venuesByGroup[group].map(v => v.id);
     return groupVenueIds.length > 0 && groupVenueIds.every(id => selectedVenueIds.includes(id));
-  };
+  }, [selectedGroup, venuesByGroup, selectedVenueIds]);
 
   // Get selected count for display
-  const getSelectedCount = (group: VenueGroup): number => {
+  const getSelectedCount = useCallback((group: VenueGroup): number => {
     if (selectedGroup !== group) return 0;
     const groupVenueIds = venuesByGroup[group].map(v => v.id);
     return selectedVenueIds.filter(id => groupVenueIds.includes(id)).length;
-  };
+  }, [selectedGroup, venuesByGroup, selectedVenueIds]);
+
+  // Handle popover open change with propagation stop
+  const handleHallsOpenChange = useCallback((open: boolean) => {
+    setHallsOpen(open);
+    if (open) setTheatersOpen(false);
+  }, []);
+
+  const handleTheatersOpenChange = useCallback((open: boolean) => {
+    setTheatersOpen(open);
+    if (open) setHallsOpen(false);
+  }, []);
 
   // Render dropdown for a group
   const renderGroupDropdown = (group: VenueGroup, isOpen: boolean, setOpen: (v: boolean) => void) => {
@@ -183,6 +219,9 @@ export function VenueGroupDropdown({
               'flex-1 h-10 text-sm gap-1.5 justify-center',
               isActive && 'shadow-sm'
             )}
+            // CRITICAL: Stop propagation to prevent Buscar from activating
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <Icon className="h-4 w-4 shrink-0" />
             <span className="truncate">{label}</span>
@@ -193,13 +232,16 @@ export function VenueGroupDropdown({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-[min(320px,calc(100vw-32px))] p-0 bg-popover border shadow-lg"
+          className="w-[min(320px,calc(100vw-32px))] p-0 bg-popover border shadow-lg z-50"
           align="center"
           side="bottom"
           sideOffset={8}
           collisionPadding={16}
           avoidCollisions={true}
           sticky="always"
+          // Stop propagation on content interactions
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <Command className="max-h-[60vh]">
             <CommandInput 
@@ -213,7 +255,7 @@ export function VenueGroupDropdown({
                 "[&::-webkit-scrollbar-track]:bg-transparent",
                 "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
                 "[&::-webkit-scrollbar-thumb]:rounded-full",
-                // iOS scroll bounce
+                // iOS scroll bounce and momentum
                 "overscroll-contain",
                 "[-webkit-overflow-scrolling:touch]"
               )}
@@ -250,7 +292,6 @@ export function VenueGroupDropdown({
                   {/* Individual venues with checkboxes */}
                   {groupVenues.map((venue) => {
                     const isSelected = selectedVenueIds.includes(venue.id);
-                    // Only show city if it's NOT Málaga
                     const showCity = venue.city && 
                       !venue.city.toLowerCase().includes('málaga') &&
                       !venue.city.toLowerCase().includes('malaga');
@@ -287,11 +328,16 @@ export function VenueGroupDropdown({
   };
 
   return (
-    <div className="flex gap-2 w-full">
+    <div 
+      className="flex gap-2 w-full"
+      // Prevent any click from bubbling up to parent (e.g., Buscar handler)
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Todos Button */}
       <Button
         variant={selectedGroup === 'all' ? 'default' : 'outline'}
         onClick={handleSelectAll}
+        onPointerDown={(e) => e.stopPropagation()}
         className={cn(
           'flex-1 h-10 text-sm gap-1.5 justify-center',
           selectedGroup === 'all' && 'shadow-sm'
@@ -302,10 +348,10 @@ export function VenueGroupDropdown({
       </Button>
 
       {/* Salas Dropdown */}
-      {renderGroupDropdown('halls', hallsOpen, setHallsOpen)}
+      {renderGroupDropdown('halls', hallsOpen, handleHallsOpenChange)}
 
       {/* Teatros Dropdown */}
-      {renderGroupDropdown('theaters', theatersOpen, setTheatersOpen)}
+      {renderGroupDropdown('theaters', theatersOpen, handleTheatersOpenChange)}
     </div>
   );
 }

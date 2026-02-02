@@ -700,10 +700,12 @@ export type Database = {
           city: string | null
           created_at: string
           id: string
+          is_featured: boolean | null
           lat: number | null
           lng: number | null
           name: string
           normalized_name: string
+          venue_type: string | null
           website: string | null
         }
         Insert: {
@@ -711,10 +713,12 @@ export type Database = {
           city?: string | null
           created_at?: string
           id?: string
+          is_featured?: boolean | null
           lat?: number | null
           lng?: number | null
           name: string
           normalized_name: string
+          venue_type?: string | null
           website?: string | null
         }
         Update: {
@@ -722,10 +726,12 @@ export type Database = {
           city?: string | null
           created_at?: string
           id?: string
+          is_featured?: boolean | null
           lat?: number | null
           lng?: number | null
           name?: string
           normalized_name?: string
+          venue_type?: string | null
           website?: string | null
         }
         Relationships: []
