@@ -1,112 +1,80 @@
 
-# Plan: Evitar Autofocus en los Dropdowns de Salas y Teatros
+## Objetivo
+Que al abrir los desplegables **Salas** y **Teatros** en iPhone **NO aparezca el teclado** ni se ponga el cursor en “Buscar…”. El teclado solo debe salir cuando el usuario toque el campo de búsqueda de forma intencionada.
 
-## Problema
+---
 
-Cuando se abren los desplegables de **Salas** y **Teatros**, el cursor se posiciona automáticamente en la casilla de búsqueda, lo que en dispositivos móviles provoca que se abra el teclado virtual de forma molesta. El usuario solo quiere buscar si pulsa intencionadamente en el campo de búsqueda.
+## Diagnóstico (por qué sigue pasando)
+Aunque ya no usamos `autoFocus` en el `<input>`, **Radix Popover** (el componente base de `PopoverContent`) hace un **auto-enfoque (auto-focus)** por accesibilidad al abrirse: intenta enfocar el primer elemento “enfocable” dentro del popover.  
+En nuestro caso, el primer elemento enfocable es el **input de búsqueda**, y en iOS eso dispara el teclado.
 
-**Causa técnica:**
-- El componente `Command` de la librería `cmdk` tiene autofocus habilitado por defecto
-- Cuando el Popover se abre, `CommandInput` recibe el foco automáticamente
-- En móviles, cualquier input con foco activa el teclado virtual
+Esto ocurre aquí:
+- `src/components/events/VenueGroupDropdown.tsx` → `<PopoverContent ...>` contiene un `<input>` como primer elemento enfocable.
 
-## Soluciones posibles
+---
 
-### Opcion A: Usar `shouldFilter={false}` + Input manual (recomendada)
+## Enfoque de solución
+### Solución principal
+Bloquear el auto-focus del Popover cuando se abre, usando:
+- `onOpenAutoFocus={(e) => e.preventDefault()}`
 
-Reemplazar `CommandInput` por un `Input` normal que no reciba foco automático, controlando la búsqueda manualmente.
+### Mejora recomendada (para no empeorar desktop)
+En escritorio puede ser útil que el input reciba foco automáticamente (para escribir sin hacer click).  
+Así que lo haremos **solo en móvil** (iPhone/Android), usando el hook existente:
+- `useIsMobile()` desde `src/hooks/use-mobile.tsx`
 
-### Opcion B: Modificar el componente `CommandInput` 
+---
 
-Añadir una prop `autoFocus={false}` al componente global, pero esto afectaría a todos los usos.
+## Cambios concretos
 
-### Opcion C: Pasar `shouldFilter={false}` y manejar filtrado manualmente
+### 1) VenueGroupDropdown: impedir auto-focus en móvil
+**Archivo:** `src/components/events/VenueGroupDropdown.tsx`
 
-La librería `cmdk` permite deshabilitar el filtrado automático, pero el autofocus sigue siendo un comportamiento interno.
+**Cambios:**
+1. Importar `useIsMobile`:
+   - `import { useIsMobile } from '@/hooks/use-mobile';`
+2. Crear `const isMobile = useIsMobile();`
+3. En el `<PopoverContent ...>` de cada dropdown (Salas/Teatros) añadir:
+   - `onOpenAutoFocus={(e) => { if (isMobile) e.preventDefault(); }}`
+4. (Opcional, por robustez iOS) añadir también:
+   - `onTouchStart={(e) => e.stopPropagation()}` en el `PopoverTrigger` Button y en el `PopoverContent`  
+   Esto ayuda en casos donde iOS maneja eventos táctiles distinto a `pointerdown`.
 
-## Solucion elegida: Input manual sin autofocus
+**Resultado esperado:**
+- Abrir Salas/Teatros en iPhone: el foco se queda en el botón (o donde estaba), y el input no se enfoca → **no teclado**
+- Tocar el input: entonces sí toma foco → **aparece teclado**
 
-Modificar `VenueGroupDropdown.tsx` para:
+---
 
-1. Reemplazar `CommandInput` por un `Input` estándar con icono de búsqueda
-2. El input NO tendrá autofocus
-3. Filtrar los venues localmente con el valor del input
-4. Solo cuando el usuario pulse en el input, entonces recibirá foco
+### 2) (Opcional pero coherente) Aplicar lo mismo a Localidades
+Ahora mismo `LocationFilter` tiene un `<Input>` dentro de un `PopoverContent` y podría provocar el mismo comportamiento (teclado al abrir).
 
-## Cambios en `VenueGroupDropdown.tsx`
+**Archivo:** `src/components/events/LocationFilter.tsx`
 
-```text
-ANTES:
-┌──────────────────────────────┐
-│ 🔍 Buscar...                 │  ← Autofocus al abrir
-├──────────────────────────────┤
-│ [x] Todas las salas          │
-│ [ ] Paris 15                 │
-│ [ ] La Cochera               │
-└──────────────────────────────┘
+**Cambios:**
+- Añadir `onOpenAutoFocus` con `preventDefault()` en móvil, igual que en VenueGroupDropdown.
 
-DESPUES:
-┌──────────────────────────────┐
-│ 🔍 Buscar...                 │  ← Sin autofocus (foco solo si se pulsa)
-├──────────────────────────────┤
-│ [x] Todas las salas          │
-│ [ ] Paris 15                 │
-│ [ ] La Cochera               │
-└──────────────────────────────┘
-```
+Esto evita que el teclado “salte” también al abrir “Localidades”.
 
-### Implementacion tecnica
+---
 
-1. Añadir estado para la búsqueda local: `const [searchQuery, setSearchQuery] = useState('')`
-2. Reemplazar `CommandInput` por un `Input` con `autoFocus={false}` (o sin la prop, ya que false es el default)
-3. Filtrar los venues en el `useMemo` basándose en `searchQuery`
-4. Limpiar el search query cuando se cierre el popover
+## Criterios de validación (pruebas)
+1. En iPhone, ir a `/events`.
+2. Tocar **Salas** → el popover se abre y **NO** aparece el teclado.
+3. Tocar **Teatros** → el popover se abre y **NO** aparece el teclado.
+4. Tocar dentro del input “Buscar…” → ahora sí aparece el teclado y permite escribir.
+5. Escribir en “Buscar…” → el filtrado funciona como antes.
+6. En escritorio:
+   - Confirmar que abrir popover sigue funcionando correctamente (y decidir si queremos mantener autofocus en desktop o no; con la solución “solo móvil” se mantiene el comportamiento actual en desktop).
 
-### Codigo clave
+---
 
-```typescript
-// Estado para búsqueda
-const [searchQuery, setSearchQuery] = useState('');
+## Archivos a tocar
+- `src/components/events/VenueGroupDropdown.tsx` (obligatorio)
+- `src/components/events/LocationFilter.tsx` (opcional, recomendado por consistencia)
 
-// Limpiar al cerrar
-const handleOpenChange = (open: boolean) => {
-  setOpen(open);
-  if (!open) setSearchQuery('');
-};
+---
 
-// Filtrar venues localmente
-const filteredVenues = useMemo(() => {
-  if (!searchQuery) return groupVenues;
-  const query = searchQuery.toLowerCase();
-  return groupVenues.filter(v => 
-    v.name.toLowerCase().includes(query)
-  );
-}, [groupVenues, searchQuery]);
-
-// Input sin autofocus
-<div className="flex items-center border-b px-3 py-2">
-  <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-  <input
-    type="text"
-    placeholder={t('common.search', 'Buscar...')}
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-    // NO autoFocus - el usuario debe pulsar para activar
-  />
-</div>
-```
-
-## Archivos a modificar
-
-| Archivo | Cambios |
-|---------|---------|
-| `src/components/events/VenueGroupDropdown.tsx` | Reemplazar `CommandInput` con Input manual, añadir filtrado local |
-
-## Verificacion
-
-1. Abrir dropdown de Salas → El input NO tiene foco, el teclado NO se abre
-2. Abrir dropdown de Teatros → Mismo comportamiento
-3. Pulsar en el campo de búsqueda → Ahora sí se activa el foco y el teclado
-4. Escribir texto → Los venues se filtran correctamente
-5. Cerrar y reabrir → El campo de búsqueda está vacío
+## Riesgos / Consideraciones
+- Al desactivar el auto-focus en móvil, perdemos un poco de accesibilidad “automática” del foco, pero ganamos usabilidad real en iOS (evitar teclado no deseado).
+- Hacerlo solo en móvil minimiza impacto en usuarios de escritorio.
