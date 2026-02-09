@@ -18,7 +18,7 @@ const BottomNav = () => {
     ];
 
     if (appMode === 'deportes') {
-      base.push({ to: '/venues', icon: Building2, label: 'Recintos' });
+      base.push({ to: '/venues', icon: Building2, label: t('nav.venues') });
     } else {
       base.push({ to: '/pharmacies', icon: Pill, label: t('nav.pharmacies') });
     }

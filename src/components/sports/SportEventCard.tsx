@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Clock, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,7 @@ interface SportEventCardProps {
 }
 
 const SportEventCard = ({ event }: SportEventCardProps) => {
+  const { t } = useTranslation();
   const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale: es });
   const sportCat = event.sport as SportCategory;
   const icon = SPORT_ICONS[sportCat] || '🏅';
@@ -53,7 +55,7 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
             onClick={() => window.open(event.ticketsUrl, '_blank')}
           >
             <ExternalLink className="h-3 w-3 mr-1" />
-            Entradas
+            {t('sports.tickets')}
           </Button>
         ) : (
           <Badge variant="outline" className="text-xs w-full justify-center">

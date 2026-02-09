@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar } from 'lucide-react';
 import { isToday, isWeekend, isSameDay, addDays, isBefore, isAfter, startOfDay } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +13,7 @@ type TimeFilter = 'today' | 'weekend' | 'upcoming';
 const SportsContent = () => {
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
+  const { t } = useTranslation();
 
   const now = new Date();
   const today = startOfDay(now);
@@ -56,9 +58,9 @@ const SportsContent = () => {
   }, [selectedSport, timeFilter]);
 
   const timeFilters: { key: TimeFilter; label: string }[] = [
-    { key: 'today', label: 'Hoy' },
-    { key: 'weekend', label: 'Este finde' },
-    { key: 'upcoming', label: 'Próximos 14d' },
+    { key: 'today', label: t('sports.today') },
+    { key: 'weekend', label: t('sports.thisWeekend') },
+    { key: 'upcoming', label: t('sports.upcoming') },
   ];
 
   return (
@@ -92,7 +94,7 @@ const SportsContent = () => {
               : 'bg-background border-border text-muted-foreground hover:bg-muted'
           )}
         >
-          🏅 Todos
+          🏅 {t('sports.all')}
         </button>
         {SPORT_CATEGORIES.map((cat) => (
           <button
@@ -121,7 +123,7 @@ const SportsContent = () => {
         <Card className="bg-muted/50 border-dashed">
           <CardContent className="py-8 text-center text-muted-foreground">
             <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No hay eventos deportivos para este filtro</p>
+            <p className="text-sm">{t('sports.noEvents')}</p>
           </CardContent>
         </Card>
       )}

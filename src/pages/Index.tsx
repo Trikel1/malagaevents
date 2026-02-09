@@ -88,7 +88,7 @@ const Index = () => {
                   : 'text-white/80 hover:text-white'
               )}
             >
-              Eventos
+              {t('sports.events')}
             </button>
             <button
               onClick={() => setAppMode('deportes')}
@@ -99,7 +99,7 @@ const Index = () => {
                   : 'text-white/80 hover:text-white'
               )}
             >
-              Deportes
+              {t('sports.title')}
             </button>
           </div>
           <div className="flex items-center gap-2">

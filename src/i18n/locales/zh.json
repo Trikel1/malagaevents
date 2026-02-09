@@ -30,7 +30,8 @@
     "events": "活动",
     "calendar": "日历",
     "pharmacies": "药房",
-    "profile": "个人"
+    "profile": "个人",
+    "venues": "场馆"
   },
   "onboarding": {
     "title": "欢迎来到马拉加活动",
@@ -192,5 +193,27 @@
     "passwordsDontMatch": "密码不匹配",
     "emailInUse": "此邮箱已注册",
     "invalidCredentials": "无效的凭据"
+  },
+  "sports": {
+    "title": "体育",
+    "events": "活动",
+    "today": "今天",
+    "thisWeekend": "本周末",
+    "upcoming": "未来14天",
+    "all": "全部",
+    "noEvents": "此筛选条件下没有体育赛事",
+    "futbol": "足球",
+    "baloncesto": "篮球",
+    "futsal": "五人制足球",
+    "balonmano": "手球",
+    "atletismo": "田径",
+    "motor": "赛车",
+    "tenis": "网球",
+    "otros": "其他",
+    "tickets": "门票",
+    "searchVenues": "搜索场馆...",
+    "venuesTitle": "体育场馆",
+    "noVenues": "未找到场馆",
+    "map": "地图"
   }
 }

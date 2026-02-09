@@ -30,7 +30,8 @@
     "events": "Eventos",
     "calendar": "Calendário",
     "pharmacies": "Farmácias",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "venues": "Recintos"
   },
   "onboarding": {
     "title": "Bem-vindo ao Málaga Events",
@@ -192,5 +193,27 @@
     "passwordsDontMatch": "As senhas não correspondem",
     "emailInUse": "Este email já está registrado",
     "invalidCredentials": "Credenciais inválidas"
+  },
+  "sports": {
+    "title": "Esportes",
+    "events": "Eventos",
+    "today": "Hoje",
+    "thisWeekend": "Este fim de semana",
+    "upcoming": "Próximos 14 dias",
+    "all": "Todos",
+    "noEvents": "Nenhum evento esportivo para este filtro",
+    "futbol": "Futebol",
+    "baloncesto": "Basquete",
+    "futsal": "Futsal",
+    "balonmano": "Handebol",
+    "atletismo": "Atletismo",
+    "motor": "Automobilismo",
+    "tenis": "Tênis",
+    "otros": "Outros",
+    "tickets": "Ingressos",
+    "searchVenues": "Buscar recintos...",
+    "venuesTitle": "Recintos esportivos",
+    "noVenues": "Nenhum recinto encontrado",
+    "map": "Mapa"
   }
 }
