@@ -5,6 +5,7 @@ import { Search, MapPin, Calendar, Pill, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import CategoryChip from '@/components/events/CategoryChip';
@@ -15,11 +16,15 @@ import { useEvents } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { EVENT_CATEGORIES } from '@/types';
+import SportsContent from '@/components/sports/SportsContent';
+
+type Mode = 'events' | 'sports';
 
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [mode, setMode] = useState<Mode>('events');
   const { isAuthenticated } = useAuthContext();
 
   // Fetch today's events
@@ -67,8 +72,32 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800 text-white p-6 pb-14 rounded-b-3xl">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Málaga Events</h1>
+        <div className="flex justify-between items-center mb-4">
+          {/* Segmented Control */}
+          <div className="flex bg-white/15 rounded-full p-0.5">
+            <button
+              onClick={() => setMode('events')}
+              className={cn(
+                'px-4 py-1.5 rounded-full text-sm font-semibold transition-all',
+                mode === 'events'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-white/80 hover:text-white'
+              )}
+            >
+              Eventos
+            </button>
+            <button
+              onClick={() => setMode('sports')}
+              className={cn(
+                'px-4 py-1.5 rounded-full text-sm font-semibold transition-all',
+                mode === 'sports'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-white/80 hover:text-white'
+              )}
+            >
+              Deportes
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <LanguageSelector variant="compact" />
@@ -88,145 +117,147 @@ const Index = () => {
       </header>
 
       <main className="px-4 -mt-6 space-y-6">
-        {/* Quick Actions - Glass/Tech Style */}
-        <div className="grid grid-cols-4 gap-3 py-2">
-          {quickActions.map((action, i) => (
-            <button
-              key={i}
-              onClick={action.action}
-              className="flex flex-col items-center gap-2 group"
-            >
-              <div className="p-4 rounded-2xl bg-background/40 backdrop-blur-md border border-border/60 shadow-sm hover:shadow-lg hover:bg-accent/10 group-hover:scale-105 group-active:scale-95 transition-all duration-200">
-                <action.icon className="h-6 w-6 text-primary" />
-              </div>
-              <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
-                {action.label}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Categories */}
-        <section>
-          <h2 className="text-lg font-semibold mb-3">{t('home.categories')}</h2>
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {EVENT_CATEGORIES.map((cat) => (
-              <CategoryChip
-                key={cat}
-                category={cat}
-                size="sm"
-                onClick={() => navigate(`/events?category=${cat}`)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Today Events */}
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">{t('home.todayEvents')}</h2>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-primary gap-1"
-              onClick={() => navigate('/events?filter=today')}
-            >
-              {t('common.seeAll')}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {loadingToday ? (
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="min-w-[280px] max-w-[280px]">
-                  <EventCardSkeleton />
-                </div>
+        {mode === 'sports' ? (
+          <SportsContent />
+        ) : (
+          <>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-4 gap-3 py-2">
+              {quickActions.map((action, i) => (
+                <button
+                  key={i}
+                  onClick={action.action}
+                  className="flex flex-col items-center gap-2 group"
+                >
+                  <div className="p-4 rounded-2xl bg-background/40 backdrop-blur-md border border-border/60 shadow-sm hover:shadow-lg hover:bg-accent/10 group-hover:scale-105 group-active:scale-95 transition-all duration-200">
+                    <action.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
+                    {action.label}
+                  </span>
+                </button>
               ))}
             </div>
-          ) : todayEvents && todayEvents.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {todayEvents.map((event) => (
-                <div key={event.id} className="min-w-[280px] max-w-[280px]">
-                  <EventCard 
-                    event={event} 
-                    isFavorite={isFavorite(event.id)}
-                    onToggleFavorite={handleToggleFavorite}
+
+            {/* Categories */}
+            <section>
+              <h2 className="text-lg font-semibold mb-3">{t('home.categories')}</h2>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {EVENT_CATEGORIES.map((cat) => (
+                  <CategoryChip
+                    key={cat}
+                    category={cat}
+                    size="sm"
+                    onClick={() => navigate(`/events?category=${cat}`)}
                   />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={Calendar}
-              title={t('events.noEvents')}
-              description={t('events.noEventsDesc')}
-            />
-          )}
-        </section>
-
-        {/* Weekend Events */}
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">{t('home.weekendEvents')}</h2>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-primary gap-1"
-              onClick={() => navigate('/events?filter=weekend')}
-            >
-              {t('common.seeAll')}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {loadingWeekend ? (
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {[1, 2].map((i) => (
-                <div key={i} className="min-w-[280px] max-w-[280px]">
-                  <EventCardSkeleton />
-                </div>
-              ))}
-            </div>
-          ) : weekendEvents && weekendEvents.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {weekendEvents.map((event) => (
-                <div key={event.id} className="min-w-[280px] max-w-[280px]">
-                  <EventCard 
-                    event={event}
-                    isFavorite={isFavorite(event.id)}
-                    onToggleFavorite={handleToggleFavorite}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Card className="bg-muted/50 border-dashed">
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">{t('events.noEvents')}</p>
-              </CardContent>
-            </Card>
-          )}
-        </section>
-
-        {/* Nearby - Location CTA */}
-        <section className="pb-4">
-          <Card className="bg-gradient-to-r from-secondary/10 to-accent/10 border-dashed">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-secondary/20">
-                <MapPin className="h-6 w-6 text-secondary" />
+                ))}
               </div>
-              <div className="flex-1">
-                <h3 className="font-medium">{t('home.nearbyEvents')}</h3>
-                <p className="text-sm text-muted-foreground">{t('home.enableLocationDesc')}</p>
+            </section>
+
+            {/* Today Events - 2 column grid */}
+            <section>
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-semibold">{t('home.todayEvents')}</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary gap-1"
+                  onClick={() => navigate('/events?filter=today')}
+                >
+                  {t('common.seeAll')}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
-              <Button size="sm" variant="secondary">
-                {t('home.enableLocation')}
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
+              
+              {loadingToday ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <EventCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : todayEvents && todayEvents.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {todayEvents.map((event) => (
+                    <EventCard 
+                      key={event.id}
+                      event={event} 
+                      dense
+                      isFavorite={isFavorite(event.id)}
+                      onToggleFavorite={handleToggleFavorite}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Calendar}
+                  title={t('events.noEvents')}
+                  description={t('events.noEventsDesc')}
+                />
+              )}
+            </section>
+
+            {/* Weekend Events - 2 column grid */}
+            <section>
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-semibold">{t('home.weekendEvents')}</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary gap-1"
+                  onClick={() => navigate('/events?filter=weekend')}
+                >
+                  {t('common.seeAll')}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {loadingWeekend ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {[1, 2].map((i) => (
+                    <EventCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : weekendEvents && weekendEvents.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {weekendEvents.map((event) => (
+                    <EventCard 
+                      key={event.id}
+                      event={event}
+                      dense
+                      isFavorite={isFavorite(event.id)}
+                      onToggleFavorite={handleToggleFavorite}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="bg-muted/50 border-dashed">
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">{t('events.noEvents')}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </section>
+
+            {/* Nearby CTA */}
+            <section className="pb-4">
+              <Card className="bg-gradient-to-r from-secondary/10 to-accent/10 border-dashed">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-secondary/20">
+                    <MapPin className="h-6 w-6 text-secondary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium">{t('home.nearbyEvents')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('home.enableLocationDesc')}</p>
+                  </div>
+                  <Button size="sm" variant="secondary">
+                    {t('home.enableLocation')}
+                  </Button>
+                </CardContent>
+              </Card>
+            </section>
+          </>
+        )}
       </main>
     </div>
   );

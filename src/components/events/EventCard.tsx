@@ -21,21 +21,57 @@ interface EventCardProps {
   isFavorite?: boolean;
   onToggleFavorite?: (eventId: string) => void;
   compact?: boolean;
+  dense?: boolean;
 }
 
-const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact }, ref) => {
+const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense }, ref) => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
   const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale });
 
-  // Get venue and location display names with fallbacks
   const venueName = sanitizeText(event.venue?.name || event.venue_name || event.venue_normalized) || t('events.venueUnconfirmed', 'Por confirmar');
   const locationName = sanitizeText(event.location?.name || event.location_normalized || event.province) || 'Málaga';
   const eventTitle = sanitizeText(event.title) || t('events.untitled', 'Sin título');
-
-  // Generate accessible alt text
   const imageAlt = generateAltText(event.title, event.venue_name);
+
+  // Dense mode: compact vertical card for 2-column grids
+  if (dense) {
+    return (
+      <Link
+        ref={ref}
+        to={`/events/${event.id}`}
+        aria-label={`${eventTitle}, ${formattedDate}, ${venueName}`}
+      >
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 h-full">
+          <div className="relative overflow-hidden">
+            <EventImage
+              src={event.image_url}
+              alt={imageAlt}
+              variant="card"
+              category={event.category}
+              className="group-hover:scale-105 transition-transform duration-300"
+              aspectRatio="3/2"
+            />
+            {event.is_free && (
+              <Badge className="absolute top-1.5 left-1.5 bg-green-500 hover:bg-green-500 z-10 text-[10px] px-1.5 py-0">
+                {t('common.free')}
+              </Badge>
+            )}
+          </div>
+          <CardContent className="p-2">
+            <h3 className="text-sm font-semibold line-clamp-1 mb-1">{eventTitle}</h3>
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              <span className="capitalize">{formattedDate}</span>
+            </p>
+            <p className="text-xs text-muted-foreground line-clamp-1">
+              {venueName}
+            </p>
+          </CardContent>
+        </Card>
+      </Link>
+    );
+  }
 
   return (
     <Link 
@@ -67,7 +103,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
             </Badge>
           )}
           
-          {/* Favorite button - ensure minimum 44px tap target */}
+          {/* Favorite button */}
           {onToggleFavorite && !compact && (
             <Button
               variant="ghost"

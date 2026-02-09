@@ -246,11 +246,12 @@ const EventsPage = () => {
         {isLoadingEvents ? (
           <EventListSkeleton count={4} />
         ) : displayedEvents && displayedEvents.length > 0 ? (
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             {displayedEvents.map((event) => (
               <EventCard 
                 key={event.id} 
                 event={event}
+                dense
                 isFavorite={isFavorite(event.id)}
                 onToggleFavorite={handleToggleFavorite}
               />
