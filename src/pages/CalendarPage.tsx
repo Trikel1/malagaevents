@@ -33,6 +33,9 @@ import { useCalendarOccurrences } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useAppMode } from '@/contexts/AppModeContext';
+import { MOCK_SPORT_EVENTS } from '@/types/sports';
+import SportEventCard from '@/components/sports/SportEventCard';
 
 const TIMEZONE = 'Europe/Madrid';
 
@@ -50,6 +53,7 @@ const CalendarPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const locale = locales[i18n.language] || es;
+  const { appMode } = useAppMode();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
@@ -87,13 +91,23 @@ const CalendarPage = () => {
 
   // Filter by source (all or favorites)
   const filteredOccurrences = useMemo(() => {
+    if (appMode === 'deportes') return []; // Sports uses its own data
     if (!occurrences) return [];
     if (eventSource === 'favorites' && favorites) {
       const favoriteIds = new Set(favorites.map(f => f.event_id));
       return occurrences.filter(occ => favoriteIds.has(occ.event_id));
     }
     return occurrences;
-  }, [occurrences, eventSource, favorites]);
+  }, [occurrences, eventSource, favorites, appMode]);
+
+  // Sports events filtered for current month
+  const sportEventsForMonth = useMemo(() => {
+    if (appMode !== 'deportes') return [];
+    return MOCK_SPORT_EVENTS.filter(e => {
+      const d = new Date(e.start_at);
+      return d >= gridStart && d <= gridEnd;
+    });
+  }, [appMode, gridStart, gridEnd]);
 
   // Get day of week for first day (0 = Sunday)
   const startDayOfWeek = monthStart.getDay();
@@ -103,25 +117,42 @@ const CalendarPage = () => {
   const getOccurrencesForDay = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
     return filteredOccurrences.filter((occ) => {
-      // Parse the occurrence datetime and convert to Madrid timezone
       const occDate = toZonedTime(new Date(occ.start_datetime), TIMEZONE);
       const occDateKey = format(occDate, 'yyyy-MM-dd');
       return occDateKey === dateKey;
     });
   };
 
+  // Get sport events for a specific day
+  const getSportEventsForDay = (date: Date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return sportEventsForMonth.filter(e => {
+      const d = toZonedTime(new Date(e.start_at), TIMEZONE);
+      return format(d, 'yyyy-MM-dd') === dateKey;
+    });
+  };
+
   // Get event count per day for the dots
   const daysWithEvents = useMemo(() => {
     const map = new Map<string, number>();
-    filteredOccurrences.forEach(occ => {
-      const occDate = toZonedTime(new Date(occ.start_datetime), TIMEZONE);
-      const dateKey = format(occDate, 'yyyy-MM-dd');
-      map.set(dateKey, (map.get(dateKey) || 0) + 1);
-    });
+    if (appMode === 'deportes') {
+      sportEventsForMonth.forEach(e => {
+        const d = toZonedTime(new Date(e.start_at), TIMEZONE);
+        const dateKey = format(d, 'yyyy-MM-dd');
+        map.set(dateKey, (map.get(dateKey) || 0) + 1);
+      });
+    } else {
+      filteredOccurrences.forEach(occ => {
+        const occDate = toZonedTime(new Date(occ.start_datetime), TIMEZONE);
+        const dateKey = format(occDate, 'yyyy-MM-dd');
+        map.set(dateKey, (map.get(dateKey) || 0) + 1);
+      });
+    }
     return map;
-  }, [filteredOccurrences]);
+  }, [filteredOccurrences, sportEventsForMonth, appMode]);
 
   const selectedDayOccurrences = selectedDate ? getOccurrencesForDay(selectedDate) : [];
+  const selectedDaySportEvents = selectedDate ? getSportEventsForDay(selectedDate) : [];
 
   const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
   const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
@@ -328,7 +359,21 @@ const CalendarPage = () => {
                 <h3 className="font-semibold capitalize">
                   {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
                 </h3>
-                {isLoading ? (
+                {appMode === 'deportes' ? (
+                  selectedDaySportEvents.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedDaySportEvents.map(ev => (
+                        <SportEventCard key={ev.id} event={ev} />
+                      ))}
+                    </div>
+                  ) : (
+                    <Card className="bg-muted/50 border-dashed">
+                      <CardContent className="py-6 text-center text-muted-foreground">
+                        {t('calendar.noEventsDay')}
+                      </CardContent>
+                    </Card>
+                  )
+                ) : isLoading ? (
                   <div className="space-y-4">
                     <EventCardSkeleton />
                     <EventCardSkeleton />
@@ -339,7 +384,6 @@ const CalendarPage = () => {
                       key={occ.id} 
                       event={{
                         ...occ.event,
-                        // Use occurrence start_datetime as the event's start_at for display
                         start_at: occ.start_datetime,
                         end_at: occ.end_datetime,
                       }} 
@@ -366,7 +410,22 @@ const CalendarPage = () => {
                 {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
               </h3>
             )}
-            {isLoading ? (
+            {appMode === 'deportes' ? (() => {
+              const dayEvents = selectedDate ? getSportEventsForDay(selectedDate) : sportEventsForMonth;
+              return dayEvents.length > 0 ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {dayEvents.map(ev => (
+                    <SportEventCard key={ev.id} event={ev} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Calendar}
+                  title={selectedDate ? t('calendar.noEventsDay') : t('sports.noEvents')}
+                  description={t('events.noEventsDesc')}
+                />
+              );
+            })() : isLoading ? (
               <>
                 <EventCardSkeleton />
                 <EventCardSkeleton />
@@ -396,7 +455,7 @@ const CalendarPage = () => {
               ) : (
                 <EmptyState
                   icon={Calendar}
-                  title={selectedDate ? t('calendar.noEventsDay', 'No hay eventos este día') : t('events.noEvents')}
+                  title={selectedDate ? t('calendar.noEventsDay') : t('events.noEvents')}
                   description={t('events.noEventsDesc')}
                 />
               );

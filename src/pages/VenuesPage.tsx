@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { MOCK_SPORT_VENUES } from '@/types/venues-sports';
-import { SPORT_CATEGORIES, SPORT_ICONS, SPORT_LABELS, type SportCategory } from '@/types/sports';
+import { SPORT_CATEGORIES, SPORT_ICONS, type SportCategory } from '@/types/sports';
 
 const VenuesPage = () => {
   const { t } = useTranslation();
@@ -79,7 +79,7 @@ const VenuesPage = () => {
                   : 'bg-background border-border text-muted-foreground hover:bg-muted'
               )}
             >
-              {SPORT_ICONS[cat]} {SPORT_LABELS[cat]}
+              {SPORT_ICONS[cat]} {t(`sports.${cat}`)}
             </button>
           ))}
         </div>
@@ -104,7 +104,7 @@ const VenuesPage = () => {
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {venue.sports.map(s => (
                       <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0">
-                        {SPORT_ICONS[s]} {SPORT_LABELS[s]}
+                        {SPORT_ICONS[s]} {t(`sports.${s}`)}
                       </Badge>
                     ))}
                   </div>
