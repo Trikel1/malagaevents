@@ -359,34 +359,48 @@ const CalendarPage = () => {
             )}
           </>
         ) : (
-          /* List View */
+          /* List View - respects selectedDate */
           <div className="space-y-4">
+            {selectedDate && (
+              <h3 className="font-semibold capitalize">
+                {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
+              </h3>
+            )}
             {isLoading ? (
               <>
                 <EventCardSkeleton />
                 <EventCardSkeleton />
                 <EventCardSkeleton />
               </>
-            ) : uniqueEventsForList.length > 0 ? (
-              filteredOccurrences.map((occ) => occ.event && (
-                <EventCard 
-                  key={occ.id} 
-                  event={{
-                    ...occ.event,
-                    start_at: occ.start_datetime,
-                    end_at: occ.end_datetime,
-                  }}
-                  isFavorite={isFavorite(occ.event_id)}
-                  onToggleFavorite={handleToggleFavorite}
+            ) : (() => {
+              const listOccurrences = selectedDate
+                ? filteredOccurrences.filter(occ => {
+                    const occDate = toZonedTime(new Date(occ.start_datetime), TIMEZONE);
+                    return format(occDate, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+                  })
+                : filteredOccurrences;
+
+              return listOccurrences.length > 0 ? (
+                listOccurrences.map((occ) => occ.event && (
+                  <EventCard
+                    key={occ.id}
+                    event={{
+                      ...occ.event,
+                      start_at: occ.start_datetime,
+                      end_at: occ.end_datetime,
+                    }}
+                    isFavorite={isFavorite(occ.event_id)}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ))
+              ) : (
+                <EmptyState
+                  icon={Calendar}
+                  title={selectedDate ? t('calendar.noEventsDay', 'No hay eventos este día') : t('events.noEvents')}
+                  description={t('events.noEventsDesc')}
                 />
-              ))
-            ) : (
-              <EmptyState
-                icon={Calendar}
-                title={t('events.noEvents')}
-                description={t('events.noEventsDesc')}
-              />
-            )}
+              );
+            })()}
           </div>
         )}
       </main>
