@@ -1,23 +1,28 @@
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Clock, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { SportEvent, SportCategory } from '@/types/sports';
-import { SPORT_ICONS, SPORT_LABELS } from '@/types/sports';
+import { SPORT_ICONS } from '@/types/sports';
+
+const locales: Record<string, Locale> = {
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
+};
 
 interface SportEventCardProps {
   event: SportEvent;
 }
 
 const SportEventCard = ({ event }: SportEventCardProps) => {
-  const { t } = useTranslation();
-  const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale: es });
+  const { t, i18n } = useTranslation();
+  const locale = locales[i18n.language] || es;
+  const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale });
   const sportCat = event.sport as SportCategory;
   const icon = SPORT_ICONS[sportCat] || '🏅';
-  const label = SPORT_LABELS[sportCat] || event.sport;
+  const label = t(`sports.${sportCat}`, event.sport);
 
   return (
     <Card className="overflow-hidden">
@@ -43,7 +48,7 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
           </div>
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3 flex-shrink-0" />
-            <span className="line-clamp-1">{event.venue} · {event.city}</span>
+            <span className="break-words" style={{ overflowWrap: 'anywhere' }}>{event.venue} · {event.city}</span>
           </div>
         </div>
 

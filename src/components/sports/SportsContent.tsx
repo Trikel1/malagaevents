@@ -5,7 +5,7 @@ import { isToday, isWeekend, isSameDay, addDays, isBefore, isAfter, startOfDay }
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import SportEventCard from '@/components/sports/SportEventCard';
-import { MOCK_SPORT_EVENTS, SPORT_CATEGORIES, SPORT_ICONS, SPORT_LABELS } from '@/types/sports';
+import { MOCK_SPORT_EVENTS, SPORT_CATEGORIES, SPORT_ICONS } from '@/types/sports';
 import type { SportCategory } from '@/types/sports';
 
 type TimeFilter = 'today' | 'weekend' | 'upcoming';
@@ -107,7 +107,7 @@ const SportsContent = () => {
                 : 'bg-background border-border text-muted-foreground hover:bg-muted'
             )}
           >
-            {SPORT_ICONS[cat]} {SPORT_LABELS[cat]}
+            {SPORT_ICONS[cat]} {t(`sports.${cat}`)}
           </button>
         ))}
       </div>
