@@ -147,3 +147,32 @@
     overscroll-behavior-y: auto;
   }
 }
+
+/* Global touch scroll enhancement */
+@layer base {
+  .overflow-y-auto, .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Sports mode theme overrides */
+[data-mode="deportes"] {
+  --primary: 142 71% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 60% 35%;
+  --secondary-foreground: 0 0% 100%;
+  --ring: 142 71% 45%;
+  --sidebar-primary: 142 71% 45%;
+  --sidebar-ring: 142 71% 45%;
+}
+
+[data-mode="deportes"].dark,
+.dark [data-mode="deportes"] {
+  --primary: 142 65% 50%;
+  --primary-foreground: 220 25% 10%;
+  --secondary: 220 50% 45%;
+  --secondary-foreground: 0 0% 100%;
+  --ring: 142 65% 50%;
+  --sidebar-primary: 142 65% 50%;
+  --sidebar-ring: 142 65% 50%;
+}

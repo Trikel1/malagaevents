@@ -222,8 +222,8 @@ END:VCALENDAR`;
                 <MapPin className="h-5 w-5 text-secondary" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-medium line-clamp-2">{event.venue_name}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">{event.address}</p>
+                <p className="text-sm font-medium break-words" style={{ overflowWrap: 'anywhere', whiteSpace: 'normal' }}>{event.venue_name}</p>
+                <p className="text-xs text-muted-foreground break-words" style={{ overflowWrap: 'anywhere', whiteSpace: 'normal' }}>{event.address}</p>
               </div>
             </CardContent>
           </Card>

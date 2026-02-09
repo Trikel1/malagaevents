@@ -1,19 +1,31 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, Calendar, Pill, User } from 'lucide-react';
+import { Home, CalendarDays, Calendar, Pill, User, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAppMode } from '@/contexts/AppModeContext';
 
 const BottomNav = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const { appMode } = useAppMode();
 
-  const navItems = [
-    { to: '/', icon: Home, label: t('nav.home') },
-    { to: '/events', icon: CalendarDays, label: t('nav.events') },
-    { to: '/calendar', icon: Calendar, label: t('nav.calendar') },
-    { to: '/pharmacies', icon: Pill, label: t('nav.pharmacies') },
-    { to: '/profile', icon: User, label: t('nav.profile') },
-  ];
+  const navItems = useMemo(() => {
+    const base = [
+      { to: '/', icon: Home, label: t('nav.home') },
+      { to: '/events', icon: CalendarDays, label: t('nav.events') },
+      { to: '/calendar', icon: Calendar, label: t('nav.calendar') },
+    ];
+
+    if (appMode === 'deportes') {
+      base.push({ to: '/venues', icon: Building2, label: 'Recintos' });
+    } else {
+      base.push({ to: '/pharmacies', icon: Pill, label: t('nav.pharmacies') });
+    }
+
+    base.push({ to: '/profile', icon: User, label: t('nav.profile') });
+    return base;
+  }, [appMode, t]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-2 py-2 pb-safe">
