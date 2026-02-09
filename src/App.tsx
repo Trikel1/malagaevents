@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
+import { AppModeProvider } from "./contexts/AppModeContext";
 import MainLayout from "./components/layout/MainLayout";
 import Index from "./pages/Index";
 import EventsPage from "./pages/EventsPage";
@@ -18,11 +19,13 @@ import AddTicketPage from "./pages/AddTicketPage";
 import SubmitEventPage from "./pages/SubmitEventPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import VenuesPage from "./pages/VenuesPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <ThemeProvider>
+    <AppModeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
@@ -38,6 +41,7 @@ const App = () => (
                 <Route path="/pharmacies" element={<PharmaciesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/tickets" element={<TicketsPage />} />
+                <Route path="/venues" element={<VenuesPage />} />
               </Route>
               
               {/* Pages without bottom nav */}
@@ -54,6 +58,7 @@ const App = () => (
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </AppModeProvider>
   </ThemeProvider>
 );
 

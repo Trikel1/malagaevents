@@ -1,42 +1,86 @@
 import { useState, useMemo } from 'react';
 import { Calendar } from 'lucide-react';
-import { isToday, isWeekend, isSameDay, addDays } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
+import { isToday, isWeekend, isSameDay, addDays, isBefore, isAfter, startOfDay } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import SportEventCard from '@/components/sports/SportEventCard';
 import { MOCK_SPORT_EVENTS, SPORT_CATEGORIES, SPORT_ICONS, SPORT_LABELS } from '@/types/sports';
 import type { SportCategory } from '@/types/sports';
 
+type TimeFilter = 'today' | 'weekend' | 'upcoming';
+
 const SportsContent = () => {
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
+
+  const now = new Date();
+  const today = startOfDay(now);
+  const dayOfWeek = now.getDay(); // 0=Sun
+
+  // Weekend logic (Europe/Madrid style)
+  const getWeekendDays = () => {
+    if (dayOfWeek === 5) return [today, addDays(today, 1), addDays(today, 2)]; // Fri
+    if (dayOfWeek === 6) return [today, addDays(today, 1)]; // Sat
+    if (dayOfWeek === 0) return [today]; // Sun
+    // Mon-Thu: next weekend
+    const daysToFri = (5 - dayOfWeek + 7) % 7;
+    const fri = addDays(today, daysToFri);
+    return [fri, addDays(fri, 1), addDays(fri, 2)];
+  };
 
   const filtered = useMemo(() => {
-    if (selectedSport === 'all') return MOCK_SPORT_EVENTS;
-    return MOCK_SPORT_EVENTS.filter(e => e.sport === selectedSport);
-  }, [selectedSport]);
+    let events = MOCK_SPORT_EVENTS;
 
-  // For demo purposes, treat "today" as any event and split by weekend
-  const now = new Date();
-  const friday = addDays(now, ((5 - now.getDay() + 7) % 7) || 7);
-  const saturday = addDays(friday, 1);
-  const sunday = addDays(friday, 2);
+    if (selectedSport !== 'all') {
+      events = events.filter(e => e.sport === selectedSport);
+    }
 
-  const todayEvents = filtered.filter(e => {
-    const d = new Date(e.start_at);
-    return isToday(d);
-  });
+    if (timeFilter === 'today') {
+      events = events.filter(e => isToday(new Date(e.start_at)));
+    } else if (timeFilter === 'weekend') {
+      const weekendDays = getWeekendDays();
+      events = events.filter(e => {
+        const d = startOfDay(new Date(e.start_at));
+        return weekendDays.some(wd => isSameDay(d, wd));
+      });
+    } else {
+      // upcoming 14 days
+      const limit = addDays(today, 14);
+      events = events.filter(e => {
+        const d = new Date(e.start_at);
+        return !isBefore(d, today) && !isAfter(d, limit);
+      });
+    }
 
-  const weekendEvents = filtered.filter(e => {
-    const d = new Date(e.start_at);
-    return isSameDay(d, friday) || isSameDay(d, saturday) || isSameDay(d, sunday) || isWeekend(d);
-  });
+    return events;
+  }, [selectedSport, timeFilter]);
 
-  // If no today events, show all as "Próximos"
-  const showToday = todayEvents.length > 0;
+  const timeFilters: { key: TimeFilter; label: string }[] = [
+    { key: 'today', label: 'Hoy' },
+    { key: 'weekend', label: 'Este finde' },
+    { key: 'upcoming', label: 'Próximos 14d' },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Time filters */}
+      <div className="flex gap-2">
+        {timeFilters.map(f => (
+          <button
+            key={f.key}
+            onClick={() => setTimeFilter(f.key)}
+            className={cn(
+              'px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border',
+              timeFilter === f.key
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-background border-border text-muted-foreground hover:bg-muted'
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {/* Sport filter chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         <button
@@ -66,38 +110,21 @@ const SportsContent = () => {
         ))}
       </div>
 
-      {/* Today */}
-      {showToday && (
-        <section>
-          <h2 className="text-lg font-semibold mb-3">Hoy</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {todayEvents.map(event => (
-              <SportEventCard key={event.id} event={event} />
-            ))}
-          </div>
-        </section>
+      {/* Results */}
+      {filtered.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3">
+          {filtered.map(event => (
+            <SportEventCard key={event.id} event={event} />
+          ))}
+        </div>
+      ) : (
+        <Card className="bg-muted/50 border-dashed">
+          <CardContent className="py-8 text-center text-muted-foreground">
+            <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No hay eventos deportivos para este filtro</p>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Weekend */}
-      <section>
-        <h2 className="text-lg font-semibold mb-3">
-          {showToday ? 'Este fin de semana' : 'Próximos eventos'}
-        </h2>
-        {weekendEvents.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {weekendEvents.map(event => (
-              <SportEventCard key={event.id} event={event} />
-            ))}
-          </div>
-        ) : (
-          <Card className="bg-muted/50 border-dashed">
-            <CardContent className="py-8 text-center text-muted-foreground">
-              <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No hay eventos deportivos próximos</p>
-            </CardContent>
-          </Card>
-        )}
-      </section>
     </div>
   );
 };

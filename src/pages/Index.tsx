@@ -17,14 +17,13 @@ import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { EVENT_CATEGORIES } from '@/types';
 import SportsContent from '@/components/sports/SportsContent';
-
-type Mode = 'events' | 'sports';
+import { useAppMode } from '@/contexts/AppModeContext';
 
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [mode, setMode] = useState<Mode>('events');
+  const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
   // Fetch today's events
@@ -71,15 +70,20 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800 text-white p-6 pb-14 rounded-b-3xl">
+      <header className={cn(
+        "text-white p-6 pb-14 rounded-b-3xl bg-gradient-to-br",
+        appMode === 'deportes'
+          ? 'from-emerald-900 via-green-800 to-teal-700'
+          : 'from-slate-900 via-blue-900 to-indigo-800'
+      )}>
         <div className="flex justify-between items-center mb-4">
           {/* Segmented Control */}
           <div className="flex bg-white/15 rounded-full p-0.5">
             <button
-              onClick={() => setMode('events')}
+              onClick={() => setAppMode('eventos')}
               className={cn(
                 'px-4 py-1.5 rounded-full text-sm font-semibold transition-all',
-                mode === 'events'
+                appMode === 'eventos'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-white/80 hover:text-white'
               )}
@@ -87,10 +91,10 @@ const Index = () => {
               Eventos
             </button>
             <button
-              onClick={() => setMode('sports')}
+              onClick={() => setAppMode('deportes')}
               className={cn(
                 'px-4 py-1.5 rounded-full text-sm font-semibold transition-all',
-                mode === 'sports'
+                appMode === 'deportes'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-white/80 hover:text-white'
               )}
@@ -117,7 +121,7 @@ const Index = () => {
       </header>
 
       <main className="px-4 -mt-6 space-y-6">
-        {mode === 'sports' ? (
+        {appMode === 'deportes' ? (
           <SportsContent />
         ) : (
           <>
