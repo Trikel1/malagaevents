@@ -30,7 +30,8 @@
     "events": "Eventi",
     "calendar": "Calendario",
     "pharmacies": "Farmacie",
-    "profile": "Profilo"
+    "profile": "Profilo",
+    "venues": "Impianti"
   },
   "onboarding": {
     "title": "Benvenuto su Málaga Events",
@@ -192,5 +193,27 @@
     "passwordsDontMatch": "Le password non corrispondono",
     "emailInUse": "Questa email è già registrata",
     "invalidCredentials": "Credenziali non valide"
+  },
+  "sports": {
+    "title": "Sport",
+    "events": "Eventi",
+    "today": "Oggi",
+    "thisWeekend": "Questo weekend",
+    "upcoming": "Prossimi 14 giorni",
+    "all": "Tutti",
+    "noEvents": "Nessun evento sportivo per questo filtro",
+    "futbol": "Calcio",
+    "baloncesto": "Pallacanestro",
+    "futsal": "Calcio a 5",
+    "balonmano": "Pallamano",
+    "atletismo": "Atletica",
+    "motor": "Motorsport",
+    "tenis": "Tennis",
+    "otros": "Altri",
+    "tickets": "Biglietti",
+    "searchVenues": "Cerca impianti...",
+    "venuesTitle": "Impianti sportivi",
+    "noVenues": "Nessun impianto trovato",
+    "map": "Mappa"
   }
 }

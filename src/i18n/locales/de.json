@@ -30,7 +30,8 @@
     "events": "Veranstaltungen",
     "calendar": "Kalender",
     "pharmacies": "Apotheken",
-    "profile": "Profil"
+    "profile": "Profil",
+    "venues": "Sportstätten"
   },
   "onboarding": {
     "title": "Willkommen bei Málaga Events",
@@ -192,5 +193,27 @@
     "passwordsDontMatch": "Passwörter stimmen nicht überein",
     "emailInUse": "Diese E-Mail ist bereits registriert",
     "invalidCredentials": "Ungültige Anmeldedaten"
+  },
+  "sports": {
+    "title": "Sport",
+    "events": "Veranstaltungen",
+    "today": "Heute",
+    "thisWeekend": "Dieses Wochenende",
+    "upcoming": "Nächste 14 Tage",
+    "all": "Alle",
+    "noEvents": "Keine Sportveranstaltungen für diesen Filter",
+    "futbol": "Fußball",
+    "baloncesto": "Basketball",
+    "futsal": "Futsal",
+    "balonmano": "Handball",
+    "atletismo": "Leichtathletik",
+    "motor": "Motorsport",
+    "tenis": "Tennis",
+    "otros": "Andere",
+    "tickets": "Tickets",
+    "searchVenues": "Sportstätten suchen...",
+    "venuesTitle": "Sportstätten",
+    "noVenues": "Keine Sportstätten gefunden",
+    "map": "Karte"
   }
 }

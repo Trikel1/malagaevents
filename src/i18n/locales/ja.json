@@ -30,7 +30,8 @@
     "events": "イベント",
     "calendar": "カレンダー",
     "pharmacies": "薬局",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "venues": "競技場"
   },
   "onboarding": {
     "title": "Málaga Eventsへようこそ",
@@ -192,5 +193,27 @@
     "passwordsDontMatch": "パスワードが一致しません",
     "emailInUse": "このメールは既に登録されています",
     "invalidCredentials": "無効な認証情報"
+  },
+  "sports": {
+    "title": "スポーツ",
+    "events": "イベント",
+    "today": "今日",
+    "thisWeekend": "今週末",
+    "upcoming": "今後14日間",
+    "all": "すべて",
+    "noEvents": "このフィルターに該当するスポーツイベントはありません",
+    "futbol": "サッカー",
+    "baloncesto": "バスケットボール",
+    "futsal": "フットサル",
+    "balonmano": "ハンドボール",
+    "atletismo": "陸上競技",
+    "motor": "モータースポーツ",
+    "tenis": "テニス",
+    "otros": "その他",
+    "tickets": "チケット",
+    "searchVenues": "競技場を検索...",
+    "venuesTitle": "スポーツ競技場",
+    "noVenues": "競技場が見つかりません",
+    "map": "地図"
   }
 }

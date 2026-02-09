@@ -30,7 +30,8 @@
     "events": "События",
     "calendar": "Календарь",
     "pharmacies": "Аптеки",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "venues": "Арены"
   },
   "onboarding": {
     "title": "Добро пожаловать в Málaga Events",
@@ -192,5 +193,27 @@
     "passwordsDontMatch": "Пароли не совпадают",
     "emailInUse": "Этот email уже зарегистрирован",
     "invalidCredentials": "Неверные учетные данные"
+  },
+  "sports": {
+    "title": "Спорт",
+    "events": "События",
+    "today": "Сегодня",
+    "thisWeekend": "На выходных",
+    "upcoming": "Ближайшие 14 дней",
+    "all": "Все",
+    "noEvents": "Нет спортивных событий для этого фильтра",
+    "futbol": "Футбол",
+    "baloncesto": "Баскетбол",
+    "futsal": "Футзал",
+    "balonmano": "Гандбол",
+    "atletismo": "Лёгкая атлетика",
+    "motor": "Автоспорт",
+    "tenis": "Теннис",
+    "otros": "Другое",
+    "tickets": "Билеты",
+    "searchVenues": "Поиск арен...",
+    "venuesTitle": "Спортивные арены",
+    "noVenues": "Арены не найдены",
+    "map": "Карта"
   }
 }
