@@ -1,169 +1,195 @@
 
-# Plan: Mejoras UI/UX - Densidad, Detalle, Calendario y Switch Deportes
 
-## 1) Detalle de Evento -- Localizacion sin "..."
+# Plan: Hotfix iPhone + Favoritos + Modo Deportes completo + Recintos
 
-**Archivo:** `src/pages/EventDetailPage.tsx`
+## A) Detalle de Evento -- iPhone sin "..." (WRAP obligatorio)
 
-**Problema:** En la tarjeta de venue (lineas 213-220), el nombre usa `truncate` que corta textos largos como "Teatro del Soho CaixaBank".
+**Archivo:** `src/pages/EventDetailPage.tsx` (lineas 219-227)
 
-**Solucion:** Quitar `truncate` del venue name y del address, permitir wrap en 2 lineas con `line-clamp-2`. Reducir font-size si es largo no es necesario si permitimos wrap.
+El problema es que `line-clamp-2` sigue usando `-webkit-line-clamp` que en iOS Safari puede seguir truncando. La solucion es eliminar `line-clamp-2` completamente y usar estilos de wrap puro.
 
-**Cambios concretos:**
-- Linea 217: cambiar `<p className="text-sm font-medium truncate">` a `<p className="text-sm font-medium line-clamp-2">`
-- Linea 218: cambiar `<p className="text-xs text-muted-foreground truncate">` a `<p className="text-xs text-muted-foreground line-clamp-2">`
-- Quitar `min-w-0` del div padre si ya no hace falta (se puede mantener por seguridad)
+**Cambios:**
+- Linea 225: `<p className="text-sm font-medium line-clamp-2">` cambia a `<p className="text-sm font-medium break-words" style={{ overflowWrap: 'anywhere' }}>`
+- Linea 226: `<p className="text-xs text-muted-foreground line-clamp-2">` cambia a `<p className="text-xs text-muted-foreground break-words" style={{ overflowWrap: 'anywhere' }}>`
+- Quitar `min-w-0` del div padre (linea 224) -- aunque se puede dejar por seguridad
+- Asegurar que el contenedor padre no tiene `overflow: hidden` que corte
 
 ---
 
-## 2) Inicio -- "Hoy" y "Este fin de semana" en grid 2 columnas
+## B) Mis Favoritos -- Solo favoritos marcados
+
+**Situacion actual:** En `EventsPage.tsx` ya existe un filtro `onlyFavorites` en `FilterDrawer` que usa `useFavoriteEvents()`. Esto funciona correctamente: cuando se activa, muestra solo favoritos del usuario.
+
+**Revision necesaria:** Verificar que `useFavoriteEvents` (lineas 27-53 de `useFavorites.ts`) solo devuelve eventos que el usuario ha marcado. El codigo actual hace `select` de la tabla `favorites` filtrado por `user_id` y hace join con `events`. Esto es correcto.
+
+**Cambios necesarios:** Ninguno funcional. El sistema ya filtra correctamente. Solo hay que asegurar que:
+- Si la lista esta vacia, se muestre estado vacio elegante (ya existe via `EmptyState`)
+- Si un evento referenciado ya no existe, el `.filter(Boolean)` en linea 49 ya lo descarta
+
+**Conclusion:** B ya funciona correctamente. No requiere cambios de codigo.
+
+---
+
+## C) Modo Deportes -- Switch global con tema diferenciado
+
+**Objetivo:** Cuando se activa "Deportes" en Inicio, la app entra en un modo visual diferente. El BottomNav cambia (oculta Farmacias, muestra Recintos).
+
+### C1) Estado global `appMode`
+
+**Nuevo archivo:** `src/contexts/AppModeContext.tsx`
+
+```typescript
+// Contexto con estado 'eventos' | 'deportes'
+// Persistido en localStorage
+// Provider envuelve toda la app
+```
+
+### C2) Tema deportivo via CSS
+
+**Archivo:** `src/index.css`
+
+Anadir clase `.sports-mode` con variables CSS diferenciadas:
+- Primary: verde deportivo (142 71% 45% aprox)
+- Secondary: azul oscuro (220 60% 35%)
+- Accent: amarillo/dorado (45 90% 50%)
+- Header gradient: tonos verdes/azules en vez de slate/blue/indigo
+
+### C3) Aplicar tema en root
+
+**Archivo:** `src/App.tsx`
+- Importar `AppModeProvider` y envolver la app
+- Anadir `data-mode` attribute al root basado en `appMode`
 
 **Archivo:** `src/pages/Index.tsx`
+- Usar `useAppMode()` en vez de estado local `mode`
+- El switch ya existente (`[Eventos] [Deportes]`) actualizara el contexto global
 
-**Problema:** Actualmente los eventos se muestran en scroll horizontal con tarjetas de 280px. Se quiere un grid de 2 columnas mas denso.
+### C4) BottomNav adaptativo
 
-**Solucion:** Cambiar el layout de scroll horizontal a un grid responsive de 2 columnas. Usar `EventCard` con prop `compact` para tarjetas mas densas.
-
-**Cambios concretos (seccion "Today Events", lineas 139-158):**
-- Reemplazar `<div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">` por `<div className="grid grid-cols-2 gap-3">`
-- Quitar los wrappers `<div className="min-w-[280px] max-w-[280px]">`
-- Pasar `compact` a `EventCard` para tarjetas mas pequenas
-- Mismos cambios para la seccion "Weekend Events" (lineas ~175-200)
-- En los skeletons, hacer lo mismo: grid 2 columnas
-
-**Nuevo componente `EventCardCompact`:** No es necesario un componente nuevo. Se creara una variante dentro de `EventCard` o se usara directamente el prop `compact` existente. Sin embargo, el `compact` actual es un layout horizontal (flex-row). Necesitamos un layout vertical pero mas pequeno.
-
-Se ajustara `EventCard` para que cuando no sea `compact`, pero este en el grid de inicio, use menos padding:
-- Alternativa mejor: crear una nueva prop `dense` en `EventCard` que reduzca padding, titulo a 1 linea, y quite tags.
-
-**Cambios en `EventCard.tsx`:**
-- Anadir prop `dense?: boolean`
-- Cuando `dense`:
-  - Imagen mas pequena (aspect ratio mas corto)
-  - Titulo `line-clamp-1` en vez de `line-clamp-2`
-  - Quitar tags
-  - Menos padding (`p-2` en vez de `p-3`)
-  - Quitar badge de categoria
-  - Fecha + venue en formato compacto (una linea)
+**Archivo:** `src/components/layout/BottomNav.tsx`
+- Importar `useAppMode()`
+- Cuando `appMode === 'deportes'`:
+  - Ocultar tab "Farmacias"
+  - Mostrar tab "Recintos" (icono `Building2` o `MapPin`)
+  - Ruta: `/recintos` (nueva) o renderizar inline
 
 ---
 
-## 3) Eventos -- Listado denso 2 columnas
+## D) Filtros rapidos en Deportes (Hoy / Este finde / Proximos)
 
-**Archivo:** `src/pages/EventsPage.tsx`
+**Archivo:** `src/components/sports/SportsContent.tsx`
 
-**Problema:** Actualmente muestra tarjetas apiladas verticalmente (1 por linea, `space-y-4`).
+Anadir segmented control antes de los chips de deporte:
 
-**Solucion:** Cambiar a grid de 2 columnas, usando `EventCard` con prop `dense`.
+```
+[Hoy] [Este finde] [Proximos 14d]
+```
 
-**Cambios concretos (lineas 248-258):**
-- Reemplazar `<div className="space-y-4">` por `<div className="grid grid-cols-2 gap-3">`
-- Pasar `dense` a cada `EventCard`
+**Logica de filtrado** (Europe/Madrid timezone):
+- Hoy: `isToday(date)` con timezone
+- Este finde: viernes-domingo logica ya existente
+- Proximos: proximos 14 dias desde hoy
+
+**Cambios:**
+- Anadir estado `timeFilter: 'today' | 'weekend' | 'upcoming'` (default: 'upcoming')
+- Filtrar `MOCK_SPORT_EVENTS` segun el filtro seleccionado
+- Estados vacios controlados
 
 ---
 
-## 4) Calendario -- Vista lista respeta dia seleccionado
+## E) Scroll fluido iOS en toda la app
 
-**Archivo:** `src/pages/CalendarPage.tsx`
+**Archivo:** `src/index.css`
 
-**Problema:** Al cambiar a vista lista (lineas 362-391), se muestran `uniqueEventsForList` que son TODOS los eventos del mes, ignorando `selectedDate`.
+Ya existe la base (lineas 124-149). Ampliar:
 
-**Solucion:** Cuando se cambia a vista lista, filtrar `filteredOccurrences` por `selectedDate` si hay uno seleccionado.
-
-**Cambios concretos:**
-- Modificar el bloque de vista lista (linea 362+) para usar `selectedDayOccurrences` en vez de `filteredOccurrences` cuando `selectedDate` no es null
-- Mostrar el dia seleccionado como titulo en la vista lista
-- Si no hay eventos ese dia, mostrar empty state con mensaje claro
-
-**Codigo:**
-```typescript
-// En la vista lista:
-const listOccurrences = selectedDate ? selectedDayOccurrences : filteredOccurrences;
+```css
+/* Aplicar a todos los scroll containers */
+.overflow-y-auto, .overflow-x-auto, [class*="scroll"] {
+  -webkit-overflow-scrolling: touch;
+}
 ```
 
-Y en el JSX de la vista lista, mostrar:
-```
-{selectedDate && (
-  <h3 className="font-semibold capitalize">
-    {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
-  </h3>
-)}
-```
+**Archivos adicionales** (donde haya scroll containers):
+- `src/pages/CalendarPage.tsx`: verificar que la lista usa `ios-scroll`
+- `src/pages/EventsPage.tsx`: el grid principal ya tiene scroll del body
+- Popovers: ya tienen `ScrollArea` de Radix que maneja esto
+
+No se necesitan cambios grandes; la base CSS ya existe.
 
 ---
 
-## 5) Inicio -- Switch Eventos / Deportes
+## F) Tema Deportes -- Colores diferenciados
 
-**Archivos nuevos:**
-- `src/types/sports.ts` -- tipo `SportEvent` y datos mock
-- `src/components/sports/SportEventCard.tsx` -- tarjeta de deporte
-- `src/components/sports/SportsContent.tsx` -- contenido de la seccion Deportes
+**Archivo:** `src/index.css`
 
-**Archivo modificado:** `src/pages/Index.tsx`
-
-### 5a) Tipo SportEvent (`src/types/sports.ts`)
-
-```typescript
-export interface SportEvent {
-  id: string;
-  sport: string;
-  title: string;
-  teams?: string;
-  competition: string;
-  start_at: string;
-  venue: string;
-  city: string;
-  ticketsUrl?: string;
-  imageUrl?: string;
+```css
+/* Sports mode theme override */
+[data-mode="deportes"] {
+  --primary: 142 71% 45%;        /* Verde deportivo */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 60% 35%;      /* Azul oscuro */
+  --ring: 142 71% 45%;
 }
 
-export const SPORT_CATEGORIES = [
-  'futbol', 'baloncesto', 'futsal', 'balonmano', 
-  'atletismo', 'motor', 'tenis', 'otros'
-] as const;
+[data-mode="deportes"].dark {
+  --primary: 142 65% 50%;
+  --primary-foreground: 220 25% 10%;
+  --secondary: 220 50% 45%;
+  --ring: 142 65% 50%;
+}
+```
 
-export const MOCK_SPORT_EVENTS: SportEvent[] = [
-  {
-    id: 'sp1',
-    sport: 'futbol',
-    title: 'Malaga CF vs Cadiz CF',
-    teams: 'Malaga CF - Cadiz CF',
-    competition: 'LaLiga Hypermotion',
-    start_at: '2026-02-14T18:30:00',
-    venue: 'Estadio La Rosaleda',
-    city: 'Malaga',
-    ticketsUrl: 'https://malagacf.com/entradas',
-  },
-  // ... 8-10 mas (baloncesto, futsal, balonmano, etc.)
+**Archivo:** `src/pages/Index.tsx`
+- Cambiar gradiente del header cuando en modo deportes:
+  - Eventos: `from-slate-900 via-blue-900 to-indigo-800` (actual)
+  - Deportes: `from-emerald-900 via-green-800 to-teal-700`
+
+---
+
+## G) Nueva seccion "Recintos" (MVP)
+
+### G1) Datos mock de recintos
+
+**Nuevo archivo:** `src/types/venues-sports.ts`
+
+```typescript
+export interface SportVenue {
+  id: string;
+  name: string;
+  sport: string[];   // deportes que alberga
+  city: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  mapUrl?: string;
+}
+
+export const MOCK_SPORT_VENUES: SportVenue[] = [
+  { id: 'v1', name: 'Estadio La Rosaleda', sport: ['futbol'], city: 'Malaga', address: 'Paseo de Martiricos, s/n', lat: 36.7304, lng: -4.4312 },
+  { id: 'v2', name: 'Palacio de Deportes Martin Carpena', sport: ['baloncesto', 'balonmano'], city: 'Malaga', address: 'Avda. Jose Ortega y Gasset, 143' },
+  { id: 'v3', name: 'Pabellon Universitario', sport: ['futsal', 'baloncesto'], city: 'Malaga' },
+  { id: 'v4', name: 'Ciudad de Malaga', sport: ['balonmano'], city: 'Malaga' },
+  { id: 'v5', name: 'Estadio El Mauli', sport: ['futbol'], city: 'Antequera' },
+  { id: 'v6', name: 'Club de Tenis Puente Romano', sport: ['tenis'], city: 'Marbella' },
+  // ... mas recintos
 ];
 ```
 
-### 5b) SportEventCard (`src/components/sports/SportEventCard.tsx`)
+### G2) Pagina/componente de Recintos
 
-Tarjeta compacta con:
-- Icono del deporte + nombre de competicion (badge)
-- Titulo/equipos (bold)
-- Hora + Recinto en una linea
-- Boton "Entradas" o "Info"
+**Nuevo archivo:** `src/pages/VenuesPage.tsx`
 
-### 5c) SportsContent (`src/components/sports/SportsContent.tsx`)
+- Listado simple de cards con: nombre, ciudad, deportes (badges), boton "Ver en mapa"
+- Filtro basico por deporte (chips)
+- Buscador interno simple (input sin autofocus en movil)
+- Solo visible cuando `appMode === 'deportes'`
 
-Seccion con:
-- Chips de deportes para filtrar
-- "Hoy" (deportes mock filtrados)
-- "Este finde" (deportes mock filtrados)
-- Tarjetas en grid de 2 columnas (consistente con eventos)
+### G3) Ruta nueva
 
-### 5d) Modificaciones en Index.tsx
-
-- Quitar el titulo "Malaga Events" y reemplazar por un segmented control:
-  ```
-  [Eventos] [Deportes]
-  ```
-- Anadir estado `const [mode, setMode] = useState<'events' | 'sports'>('events');`
-- Renderizar condicionalmente: si `mode === 'events'` mostrar todo lo actual, si `mode === 'sports'` mostrar `<SportsContent />`
-- El header (gradiente, search, theme/language) se mantiene igual en ambos modos
-- El segmented control se coloca donde estaba el titulo "Malaga Events"
+**Archivo:** `src/App.tsx`
+- Anadir ruta `/venues` dentro de `MainLayout`
+- Importar `VenuesPage`
 
 ---
 
@@ -171,47 +197,27 @@ Seccion con:
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/pages/EventDetailPage.tsx` | Quitar truncate en venue name/address |
-| `src/components/events/EventCard.tsx` | Anadir prop `dense` para tarjetas compactas |
-| `src/pages/Index.tsx` | Grid 2 col + switch Eventos/Deportes |
-| `src/pages/EventsPage.tsx` | Grid 2 col con `dense` |
-| `src/pages/CalendarPage.tsx` | Vista lista filtra por dia seleccionado |
-| `src/types/sports.ts` | **NUEVO** - tipos y mock data deportes |
-| `src/components/sports/SportEventCard.tsx` | **NUEVO** - tarjeta de deporte |
-| `src/components/sports/SportsContent.tsx` | **NUEVO** - contenido seccion deportes |
-
----
-
-## Seccion tecnica: prop `dense` en EventCard
-
-```typescript
-interface EventCardProps {
-  event: Event;
-  isFavorite?: boolean;
-  onToggleFavorite?: (eventId: string) => void;
-  compact?: boolean;
-  dense?: boolean;  // NUEVO
-}
-```
-
-Cuando `dense === true`:
-- Imagen con aspect-ratio mas corto (3:2 en vez de 16:9)
-- CardContent con `p-2`
-- Titulo: `text-sm font-semibold line-clamp-1`
-- Sin badge de categoria
-- Fecha y venue en una sola linea: `"Lun 10 Feb · 20:00 · Teatro Cervantes"`
-- Sin tags
-- Sin boton de favorito (para ahorrar espacio, o version mini)
+| `src/pages/EventDetailPage.tsx` | Quitar line-clamp, usar break-words + overflowWrap |
+| `src/index.css` | Tema deportes CSS vars + scroll utilities |
+| `src/contexts/AppModeContext.tsx` | **NUEVO** - contexto global appMode |
+| `src/App.tsx` | Envolver con AppModeProvider, anadir ruta /venues |
+| `src/pages/Index.tsx` | Usar contexto global para switch, gradiente condicional |
+| `src/components/layout/BottomNav.tsx` | Tabs adaptativas segun appMode |
+| `src/components/layout/MainLayout.tsx` | Aplicar data-mode attribute |
+| `src/components/sports/SportsContent.tsx` | Filtros rapidos Hoy/Finde/Proximos |
+| `src/types/venues-sports.ts` | **NUEVO** - tipos y mock de recintos |
+| `src/pages/VenuesPage.tsx` | **NUEVO** - listado de recintos deportivos |
 
 ---
 
 ## Checklist de validacion
 
-- [ ] Detalle: venue name completo sin "..." (probar "Teatro del Soho CaixaBank")
-- [ ] Inicio: Hoy y Este finde muestran 2 columnas
-- [ ] Eventos: listado en 2 columnas densas
-- [ ] Calendario: cambiar a lista mantiene el dia seleccionado
-- [ ] Calendario: dia sin eventos en lista muestra empty state
-- [ ] Switch Eventos/Deportes funciona sin glitches
-- [ ] Deportes muestra datos mock con chips de filtro
-- [ ] Alternar 20 veces entre Eventos/Deportes sin problemas
+- [ ] iPhone Safari: venue/localizacion completa con wrap, sin "..."
+- [ ] Favoritos: solo muestra favoritos del usuario, empty state correcto
+- [ ] Switch Deportes: cambia tema (colores verdes/deportivos)
+- [ ] BottomNav en Deportes: Farmacias oculta, Recintos visible
+- [ ] Filtros deportes: Hoy / Este finde / Proximos funcionan
+- [ ] Scroll fluido iOS en listas y popovers
+- [ ] Volver a Eventos: tema original, Farmacias vuelve
+- [ ] Buscar no se activa al abrir desplegables (no regresion)
+
