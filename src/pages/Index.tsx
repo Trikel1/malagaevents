@@ -71,10 +71,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className={cn(
-        "text-white p-6 pb-14 rounded-b-3xl bg-gradient-to-br",
+        "text-white p-6 pb-14 bg-gradient-to-b",
         appMode === 'deportes'
-          ? 'from-emerald-900 via-green-800 to-teal-700'
-          : 'from-slate-900 via-blue-900 to-indigo-800'
+          ? 'from-emerald-900 via-green-800 to-background'
+          : 'from-slate-900 via-blue-900 to-background'
       )}>
         <div className="flex justify-between items-center mb-4">
           {/* Segmented Control */}
