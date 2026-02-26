@@ -564,10 +564,13 @@ export type Database = {
           external_id: string | null
           id: string
           image_url: string | null
+          normalized_title: string | null
+          normalized_venue: string | null
           price_info: string | null
           source_id: string | null
           source_url: string | null
           sport_category: string
+          start_date: string
           start_datetime: string
           status: string
           teams: string | null
@@ -586,10 +589,13 @@ export type Database = {
           external_id?: string | null
           id?: string
           image_url?: string | null
+          normalized_title?: string | null
+          normalized_venue?: string | null
           price_info?: string | null
           source_id?: string | null
           source_url?: string | null
           sport_category: string
+          start_date: string
           start_datetime: string
           status?: string
           teams?: string | null
@@ -608,10 +614,13 @@ export type Database = {
           external_id?: string | null
           id?: string
           image_url?: string | null
+          normalized_title?: string | null
+          normalized_venue?: string | null
           price_info?: string | null
           source_id?: string | null
           source_url?: string | null
           sport_category?: string
+          start_date?: string
           start_datetime?: string
           status?: string
           teams?: string | null
@@ -943,6 +952,7 @@ export type Database = {
         Returns: boolean
       }
       normalize_text: { Args: { text_input: string }; Returns: string }
+      sports_is_admin: { Args: never; Returns: boolean }
       unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
