@@ -1,54 +1,62 @@
 
-# Implementation Plan: Sports Mode Backend (Migration + Edge Function)
 
-## Current State
+# Plan: Admin Sports Sync -- JWT-Protected Proxy + Admin UI
 
-- **sports_events** table exists but is missing 3 columns: `normalized_title`, `normalized_venue`, `start_date`
-- **Indexes** `idx_sports_events_start` and `idx_sports_events_cat_start` already exist (different names than planned)
-- **Triggers** exist on `sports_events` (`trg_sports_events_updated_at`) but NOT on `sports_sources` or `sports_venues`
-- **Functions** `set_updated_at()` and `sports_is_admin()` do NOT exist yet
-- **0 rows** in sports_events, so backfill is trivial
-- `FIRECRAWL_API_KEY` secret exists; `SYNC_ADMIN_KEY` does NOT exist yet
+## Overview
 
-## Step 1: Database Migration
-
-Single migration that:
-1. Adds 3 missing columns (`normalized_title`, `normalized_venue`, `start_date`) using `ADD COLUMN IF NOT EXISTS`
-2. Backfills `start_date` with timezone-aware conversion, then fallback to `now()` for any remaining NULLs
-3. Sets `start_date` as NOT NULL
-4. Creates `set_updated_at()` trigger function
-5. Creates `sports_is_admin()` placeholder function (NOT used for write RLS -- all writes via SERVICE_ROLE)
-6. Adds triggers on `sports_sources` and `sports_venues` using safe DO blocks (checking `pg_trigger`)
-7. Creates only `idx_sports_events_start_date` index (the other two already exist with different names)
-
-## Step 2: Edge Function
-
-Create `supabase/functions/sync-sports/index.ts`:
-- Uses the exact Firecrawl v1/scrape pattern from `sync-events` (POST with `formats: ['json']`, `jsonOptions`, `onlyMainContent`, `waitFor`, `timeout`, AbortController)
-- Security: `x-admin-key` header validated against `SYNC_ADMIN_KEY` env var
-- Domain allowlist: 10 approved sport domains
-- Per-source cooldown via `last_sync_at`
-- Source-specific extraction prompts for football, basketball, running, triathlon, federation
-- SHA-256 dedupe_key generation
-- Upserts into `sports_events` on conflict `dedupe_key`
-- Logs in `sports_sync_runs`, updates `sports_sources`
-- All DB writes via SERVICE_ROLE (bypasses RLS)
-
-## Step 3: Config
-
-The `supabase/config.toml` is auto-managed. The function will be deployed via the deploy tool.
-
-## Step 4: Request SYNC_ADMIN_KEY
-
-After deployment, request the secret from the user.
+Create a JWT-protected edge function that proxies to `sync-sports`, and add a "Deportes" tab to the Admin page with a sync button and recent runs list.
 
 ## Files Changed
 
 | File | Action |
 |------|--------|
-| Migration SQL (via tool) | NEW |
-| `supabase/functions/sync-sports/index.ts` | NEW |
+| `supabase/functions/admin-sync-sports/index.ts` | CREATE |
+| `src/pages/AdminPage.tsx` | EDIT (add Deportes tab) |
 
-## Files NOT Changed
+Note: `supabase/config.toml` is auto-managed and will be configured via the deploy tool.
 
-All cultural event files, hooks, pages, components, and existing edge functions remain untouched.
+## Step 1: Edge Function `admin-sync-sports/index.ts`
+
+**Security flow:**
+1. `verify_jwt = true` in config -- platform enforces valid JWT before the function runs
+2. Create a user-scoped Supabase client using the request's `Authorization` header
+3. Call `supabase.auth.getUser()` to get the authenticated user's ID
+4. Create a SERVICE_ROLE client, query `user_roles` table for `role = 'admin'` where `user_id = uid`
+5. If not admin, return 403
+6. If admin, internally `fetch()` the `sync-sports` function at `${SUPABASE_URL}/functions/v1/sync-sports` with:
+   - `x-admin-key: SYNC_ADMIN_KEY` (from env, never exposed to client)
+   - Forward `{ force, cooldownMinutes }` from request body
+7. Also query last 10 `sports_sync_runs` via SERVICE_ROLE client
+8. Return `{ ok, syncResult, recentRuns }`
+
+**Config entry:**
+```text
+[functions.admin-sync-sports]
+verify_jwt = true
+```
+
+## Step 2: Admin Page -- "Deportes" Tab
+
+Add to the existing `TabsList` in `AdminPage.tsx`:
+
+**New tab trigger:** "Deportes" (4th tab)
+
+**Tab content includes:**
+- **Sync button** ("Sync Deportes ahora"): Calls `supabase.functions.invoke('admin-sync-sports', { body: { force: true, cooldownMinutes: 0 } })`. Shows loading spinner, success/error toast.
+- **Recent runs list**: After sync completes (or on tab load), display last 10 `sports_sync_runs` from the response. Each row shows:
+  - `started_at` (formatted date)
+  - `source_slug`
+  - `status` (color-coded Badge: green for completed, red for failed, yellow for running)
+  - `items_upserted` / `items_failed` counts
+  - Truncated `error_sample` if present
+
+Uses existing Card, Badge, Button, Loader2 components -- no new components or files.
+
+## Security Summary
+
+- `SYNC_ADMIN_KEY` stays server-side only (edge function env var)
+- Client sends standard JWT via `supabase.functions.invoke()` (automatic)
+- Admin check uses existing `user_roles` table + `has_role` pattern (queried via SERVICE_ROLE)
+- `verify_jwt = true` provides platform-level JWT enforcement
+- No new secrets needed (all exist already)
+
