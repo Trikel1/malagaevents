@@ -214,6 +214,8 @@
     "searchVenues": "Cerca impianti...",
     "venuesTitle": "Impianti sportivi",
     "noVenues": "Nessun impianto trovato",
-    "map": "Mappa"
+    "map": "Mappa",
+    "allVenues": "Tutti gli impianti",
+    "loading": "Caricamento..."
   }
 }

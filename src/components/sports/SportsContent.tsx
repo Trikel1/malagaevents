@@ -1,61 +1,73 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar } from 'lucide-react';
-import { isToday, isWeekend, isSameDay, addDays, isBefore, isAfter, startOfDay } from 'date-fns';
+import { Calendar, Loader2 } from 'lucide-react';
+import { addDays } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import SportEventCard from '@/components/sports/SportEventCard';
-import { MOCK_SPORT_EVENTS, SPORT_CATEGORIES, SPORT_ICONS } from '@/types/sports';
+import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
+import { useSportsEvents } from '@/hooks/useSportsEvents';
+import { SPORT_CATEGORIES, SPORT_ICONS } from '@/types/sports';
 import type { SportCategory } from '@/types/sports';
 
+const TIMEZONE = 'Europe/Madrid';
+
 type TimeFilter = 'today' | 'weekend' | 'upcoming';
+
+function todayMadrid(): string {
+  return formatInTimeZone(new Date(), TIMEZONE, 'yyyy-MM-dd');
+}
+
+function getWeekendDates(): { from: string; to: string } {
+  const today = new Date(todayMadrid() + 'T12:00:00');
+  const dayOfWeek = today.getDay();
+  let fri: Date;
+  if (dayOfWeek === 5) fri = today;
+  else if (dayOfWeek === 6) fri = addDays(today, -1);
+  else if (dayOfWeek === 0) fri = addDays(today, -2);
+  else fri = addDays(today, 5 - dayOfWeek);
+
+  return {
+    from: formatInTimeZone(fri, TIMEZONE, 'yyyy-MM-dd'),
+    to: formatInTimeZone(addDays(fri, 2), TIMEZONE, 'yyyy-MM-dd'),
+  };
+}
 
 const SportsContent = () => {
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
+  const [selectedVenueNames, setSelectedVenueNames] = useState<string[]>([]);
   const { t } = useTranslation();
 
-  const now = new Date();
-  const today = startOfDay(now);
-  const dayOfWeek = now.getDay(); // 0=Sun
-
-  // Weekend logic (Europe/Madrid style)
-  const getWeekendDays = () => {
-    if (dayOfWeek === 5) return [today, addDays(today, 1), addDays(today, 2)]; // Fri
-    if (dayOfWeek === 6) return [today, addDays(today, 1)]; // Sat
-    if (dayOfWeek === 0) return [today]; // Sun
-    // Mon-Thu: next weekend
-    const daysToFri = (5 - dayOfWeek + 7) % 7;
-    const fri = addDays(today, daysToFri);
-    return [fri, addDays(fri, 1), addDays(fri, 2)];
-  };
-
-  const filtered = useMemo(() => {
-    let events = MOCK_SPORT_EVENTS;
-
-    if (selectedSport !== 'all') {
-      events = events.filter(e => e.sport === selectedSport);
-    }
+  const filters = useMemo(() => {
+    const today = todayMadrid();
+    const f: any = {};
 
     if (timeFilter === 'today') {
-      events = events.filter(e => isToday(new Date(e.start_at)));
+      f.fromDate = today;
+      f.toDate = today;
     } else if (timeFilter === 'weekend') {
-      const weekendDays = getWeekendDays();
-      events = events.filter(e => {
-        const d = startOfDay(new Date(e.start_at));
-        return weekendDays.some(wd => isSameDay(d, wd));
-      });
+      const wd = getWeekendDates();
+      f.fromDate = wd.from;
+      f.toDate = wd.to;
     } else {
       // upcoming 14 days
-      const limit = addDays(today, 14);
-      events = events.filter(e => {
-        const d = new Date(e.start_at);
-        return !isBefore(d, today) && !isAfter(d, limit);
-      });
+      f.fromDate = today;
+      f.toDate = formatInTimeZone(addDays(new Date(), 14), TIMEZONE, 'yyyy-MM-dd');
     }
 
-    return events;
-  }, [selectedSport, timeFilter]);
+    if (selectedSport !== 'all') {
+      f.categories = [selectedSport];
+    }
+    if (selectedVenueNames.length > 0) {
+      f.venueNames = selectedVenueNames;
+    }
+
+    return f;
+  }, [selectedSport, timeFilter, selectedVenueNames]);
+
+  const { data: events = [], isLoading, isError } = useSportsEvents(filters);
 
   const timeFilters: { key: TimeFilter; label: string }[] = [
     { key: 'today', label: t('sports.today') },
@@ -66,7 +78,7 @@ const SportsContent = () => {
   return (
     <div className="space-y-4">
       {/* Time filters */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {timeFilters.map(f => (
           <button
             key={f.key}
@@ -81,6 +93,11 @@ const SportsContent = () => {
             {f.label}
           </button>
         ))}
+        {/* Venues dropdown */}
+        <SportsVenuesDropdown
+          selectedVenueNames={selectedVenueNames}
+          onSelectionChange={setSelectedVenueNames}
+        />
       </div>
 
       {/* Sport filter chips */}
@@ -113,9 +130,19 @@ const SportsContent = () => {
       </div>
 
       {/* Results */}
-      {filtered.length > 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : isError ? (
+        <Card className="bg-destructive/10 border-destructive/20">
+          <CardContent className="py-8 text-center text-destructive">
+            <p className="text-sm">{t('errors.generic')}</p>
+          </CardContent>
+        </Card>
+      ) : events.length > 0 ? (
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map(event => (
+          {events.map(event => (
             <SportEventCard key={event.id} event={event} />
           ))}
         </div>

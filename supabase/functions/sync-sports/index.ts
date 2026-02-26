@@ -25,11 +25,19 @@ const CORS_HEADERS: Record<string, string> = {
 const ALLOWED_DOMAINS = new Set([
   "malagacf.com",
   "unicajabaloncesto.com",
+  "ironman.com",
+  "koobin.com",
+  "entradas.com",
+  "maratonmalaga.com",
+  "zurichmaratonmalaga.es",
+  "mundodeportivo.com",
+  "sportmaniacs.com",
+  "rfef.es",
+  // Legacy domains kept for future sources
   "besoccer.com",
   "rfaf.es",
   "rfebm.com",
   "atletismomalaga.com",
-  "ironman.com",
   "triatlondemalaga.com",
   "fam.es",
   "juntadeandalucia.es",
@@ -71,16 +79,31 @@ const SOURCE_PROMPTS: Record<string, string> = {
     "Extract all upcoming football matches for Málaga CF. Include match title, date, time, opponent, competition name, venue, and ticket URL if available.",
   unicaja:
     "Extract all upcoming basketball games for Unicaja Baloncesto. Include game title, date, time, opponent teams, competition/league name, venue, and ticket URL.",
+  ironman:
+    "Extract upcoming triathlon and endurance events in Málaga or Andalucía. Include event title, date, venue, city, registration URL.",
+  "malagacf-koobin":
+    "Extract upcoming Malaga CF football match tickets. Include match title, date, time, opponent, price, buy URL.",
+  "entradas-com":
+    "Extract upcoming sports events in Malaga province. Include title, date, time, venue, sport type, teams, ticket URL, price.",
+  "maraton-malaga":
+    "Extract upcoming marathon and running events in Malaga. Include event title, date, time, start location, registration URL, distance.",
+  "zurich-maraton":
+    "Extract upcoming Zurich Marathon Malaga race details. Include event title, date, time, start location, distances, registration URL.",
+  runedia:
+    "Extract upcoming running races and trail events near Malaga, Andalucia. Include race title, date, location/city, distance, registration URL.",
+  sportmaniacs:
+    "Extract upcoming sports and running events near Malaga. Include event title, date, location, sport type, registration URL.",
+  "rfef-tickets":
+    "Extract upcoming Spanish football federation match tickets. Include match title, date, time, teams, competition, venue, ticket URL.",
+  // Legacy prompts
   besoccer:
     "Extract upcoming futsal matches. Include match title, date, time, teams, competition, venue.",
   rfaf:
-    "Extract upcoming football matches and events in Málaga province from the Andalusian Football Federation. Include title, date, time, teams, competition, venue, city.",
+    "Extract upcoming football matches and events in Málaga province. Include title, date, time, teams, competition, venue, city.",
   rfebm:
     "Extract upcoming handball matches in Málaga. Include title, date, time, teams, competition, venue.",
   atletismo:
     "Extract upcoming running races and athletics events in Málaga province. Include event title, date, time, venue/location, city, registration URL.",
-  ironman:
-    "Extract upcoming triathlon and endurance events in Málaga or Andalucía. Include event title, date, venue, city, registration URL.",
   triatlon:
     "Extract upcoming triathlon events in Málaga. Include title, date, time, venue, city, registration URL.",
   fam:

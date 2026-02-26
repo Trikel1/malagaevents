@@ -230,6 +230,8 @@
     "searchVenues": "Buscar recintos...",
     "venuesTitle": "Recintos deportivos",
     "noVenues": "No se encontraron recintos",
-    "map": "Mapa"
+    "map": "Mapa",
+    "allVenues": "Todos los recintos",
+    "loading": "Cargando..."
   }
 }
