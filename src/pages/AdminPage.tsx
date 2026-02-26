@@ -17,7 +17,9 @@ import {
   BarChart3,
   AlertCircle,
   Loader2,
+  Dumbbell,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -90,6 +92,9 @@ const AdminPage = () => {
 
   const [newSource, setNewSource] = useState({ name: '', url: '', category: 'other' });
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [sportsSyncing, setSportsSyncing] = useState(false);
+  const [sportsRuns, setSportsRuns] = useState<any[]>([]);
+  const [sportsRunsLoading, setSportsRunsLoading] = useState(false);
 
   // Loading state
   if (authLoading || adminLoading) {
@@ -206,6 +211,38 @@ const AdminPage = () => {
     }
   };
 
+  const fetchSportsRuns = async () => {
+    setSportsRunsLoading(true);
+    try {
+      const { data } = await supabase
+        .from('sports_sync_runs')
+        .select('*')
+        .order('started_at', { ascending: false })
+        .limit(10);
+      setSportsRuns(data || []);
+    } catch {
+      // silent
+    } finally {
+      setSportsRunsLoading(false);
+    }
+  };
+
+  const handleSportsSync = async () => {
+    setSportsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-sync-sports', {
+        body: { force: true, cooldownMinutes: 0 },
+      });
+      if (error) throw error;
+      if (data?.recentRuns) setSportsRuns(data.recentRuns);
+      toast({ title: 'Sync deportes completado', description: data?.ok ? 'Sincronización exitosa.' : 'Revisa los resultados.' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error?.message || 'No se pudo ejecutar el sync.', variant: 'destructive' });
+    } finally {
+      setSportsSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -254,6 +291,10 @@ const AdminPage = () => {
               )}
             </TabsTrigger>
             <TabsTrigger value="sources" className="flex-1">Fuentes</TabsTrigger>
+            <TabsTrigger value="deportes" className="flex-1" onClick={fetchSportsRuns}>
+              <Dumbbell className="h-4 w-4 mr-1" />
+              Deportes
+            </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">Todos</TabsTrigger>
           </TabsList>
 
@@ -458,6 +499,59 @@ const AdminPage = () => {
                 </Card>
               ))
             )}
+          </TabsContent>
+
+          {/* Deportes Tab */}
+          <TabsContent value="deportes" className="space-y-4">
+            <Button onClick={handleSportsSync} disabled={sportsSyncing}>
+              {sportsSyncing ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              Sync Deportes ahora
+            </Button>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Últimos sync runs</CardTitle>
+                <CardDescription>Últimas 10 ejecuciones de sincronización deportiva</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {sportsRunsLoading ? (
+                  <div className="text-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                  </div>
+                ) : sportsRuns.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No hay ejecuciones registradas.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {sportsRuns.map((run: any) => (
+                      <div key={run.id} className="flex items-center gap-2 text-sm border-b border-border pb-2 last:border-0">
+                        <Badge variant={
+                          run.status === 'completed' ? 'default' :
+                          run.status === 'failed' ? 'destructive' : 'secondary'
+                        }>
+                          {run.status}
+                        </Badge>
+                        <span className="text-muted-foreground text-xs">
+                          {format(new Date(run.started_at), "d MMM HH:mm", { locale: es })}
+                        </span>
+                        <span className="font-medium truncate flex-1">{run.source_slug}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ↑{run.items_upserted} ✗{run.items_failed}
+                        </span>
+                        {run.error_sample && (
+                          <span className="text-xs text-destructive truncate max-w-[120px]" title={run.error_sample}>
+                            {run.error_sample.slice(0, 40)}…
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* All Events Tab */}
