@@ -68,10 +68,26 @@ const fetchEvents = async (
       .gte('start_at', todayStart.toISOString())
       .lt('start_at', todayEnd.toISOString());
   } else if (options.weekendOnly) {
-    const dayOfWeek = now.getDay();
-    const daysUntilSaturday = (6 - dayOfWeek + 7) % 7 || 7;
-    const weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSaturday);
-    const weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000);
+    // "Este finde" logic: Fri=>Fri+Sat+Sun, Sat=>Sat+Sun, Sun=>Sun, Mon-Thu=>next Fri+Sat+Sun
+    const dayOfWeek = now.getDay(); // 0=Sun
+    let weekendStart: Date;
+    let weekendEnd: Date;
+
+    if (dayOfWeek === 0) {
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      weekendEnd = new Date(weekendStart.getTime() + 1 * 24 * 60 * 60 * 1000);
+    } else if (dayOfWeek === 6) {
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000);
+    } else if (dayOfWeek === 5) {
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000);
+    } else {
+      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
+      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilFriday);
+      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000);
+    }
+
     query = query
       .gte('start_at', weekendStart.toISOString())
       .lt('start_at', weekendEnd.toISOString());
@@ -305,9 +321,15 @@ export const useCalendarOccurrencesOptimized = (
         } : undefined,
       })) as EventOccurrence[];
 
-      // Group by date
+      // Group by date using Europe/Madrid timezone
       const groupedByDate = occurrences.reduce((acc, occ) => {
-        const dateKey = new Date(occ.start_datetime).toISOString().split('T')[0];
+        const occDate = new Date(occ.start_datetime);
+        const dateKey = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Europe/Madrid',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(occDate);
         if (!acc[dateKey]) {
           acc[dateKey] = [];
         }

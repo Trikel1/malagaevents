@@ -345,12 +345,14 @@ Deno.serve(async (req) => {
   }
 
   // Parse body
-  let body: { slug?: string; force?: boolean } = {};
+  let body: { slug?: string; force?: boolean; cooldownMinutes?: number } = {};
   try {
     body = await req.json();
   } catch {
     // empty body is fine — sync all
   }
+
+  const cooldownMin = body.cooldownMinutes ?? COOLDOWN_MINUTES;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -402,7 +404,7 @@ Deno.serve(async (req) => {
     // Cooldown check
     if (!body.force && source.last_sync_at) {
       const lastSync = new Date(source.last_sync_at).getTime();
-      const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
+      const cooldownMs = cooldownMin * 60 * 1000;
       if (Date.now() - lastSync < cooldownMs) {
         results.push({
           slug: source.slug,
