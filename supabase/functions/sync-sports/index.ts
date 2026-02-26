@@ -45,6 +45,9 @@ const ALLOWED_DOMAINS = new Set([
   "malaga.eu",
   "malaga.es",
   "runedia.com",
+  // Phase 3.1 additions (approved sports sources)
+  "laliga.com",
+  "acb.com",
 ]);
 
 const COOLDOWN_MINUTES = 15;
@@ -82,7 +85,13 @@ const SOURCE_PROMPTS: Record<string, string> = {
   malagacf:
     "Extract all upcoming football matches for Málaga CF from the calendar/schedule page. Include match title, date (YYYY-MM-DD format), time (HH:MM), opponent, competition name (e.g. LaLiga, Copa del Rey), venue, and ticket URL if available. Only include future matches.",
   unicaja:
-    "Extract all upcoming basketball games for Unicaja Baloncesto from the calendar page. Include game title, date (YYYY-MM-DD), time (HH:MM), opponent teams, competition/league name (e.g. Liga Endesa, EuroCup), venue, and ticket URL.",
+    "Extract all upcoming basketball games for Unicaja Baloncesto from the calendar page. Include game title, date (YYYY-MM-DD), time (HH:MM), opponent teams, competition/league name (e.g. Liga Endesa, EuroCup), venue, and ticket URL. For HOME games at Martín Carpena / Palacio de Deportes, set venue to 'Palacio de Deportes Martín Carpena' and city to 'Málaga'. For AWAY games, use the actual away venue and city.",
+  "unicaja-tickets":
+    "Extract all upcoming Unicaja basketball match tickets available for sale. Include match title, date (YYYY-MM-DD), time (HH:MM), opponent, price info, buy URL. Indicate if it's a HOME or AWAY game.",
+  "acb-unicaja":
+    "Extract upcoming ACB basketball matches for Unicaja (club ID 14). Include match title, date (YYYY-MM-DD), time (HH:MM), teams, competition, venue, city.",
+  "laliga-malaga":
+    "Extract upcoming LaLiga football matches for Málaga CF. Include match title, date (YYYY-MM-DD), time (HH:MM), teams, competition, venue, city. Indicate HOME vs AWAY.",
   ironman:
     "Extract upcoming triathlon and endurance events in Málaga or Andalucía. Include event title, date (YYYY-MM-DD), venue, city, registration URL.",
   "malagacf-koobin":
@@ -97,10 +106,8 @@ const SOURCE_PROMPTS: Record<string, string> = {
     "Extract all upcoming running races and trail events listed for Málaga province. Include race title, date (YYYY-MM-DD), location/city, distance, registration URL. List ALL events visible on the page.",
   sportmaniacs:
     "Extract all upcoming sports events listed for Málaga province. Include event title, date (YYYY-MM-DD), location/city, sport type, registration URL. List every event visible.",
-  "rfef-tickets":
-    "Extract upcoming Spanish football federation match tickets. Include match title, date (YYYY-MM-DD), time, teams, competition, venue, ticket URL.",
   "besoccer-malaga":
-    "Extract upcoming Málaga CF football matches from the calendar. Include match title, date (YYYY-MM-DD), time (HH:MM), teams, competition, venue.",
+    "Extract upcoming Málaga CF football matches from the calendar. Include match title, date (YYYY-MM-DD), time (HH:MM), teams, competition, venue. Indicate if HOME or AWAY.",
   rfaf:
     "Extract upcoming football matches and events in Málaga province. Include title, date (YYYY-MM-DD), time, teams, competition, venue, city.",
   "rfaf-malaga":
@@ -127,6 +134,8 @@ const SOURCE_PROMPTS: Record<string, string> = {
     "Extract all upcoming sports events and ticket listings for Málaga. Include event title, date (YYYY-MM-DD), time, venue, sport type, teams, ticket URL, price.",
   "diputacion-deportes":
     "Extract all upcoming sports events from Diputación de Málaga. Include event title, date (YYYY-MM-DD), time, venue, city, sport type.",
+  "datosabiertos-deportes":
+    "Extract all upcoming sports events from Málaga open data. Include event title, date (YYYY-MM-DD), time, venue, city, sport type.",
 };
 
 const DEFAULT_PROMPT =
@@ -191,7 +200,21 @@ const LOCAL_ONLY_SOURCES = new Set([
 const HOME_VENUE_RULES: Record<string, Set<string>> = {
   malagacf: new Set(["la rosaleda", "rosaleda", "malaga cf", "estadio la rosaleda"]),
   "malagacf-koobin": new Set(["la rosaleda", "rosaleda", "malaga cf", "estadio la rosaleda"]),
-  unicaja: new Set(["martin carpena", "martín carpena", "palacio de deportes", "j.m. martin carpena", "carpena"]),
+  "besoccer-malaga": new Set(["la rosaleda", "rosaleda", "malaga cf", "estadio la rosaleda"]),
+  "laliga-malaga": new Set(["la rosaleda", "rosaleda", "malaga cf", "estadio la rosaleda"]),
+  unicaja: new Set([
+    "martin carpena", "martín carpena", "palacio de deportes",
+    "j.m. martin carpena", "carpena", "unicaja", "unicaja baloncesto",
+    "palacio de los deportes", "palacio deportes martin carpena",
+  ]),
+  "unicaja-tickets": new Set([
+    "martin carpena", "martín carpena", "palacio de deportes",
+    "carpena", "unicaja", "unicaja baloncesto",
+  ]),
+  "acb-unicaja": new Set([
+    "martin carpena", "martín carpena", "palacio de deportes",
+    "carpena", "unicaja", "unicaja baloncesto",
+  ]),
 };
 
 // ============================================================================
