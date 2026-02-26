@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building2, ChevronDown, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,14 +7,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSportsVenues } from '@/hooks/useSportsEvents';
@@ -33,37 +28,42 @@ export function SportsVenuesDropdown({
   const { data: venues = [], isLoading, isError } = useSportsVenues();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [draftNames, setDraftNames] = useState<string[]>(selectedVenueNames);
 
-  const isAllSelected = selectedVenueNames.length === 0;
+  // Sync draft when popover opens
+  useEffect(() => {
+    if (open) {
+      setDraftNames(selectedVenueNames);
+      setSearchQuery('');
+    }
+  }, [open, selectedVenueNames]);
 
   const filteredVenues = searchQuery
     ? venues.filter(v => v.name.toLowerCase().includes(searchQuery.toLowerCase()) || v.city.toLowerCase().includes(searchQuery.toLowerCase()))
     : venues;
 
-  const handleToggleVenue = useCallback((venueName: string) => {
-    const isSelected = selectedVenueNames.includes(venueName);
-    if (isSelected) {
-      const newNames = selectedVenueNames.filter(n => n !== venueName);
-      onSelectionChange(newNames);
-    } else {
-      onSelectionChange([...selectedVenueNames, venueName]);
-    }
-  }, [selectedVenueNames, onSelectionChange]);
+  const toggleDraftVenue = useCallback((venueName: string) => {
+    setDraftNames(prev =>
+      prev.includes(venueName) ? prev.filter(n => n !== venueName) : [...prev, venueName]
+    );
+  }, []);
 
-  const handleSelectAll = useCallback(() => {
+  const handleApply = useCallback(() => {
+    onSelectionChange(draftNames);
+    setOpen(false);
+  }, [draftNames, onSelectionChange]);
+
+  const handleClear = useCallback(() => {
     onSelectionChange([]);
+    setDraftNames([]);
     setOpen(false);
   }, [onSelectionChange]);
 
-  const handleOpenChange = useCallback((newOpen: boolean) => {
-    setOpen(newOpen);
-    if (!newOpen) setSearchQuery('');
-  }, []);
-
   const selectedCount = selectedVenueNames.length;
+  const isAllSelected = selectedCount === 0;
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={isAllSelected ? 'outline' : 'default'}
@@ -94,29 +94,35 @@ export function SportsVenuesDropdown({
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <Command shouldFilter={false} className="max-h-[60vh]">
-          {/* Manual search input without autofocus */}
-          <div className="flex items-center border-b px-3">
-            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-            <input
-              type="text"
+        {/* Header: search + actions */}
+        <div className="p-2 border-b flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
               placeholder={t('sports.searchVenues', 'Buscar recintos...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              className="pl-8 h-8 text-sm"
             />
           </div>
-          <CommandList
-            className={cn(
-              "max-h-[50vh] overflow-y-auto",
-              "[&::-webkit-scrollbar]:w-2",
-              "[&::-webkit-scrollbar-track]:bg-transparent",
-              "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
-              "[&::-webkit-scrollbar-thumb]:rounded-full",
-              "overscroll-contain",
-              "[-webkit-overflow-scrolling:touch]"
-            )}
-          >
+          <Button size="sm" className="h-8 px-3 text-xs" onClick={handleApply}>
+            {t('common.show', 'Mostrar')}
+          </Button>
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={handleClear}>
+            {t('common.clear', 'Limpiar')}
+          </Button>
+        </div>
+
+        <ScrollArea className={cn(
+          "max-h-[50vh]",
+          "[&::-webkit-scrollbar]:w-2",
+          "[&::-webkit-scrollbar-track]:bg-transparent",
+          "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
+          "[&::-webkit-scrollbar-thumb]:rounded-full",
+          "overscroll-contain",
+          "[-webkit-overflow-scrolling:touch]"
+        )}>
+          <div className="p-1">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -126,55 +132,31 @@ export function SportsVenuesDropdown({
                 {t('errors.generic', 'Error al cargar')}
               </div>
             ) : filteredVenues.length === 0 ? (
-              <CommandEmpty className="py-6 text-center text-muted-foreground">
+              <div className="py-6 text-center text-sm text-muted-foreground">
                 {t('sports.noVenues', 'No se encontraron recintos')}
-              </CommandEmpty>
+              </div>
             ) : (
-              <CommandGroup className="p-1">
-                {/* "All venues" option */}
-                {!searchQuery && (
-                  <CommandItem
-                    onSelect={handleSelectAll}
-                    className="flex items-center gap-3 px-3 py-2.5 cursor-pointer font-medium border-b mb-1"
+              filteredVenues.map((venue) => {
+                const isSelected = draftNames.includes(venue.name);
+                return (
+                  <div
+                    key={venue.id}
+                    className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent cursor-pointer"
+                    onClick={() => toggleDraftVenue(venue.name)}
                   >
-                    <Checkbox
-                      checked={isAllSelected}
-                      className="h-4 w-4"
-                    />
-                    <span className="flex-1">{t('sports.allVenues', 'Todos los recintos')}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({venues.length})
-                    </span>
-                  </CommandItem>
-                )}
-
-                {/* Individual venues */}
-                {filteredVenues.map((venue) => {
-                  const isSelected = selectedVenueNames.includes(venue.name);
-                  return (
-                    <CommandItem
-                      key={venue.id}
-                      value={venue.name}
-                      onSelect={() => handleToggleVenue(venue.name)}
-                      className="flex items-center gap-3 px-3 py-2 cursor-pointer"
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        className="h-4 w-4"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <span className="block truncate">{venue.name}</span>
-                        <span className="text-xs text-muted-foreground block truncate">
-                          {venue.city}
-                        </span>
-                      </div>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
+                    <Checkbox checked={isSelected} className="h-4 w-4" />
+                    <div className="flex-1 min-w-0">
+                      <span className="block truncate text-sm">{venue.name}</span>
+                      <span className="text-xs text-muted-foreground block truncate">
+                        {venue.city}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
             )}
-          </CommandList>
-        </Command>
+          </div>
+        </ScrollArea>
       </PopoverContent>
     </Popover>
   );

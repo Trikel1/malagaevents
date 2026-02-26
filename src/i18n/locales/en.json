@@ -23,7 +23,9 @@
     "today": "Today",
     "tomorrow": "Tomorrow",
     "thisWeekend": "This weekend",
-    "nearby": "Nearby"
+    "nearby": "Nearby",
+    "show": "Show",
+    "clear": "Clear"
   },
   "nav": {
     "home": "Home",

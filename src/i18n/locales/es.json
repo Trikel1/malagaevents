@@ -23,7 +23,9 @@
     "today": "Hoy",
     "tomorrow": "Mañana",
     "thisWeekend": "Este finde",
-    "nearby": "Cerca"
+    "nearby": "Cerca",
+    "show": "Mostrar",
+    "clear": "Limpiar"
   },
   "nav": {
     "home": "Inicio",
