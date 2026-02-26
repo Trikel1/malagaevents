@@ -1,62 +1,153 @@
 
+# End-to-End Sports Mode: Real Data + Venues Dropdown + Admin Sync
 
-# Plan: Admin Sports Sync -- JWT-Protected Proxy + Admin UI
+## Files to Create/Edit
 
-## Overview
+| File | Action | Purpose |
+|------|--------|---------|
+| `supabase/functions/sync-sports/index.ts` | EDIT | Add missing domains + source prompts for all 10 sources |
+| `supabase/functions/admin-sync-sports/index.ts` | EXISTS (no change needed) | Already correctly implements JWT proxy |
+| `src/hooks/useSportsEvents.ts` | CREATE | React Query hooks for sports_events + sports_venues |
+| `src/components/sports/SportsVenuesDropdown.tsx` | CREATE | Multi-select venue dropdown mirroring Culture VenueGroupDropdown |
+| `src/components/sports/SportsContent.tsx` | EDIT | Replace mocks with DB hooks |
+| `src/pages/CalendarPage.tsx` | EDIT | Sports branch uses DB instead of mocks |
+| `src/pages/VenuesPage.tsx` | EDIT | Use sports_venues from DB |
+| `src/types/sports.ts` | EDIT | Remove MOCK_SPORT_EVENTS, keep types/constants |
+| `src/types/venues-sports.ts` | EDIT | Remove MOCK_SPORT_VENUES, keep interface |
+| 9 locale JSON files | EDIT | Add `sports.allVenues` and `sports.loading` keys |
 
-Create a JWT-protected edge function that proxies to `sync-sports`, and add a "Deportes" tab to the Admin page with a sync button and recent runs list.
+## How Culture Mode Stays Untouched
 
-## Files Changed
+- All new hooks query `sports_events` and `sports_venues` tables only
+- `SportsContent.tsx` is sports-only, never rendered in culture mode
+- `CalendarPage.tsx` changes are inside `appMode === 'deportes'` guards -- culture branch unchanged
+- `VenuesPage.tsx` only renders in deportes mode
+- No changes to `events`, `venues`, `locations` tables or hooks
+- No changes to routing, navigation, global styles
 
-| File | Action |
-|------|--------|
-| `supabase/functions/admin-sync-sports/index.ts` | CREATE |
-| `src/pages/AdminPage.tsx` | EDIT (add Deportes tab) |
+## ALLOWED_DOMAINS (exact hostnames covered)
 
-Note: `supabase/config.toml` is auto-managed and will be configured via the deploy tool.
+The `isDomainAllowed` function matches `hostname === domain || hostname.endsWith("." + domain)`, so adding parent domains covers `www.` subdomains automatically:
 
-## Step 1: Edge Function `admin-sync-sports/index.ts`
-
-**Security flow:**
-1. `verify_jwt = true` in config -- platform enforces valid JWT before the function runs
-2. Create a user-scoped Supabase client using the request's `Authorization` header
-3. Call `supabase.auth.getUser()` to get the authenticated user's ID
-4. Create a SERVICE_ROLE client, query `user_roles` table for `role = 'admin'` where `user_id = uid`
-5. If not admin, return 403
-6. If admin, internally `fetch()` the `sync-sports` function at `${SUPABASE_URL}/functions/v1/sync-sports` with:
-   - `x-admin-key: SYNC_ADMIN_KEY` (from env, never exposed to client)
-   - Forward `{ force, cooldownMinutes }` from request body
-7. Also query last 10 `sports_sync_runs` via SERVICE_ROLE client
-8. Return `{ ok, syncResult, recentRuns }`
-
-**Config entry:**
-```text
-[functions.admin-sync-sports]
-verify_jwt = true
+```
+malagacf.com          -> www.malagacf.com, malagacf.com
+koobin.com            -> malagacf.koobin.com
+unicajabaloncesto.com -> www.unicajabaloncesto.com
+entradas.com          -> www.entradas.com
+ironman.com           -> www.ironman.com
+maratonmalaga.com     -> www.maratonmalaga.com
+zurichmaratonmalaga.es -> www.zurichmaratonmalaga.es
+mundodeportivo.com    -> runedia.mundodeportivo.com
+sportmaniacs.com      -> www.sportmaniacs.com
+rfef.es               -> tickets.rfef.es
 ```
 
-## Step 2: Admin Page -- "Deportes" Tab
+Domains to ADD to the existing set (keeping existing ones):
+- `koobin.com`
+- `entradas.com`
+- `maratonmalaga.com`
+- `zurichmaratonmalaga.es`
+- `mundodeportivo.com`
+- `sportmaniacs.com`
+- `rfef.es`
 
-Add to the existing `TabsList` in `AdminPage.tsx`:
+Domains to REMOVE (no longer needed since they have no seeded sources):
+- `besoccer.com`, `rfaf.es`, `rfebm.com`, `atletismomalaga.com`, `triatlondemalaga.com`, `fam.es`, `juntadeandalucia.es`
 
-**New tab trigger:** "Deportes" (4th tab)
+Actually we keep the old ones for safety -- they do no harm and may be added as sources later.
 
-**Tab content includes:**
-- **Sync button** ("Sync Deportes ahora"): Calls `supabase.functions.invoke('admin-sync-sports', { body: { force: true, cooldownMinutes: 0 } })`. Shows loading spinner, success/error toast.
-- **Recent runs list**: After sync completes (or on tab load), display last 10 `sports_sync_runs` from the response. Each row shows:
-  - `started_at` (formatted date)
-  - `source_slug`
-  - `status` (color-coded Badge: green for completed, red for failed, yellow for running)
-  - `items_upserted` / `items_failed` counts
-  - Truncated `error_sample` if present
+## Query Strategy (start_date, Europe/Madrid)
 
-Uses existing Card, Badge, Button, Loader2 components -- no new components or files.
+The `sports_events` table has a `start_date` column (DATE type) derived in Madrid timezone. All filtering uses this column:
 
-## Security Summary
+- **Today**: `start_date = 'YYYY-MM-DD'` where date is computed in Madrid TZ client-side using `formatInTimeZone(new Date(), 'Europe/Madrid', 'yyyy-MM-dd')`
+- **Weekend**: `start_date IN (fri, sat, sun)` -- computed client-side
+- **Upcoming 14d**: `start_date >= today AND start_date <= today+14`
+- **Calendar month**: `start_date >= gridStart AND start_date <= gridEnd`
+- **Selected day**: filter from already-fetched month data by `start_date === selectedDate`
 
-- `SYNC_ADMIN_KEY` stays server-side only (edge function env var)
-- Client sends standard JWT via `supabase.functions.invoke()` (automatic)
-- Admin check uses existing `user_roles` table + `has_role` pattern (queried via SERVICE_ROLE)
-- `verify_jwt = true` provides platform-level JWT enforcement
-- No new secrets needed (all exist already)
+---
 
+## Detailed Implementation
+
+### A) sync-sports/index.ts Changes
+
+1. Add 7 new domains to `ALLOWED_DOMAINS`
+2. Add source-specific prompts for all 10 DB slugs:
+   - `malagacf` (exists)
+   - `unicaja` (exists)
+   - `ironman` (exists)
+   - `malagacf-koobin`: "Extract upcoming Malaga CF football match tickets. Include match title, date, time, opponent, price, buy URL."
+   - `entradas-com`: "Extract upcoming sports events in Malaga. Include title, date, time, venue, sport type, teams, ticket URL, price."
+   - `maraton-malaga`: "Extract upcoming marathon and running events in Malaga. Include event title, date, time, start location, registration URL, distance."
+   - `zurich-maraton`: "Extract upcoming Zurich Marathon Malaga race details. Include event title, date, time, start location, distances, registration URL."
+   - `runedia`: "Extract upcoming running races and trail events near Malaga, Andalucia. Include race title, date, location/city, distance, registration URL."
+   - `sportmaniacs`: "Extract upcoming sports and running events near Malaga. Include event title, date, location, sport type, registration URL."
+   - `rfef-tickets`: "Extract upcoming Spanish football federation match tickets. Include match title, date, time, teams, competition, venue, ticket URL."
+
+### B) useSportsEvents.ts (new hook)
+
+Exports:
+- `useSportsEvents({ fromDate?, toDate?, categories?, venueNames?, limit? })` -- main query
+- `useSportsEventsToday()` -- wraps main with today's Madrid date
+- `useSportsEventsWeekend()` -- wraps main with Fri/Sat/Sun dates
+- `useSportsEventsByDay(date)` -- wraps main with single day
+- `useSportsVenues()` -- queries sports_venues table
+
+Maps DB `sports_events` rows to `SportEvent` interface:
+- `id` -> `id`
+- `sport_category` -> `sport`
+- `title` -> `title`
+- `teams` -> `teams`
+- `competition` -> `competition`
+- `start_datetime` -> `start_at`
+- `venue_name` -> `venue`
+- `city` -> `city`
+- `tickets_url` -> `ticketsUrl`
+- `image_url` -> `imageUrl`
+
+### C) SportsContent.tsx
+
+- Remove `MOCK_SPORT_EVENTS` import
+- Import `useSportsEvents` and `useSportsVenues`
+- Compute `fromDate`/`toDate` based on time filter (today/weekend/upcoming)
+- Pass `selectedSport` as `categories` filter and venue selection as `venueNames`
+- Add `SportsVenuesDropdown` to filter area
+- Add loading/error/empty states
+
+### D) SportsVenuesDropdown.tsx (new component)
+
+Mirrors `VenueGroupDropdown.tsx` exactly:
+- Popover with `avoidCollisions={true}`, `collisionPadding={16}`, `sticky="always"`
+- `onOpenAutoFocus` prevented on mobile via `useIsMobile()`
+- Command + CommandList with manual search input (no autoFocus)
+- ScrollArea with `-webkit-overflow-scrolling: touch`, `overscroll-contain`
+- Multi-select checkboxes
+- "Todos los recintos" option at top
+- Props: `selectedVenueNames: string[]`, `onSelectionChange: (names: string[]) => void`
+- Uses `useSportsVenues()` for data
+
+### E) CalendarPage.tsx (sports branch only)
+
+- Replace `import { MOCK_SPORT_EVENTS }` with `useSportsEvents` hook
+- `sportEventsForMonth`: call `useSportsEvents({ fromDate: gridStart, toDate: gridEnd })`
+- `getSportEventsForDay`: filter fetched data by `start_date`
+- `daysWithEvents`: computed from DB data
+- All culture-mode code untouched
+
+### F) VenuesPage.tsx
+
+- Replace `MOCK_SPORT_VENUES` import with `useSportsVenues()` hook
+- Add loading state
+- Keep identical UI, just data source changes
+
+### G) Types cleanup
+
+- `src/types/sports.ts`: Remove `MOCK_SPORT_EVENTS` array (lines 43-144), keep `SportEvent`, `SPORT_CATEGORIES`, `SportCategory`, `SPORT_ICONS`, `SPORT_LABELS`
+- `src/types/venues-sports.ts`: Remove `MOCK_SPORT_VENUES` array (lines 13-24), keep `SportVenue` interface
+
+### H) i18n (all 9 locales)
+
+Add two keys to the `sports` section of each locale:
+- `sports.allVenues` -- "Todos los recintos" (es), "All venues" (en), etc.
+- `sports.loading` -- "Cargando..." (es), "Loading..." (en), etc.
