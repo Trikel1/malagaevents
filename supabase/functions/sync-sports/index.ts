@@ -4,7 +4,7 @@
  * and upserts into sports_events table.
  *
  * Security:
- * - x-admin-key header required (validated against SYNC_ADMIN_KEY secret)
+ * - x-sync-key header required (validated against SYNC_SPORTS_KEY secret)
  * - Hard domain allowlist
  * - All DB writes via SERVICE_ROLE (bypasses RLS)
  */
@@ -18,7 +18,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-admin-key",
+    "authorization, x-client-info, apikey, content-type, x-sync-key",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -33,7 +33,6 @@ const ALLOWED_DOMAINS = new Set([
   "mundodeportivo.com",
   "sportmaniacs.com",
   "rfef.es",
-  // Legacy domains kept for future sources
   "besoccer.com",
   "rfaf.es",
   "rfebm.com",
@@ -95,7 +94,6 @@ const SOURCE_PROMPTS: Record<string, string> = {
     "Extract upcoming sports and running events near Malaga. Include event title, date, location, sport type, registration URL.",
   "rfef-tickets":
     "Extract upcoming Spanish football federation match tickets. Include match title, date, time, teams, competition, venue, ticket URL.",
-  // Legacy prompts
   besoccer:
     "Extract upcoming futsal matches. Include match title, date, time, teams, competition, venue.",
   rfaf:
@@ -114,6 +112,67 @@ const SOURCE_PROMPTS: Record<string, string> = {
 
 const DEFAULT_PROMPT =
   "Extract all upcoming sports events. Include title, date, time, venue, city, teams, competition, sport type, and ticket/registration URL if available.";
+
+// ============================================================================
+// MÁLAGA PROVINCE MUNICIPALITIES (complete whitelist, normalized)
+// ============================================================================
+
+const MALAGA_PROVINCE_MUNICIPALITIES: Set<string> = new Set([
+  "malaga", "marbella", "mijas", "fuengirola", "torremolinos", "benalmadena",
+  "estepona", "velez-malaga", "velez malaga", "rincon de la victoria",
+  "antequera", "ronda", "alhaurin de la torre", "alhaurin el grande",
+  "coin", "cartama", "nerja", "torre del mar", "torrox", "alora",
+  "archidona", "campillos", "manilva", "casares", "ojen", "benahavis",
+  "istan", "tolox", "yunquera", "el burgo", "ardales", "carratraca",
+  "teba", "cuevas de san marcos", "villanueva de algaidas",
+  "villanueva del rosario", "villanueva del trabuco", "villanueva de tapia",
+  "alameda", "humilladero", "mollina", "fuente de piedra",
+  "sierra de yeguas", "cuevas bajas", "algarrobo", "sayalonga",
+  "canillas de aceituno", "canillas de albaida", "sedella", "salares",
+  "archez", "competa", "frigiliana", "cortes de la frontera",
+  "benaojan", "montejaque", "jimera de libar", "atajate", "benadalid",
+  "benalauría", "benalauria", "gaucin", "algatocin", "jubrique",
+  "genalguacil", "parauta", "igualeja", "pujerra", "juzcar",
+  "farajan", "alpandeire", "cartajima", "arriate", "cuevas del becerro",
+  "el gastor", "setenil de las bodegas",
+  "colmenar", "comares", "cutar", "el borge", "benamargosa",
+  "benamocarra", "iznate", "macharaviaya", "moclinejo",
+  "almogía", "almogia", "casabermeja", "villanueva de la concepcion",
+  "villanueva de la concepción",
+  "pizarra", "alozaina", "guaro", "monda", "el chorro",
+  "valle de abdalajis", "bobadilla",
+  "cañete la real", "canete la real", "almargen", "cañete", "canete",
+  "periana", "riogordo", "alfarnate", "alfarnatejo",
+  "totalán", "totalan", "olias",
+  "churriana", "guadalhorce", "teatinos", "campanillas",
+  "puerto de la torre", "el palo", "pedregalejo", "huelin",
+  "la malagueta", "la rosaleda",
+  "torremolinos", "arroyo de la miel",
+  "san pedro de alcantara", "san pedro alcantara", "nueva andalucia",
+  "puerto banus", "las lagunas", "la cala de mijas", "cala de mijas",
+  "calahonda", "riviera del sol", "la cala del moral",
+  "benagalbon", "chilches", "benajarafe", "almayate", "cajiz",
+  "lake district of malaga", "el torcal",
+  "manilva", "sabinillas", "san luis de sabinillas",
+  "cancelada", "bahia de casares",
+  "cártama", "estacion de cartama",
+  "pechina",
+  // Major venue/area tokens
+  "costa del sol", "axarquia", "axarquía", "serranía de ronda", "serrania de ronda",
+  "guadalteba", "nororma", "valle del guadalhorce", "antequera",
+]);
+
+// Sources whose events are guaranteed Málaga-local
+const LOCAL_ONLY_SOURCES = new Set([
+  "maraton-malaga", "zurich-maraton", "atletismo", "triatlon",
+]);
+
+// Home venue tokens for team-based sources (only keep home matches)
+const HOME_VENUE_RULES: Record<string, Set<string>> = {
+  malagacf: new Set(["la rosaleda", "rosaleda", "malaga cf", "estadio la rosaleda"]),
+  "malagacf-koobin": new Set(["la rosaleda", "rosaleda", "malaga cf", "estadio la rosaleda"]),
+  unicaja: new Set(["martin carpena", "martín carpena", "palacio de deportes", "j.m. martin carpena", "carpena"]),
+};
 
 // ============================================================================
 // HELPERS
@@ -146,6 +205,42 @@ function getSourcePrompt(slug: string): string {
   return SOURCE_PROMPTS[slug] || DEFAULT_PROMPT;
 }
 
+/** Check if a city/venue/address is in Málaga province */
+function isInMalagaProvince(
+  city: string,
+  venueName: string,
+  address: string,
+  sourceSlug: string
+): boolean {
+  // Sources guaranteed to be Málaga-local
+  if (LOCAL_ONLY_SOURCES.has(sourceSlug)) return true;
+
+  // Home venue rules for team sources (only home matches)
+  const homeVenues = HOME_VENUE_RULES[sourceSlug];
+  if (homeVenues) {
+    const nVenue = normalizeText(venueName);
+    for (const token of homeVenues) {
+      if (nVenue.includes(token)) return true;
+    }
+    // If it's a team source and venue doesn't match home → away match → discard
+    return false;
+  }
+
+  // General municipality check
+  const textsToCheck = [city, venueName, address].filter(Boolean);
+  for (const text of textsToCheck) {
+    const normalized = normalizeText(text);
+    // Direct municipality match
+    for (const muni of MALAGA_PROVINCE_MUNICIPALITIES) {
+      if (normalized.includes(muni)) return true;
+    }
+    // Check for "malaga" token (covers "Málaga", "Malaga", etc.)
+    if (normalized.includes("malaga")) return true;
+  }
+
+  return false;
+}
+
 /** Derive start_date string (YYYY-MM-DD) in Europe/Madrid timezone */
 function toMadridDate(isoString: string): string {
   try {
@@ -157,7 +252,7 @@ function toMadridDate(isoString: string): string {
       month: "2-digit",
       day: "2-digit",
     });
-    return fmt.format(d); // returns YYYY-MM-DD
+    return fmt.format(d);
   } catch {
     return new Date().toISOString().slice(0, 10);
   }
@@ -167,7 +262,6 @@ function toMadridDate(isoString: string): string {
 function parseEventDate(dateStr: string, timeStr?: string): string | null {
   if (!dateStr) return null;
 
-  // Try ISO format first
   const isoMatch = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
     const time = timeStr?.match(/(\d{2}):(\d{2})/);
@@ -176,7 +270,6 @@ function parseEventDate(dateStr: string, timeStr?: string): string | null {
     return `${isoMatch[0]}T${hour}:${min}:00+01:00`;
   }
 
-  // Try dd/mm/yyyy or dd-mm-yyyy
   const euroMatch = dateStr.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
   if (euroMatch) {
     const day = euroMatch[1].padStart(2, "0");
@@ -201,12 +294,8 @@ async function generateDedupeKey(
   stableRef: string
 ): Promise<string> {
   const input = [
-    normalizedTitle,
-    normalizedVenue,
-    startDatetime,
-    sportCategory,
-    domain,
-    stableRef,
+    normalizedTitle, normalizedVenue, startDatetime,
+    sportCategory, domain, stableRef,
   ].join("|");
 
   const data = new TextEncoder().encode(input);
@@ -254,7 +343,7 @@ function sanitizeUrl(url: string | null | undefined): string {
 }
 
 // ============================================================================
-// FIRECRAWL SCRAPING (same pattern as sync-events)
+// FIRECRAWL SCRAPING
 // ============================================================================
 
 async function scrapeSource(
@@ -326,16 +415,11 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Auth: x-admin-key (admin proxy) OR Authorization Bearer anon key (pg_cron)
-  const adminKey = req.headers.get("x-admin-key");
-  const authBearer = req.headers.get("Authorization")?.replace("Bearer ", "");
-  const expectedKey = Deno.env.get("SYNC_ADMIN_KEY");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  // Auth: ONLY x-sync-key header (used by cron AND admin-sync-sports)
+  const syncKey = req.headers.get("x-sync-key");
+  const expectedKey = Deno.env.get("SYNC_SPORTS_KEY");
 
-  const isAdminKeyAuth = !!(expectedKey && adminKey === expectedKey);
-  const isCronAuth = !!(anonKey && authBearer === anonKey);
-
-  if (!isAdminKeyAuth && !isCronAuth) {
+  if (!expectedKey || syncKey !== expectedKey) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
@@ -356,12 +440,6 @@ Deno.serve(async (req) => {
     body = await req.json();
   } catch {
     // empty body is fine — sync all
-  }
-
-  // Cron auth: enforce cooldown, prevent force-bypass
-  if (isCronAuth) {
-    body.force = false;
-    body.cooldownMinutes = Math.max(body.cooldownMinutes ?? COOLDOWN_MINUTES, COOLDOWN_MINUTES);
   }
 
   const cooldownMin = body.cooldownMinutes ?? COOLDOWN_MINUTES;
@@ -396,6 +474,7 @@ Deno.serve(async (req) => {
     fetched: number;
     upserted: number;
     failed: number;
+    skippedProvince: number;
     error?: string;
   }> = [];
 
@@ -405,9 +484,7 @@ Deno.serve(async (req) => {
       results.push({
         slug: source.slug,
         status: "skipped",
-        fetched: 0,
-        upserted: 0,
-        failed: 0,
+        fetched: 0, upserted: 0, failed: 0, skippedProvince: 0,
         error: "Domain not in allowlist",
       });
       continue;
@@ -421,9 +498,7 @@ Deno.serve(async (req) => {
         results.push({
           slug: source.slug,
           status: "cooldown",
-          fetched: 0,
-          upserted: 0,
-          failed: 0,
+          fetched: 0, upserted: 0, failed: 0, skippedProvince: 0,
           error: `Synced ${Math.round((Date.now() - lastSync) / 60000)}min ago`,
         });
         continue;
@@ -469,9 +544,7 @@ Deno.serve(async (req) => {
       results.push({
         slug: source.slug,
         status: "error",
-        fetched: 0,
-        upserted: 0,
-        failed: 0,
+        fetched: 0, upserted: 0, failed: 0, skippedProvince: 0,
         error: scrapeResult.error,
       });
       continue;
@@ -486,9 +559,9 @@ Deno.serve(async (req) => {
 
     let upserted = 0;
     let failed = 0;
+    let skippedProvince = 0;
     const domain = new URL(source.url).hostname;
 
-    // Batch upsert
     const BATCH_SIZE = 50;
     const rows: any[] = [];
 
@@ -504,16 +577,21 @@ Deno.serve(async (req) => {
         const venue = sanitizeText(evt.venue) || source.name;
         const normalizedVenue = normalizeText(venue);
         const city = sanitizeText(evt.city) || "Málaga";
+        const address = sanitizeText(evt.address || "");
         const sportCategory = mapSportCategory(evt.sport || source.sport_category);
         const stableRef = evt.tickets_url || evt.title || "";
 
+        // Málaga province filter
+        const inMalaga = isInMalagaProvince(city, venue, address, source.slug);
+        if (!inMalaga) {
+          skippedProvince++;
+          console.log(`[sync-sports] Skipped (not Málaga): "${title}" venue="${venue}" city="${city}"`);
+          continue;
+        }
+
         const dedupeKey = await generateDedupeKey(
-          normalizedTitle,
-          normalizedVenue,
-          startDatetime,
-          sportCategory,
-          domain,
-          stableRef
+          normalizedTitle, normalizedVenue, startDatetime,
+          sportCategory, domain, stableRef
         );
 
         const startDate = toMadridDate(startDatetime);
@@ -536,6 +614,7 @@ Deno.serve(async (req) => {
           source_id: source.id,
           source_url: source.url,
           status: "scheduled",
+          is_in_malaga_province: true,
         });
       } catch (e) {
         failed++;
@@ -546,7 +625,7 @@ Deno.serve(async (req) => {
     // Upsert in batches
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
       const batch = rows.slice(i, i + BATCH_SIZE);
-      const { error: upsertError, count } = await supabase
+      const { error: upsertError } = await supabase
         .from("sports_events")
         .upsert(batch, { onConflict: "dedupe_key", ignoreDuplicates: false })
         .select("id");
@@ -591,6 +670,7 @@ Deno.serve(async (req) => {
       fetched: rawEvents.length,
       upserted,
       failed,
+      skippedProvince,
     });
 
     // Delay between sources

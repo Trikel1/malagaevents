@@ -24,10 +24,10 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const syncAdminKey = Deno.env.get("SYNC_ADMIN_KEY");
+    const syncKey = Deno.env.get("SYNC_SPORTS_KEY");
 
-    if (!syncAdminKey) {
-      console.error("SYNC_ADMIN_KEY not configured");
+    if (!syncKey) {
+      console.error("SYNC_SPORTS_KEY not configured");
       return new Response(
         JSON.stringify({ error: "Server misconfiguration" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-key": syncAdminKey,
+        "x-sync-key": syncKey,
       },
       body: JSON.stringify({
         force: body.force ?? true,

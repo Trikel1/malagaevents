@@ -564,6 +564,7 @@ export type Database = {
           external_id: string | null
           id: string
           image_url: string | null
+          is_in_malaga_province: boolean
           normalized_title: string | null
           normalized_venue: string | null
           price_info: string | null
@@ -589,6 +590,7 @@ export type Database = {
           external_id?: string | null
           id?: string
           image_url?: string | null
+          is_in_malaga_province?: boolean
           normalized_title?: string | null
           normalized_venue?: string | null
           price_info?: string | null
@@ -614,6 +616,7 @@ export type Database = {
           external_id?: string | null
           id?: string
           image_url?: string | null
+          is_in_malaga_province?: boolean
           normalized_title?: string | null
           normalized_venue?: string | null
           price_info?: string | null

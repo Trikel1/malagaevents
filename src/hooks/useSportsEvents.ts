@@ -76,6 +76,7 @@ async function fetchSportsEvents(filters: SportsEventsFilters): Promise<SportEve
     .from('sports_events')
     .select('id, title, sport_category, teams, competition, start_datetime, start_date, venue_name, city, tickets_url, image_url')
     .eq('status', 'scheduled')
+    .eq('is_in_malaga_province', true)
     .order('start_datetime', { ascending: true });
 
   if (filters.fromDate) {
