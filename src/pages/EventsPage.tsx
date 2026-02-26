@@ -14,9 +14,22 @@ import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEventsOptimized } from '@/hooks/useEventsOptimized';
 import { useFavorites, useToggleFavorite, useFavoriteEvents } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useAppMode } from '@/contexts/AppModeContext';
+import SportsEventsPage from '@/components/sports/SportsEventsPage';
 import type { EventCategory } from '@/types';
 
 const EventsPage = () => {
+  const { appMode } = useAppMode();
+
+  // Sports mode: render entirely different page
+  if (appMode === 'deportes') {
+    return <SportsEventsPage />;
+  }
+
+  return <CultureEventsPage />;
+};
+
+const CultureEventsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();

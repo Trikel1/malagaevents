@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -71,6 +71,20 @@ import {
 } from '@/hooks/useAdmin';
 import { EVENT_CATEGORIES } from '@/types';
 import CategoryChip from '@/components/events/CategoryChip';
+
+// Small inline component to show sports_events count
+const SportsEventCount = () => {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    supabase.from('sports_events').select('*', { head: true, count: 'exact' })
+      .then(({ count: c }) => setCount(c ?? 0));
+  }, []);
+  return (
+    <Badge variant="secondary" className="text-xs">
+      {count !== null ? `${count} eventos deportivos` : '…'}
+    </Badge>
+  );
+};
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -503,14 +517,17 @@ const AdminPage = () => {
 
           {/* Deportes Tab */}
           <TabsContent value="deportes" className="space-y-4">
-            <Button onClick={handleSportsSync} disabled={sportsSyncing}>
-              {sportsSyncing ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              Sync Deportes ahora
-            </Button>
+            <div className="flex gap-2 items-center">
+              <Button onClick={handleSportsSync} disabled={sportsSyncing}>
+                {sportsSyncing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4 mr-2" />
+                )}
+                Sync Deportes ahora
+              </Button>
+              <SportsEventCount />
+            </div>
 
             <Card>
               <CardHeader className="pb-2">
