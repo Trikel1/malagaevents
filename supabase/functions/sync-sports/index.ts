@@ -1,7 +1,7 @@
 /**
  * sync-sports Edge Function
- * Scrapes sports event data from approved sources using Firecrawl v1/scrape
- * and upserts into sports_events table.
+ * Scrapes sports event data from approved sources using Jina Reader + AI extraction (primary)
+ * with Firecrawl v1/scrape as fallback, and upserts into sports_events table.
  *
  * Security:
  * - x-sync-key header required (validated against SYNC_SPORTS_KEY secret)
@@ -363,10 +363,149 @@ function sanitizeUrl(url: string | null | undefined): string {
 }
 
 // ============================================================================
-// FIRECRAWL SCRAPING & SEARCH
+// JINA READER + AI EXTRACTION (Primary) & FIRECRAWL (Fallback)
 // ============================================================================
 
-async function scrapeSource(
+/** Step 1: Fetch page content as markdown via Jina Reader (handles JS-heavy SPAs) */
+async function fetchWithJina(
+  url: string,
+  signal: AbortSignal
+): Promise<{ success: boolean; content?: string; error?: string }> {
+  try {
+    const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
+    console.log(`[sync-sports] Jina Reader: fetching ${url}`);
+
+    const response = await fetch(jinaUrl, {
+      headers: { Accept: "application/json" },
+      signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { success: false, error: `Jina HTTP ${response.status}: ${errorText.substring(0, 200)}` };
+    }
+
+    const result = await response.json();
+    const content = result?.content || result?.data?.content || "";
+    if (!content || content.length < 50) {
+      return { success: false, error: "Jina returned empty/short content" };
+    }
+
+    console.log(`[sync-sports] Jina Reader: got ${content.length} chars`);
+    return { success: true, content };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return { success: false, error: "Jina timeout" };
+    }
+    return { success: false, error: `Jina error: ${error instanceof Error ? error.message : String(error)}` };
+  }
+}
+
+/** Step 2: Extract structured events from markdown using Lovable AI Gateway */
+async function extractEventsWithAI(
+  markdown: string,
+  prompt: string,
+  lovableApiKey: string,
+  signal: AbortSignal
+): Promise<{ success: boolean; events?: any[]; error?: string }> {
+  try {
+    console.log(`[sync-sports] AI extraction: sending ${Math.min(markdown.length, 30000)} chars`);
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: "You are a sports event data extractor. Extract structured sports event data from webpage content. Only extract real events with specific dates. Current date: " + new Date().toISOString().slice(0, 10),
+          },
+          {
+            role: "user",
+            content: `${prompt}\n\nWebpage content:\n${markdown.substring(0, 30000)}`,
+          },
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "extract_events",
+              description: "Extract sports events from the webpage content",
+              parameters: SPORT_EVENT_SCHEMA,
+            },
+          },
+        ],
+        tool_choice: { type: "function", function: { name: "extract_events" } },
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { success: false, error: `AI Gateway HTTP ${response.status}: ${errorText.substring(0, 200)}` };
+    }
+
+    const result = await response.json();
+
+    // Extract events from tool call response
+    const toolCall = result?.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall?.function?.arguments) {
+      return { success: false, error: "AI returned no tool call" };
+    }
+
+    let parsed: any;
+    try {
+      parsed = typeof toolCall.function.arguments === "string"
+        ? JSON.parse(toolCall.function.arguments)
+        : toolCall.function.arguments;
+    } catch {
+      return { success: false, error: "Failed to parse AI tool call arguments" };
+    }
+
+    const events = parsed?.events || [];
+    console.log(`[sync-sports] AI extraction: got ${events.length} events`);
+    return { success: true, events };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return { success: false, error: "AI extraction timeout" };
+    }
+    return { success: false, error: `AI error: ${error instanceof Error ? error.message : String(error)}` };
+  }
+}
+
+/** Primary pipeline: Jina Reader + AI extraction */
+async function scrapeWithJinaAndAI(
+  url: string,
+  prompt: string,
+  lovableApiKey: string
+): Promise<{ success: boolean; events?: any[]; error?: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s total
+
+  try {
+    // Step 1: Fetch with Jina
+    const jinaResult = await fetchWithJina(url, controller.signal);
+    if (!jinaResult.success || !jinaResult.content) {
+      clearTimeout(timeoutId);
+      return { success: false, error: jinaResult.error };
+    }
+
+    // Step 2: Extract with AI
+    const aiResult = await extractEventsWithAI(jinaResult.content, prompt, lovableApiKey, controller.signal);
+    clearTimeout(timeoutId);
+    return aiResult;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/** Fallback: Firecrawl scraping (used when Jina+AI fails and FIRECRAWL_API_KEY is available) */
+async function scrapeSourceFirecrawl(
   url: string,
   prompt: string,
   apiKey: string
@@ -399,22 +538,16 @@ async function scrapeSource(
 
     if (!response.ok) {
       const errorText = await response.text();
-      return {
-        success: false,
-        error: `HTTP ${response.status}: ${errorText.substring(0, 200)}`,
-      };
+      return { success: false, error: `Firecrawl HTTP ${response.status}: ${errorText.substring(0, 200)}` };
     }
 
     const result = await response.json();
     return { success: true, data: result };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      return { success: false, error: "Request timeout (45s)" };
+      return { success: false, error: "Firecrawl timeout (45s)" };
     }
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-    };
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -507,10 +640,12 @@ Deno.serve(async (req) => {
     );
   }
 
-  const firecrawlApiKey = Deno.env.get("FIRECRAWL_API_KEY");
-  if (!firecrawlApiKey) {
+  const firecrawlApiKey = Deno.env.get("FIRECRAWL_API_KEY") || "";
+  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY") || "";
+
+  if (!lovableApiKey && !firecrawlApiKey) {
     return new Response(
-      JSON.stringify({ error: "FIRECRAWL_API_KEY not configured" }),
+      JSON.stringify({ error: "Neither LOVABLE_API_KEY nor FIRECRAWL_API_KEY configured" }),
       { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
   }
@@ -598,10 +733,45 @@ Deno.serve(async (req) => {
 
     console.log(`[sync-sports] Scraping ${source.slug}: ${source.url}`);
 
-    const scrapeResult = await scrapeSource(source.url, prompt, firecrawlApiKey);
+    // Primary: Jina Reader + AI extraction
+    let rawEvents: any[] = [];
+    let scrapeError: string | undefined;
 
-    if (!scrapeResult.success) {
-      console.error(`[sync-sports] Scrape failed for ${source.slug}: ${scrapeResult.error}`);
+    if (lovableApiKey) {
+      console.log(`[sync-sports] Trying Jina+AI pipeline for ${source.slug}`);
+      const jinaResult = await scrapeWithJinaAndAI(source.url, prompt, lovableApiKey);
+      if (jinaResult.success && jinaResult.events?.length) {
+        rawEvents = jinaResult.events;
+        console.log(`[sync-sports] Jina+AI success for ${source.slug}: ${rawEvents.length} events`);
+      } else {
+        console.warn(`[sync-sports] Jina+AI failed for ${source.slug}: ${jinaResult.error}`);
+        scrapeError = jinaResult.error;
+      }
+    }
+
+    // Fallback: Firecrawl (if Jina+AI failed or returned no events)
+    if (rawEvents.length === 0 && firecrawlApiKey) {
+      console.log(`[sync-sports] Falling back to Firecrawl for ${source.slug}`);
+      const fcResult = await scrapeSourceFirecrawl(source.url, prompt, firecrawlApiKey);
+      if (fcResult.success) {
+        rawEvents =
+          fcResult.data?.data?.json?.events ||
+          fcResult.data?.data?.events ||
+          fcResult.data?.json?.events ||
+          [];
+        if (rawEvents.length > 0) {
+          scrapeError = undefined;
+          console.log(`[sync-sports] Firecrawl success for ${source.slug}: ${rawEvents.length} events`);
+        }
+      } else {
+        console.warn(`[sync-sports] Firecrawl also failed for ${source.slug}: ${fcResult.error}`);
+        scrapeError = `Jina: ${scrapeError || "skipped"} | Firecrawl: ${fcResult.error}`;
+      }
+    }
+
+    // Both failed
+    if (rawEvents.length === 0 && scrapeError) {
+      console.error(`[sync-sports] All methods failed for ${source.slug}: ${scrapeError}`);
 
       if (runId) {
         await supabase
@@ -609,7 +779,7 @@ Deno.serve(async (req) => {
           .update({
             status: "error",
             finished_at: new Date().toISOString(),
-            error_sample: scrapeResult.error?.substring(0, 500),
+            error_sample: scrapeError?.substring(0, 500),
           })
           .eq("id", runId);
       }
@@ -617,7 +787,7 @@ Deno.serve(async (req) => {
       await supabase
         .from("sports_sources")
         .update({
-          last_error: scrapeResult.error?.substring(0, 500),
+          last_error: scrapeError?.substring(0, 500),
           last_sync_at: new Date().toISOString(),
         })
         .eq("id", source.id);
@@ -626,22 +796,12 @@ Deno.serve(async (req) => {
         slug: source.slug,
         status: "error",
         fetched: 0, upserted: 0, failed: 0, skippedProvince: 0,
-        error: scrapeResult.error,
+        error: scrapeError,
       });
       continue;
     }
 
-    // Extract events from response
-    const rawEvents =
-      scrapeResult.data?.data?.json?.events ||
-      scrapeResult.data?.data?.events ||
-      scrapeResult.data?.json?.events ||
-      [];
-
-    // Log extraction details for debugging
-    const hasMarkdown = !!(scrapeResult.data?.data?.markdown || scrapeResult.data?.markdown);
-    const markdownLength = (scrapeResult.data?.data?.markdown || scrapeResult.data?.markdown || "").length;
-    console.log(`[sync-sports] ${source.slug}: extracted ${rawEvents.length} events from JSON, markdown=${hasMarkdown} (${markdownLength} chars)`);
+    console.log(`[sync-sports] ${source.slug}: processing ${rawEvents.length} events`);
 
     let upserted = 0;
     let failed = 0;
@@ -770,7 +930,7 @@ Deno.serve(async (req) => {
   // ========================================================================
   // When searchOnly=true, skip scraping and only do search.
   // Otherwise, search runs after scraping when no slug filter is set.
-  const shouldSearch = body.searchOnly || (!body.slug);
+  const shouldSearch = (body.searchOnly || (!body.slug)) && firecrawlApiKey;
   
   if (shouldSearch) {
     console.log(`[sync-sports] Starting search-based discovery (${SEARCH_QUERIES.length} queries)...`);
