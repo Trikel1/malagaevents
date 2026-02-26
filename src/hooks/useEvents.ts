@@ -312,7 +312,14 @@ export const useCalendarOccurrences = (dateFrom: Date, dateTo: Date) => {
   const { data: occurrences, ...rest } = useEventOccurrences(dateFrom, dateTo);
 
   const groupedByDate = (occurrences || []).reduce((acc, occ) => {
-    const dateKey = new Date(occ.start_datetime).toISOString().split('T')[0];
+    const occDate = new Date(occ.start_datetime);
+    // Use Europe/Madrid timezone for correct day grouping
+    const dateKey = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Madrid',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(occDate);
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }

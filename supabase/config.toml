@@ -15,14 +15,8 @@ verify_jwt = false
 [functions.scrape-pharmacies]
 verify_jwt = false
 
-[functions.submit-event]
+[functions.sync-sports]
 verify_jwt = false
 
-[functions.scrape-events]
-verify_jwt = false
-
-[functions.scrape-pharmacies]
-verify_jwt = false
-
-[functions.sync-events]
+[functions.admin-sync-sports]
 verify_jwt = false

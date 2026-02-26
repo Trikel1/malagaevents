@@ -318,10 +318,7 @@ const CalendarPage = () => {
 
                 {/* Days */}
                 <div className="grid grid-cols-7 gap-1">
-                  {emptyDays.map((_, i) => (
-                    <div key={`empty-${i}`} className="aspect-square" />
-                  ))}
-                  {monthDays.map((day) => {
+                  {allGridDays.map((day) => {
                     const dateKey = format(day, 'yyyy-MM-dd');
                     const eventCount = daysWithEvents.get(dateKey) || 0;
                     const isSelected = selectedDate && isSameDay(day, selectedDate);
