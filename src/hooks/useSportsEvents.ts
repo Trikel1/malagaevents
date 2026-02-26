@@ -67,6 +67,7 @@ export interface SportsEventsFilters {
   toDate?: string;   // YYYY-MM-DD
   categories?: string[];
   venueNames?: string[];
+  q?: string;
   limit?: number;
 }
 
@@ -88,6 +89,9 @@ async function fetchSportsEvents(filters: SportsEventsFilters): Promise<SportEve
   }
   if (filters.venueNames?.length) {
     query = query.in('venue_name', filters.venueNames);
+  }
+  if (filters.q) {
+    query = query.or(`title.ilike.%${filters.q}%,venue_name.ilike.%${filters.q}%`);
   }
   if (filters.limit) {
     query = query.limit(filters.limit);
