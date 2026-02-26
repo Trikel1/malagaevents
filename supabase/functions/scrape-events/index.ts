@@ -255,14 +255,24 @@ function cleanTitle(title: string): string {
 function isValidEventTitle(title: string): boolean {
   if (!title || title.length < 4 || title.length > 200) return false;
   
+  // Reject titles containing URLs (bad parsing artifact)
+  if (/\(https?:\/\//.test(title) || /^https?:\/\//.test(title)) return false;
+  
+  // Reject cookie/legal/navigation junk anywhere in title
+  if (/uso de cookies|aviso legal|política de privacidad|cookie policy|privacy policy/i.test(title)) return false;
+  
   const invalidPatterns = [
-    /^(menu|inicio|home|contacto|about|cookies|privacidad|legal|newsletter)/i,
+    /^(menu|menú|inicio|home|contacto|about|cookies|privacidad|legal|newsletter)/i,
     /^(ver más|leer más|read more|see more|siguiente|anterior)/i,
     /^(aceptar|rechazar|cerrar|close|accept|reject)/i,
     /^(agenda|programación|programa|calendar|eventos)$/i,
     /^(facebook|twitter|instagram|youtube|linkedin)/i,
+    /^(suscríbete|subscribe|sign up|registr)/i,
+    /^(navigation|nav|sidebar|footer|header|breadcrumb)/i,
+    /^\(\!\)/,
     /^\d+$/,
     /^[^a-záéíóúñ]+$/i,
+    /^(nombre del evento|event title|evento ejemplo|evento \d)/i,
   ];
   
   for (const pattern of invalidPatterns) {
