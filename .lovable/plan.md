@@ -1,102 +1,150 @@
 
 
-# Plan: Internacionalizar la seccion Deportes + Recintos (i18n)
+# Plan: Sports Mode Database + Scraping Pipeline + Frontend Integration
 
-## Diagnostico
+## Files to Create/Edit
 
-Tras revisar todo el codigo, **las secciones A-G del prompt ya estan implementadas correctamente**:
+**New files:**
+- `supabase/functions/sync-sports/index.ts` -- Edge function for scraping sports events
+- `src/hooks/useSportsEvents.ts` -- React Query hooks for sports data
 
-- **A) Scroll iOS**: CSS global con `-webkit-overflow-scrolling: touch` ya aplicado
-- **B) Detalle sin "..."**: `break-words` + `overflowWrap: 'anywhere'` ya en EventDetailPage
-- **C) Inicio 2 columnas**: Grid `grid-cols-2` con cards `dense` ya funciona
-- **D) Eventos listado denso**: Grid 2 columnas con `dense` ya implementado
-- **E) Calendario lista**: Filtra por `selectedDate` con empty state correcto
-- **F) Favoritos**: `useFavoriteEvents` filtra correctamente por usuario
-- **G) Switch Eventos/Deportes**: `AppModeContext` global, tema CSS, BottomNav adaptativo, SportsContent con filtros, VenuesPage -- todo implementado
+**Database migration (via migration tool):**
+- Create tables: `sports_sources`, `sports_events`, `sports_venues`, `sports_sync_runs`
+- Add indexes, RLS policies, and seed data
 
-**El unico gap real es la seccion H: i18n.** Hay strings hardcodeadas en espanol en los componentes de Deportes y Recintos que no usan el sistema de traduccion.
+**Seed data (via insert tool):**
+- 10 sports_sources rows (one per URL)
+- ~10 sports_venues rows (Malaga core venues)
 
----
+**Edited files:**
+- `src/types/sports.ts` -- Add `running`, `triathlon`, `federation` categories + icons
+- `src/components/sports/SportsContent.tsx` -- Use DB data instead of mocks
+- `src/components/sports/SportEventCard.tsx` -- Accept DB event shape
+- `src/pages/CalendarPage.tsx` -- Sports branch uses DB data
+- `src/pages/VenuesPage.tsx` -- Use DB venues
+- 9x `src/i18n/locales/*.json` -- Add running/triathlon/federation keys
 
-## Cambios necesarios
+## How Culture Mode is Protected
 
-### 1) Anadir claves i18n a los 9 ficheros de idioma
+- Zero changes to `EventsPage.tsx`, `useEvents.ts`, `useEventsOptimized.ts`, `sync-events/`, or any cultural event tables/queries
+- CalendarPage edits are scoped exclusively to the `appMode === 'deportes'` branches
+- New tables (`sports_*`) are completely separate from `events`, `venues`, `locations`
 
-Anadir las siguientes claves a **todos** los locale files (`es.json`, `en.json`, `de.json`, `fr.json`, `it.json`, `pt.json`, `ja.json`, `zh.json`, `ru.json`):
+## Security Choice for sync-sports
 
-```json
-"nav": {
-  "venues": "Recintos"
-},
-"sports": {
-  "title": "Deportes",
-  "events": "Eventos",
-  "today": "Hoy",
-  "thisWeekend": "Este finde",
-  "upcoming": "Proximos 14d",
-  "all": "Todos",
-  "noEvents": "No hay eventos deportivos para este filtro",
-  "futbol": "Futbol",
-  "baloncesto": "Baloncesto",
-  "futsal": "Futsal",
-  "balonmano": "Balonmano",
-  "atletismo": "Atletismo",
-  "motor": "Motor",
-  "tenis": "Tenis",
-  "otros": "Otros",
-  "tickets": "Entradas",
-  "info": "Info",
-  "viewOnMap": "Ver en mapa",
-  "searchVenues": "Buscar recintos...",
-  "allSports": "Todos",
-  "venuesTitle": "Recintos deportivos",
-  "noVenues": "No se encontraron recintos"
-}
-```
+Using `verify_jwt = false` with a custom `x-admin-key` header checked against `SYNC_ADMIN_KEY` secret. This allows cron jobs to call it without a JWT while still preventing public access.
 
-Cada idioma tendra su traduccion correspondiente.
+**Domain allowlist** (hardcoded in function):
+`malagacf.com`, `koobin.com`, `unicajabaloncesto.com`, `entradas.com`, `ironman.com`, `maratonmalaga.com`, `zurichmaratonmalaga.es`, `runedia.mundodeportivo.com`, `sportmaniacs.com`, `tickets.rfef.es`
 
-### 2) Actualizar componentes para usar `t()`
+## Database Schema
 
-**Archivos a modificar:**
+### sports_sources
+| Column | Type | Default |
+|--------|------|---------|
+| id | uuid PK | gen_random_uuid() |
+| name | text NOT NULL | |
+| slug | text UNIQUE NOT NULL | |
+| url | text NOT NULL | |
+| sport_category | text NOT NULL | 'other' |
+| is_active | boolean | true |
+| last_sync_at | timestamptz | null |
+| last_error | text | null |
+| items_fetched | int | 0 |
+| items_upserted | int | 0 |
+| created_at | timestamptz | now() |
 
-| Archivo | Strings hardcodeadas a reemplazar |
-|---------|----------------------------------|
-| `src/components/layout/BottomNav.tsx` | `'Recintos'` en linea 21 |
-| `src/components/sports/SportsContent.tsx` | Labels de filtros (`'Hoy'`, `'Este finde'`, `'Proximos 14d'`), `'Todos'`, texto empty state |
-| `src/components/sports/SportEventCard.tsx` | `'Entradas'`, `'Info'` |
-| `src/pages/VenuesPage.tsx` | `'Recintos deportivos'`, `'Buscar recintos...'`, `'Todos'`, `'Ver en mapa'`, `'No se encontraron recintos'` |
-| `src/pages/Index.tsx` | `'Eventos'`, `'Deportes'` en el segmented control |
+RLS: Public SELECT, Admin ALL.
 
-**Cambio tipo (ejemplo BottomNav):**
-```typescript
-// Antes:
-base.push({ to: '/venues', icon: Building2, label: 'Recintos' });
-// Despues:
-base.push({ to: '/venues', icon: Building2, label: t('nav.venues') });
-```
+### sports_events
+| Column | Type | Default |
+|--------|------|---------|
+| id | uuid PK | gen_random_uuid() |
+| title | text NOT NULL | |
+| sport_category | text NOT NULL | |
+| competition | text | null |
+| teams | text | null |
+| start_datetime | timestamptz NOT NULL | |
+| end_datetime | timestamptz | null |
+| venue_name | text | |
+| city | text | 'Malaga' |
+| address | text | null |
+| price_info | text | null |
+| tickets_url | text | null |
+| image_url | text | null |
+| source_id | uuid FK | |
+| source_url | text | null |
+| external_id | text | null |
+| dedupe_key | text UNIQUE | |
+| status | text | 'scheduled' |
+| created_at | timestamptz | now() |
+| updated_at | timestamptz | now() |
 
----
+Indexes: `(start_datetime)`, `(sport_category, start_datetime)`
+RLS: Public SELECT, Admin ALL.
 
-## Archivos tocados
+### sports_venues
+| Column | Type | Default |
+|--------|------|---------|
+| id | uuid PK | gen_random_uuid() |
+| name | text NOT NULL | |
+| normalized_name | text | |
+| sports | text[] | '{}' |
+| city | text | 'Malaga' |
+| address | text | null |
+| lat | numeric | null |
+| lng | numeric | null |
+| created_at | timestamptz | now() |
 
-- `src/i18n/locales/es.json` -- nuevas claves sports/nav.venues
-- `src/i18n/locales/en.json` -- idem (ingles)
-- `src/i18n/locales/de.json` -- idem (aleman)
-- `src/i18n/locales/fr.json` -- idem (frances)
-- `src/i18n/locales/it.json` -- idem (italiano)
-- `src/i18n/locales/pt.json` -- idem (portugues)
-- `src/i18n/locales/ja.json` -- idem (japones)
-- `src/i18n/locales/zh.json` -- idem (chino)
-- `src/i18n/locales/ru.json` -- idem (ruso)
-- `src/components/layout/BottomNav.tsx` -- usar t()
-- `src/components/sports/SportsContent.tsx` -- usar t()
-- `src/components/sports/SportEventCard.tsx` -- usar t()
-- `src/pages/VenuesPage.tsx` -- usar t()
-- `src/pages/Index.tsx` -- usar t() para labels del switch
+RLS: Public SELECT, Admin ALL.
 
-## Confirmaciones
+### sports_sync_runs
+| Column | Type | Default |
+|--------|------|---------|
+| id | uuid PK | gen_random_uuid() |
+| source_slug | text NOT NULL | |
+| status | text | 'running' |
+| started_at | timestamptz | now() |
+| finished_at | timestamptz | null |
+| items_fetched | int | 0 |
+| items_parsed | int | 0 |
+| items_upserted | int | 0 |
+| items_failed | int | 0 |
+| error_sample | text | null |
 
-- **NO se modifica el header/filtros/desplegables/buscar de la seccion Eventos culturales.**
-- Todo lo demas (A-G) ya esta implementado y funcionando.
-- Este cambio solo anade traduccion a strings que estaban hardcodeadas en espanol.
+RLS: Admin-only SELECT + ALL.
+
+## Edge Function: sync-sports
+
+- CORS headers + OPTIONS handling
+- Validates `x-admin-key` header against `SYNC_ADMIN_KEY` env var (returns 401 otherwise)
+- Rate limits by IP (in-memory)
+- Iterates active `sports_sources`
+- For each source: scrapes via Firecrawl with JSON extraction schema for sport events
+- Generates dedupe_key = hash of `title + start_datetime + venue_name + sport_category + source_url`
+- Upserts into `sports_events` on conflict(dedupe_key)
+- Logs run in `sports_sync_runs`, updates `sports_sources.last_sync_at`
+- Domain allowlist prevents scraping non-approved URLs
+
+## Frontend Hook: useSportsEvents
+
+- `useSportsEvents(filters)` -- fetches from `sports_events` with optional sport_category, date range
+- `useSportsVenues()` -- fetches from `sports_venues`
+- Returns loading/error/data states
+- Uses React Query with appropriate cache times
+
+## i18n Additions (all 9 locales)
+
+Add 3 new keys under `sports`: `running`, `triathlon`, `federation` with translations per language.
+
+## Implementation Order
+
+1. Database migration (create 4 tables + indexes + RLS)
+2. Seed data (sources + venues)
+3. Request SYNC_ADMIN_KEY secret
+4. Create sync-sports edge function
+5. Create useSportsEvents hook
+6. Update sports.ts types
+7. Update SportsContent, CalendarPage (sports branch), VenuesPage
+8. Update 9 locale files
+
