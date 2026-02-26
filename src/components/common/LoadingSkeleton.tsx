@@ -29,13 +29,12 @@ export const EventListSkeleton = forwardRef<HTMLDivElement, { count?: number; co
 );
 EventListSkeleton.displayName = 'EventListSkeleton';
 
-export const PharmacyCardSkeleton = forwardRef<HTMLDivElement>((_, ref) => (
-  <Card ref={ref}>
+export const PharmacyCardSkeleton = ({ className }: { className?: string } = {}) => (
+  <Card className={className}>
     <CardContent className="p-4 space-y-2">
       <Skeleton className="h-5 w-3/4" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-1/3" />
     </CardContent>
   </Card>
-));
-PharmacyCardSkeleton.displayName = 'PharmacyCardSkeleton';
+);

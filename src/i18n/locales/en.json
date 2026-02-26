@@ -68,7 +68,8 @@
     "clearFilters": "Clear filters",
     "applyFilters": "Apply",
     "noEvents": "No events",
-    "noEventsDesc": "Try changing the filters",
+    "noEventsDesc": "No upcoming events found",
+    "noEventsFiltered": "No events match the selected filters. Try clearing filters or changing the date.",
     "similarEvents": "Similar events",
     "moreFilters": "More filters",
     "venues": "Venues",
@@ -110,8 +111,9 @@
     "selectDate": "Select date",
     "call": "Call",
     "directions": "Directions",
-    "noPharmacies": "No pharmacies found",
-    "noPharmaciesDesc": "No pharmacies available",
+    "noPharmacies": "No data available",
+    "noPharmaciesDesc": "No on-duty pharmacies found for this date.",
+    "directoryEmpty": "The pharmacy directory has not been loaded yet. Please try again later.",
     "onDuty": "On duty",
     "all": "All",
     "dutyCount": "{{count}} pharmacies on duty",
@@ -211,7 +213,9 @@
     "passwordTooShort": "Password must be at least 6 characters",
     "passwordsDontMatch": "Passwords don't match",
     "emailInUse": "This email is already registered",
-    "invalidCredentials": "Invalid credentials"
+    "invalidCredentials": "Invalid credentials",
+    "loadFailed": "Failed to load",
+    "loadFailedDesc": "Could not load the data. Check your connection and try again."
   },
   "map": {
     "eventsOnMap": "events on the map",
