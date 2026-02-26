@@ -553,6 +553,200 @@ export type Database = {
         }
         Relationships: []
       }
+      sports_events: {
+        Row: {
+          address: string | null
+          city: string
+          competition: string | null
+          created_at: string
+          dedupe_key: string
+          end_datetime: string | null
+          external_id: string | null
+          id: string
+          image_url: string | null
+          price_info: string | null
+          source_id: string | null
+          source_url: string | null
+          sport_category: string
+          start_datetime: string
+          status: string
+          teams: string | null
+          tickets_url: string | null
+          title: string
+          updated_at: string
+          venue_name: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string
+          competition?: string | null
+          created_at?: string
+          dedupe_key: string
+          end_datetime?: string | null
+          external_id?: string | null
+          id?: string
+          image_url?: string | null
+          price_info?: string | null
+          source_id?: string | null
+          source_url?: string | null
+          sport_category: string
+          start_datetime: string
+          status?: string
+          teams?: string | null
+          tickets_url?: string | null
+          title: string
+          updated_at?: string
+          venue_name?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string
+          competition?: string | null
+          created_at?: string
+          dedupe_key?: string
+          end_datetime?: string | null
+          external_id?: string | null
+          id?: string
+          image_url?: string | null
+          price_info?: string | null
+          source_id?: string | null
+          source_url?: string | null
+          sport_category?: string
+          start_datetime?: string
+          status?: string
+          teams?: string | null
+          tickets_url?: string | null
+          title?: string
+          updated_at?: string
+          venue_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sports_events_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sports_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sports_sources: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          items_fetched: number
+          items_upserted: number
+          last_error: string | null
+          last_sync_at: string | null
+          name: string
+          slug: string
+          sport_category: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          items_fetched?: number
+          items_upserted?: number
+          last_error?: string | null
+          last_sync_at?: string | null
+          name: string
+          slug: string
+          sport_category?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          items_fetched?: number
+          items_upserted?: number
+          last_error?: string | null
+          last_sync_at?: string | null
+          name?: string
+          slug?: string
+          sport_category?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      sports_sync_runs: {
+        Row: {
+          error_sample: string | null
+          finished_at: string | null
+          id: string
+          items_failed: number
+          items_fetched: number
+          items_parsed: number
+          items_upserted: number
+          source_slug: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          error_sample?: string | null
+          finished_at?: string | null
+          id?: string
+          items_failed?: number
+          items_fetched?: number
+          items_parsed?: number
+          items_upserted?: number
+          source_slug: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          error_sample?: string | null
+          finished_at?: string | null
+          id?: string
+          items_failed?: number
+          items_fetched?: number
+          items_parsed?: number
+          items_upserted?: number
+          source_slug?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      sports_venues: {
+        Row: {
+          address: string | null
+          city: string
+          created_at: string
+          id: string
+          lat: number | null
+          lng: number | null
+          name: string
+          normalized_name: string | null
+          sports: string[]
+        }
+        Insert: {
+          address?: string | null
+          city?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name: string
+          normalized_name?: string | null
+          sports?: string[]
+        }
+        Update: {
+          address?: string | null
+          city?: string
+          created_at?: string
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          normalized_name?: string | null
+          sports?: string[]
+        }
+        Relationships: []
+      }
       sync_runs: {
         Row: {
           created_at: string
