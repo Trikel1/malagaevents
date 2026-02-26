@@ -40,6 +40,11 @@ const ALLOWED_DOMAINS = new Set([
   "triatlondemalaga.com",
   "fam.es",
   "juntadeandalucia.es",
+  // Phase 3 additions
+  "imd.malaga.eu",
+  "malaga.eu",
+  "malaga.es",
+  "runedia.com",
 ]);
 
 const COOLDOWN_MINUTES = 15;
@@ -75,39 +80,53 @@ const SPORT_EVENT_SCHEMA = {
 // Source-specific extraction prompts
 const SOURCE_PROMPTS: Record<string, string> = {
   malagacf:
-    "Extract all upcoming football matches for Málaga CF. Include match title, date, time, opponent, competition name, venue, and ticket URL if available.",
+    "Extract all upcoming football matches for Málaga CF from the calendar/schedule page. Include match title, date (YYYY-MM-DD format), time (HH:MM), opponent, competition name (e.g. LaLiga, Copa del Rey), venue, and ticket URL if available. Only include future matches.",
   unicaja:
-    "Extract all upcoming basketball games for Unicaja Baloncesto. Include game title, date, time, opponent teams, competition/league name, venue, and ticket URL.",
+    "Extract all upcoming basketball games for Unicaja Baloncesto from the calendar page. Include game title, date (YYYY-MM-DD), time (HH:MM), opponent teams, competition/league name (e.g. Liga Endesa, EuroCup), venue, and ticket URL.",
   ironman:
-    "Extract upcoming triathlon and endurance events in Málaga or Andalucía. Include event title, date, venue, city, registration URL.",
+    "Extract upcoming triathlon and endurance events in Málaga or Andalucía. Include event title, date (YYYY-MM-DD), venue, city, registration URL.",
   "malagacf-koobin":
-    "Extract upcoming Malaga CF football match tickets. Include match title, date, time, opponent, price, buy URL.",
+    "Extract all upcoming Malaga CF football match tickets available for sale. Include match title, date (YYYY-MM-DD), time (HH:MM), opponent, price info, buy URL.",
   "entradas-com":
-    "Extract upcoming sports events in Malaga province. Include title, date, time, venue, sport type, teams, ticket URL, price.",
+    "Extract upcoming sports events in Malaga province. Include title, date (YYYY-MM-DD), time, venue, sport type, teams, ticket URL, price.",
   "maraton-malaga":
-    "Extract upcoming marathon and running events in Malaga. Include event title, date, time, start location, registration URL, distance.",
+    "Extract upcoming marathon and running events in Malaga. Include event title, date (YYYY-MM-DD), time, start location, registration URL, distance.",
   "zurich-maraton":
-    "Extract upcoming Zurich Marathon Malaga race details. Include event title, date, time, start location, distances, registration URL.",
+    "Extract upcoming Zurich Marathon Malaga race details. Include event title, date (YYYY-MM-DD), time, start location, distances, registration URL.",
   runedia:
-    "Extract upcoming running races and trail events near Malaga, Andalucia. Include race title, date, location/city, distance, registration URL.",
+    "Extract all upcoming running races and trail events listed for Málaga province. Include race title, date (YYYY-MM-DD), location/city, distance, registration URL. List ALL events visible on the page.",
   sportmaniacs:
-    "Extract upcoming sports and running events near Malaga. Include event title, date, location, sport type, registration URL.",
+    "Extract all upcoming sports events listed for Málaga province. Include event title, date (YYYY-MM-DD), location/city, sport type, registration URL. List every event visible.",
   "rfef-tickets":
-    "Extract upcoming Spanish football federation match tickets. Include match title, date, time, teams, competition, venue, ticket URL.",
-  besoccer:
-    "Extract upcoming futsal matches. Include match title, date, time, teams, competition, venue.",
+    "Extract upcoming Spanish football federation match tickets. Include match title, date (YYYY-MM-DD), time, teams, competition, venue, ticket URL.",
+  "besoccer-malaga":
+    "Extract upcoming Málaga CF football matches from the calendar. Include match title, date (YYYY-MM-DD), time (HH:MM), teams, competition, venue.",
   rfaf:
-    "Extract upcoming football matches and events in Málaga province. Include title, date, time, teams, competition, venue, city.",
+    "Extract upcoming football matches and events in Málaga province. Include title, date (YYYY-MM-DD), time, teams, competition, venue, city.",
+  "rfaf-malaga":
+    "Extract upcoming football matches in Málaga province from the federation calendar. Include title, date (YYYY-MM-DD), time (HH:MM), teams, competition, venue, city.",
   rfebm:
-    "Extract upcoming handball matches in Málaga. Include title, date, time, teams, competition, venue.",
+    "Extract upcoming handball matches in Málaga. Include title, date (YYYY-MM-DD), time, teams, competition, venue.",
   atletismo:
-    "Extract upcoming running races and athletics events in Málaga province. Include event title, date, time, venue/location, city, registration URL.",
+    "Extract upcoming running races and athletics events in Málaga province. Include event title, date (YYYY-MM-DD), time, venue/location, city, registration URL.",
+  "atletismo-malaga":
+    "Extract all upcoming athletics events and races from the Málaga athletics calendar. Include event title, date (YYYY-MM-DD), time, venue/location, city, distance, registration URL. List ALL visible events.",
   triatlon:
-    "Extract upcoming triathlon events in Málaga. Include title, date, time, venue, city, registration URL.",
+    "Extract upcoming triathlon events in Málaga. Include title, date (YYYY-MM-DD), time, venue, city, registration URL.",
+  "triatlon-malaga":
+    "Extract all upcoming triathlon events from the Málaga triathlon calendar. Include title, date (YYYY-MM-DD), time, venue, city, registration URL.",
   fam:
-    "Extract upcoming athletics events and competitions in Málaga from the Andalusian Athletics Federation. Include title, date, time, venue, city.",
+    "Extract upcoming athletics events and competitions in Málaga from the Andalusian Athletics Federation. Include title, date (YYYY-MM-DD), time, venue, city.",
+  "fam-atletismo":
+    "Extract all upcoming athletics competitions and events from the FAM calendar. Include event title, date (YYYY-MM-DD), time, venue, city, and registration URL if available. List ALL visible events.",
   junta:
-    "Extract upcoming sports events in Málaga province from Junta de Andalucía. Include title, date, time, venue, city, sport type.",
+    "Extract upcoming sports events in Málaga province from Junta de Andalucía. Include title, date (YYYY-MM-DD), time, venue, city, sport type.",
+  "imd-malaga":
+    "Extract all upcoming sports activities, competitions, and events from the IMD Málaga (Instituto Municipal de Deportes) page. Include title, date (YYYY-MM-DD), time, venue, city, sport type, registration URL. List ALL visible activities.",
+  "koobin-deportes":
+    "Extract all upcoming sports events and ticket listings for Málaga. Include event title, date (YYYY-MM-DD), time, venue, sport type, teams, ticket URL, price.",
+  "diputacion-deportes":
+    "Extract all upcoming sports events from Diputación de Málaga. Include event title, date (YYYY-MM-DD), time, venue, city, sport type.",
 };
 
 const DEFAULT_PROMPT =
@@ -165,6 +184,7 @@ const MALAGA_PROVINCE_MUNICIPALITIES: Set<string> = new Set([
 // Sources whose events are guaranteed Málaga-local
 const LOCAL_ONLY_SOURCES = new Set([
   "maraton-malaga", "zurich-maraton", "atletismo", "triatlon",
+  "atletismo-malaga", "triatlon-malaga", "imd-malaga", "diputacion-deportes",
 ]);
 
 // Home venue tokens for team-based sources (only keep home matches)
@@ -363,7 +383,7 @@ async function scrapeSource(
       },
       body: JSON.stringify({
         url,
-        formats: ["json"],
+        formats: ["json", "markdown"],
         jsonOptions: {
           schema: SPORT_EVENT_SCHEMA,
           prompt,
@@ -556,6 +576,11 @@ Deno.serve(async (req) => {
       scrapeResult.data?.data?.events ||
       scrapeResult.data?.json?.events ||
       [];
+
+    // Log extraction details for debugging
+    const hasMarkdown = !!(scrapeResult.data?.data?.markdown || scrapeResult.data?.markdown);
+    const markdownLength = (scrapeResult.data?.data?.markdown || scrapeResult.data?.markdown || "").length;
+    console.log(`[sync-sports] ${source.slug}: extracted ${rawEvents.length} events from JSON, markdown=${hasMarkdown} (${markdownLength} chars)`);
 
     let upserted = 0;
     let failed = 0;
