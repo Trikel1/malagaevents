@@ -109,6 +109,7 @@ const AdminPage = () => {
   const [sportsSyncing, setSportsSyncing] = useState(false);
   const [sportsRuns, setSportsRuns] = useState<any[]>([]);
   const [sportsRunsLoading, setSportsRunsLoading] = useState(false);
+  const [sportsSyncResult, setSportsSyncResult] = useState<any>(null);
 
   // Loading state
   if (authLoading || adminLoading) {
@@ -243,14 +244,17 @@ const AdminPage = () => {
 
   const handleSportsSync = async () => {
     setSportsSyncing(true);
+    setSportsSyncResult(null);
     try {
       const { data, error } = await supabase.functions.invoke('admin-sync-sports', {
         body: { force: true, cooldownMinutes: 0 },
       });
       if (error) throw error;
       if (data?.recentRuns) setSportsRuns(data.recentRuns);
+      setSportsSyncResult(data?.syncResult || data);
       toast({ title: 'Sync deportes completado', description: data?.ok ? 'Sincronización exitosa.' : 'Revisa los resultados.' });
     } catch (error: any) {
+      setSportsSyncResult({ error: error?.message || 'Unknown error' });
       toast({ title: 'Error', description: error?.message || 'No se pudo ejecutar el sync.', variant: 'destructive' });
     } finally {
       setSportsSyncing(false);
@@ -527,7 +531,41 @@ const AdminPage = () => {
                 Sync Deportes ahora
               </Button>
               <SportsEventCount />
+              <Badge variant="outline" className="text-xs">Cron: cada hora</Badge>
             </div>
+
+            {/* Sync Result Summary */}
+            {sportsSyncResult && (
+              <Card className={sportsSyncResult.error ? 'border-destructive' : 'border-primary'}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Resultado del último sync</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {sportsSyncResult.results ? (
+                    <div className="space-y-1 text-xs">
+                      {sportsSyncResult.results.map((r: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 py-1 border-b border-border last:border-0">
+                          <Badge variant={r.status === 'done' ? 'default' : r.status === 'error' ? 'destructive' : 'secondary'} className="text-xs">
+                            {r.status}
+                          </Badge>
+                          <span className="font-medium truncate flex-1">{r.slug}</span>
+                          <span className="text-muted-foreground">↑{r.upserted} ↓{r.fetched} ✗{r.failed}</span>
+                          {r.error && <span className="text-destructive truncate max-w-[150px]" title={r.error}>{r.error.slice(0, 50)}</span>}
+                        </div>
+                      ))}
+                      <div className="pt-2 font-medium text-sm">
+                        Total: {sportsSyncResult.results.reduce((s: number, r: any) => s + (r.upserted || 0), 0)} upserted,{' '}
+                        {sportsSyncResult.results.filter((r: any) => r.status === 'done').length}/{sportsSyncResult.results.length} fuentes OK
+                      </div>
+                    </div>
+                  ) : sportsSyncResult.error ? (
+                    <p className="text-sm text-destructive">{sportsSyncResult.error}</p>
+                  ) : (
+                    <pre className="text-xs overflow-auto max-h-40 bg-muted p-2 rounded">{JSON.stringify(sportsSyncResult, null, 2)}</pre>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader className="pb-2">

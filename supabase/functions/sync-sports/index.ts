@@ -326,10 +326,16 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Auth: x-admin-key
+  // Auth: x-admin-key (admin proxy) OR Authorization Bearer anon key (pg_cron)
   const adminKey = req.headers.get("x-admin-key");
+  const authBearer = req.headers.get("Authorization")?.replace("Bearer ", "");
   const expectedKey = Deno.env.get("SYNC_ADMIN_KEY");
-  if (!expectedKey || adminKey !== expectedKey) {
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+
+  const isAdminKeyAuth = !!(expectedKey && adminKey === expectedKey);
+  const isCronAuth = !!(anonKey && authBearer === anonKey);
+
+  if (!isAdminKeyAuth && !isCronAuth) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
@@ -350,6 +356,12 @@ Deno.serve(async (req) => {
     body = await req.json();
   } catch {
     // empty body is fine — sync all
+  }
+
+  // Cron auth: enforce cooldown, prevent force-bypass
+  if (isCronAuth) {
+    body.force = false;
+    body.cooldownMinutes = Math.max(body.cooldownMinutes ?? COOLDOWN_MINUTES, COOLDOWN_MINUTES);
   }
 
   const cooldownMin = body.cooldownMinutes ?? COOLDOWN_MINUTES;
