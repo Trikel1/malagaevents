@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
-import { Phone, MapPin, Calendar as CalendarIcon, Filter, Clock } from 'lucide-react';
+import { Phone, MapPin, Calendar as CalendarIcon, Clock, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Popover,
   PopoverContent,
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/popover';
 import EmptyState from '@/components/common/EmptyState';
 import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
-import { usePharmaciesOnDuty, useAllPharmacies } from '@/hooks/usePharmacies';
+import { usePharmaciesOnDuty, usePharmacyDirectory } from '@/hooks/usePharmacies';
 import type { Pharmacy } from '@/types';
 
 const locales: Record<string, Locale> = {
@@ -23,24 +23,72 @@ const locales: Record<string, Locale> = {
 };
 
 // Helper to generate maps URL
-const getMapsUrl = (pharmacy: Pharmacy): string => {
+const getMapsUrl = (pharmacy: { lat?: number | null; lng?: number | null; address: string }): string => {
   if (pharmacy.lat && pharmacy.lng) {
-    // Use coordinates for accurate directions
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     return isIOS
       ? `maps://maps.apple.com/?daddr=${pharmacy.lat},${pharmacy.lng}`
       : `https://www.google.com/maps/search/?api=1&query=${pharmacy.lat},${pharmacy.lng}`;
   }
-  // Fallback to address search
   const fullAddress = `${pharmacy.address}, Málaga, España`;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
 };
 
-// Helper to format phone for tel: link
 const formatPhoneForLink = (phone: string): string => {
-  // Remove spaces and special chars, keep + and digits
   return phone.replace(/[^\d+]/g, '');
 };
+
+interface PharmacyCardProps {
+  pharmacy: { name: string; address: string; phone?: string | null; lat?: number | null; lng?: number | null; municipality?: string };
+  showDutyBadge?: boolean;
+}
+
+const PharmacyCard = ({ pharmacy, showDutyBadge = false }: PharmacyCardProps) => (
+  <Card className="overflow-hidden">
+    <CardContent className="p-4">
+      <div className="flex items-start justify-between mb-2">
+        <h3 className="font-semibold text-lg">{pharmacy.name}</h3>
+        {showDutyBadge && (
+          <Badge className="bg-green-500 hover:bg-green-500 text-white shrink-0">
+            <Clock className="h-3 w-3 mr-1" />
+            De guardia
+          </Badge>
+        )}
+      </div>
+
+      {pharmacy.municipality && pharmacy.municipality !== 'Málaga' && (
+        <div className="flex items-center gap-1 mb-2">
+          <Building2 className="h-3 w-3 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground font-medium">{pharmacy.municipality}</span>
+        </div>
+      )}
+
+      <a
+        href={getMapsUrl(pharmacy)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-start gap-2 text-muted-foreground mb-3 hover:text-foreground transition-colors group"
+      >
+        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary group-hover:scale-110 transition-transform" />
+        <span className="text-sm underline decoration-dotted underline-offset-2 group-hover:decoration-solid">
+          {pharmacy.address}
+        </span>
+      </a>
+
+      {pharmacy.phone && (
+        <a
+          href={`tel:${formatPhoneForLink(pharmacy.phone)}`}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <Phone className="h-4 w-4 flex-shrink-0 text-green-600 group-hover:scale-110 transition-transform" />
+          <span className="text-sm underline decoration-dotted underline-offset-2 group-hover:decoration-solid font-medium">
+            {pharmacy.phone}
+          </span>
+        </a>
+      )}
+    </CardContent>
+  </Card>
+);
 
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
@@ -48,78 +96,34 @@ const PharmaciesPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [activeTab, setActiveTab] = useState<'duty' | 'all'>('duty');
 
-  // Fetch pharmacies
   const { data: dutyPharmacies, isLoading: isLoadingDuty } = usePharmaciesOnDuty(selectedDate);
-  const { data: allPharmacies, isLoading: isLoadingAll } = useAllPharmacies();
-
-  const PharmacyCard = ({ pharmacy, showDutyBadge = false }: { pharmacy: Pharmacy; showDutyBadge?: boolean }) => (
-    <Card className="overflow-hidden">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-lg">{pharmacy.name}</h3>
-          {showDutyBadge && (
-            <Badge className="bg-green-500 hover:bg-green-500 text-white shrink-0">
-              <Clock className="h-3 w-3 mr-1" />
-              {t('pharmacies.onDuty')}
-            </Badge>
-          )}
-        </div>
-        
-        {/* Address - Clickable for directions */}
-        <a 
-          href={getMapsUrl(pharmacy)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-start gap-2 text-muted-foreground mb-3 hover:text-foreground transition-colors group"
-        >
-          <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary group-hover:scale-110 transition-transform" />
-          <span className="text-sm underline decoration-dotted underline-offset-2 group-hover:decoration-solid">
-            {pharmacy.address}
-          </span>
-        </a>
-
-        {/* Phone - Clickable to call */}
-        {pharmacy.phone && (
-          <a 
-            href={`tel:${formatPhoneForLink(pharmacy.phone)}`}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
-          >
-            <Phone className="h-4 w-4 flex-shrink-0 text-green-600 group-hover:scale-110 transition-transform" />
-            <span className="text-sm underline decoration-dotted underline-offset-2 group-hover:decoration-solid font-medium">
-              {pharmacy.phone}
-            </span>
-          </a>
-        )}
-      </CardContent>
-    </Card>
-  );
+  const { data: directoryPharmacies, isLoading: isLoadingDirectory } = usePharmacyDirectory();
 
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 pb-8 rounded-b-3xl">
         <h1 className="text-xl font-bold mb-4">{t('pharmacies.title')}</h1>
-        
-        {/* Tabs */}
+
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'duty' | 'all')} className="mb-4">
           <TabsList className="grid w-full grid-cols-2 bg-white/20">
-            <TabsTrigger 
-              value="duty" 
+            <TabsTrigger
+              value="duty"
               className="text-white/90 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
               <Clock className="h-4 w-4 mr-2" />
               {t('pharmacies.onDuty')}
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="all"
               className="text-white/90 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
-              <Filter className="h-4 w-4 mr-2" />
+              <Building2 className="h-4 w-4 mr-2" />
               {t('pharmacies.all')}
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        
+
         {/* Date Selector (only for duty tab) */}
         {activeTab === 'duty' && (
           <div className="flex gap-2">
@@ -130,7 +134,6 @@ const PharmaciesPage = () => {
             >
               {t('pharmacies.today')}
             </Button>
-            
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -158,7 +161,6 @@ const PharmaciesPage = () => {
       {/* Content */}
       <main className="p-4 -mt-4 space-y-3">
         {activeTab === 'duty' ? (
-          // Duty pharmacies
           isLoadingDuty ? (
             <>
               <PharmacyCardSkeleton />
@@ -171,7 +173,11 @@ const PharmaciesPage = () => {
                 {t('pharmacies.dutyCount', { count: dutyPharmacies.length })}
               </p>
               {dutyPharmacies.map((pharmacy) => (
-                <PharmacyCard key={pharmacy.id} pharmacy={pharmacy} showDutyBadge />
+                <PharmacyCard
+                  key={pharmacy.id}
+                  pharmacy={{ ...pharmacy, municipality: (pharmacy as any).municipality }}
+                  showDutyBadge
+                />
               ))}
             </>
           ) : (
@@ -182,20 +188,22 @@ const PharmaciesPage = () => {
             />
           )
         ) : (
-          // All pharmacies
-          isLoadingAll ? (
+          isLoadingDirectory ? (
             <>
               <PharmacyCardSkeleton />
               <PharmacyCardSkeleton />
               <PharmacyCardSkeleton />
             </>
-          ) : allPharmacies && allPharmacies.length > 0 ? (
+          ) : directoryPharmacies && directoryPharmacies.length > 0 ? (
             <>
               <p className="text-sm text-muted-foreground mb-2">
-                {t('pharmacies.totalCount', { count: allPharmacies.length })}
+                {t('pharmacies.totalCount', { count: directoryPharmacies.length })}
               </p>
-              {allPharmacies.map((pharmacy) => (
-                <PharmacyCard key={pharmacy.id} pharmacy={pharmacy} />
+              {directoryPharmacies.map((pharmacy) => (
+                <PharmacyCard
+                  key={pharmacy.id}
+                  pharmacy={pharmacy}
+                />
               ))}
             </>
           ) : (

@@ -33,7 +33,8 @@
     "calendar": "Calendar",
     "pharmacies": "Pharmacies",
     "profile": "Profile",
-    "venues": "Venues"
+    "venues": "Venues",
+    "map": "Map"
   },
   "onboarding": {
     "title": "Welcome to Málaga Events",
@@ -211,6 +212,10 @@
     "passwordsDontMatch": "Passwords don't match",
     "emailInUse": "This email is already registered",
     "invalidCredentials": "Invalid credentials"
+  },
+  "map": {
+    "eventsOnMap": "events on the map",
+    "noGeoEvents": "No events with exact location"
   },
   "sports": {
     "title": "Sports",

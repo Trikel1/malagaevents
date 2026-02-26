@@ -20,6 +20,7 @@ import SubmitEventPage from "./pages/SubmitEventPage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import VenuesPage from "./pages/VenuesPage";
+import MapPage from "./pages/MapPage";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/tickets" element={<TicketsPage />} />
                 <Route path="/venues" element={<VenuesPage />} />
+                <Route path="/map" element={<MapPage />} />
               </Route>
               
               {/* Pages without bottom nav */}

@@ -415,6 +415,51 @@ export type Database = {
           },
         ]
       }
+      pharmacies_directory: {
+        Row: {
+          address: string
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          municipality: string
+          name: string
+          phone: string | null
+          province: string
+          source_ref: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          municipality?: string
+          name: string
+          phone?: string | null
+          province?: string
+          source_ref?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          municipality?: string
+          name?: string
+          phone?: string | null
+          province?: string
+          source_ref?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pharmacies_guard: {
         Row: {
           address: string
@@ -423,6 +468,7 @@ export type Database = {
           id: string
           lat: number | null
           lng: number | null
+          municipality: string | null
           name: string
           phone: string | null
           source_ref: string | null
@@ -435,6 +481,7 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          municipality?: string | null
           name: string
           phone?: string | null
           source_ref?: string | null
@@ -447,6 +494,7 @@ export type Database = {
           id?: string
           lat?: number | null
           lng?: number | null
+          municipality?: string | null
           name?: string
           phone?: string | null
           source_ref?: string | null
