@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, X, MapPin } from 'lucide-react';
+import { Search, SlidersHorizontal, X, MapPin, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -88,8 +88,7 @@ const CultureEventsPage = () => {
     locationIds: selectedLocationIds.length > 0 ? selectedLocationIds : undefined,
   }), [debouncedSearch, filters, initialFilter, selectedVenueIds, selectedLocationIds]);
 
-  // Fetch events with optimized hook (includes request cancellation)
-  const { data: events, isLoading } = useEventsOptimized(queryOptions);
+  const { data: events, isLoading, isError, refetch } = useEventsOptimized(queryOptions);
   
   // Fetch favorites
   const { data: favorites } = useFavorites();
@@ -254,10 +253,18 @@ const CultureEventsPage = () => {
         </div>
       </header>
 
-      {/* Content */}
       <main className="p-4">
         {isLoadingEvents ? (
           <EventListSkeleton count={4} />
+        ) : isError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title={t('errors.loadFailed', 'Error al cargar')}
+            description={t('errors.loadFailedDesc', 'No se pudieron cargar los eventos. Comprueba tu conexión e inténtalo de nuevo.')}
+            actionLabel={t('common.retry', 'Reintentar')}
+            onAction={() => refetch()}
+            variant="error"
+          />
         ) : displayedEvents && displayedEvents.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {displayedEvents.map((event) => (
@@ -274,9 +281,11 @@ const CultureEventsPage = () => {
           <EmptyState
             icon={Search}
             title={t('events.noEvents')}
-            description={t('events.noEventsDesc')}
-            actionLabel={t('events.clearFilters')}
-            onAction={clearAllFilters}
+            description={totalActiveFilters > 0 
+              ? t('events.noEventsFiltered', 'No hay eventos con los filtros seleccionados. Prueba a limpiar filtros o cambiar la fecha.')
+              : t('events.noEventsDesc')}
+            actionLabel={totalActiveFilters > 0 ? t('events.clearFilters') : undefined}
+            onAction={totalActiveFilters > 0 ? clearAllFilters : undefined}
           />
         )}
       </main>

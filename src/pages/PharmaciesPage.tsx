@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
-import { Phone, MapPin, Calendar as CalendarIcon, Clock, Building2 } from 'lucide-react';
+import { Phone, MapPin, Calendar as CalendarIcon, Clock, Building2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -182,9 +182,12 @@ const PharmaciesPage = () => {
             </>
           ) : (
             <EmptyState
-              icon={MapPin}
+              icon={AlertTriangle}
               title={t('pharmacies.noPharmacies')}
-              description={t('pharmacies.noPharmaciesDesc')}
+              description={t('pharmacies.noPharmaciesDesc', 'No se encontraron farmacias de guardia para esta fecha. Puede que los datos no estén disponibles aún.')}
+              actionLabel={t('common.retry', 'Reintentar')}
+              onAction={() => window.location.reload()}
+              variant="error"
             />
           )
         ) : (
@@ -208,9 +211,12 @@ const PharmaciesPage = () => {
             </>
           ) : (
             <EmptyState
-              icon={MapPin}
+              icon={AlertTriangle}
               title={t('pharmacies.noPharmacies')}
-              description={t('pharmacies.noPharmaciesDesc')}
+              description={t('pharmacies.directoryEmpty', 'El directorio de farmacias aún no ha sido cargado. Inténtalo más tarde.')}
+              actionLabel={t('common.retry', 'Reintentar')}
+              onAction={() => window.location.reload()}
+              variant="error"
             />
           )
         )}

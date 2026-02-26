@@ -335,6 +335,15 @@ const EventImage = ({
     );
   };
 
+  // "Imagen no disponible" indicator shown on Unsplash fallback images
+  const UnsplashIndicator = () => (
+    <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm px-2 py-0.5">
+      <span className="text-[9px] text-white/70 font-medium tracking-wide uppercase">
+        Imagen ilustrativa
+      </span>
+    </div>
+  );
+
   // Loading skeleton
   const LoadingSkeleton = () => (
     <Skeleton className="absolute inset-0 w-full h-full" />
@@ -376,18 +385,21 @@ const EventImage = ({
           onClick={showLightbox ? () => setIsLightboxOpen(true) : undefined}
         />
       ) : shouldShowUnsplash ? (
-        <img
-          src={unsplashFallbackUrl}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          onLoad={handleLoad}
-          onError={handleUnsplashError}
-          className={cn(
-            'w-full h-full object-cover object-center transition-opacity duration-300',
-            isLoading ? 'opacity-0' : 'opacity-100'
-          )}
-        />
+        <>
+          <img
+            src={unsplashFallbackUrl}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            onLoad={handleLoad}
+            onError={handleUnsplashError}
+            className={cn(
+              'w-full h-full object-cover object-center transition-opacity duration-300',
+              isLoading ? 'opacity-0' : 'opacity-100'
+            )}
+          />
+          {!isLoading && <UnsplashIndicator />}
+        </>
       ) : (
         <IconFallbackPlaceholder />
       )}

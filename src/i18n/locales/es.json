@@ -68,7 +68,8 @@
     "clearFilters": "Limpiar filtros",
     "applyFilters": "Aplicar",
     "noEvents": "No hay eventos",
-    "noEventsDesc": "Prueba a cambiar los filtros",
+    "noEventsDesc": "No se encontraron eventos próximos",
+    "noEventsFiltered": "No hay eventos con los filtros seleccionados. Prueba a limpiar filtros o cambiar la fecha.",
     "similarEvents": "Eventos similares",
     "moreFilters": "Más filtros",
     "venues": "Salas",
@@ -110,8 +111,9 @@
     "selectDate": "Seleccionar fecha",
     "call": "Llamar",
     "directions": "Cómo llegar",
-    "noPharmacies": "No hay farmacias",
-    "noPharmaciesDesc": "No se encontraron farmacias",
+    "noPharmacies": "Sin datos disponibles",
+    "noPharmaciesDesc": "No se encontraron farmacias de guardia para esta fecha.",
+    "directoryEmpty": "El directorio de farmacias aún no ha sido cargado. Inténtalo más tarde.",
     "onDuty": "De guardia",
     "all": "Todas",
     "dutyCount": "{{count}} farmacias de guardia",
@@ -211,7 +213,9 @@
     "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
     "passwordsDontMatch": "Las contraseñas no coinciden",
     "emailInUse": "Este email ya está registrado",
-    "invalidCredentials": "Credenciales inválidas"
+    "invalidCredentials": "Credenciales inválidas",
+    "loadFailed": "Error al cargar",
+    "loadFailedDesc": "No se pudieron cargar los datos. Comprueba tu conexión e inténtalo de nuevo."
   },
   "map": {
     "eventsOnMap": "eventos en el mapa",
