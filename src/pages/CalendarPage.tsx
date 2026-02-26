@@ -34,7 +34,7 @@ import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useAppMode } from '@/contexts/AppModeContext';
-import { MOCK_SPORT_EVENTS } from '@/types/sports';
+import { useSportsEvents } from '@/hooks/useSportsEvents';
 import SportEventCard from '@/components/sports/SportEventCard';
 
 const TIMEZONE = 'Europe/Madrid';
@@ -100,14 +100,14 @@ const CalendarPage = () => {
     return occurrences;
   }, [occurrences, eventSource, favorites, appMode]);
 
-  // Sports events filtered for current month
-  const sportEventsForMonth = useMemo(() => {
-    if (appMode !== 'deportes') return [];
-    return MOCK_SPORT_EVENTS.filter(e => {
-      const d = new Date(e.start_at);
-      return d >= gridStart && d <= gridEnd;
-    });
-  }, [appMode, gridStart, gridEnd]);
+  // Sports events from DB for current month range
+  const sportGridStartStr = formatInTimeZone(gridStart, TIMEZONE, 'yyyy-MM-dd');
+  const sportGridEndStr = formatInTimeZone(gridEnd, TIMEZONE, 'yyyy-MM-dd');
+  const { data: sportEventsForMonth = [], isLoading: sportsLoading } = useSportsEvents(
+    appMode === 'deportes'
+      ? { fromDate: sportGridStartStr, toDate: sportGridEndStr }
+      : { fromDate: '2099-01-01', toDate: '2099-01-01' } // no-op query when not in sports mode
+  );
 
   // Get day of week for first day (0 = Sunday)
   const startDayOfWeek = monthStart.getDay();

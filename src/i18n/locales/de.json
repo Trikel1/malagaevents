@@ -214,6 +214,8 @@
     "searchVenues": "Sportstätten suchen...",
     "venuesTitle": "Sportstätten",
     "noVenues": "Keine Sportstätten gefunden",
-    "map": "Karte"
+    "map": "Karte",
+    "allVenues": "Alle Sportstätten",
+    "loading": "Wird geladen..."
   }
 }

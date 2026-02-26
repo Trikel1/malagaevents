@@ -214,6 +214,8 @@
     "searchVenues": "搜索场馆...",
     "venuesTitle": "体育场馆",
     "noVenues": "未找到场馆",
-    "map": "地图"
+    "map": "地图",
+    "allVenues": "所有场馆",
+    "loading": "加载中..."
   }
 }

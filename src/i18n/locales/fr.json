@@ -214,6 +214,8 @@
     "searchVenues": "Rechercher enceintes...",
     "venuesTitle": "Enceintes sportives",
     "noVenues": "Aucune enceinte trouvée",
-    "map": "Carte"
+    "map": "Carte",
+    "allVenues": "Toutes les enceintes",
+    "loading": "Chargement..."
   }
 }

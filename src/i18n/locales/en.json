@@ -230,6 +230,8 @@
     "searchVenues": "Search venues...",
     "venuesTitle": "Sports venues",
     "noVenues": "No venues found",
-    "map": "Map"
+    "map": "Map",
+    "allVenues": "All venues",
+    "loading": "Loading..."
   }
 }

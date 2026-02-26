@@ -1,21 +1,22 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Building2 } from 'lucide-react';
+import { Search, MapPin, Building2, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { MOCK_SPORT_VENUES } from '@/types/venues-sports';
+import { useSportsVenues } from '@/hooks/useSportsEvents';
 import { SPORT_CATEGORIES, SPORT_ICONS, type SportCategory } from '@/types/sports';
 
 const VenuesPage = () => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
+  const { data: venues = [], isLoading } = useSportsVenues();
 
   const filtered = useMemo(() => {
-    let result = MOCK_SPORT_VENUES;
+    let result = venues;
     if (selectedSport !== 'all') {
       result = result.filter(v => v.sports.includes(selectedSport));
     }
@@ -24,9 +25,9 @@ const VenuesPage = () => {
       result = result.filter(v => v.name.toLowerCase().includes(q) || v.city.toLowerCase().includes(q));
     }
     return result;
-  }, [search, selectedSport]);
+  }, [search, selectedSport, venues]);
 
-  const openMap = (venue: typeof MOCK_SPORT_VENUES[0]) => {
+  const openMap = (venue: typeof venues[0]) => {
     if (venue.lat && venue.lng) {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       const url = isIOS
@@ -86,7 +87,11 @@ const VenuesPage = () => {
       </header>
 
       <main className="p-4 space-y-3">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Building2 className="h-10 w-10 mx-auto mb-2 opacity-50" />
             <p className="text-sm">{t('sports.noVenues')}</p>
