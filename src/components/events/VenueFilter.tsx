@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, X, Building2, Search } from 'lucide-react';
+import { Building2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -24,8 +24,17 @@ const VenueFilter = ({ selectedVenueIds, onSelectionChange }: VenueFilterProps) 
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [draftIds, setDraftIds] = useState<string[]>(selectedVenueIds);
   
   const { data: venues = [], isLoading } = useVenues();
+
+  // Sync draft when popover opens
+  useEffect(() => {
+    if (open) {
+      setDraftIds(selectedVenueIds);
+      setSearchQuery('');
+    }
+  }, [open, selectedVenueIds]);
 
   const filteredVenues = useMemo(() => {
     if (!searchQuery) return venues;
@@ -37,17 +46,21 @@ const VenueFilter = ({ selectedVenueIds, onSelectionChange }: VenueFilterProps) 
     return venues.filter(v => selectedVenueIds.includes(v.id));
   }, [venues, selectedVenueIds]);
 
-  const toggleVenue = (venueId: string) => {
-    if (selectedVenueIds.includes(venueId)) {
-      onSelectionChange(selectedVenueIds.filter(id => id !== venueId));
-    } else {
-      onSelectionChange([...selectedVenueIds, venueId]);
-    }
+  const toggleDraftVenue = (venueId: string) => {
+    setDraftIds(prev =>
+      prev.includes(venueId) ? prev.filter(id => id !== venueId) : [...prev, venueId]
+    );
   };
 
-  const clearSelection = () => {
+  const handleApply = () => {
+    onSelectionChange(draftIds);
+    setOpen(false);
+  };
+
+  const handleClear = () => {
     onSelectionChange([]);
-    setSearchQuery('');
+    setDraftIds([]);
+    setOpen(false);
   };
 
   return (
@@ -72,16 +85,23 @@ const VenueFilter = ({ selectedVenueIds, onSelectionChange }: VenueFilterProps) 
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-72 p-0" align="start">
-          <div className="p-3 border-b">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* Header: search + actions */}
+          <div className="p-2 border-b flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t('common.search', 'Buscar...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 h-9"
+                className="pl-8 h-8 text-sm"
               />
             </div>
+            <Button size="sm" className="h-8 px-3 text-xs" onClick={handleApply}>
+              {t('common.show', 'Mostrar')}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={handleClear}>
+              {t('common.clear', 'Limpiar')}
+            </Button>
           </div>
           <ScrollArea className="h-64">
             <div className="p-2">
@@ -98,11 +118,11 @@ const VenueFilter = ({ selectedVenueIds, onSelectionChange }: VenueFilterProps) 
                   <div
                     key={venue.id}
                     className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent cursor-pointer"
-                    onClick={() => toggleVenue(venue.id)}
+                    onClick={() => toggleDraftVenue(venue.id)}
                   >
                     <Checkbox
-                      checked={selectedVenueIds.includes(venue.id)}
-                      onCheckedChange={() => toggleVenue(venue.id)}
+                      checked={draftIds.includes(venue.id)}
+                      onCheckedChange={() => toggleDraftVenue(venue.id)}
                     />
                     <span className="flex-1 text-sm">{venue.name}</span>
                     {venue.city && (
@@ -113,19 +133,6 @@ const VenueFilter = ({ selectedVenueIds, onSelectionChange }: VenueFilterProps) 
               )}
             </div>
           </ScrollArea>
-          {selectedVenueIds.length > 0 && (
-            <div className="p-2 border-t">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full text-muted-foreground"
-                onClick={clearSelection}
-              >
-                <X className="h-4 w-4 mr-2" />
-                {t('common.clear', 'Limpiar')}
-              </Button>
-            </div>
-          )}
         </PopoverContent>
       </Popover>
 
@@ -141,9 +148,10 @@ const VenueFilter = ({ selectedVenueIds, onSelectionChange }: VenueFilterProps) 
             variant="ghost"
             size="icon"
             className="h-4 w-4 p-0 hover:bg-transparent"
-            onClick={() => toggleVenue(venue.id)}
+            onClick={() => onSelectionChange(selectedVenueIds.filter(id => id !== venue.id))}
           >
-            <X className="h-3 w-3" />
+            <span className="sr-only">Remove</span>
+            ×
           </Button>
         </Badge>
       ))}

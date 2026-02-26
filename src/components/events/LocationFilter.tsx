@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, MapPin, Search } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -36,9 +36,18 @@ const LocationFilter = ({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [draftIds, setDraftIds] = useState<string[]>(selectedLocationIds);
   const isMobile = useIsMobile();
   
   const { data: locations = [], isLoading } = useLocations();
+
+  // Sync draft when popover opens
+  useEffect(() => {
+    if (open) {
+      setDraftIds(selectedLocationIds);
+      setSearchQuery('');
+    }
+  }, [open, selectedLocationIds]);
 
   const filteredLocations = useMemo(() => {
     if (!searchQuery) return locations;
@@ -46,17 +55,21 @@ const LocationFilter = ({
     return locations.filter(l => l.name.toLowerCase().includes(query));
   }, [locations, searchQuery]);
 
-  const toggleLocation = (locationId: string) => {
-    if (selectedLocationIds.includes(locationId)) {
-      onSelectionChange(selectedLocationIds.filter(id => id !== locationId));
-    } else {
-      onSelectionChange([...selectedLocationIds, locationId]);
-    }
+  const toggleDraftLocation = (locationId: string) => {
+    setDraftIds(prev =>
+      prev.includes(locationId) ? prev.filter(id => id !== locationId) : [...prev, locationId]
+    );
   };
 
-  const clearSelection = () => {
+  const handleApply = () => {
+    onSelectionChange(draftIds);
+    setOpen(false);
+  };
+
+  const handleClear = () => {
     onSelectionChange([]);
-    setSearchQuery('');
+    setDraftIds([]);
+    setOpen(false);
   };
 
   const triggerButton = showLabel ? (
@@ -137,19 +150,26 @@ const LocationFilter = ({
         avoidCollisions={true}
         onOpenAutoFocus={(e) => { if (isMobile) e.preventDefault(); }}
       >
-        <div className="p-3 border-b">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Header: search + actions */}
+        <div className="p-2 border-b flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t('common.search', 'Buscar...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-9"
+              className="pl-8 h-8 text-sm"
             />
           </div>
+          <Button size="sm" className="h-8 px-3 text-xs" onClick={handleApply}>
+            {t('common.show', 'Mostrar')}
+          </Button>
+          <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={handleClear}>
+            {t('common.clear', 'Limpiar')}
+          </Button>
         </div>
         <ScrollArea className="h-64 overscroll-contain [-webkit-overflow-scrolling:touch]">
-          <div className="p-2 [&_[data-radix-scroll-area-viewport]]:overscroll-contain [&_[data-radix-scroll-area-viewport]]:[-webkit-overflow-scrolling:touch]">
+          <div className="p-2">
             {isLoading ? (
               <div className="py-6 text-center text-sm text-muted-foreground">
                 {t('common.loading', 'Cargando...')}
@@ -163,11 +183,11 @@ const LocationFilter = ({
                 <div
                   key={location.id}
                   className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent cursor-pointer"
-                  onClick={() => toggleLocation(location.id)}
+                  onClick={() => toggleDraftLocation(location.id)}
                 >
                   <Checkbox
-                    checked={selectedLocationIds.includes(location.id)}
-                    onCheckedChange={() => toggleLocation(location.id)}
+                    checked={draftIds.includes(location.id)}
+                    onCheckedChange={() => toggleDraftLocation(location.id)}
                   />
                   <span className="flex-1 text-sm">{location.name}</span>
                   {!location.is_in_province_malaga && (
@@ -180,19 +200,6 @@ const LocationFilter = ({
             )}
           </div>
         </ScrollArea>
-        {selectedLocationIds.length > 0 && (
-          <div className="p-2 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-muted-foreground"
-              onClick={clearSelection}
-            >
-              <X className="h-4 w-4 mr-2" />
-              {t('common.clear', 'Limpiar')}
-            </Button>
-          </div>
-        )}
       </PopoverContent>
     </Popover>
   );
