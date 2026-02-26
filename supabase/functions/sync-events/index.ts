@@ -62,11 +62,25 @@ const ALLOWED_SCRAPING_DOMAINS = [
   'salatrinchera.com',
   'paris15.es',
   'antojo.es',
+  'antojomalaga.es',
   'salamarte.com',
+  'salamartemalaga.com',
   'eventual.es',
+  'eventualmusic.com',
   'latermica.com',
+  'latermicamalaga.com',
   'firecrawl.dev',
   'api.firecrawl.dev',
+  // Phase 2 additions
+  'malaga.eu',
+  'cultura.malaga.eu',
+  'fycma.com',
+  'festivaldemalaga.com',
+  'instagram.com',
+  'facebook.com',
+  'mmalaga.es',
+  'lafabricadecerveza.com',
+  'barlagarrapata.com',
 ];
 
 function isUrlAllowedForScraping(urlString: string): boolean {
@@ -142,26 +156,52 @@ const SOURCE_CONFIGS: Record<string, Partial<SourceConfig>> = {
     requestDelayMs: 3000,
     jitterMs: 500,
     totalTimeoutMs: 45000,
-    useHeadless: false, // Disable headless - too slow
+    useHeadless: false,
   },
   'paris-15': {
-    maxRetries: 2, // Reduced retries since WP API fallback is faster
+    maxRetries: 2,
     initialDelayMs: 1500,
     requestDelayMs: 2000,
     jitterMs: 500,
-    totalTimeoutMs: 30000, // Shorter timeout, will fallback to WP API
+    totalTimeoutMs: 30000,
     useHeadless: false,
-    alternativeEndpoint: 'https://paris15.es/wp-json/tribe/events/v1/events', // WordPress Events Calendar API
+    alternativeEndpoint: 'https://paris15.es/wp-json/tribe/events/v1/events',
   },
   'la-cochera-cabaret': {
     maxRetries: 2,
     totalTimeoutMs: 30000,
     useHeadless: false,
-    alternativeEndpoint: 'https://lacocheracabaret.com/wp-json/tribe/events/v1/events', // Try WP API
+    alternativeEndpoint: 'https://lacocheracabaret.com/wp-json/tribe/events/v1/events',
   },
   'la-termica': {
     maxRetries: 2,
     totalTimeoutMs: 30000,
+    useHeadless: false,
+  },
+  // Phase 2 sources
+  'agenda-municipal': {
+    maxRetries: 2,
+    totalTimeoutMs: 45000,
+    useHeadless: false,
+  },
+  'cultura-malaga': {
+    maxRetries: 2,
+    totalTimeoutMs: 45000,
+    useHeadless: false,
+  },
+  'fycma': {
+    maxRetries: 2,
+    totalTimeoutMs: 30000,
+    useHeadless: false,
+  },
+  'festival-malaga': {
+    maxRetries: 2,
+    totalTimeoutMs: 30000,
+    useHeadless: false,
+  },
+  'la-garrapata': {
+    maxRetries: 1, // Best-effort only
+    totalTimeoutMs: 15000,
     useHeadless: false,
   },
 };
@@ -207,6 +247,16 @@ const VENUE_ALIASES: Record<string, string> = {
   'antojo málaga': 'Antojo Málaga',
   'la termica': 'La Térmica',
   'la térmica': 'La Térmica',
+  // Phase 2 venues
+  'fycma': 'FYCMA - Palacio de Ferias y Congresos',
+  'palacio de ferias': 'FYCMA - Palacio de Ferias y Congresos',
+  'palacio ferias malaga': 'FYCMA - Palacio de Ferias y Congresos',
+  'palacio de ferias y congresos': 'FYCMA - Palacio de Ferias y Congresos',
+  'la garrapata': 'La Garrapata',
+  'bar la garrapata': 'La Garrapata',
+  'garrapata': 'La Garrapata',
+  'la caja blanca': 'La Caja Blanca',
+  'caja blanca': 'La Caja Blanca',
 };
 
 const MALAGA_MUNICIPALITIES = [
@@ -1051,13 +1101,24 @@ async function syncSingleSource(
       }
     }
     
-    // If still no events and main scrape failed, throw error
+    // If still no events and main scrape failed
     if (events.length === 0 && !scrapeResult.success) {
-      if (scrapeResult.error?.includes('Throttled')) {
-        result.status = 'throttled';
+      // For social media / best-effort sources, mark as blocked gracefully
+      const isBestEffort = ['la-garrapata'].includes(source.slug);
+      const isBlocked = scrapeResult.error?.includes('403') || scrapeResult.error?.includes('401') || scrapeResult.error?.includes('login');
+      
+      if (isBestEffort || isBlocked) {
+        logger.warn('scrape', `Source ${source.slug} blocked or best-effort — skipping gracefully`);
+        result.status = 'partial';
+        result.error = isBlocked ? 'Source blocked (403/401)' : 'Best-effort source returned no events';
+        // Don't throw — just finish gracefully
+      } else {
+        if (scrapeResult.error?.includes('Throttled')) {
+          result.status = 'throttled';
+        }
+        result.error = scrapeResult.error;
+        throw new Error(scrapeResult.error);
       }
-      result.error = scrapeResult.error;
-      throw new Error(scrapeResult.error);
     }
     
     events = events.filter((e: any) => e.title && isValidEventTitle(e.title));
