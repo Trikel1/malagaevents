@@ -363,7 +363,7 @@ function sanitizeUrl(url: string | null | undefined): string {
 }
 
 // ============================================================================
-// FIRECRAWL SCRAPING
+// FIRECRAWL SCRAPING & SEARCH
 // ============================================================================
 
 async function scrapeSource(
@@ -418,6 +418,67 @@ async function scrapeSource(
   }
 }
 
+/** Use Firecrawl Search API to find sports events via web search */
+async function searchSportsEvents(
+  query: string,
+  apiKey: string,
+  limit: number = 10
+): Promise<{ success: boolean; results?: any[]; error?: string }> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    const response = await fetch("https://api.firecrawl.dev/v1/search", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query,
+        limit,
+        lang: "es",
+        country: "es",
+        scrapeOptions: {
+          formats: ["json"],
+          jsonOptions: {
+            schema: SPORT_EVENT_SCHEMA,
+            prompt: `Extract ALL sports events from this page. For each event: title, date (YYYY-MM-DD), time (HH:MM), venue, city, sport type, teams, competition, tickets_url. Only events in Málaga province, Spain. Current date: ${new Date().toISOString().slice(0, 10)}.`,
+          },
+        },
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { success: false, error: `HTTP ${response.status}: ${errorText.substring(0, 200)}` };
+    }
+
+    const result = await response.json();
+    return { success: true, results: result?.data || [] };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return { success: false, error: "Search timeout (30s)" };
+    }
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+// Search queries for discovering sports events in Málaga
+const SEARCH_QUERIES = [
+  "eventos deportivos Málaga 2026 calendario",
+  "carreras populares Málaga provincia 2026",
+  "partidos fútbol Málaga febrero marzo 2026",
+  "Unicaja baloncesto próximos partidos 2026",
+  "triatlón atletismo Málaga Costa del Sol 2026",
+  "padel tenis torneos Málaga 2026",
+  "ciclismo running trail Málaga 2026",
+  "natación waterpolo balonmano Málaga 2026",
+];
+
 // ============================================================================
 // MAIN HANDLER
 // ============================================================================
@@ -455,7 +516,7 @@ Deno.serve(async (req) => {
   }
 
   // Parse body
-  let body: { slug?: string; force?: boolean; cooldownMinutes?: number } = {};
+  let body: { slug?: string; force?: boolean; cooldownMinutes?: number; searchOnly?: boolean } = {};
   try {
     body = await req.json();
   } catch {
@@ -702,6 +763,137 @@ Deno.serve(async (req) => {
     if (sources.indexOf(source) < sources.length - 1) {
       await new Promise((r) => setTimeout(r, 1500));
     }
+  }
+
+  // ========================================================================
+  // PHASE 2: SEARCH-BASED DISCOVERY (runs after per-source scraping)
+  // ========================================================================
+  // When searchOnly=true, skip scraping and only do search.
+  // Otherwise, search runs after scraping when no slug filter is set.
+  const shouldSearch = body.searchOnly || (!body.slug);
+  
+  if (shouldSearch) {
+    console.log(`[sync-sports] Starting search-based discovery (${SEARCH_QUERIES.length} queries)...`);
+    
+    const { data: searchRunData } = await supabase
+      .from("sports_sync_runs")
+      .insert({ source_slug: "search-discovery", status: "running" })
+      .select("id")
+      .single();
+    const searchRunId = searchRunData?.id;
+
+    let searchUpserted = 0;
+    let searchFailed = 0;
+    let searchFetched = 0;
+    let searchSkippedProvince = 0;
+
+    for (const query of SEARCH_QUERIES) {
+      console.log(`[sync-sports] Searching: "${query}"`);
+      const searchResult = await searchSportsEvents(query, firecrawlApiKey, 5);
+      
+      if (!searchResult.success) {
+        console.warn(`[sync-sports] Search failed for "${query}": ${searchResult.error}`);
+        continue;
+      }
+
+      // Each search result page may contain events
+      for (const page of (searchResult.results || [])) {
+        const pageEvents = page?.json?.events || page?.data?.json?.events || [];
+        searchFetched += pageEvents.length;
+        
+        for (const evt of pageEvents) {
+          try {
+            const title = sanitizeText(evt.title);
+            if (!title || title.length < 3) continue;
+
+            const startDatetime = parseEventDate(evt.date, evt.time);
+            if (!startDatetime) continue;
+
+            // Skip past events
+            const evtDate = new Date(startDatetime);
+            if (evtDate < new Date(Date.now() - 24 * 60 * 60 * 1000)) continue;
+
+            const normalizedTitle = normalizeText(title);
+            const venue = sanitizeText(evt.venue) || "Málaga";
+            const normalizedVenue = normalizeText(venue);
+            const city = sanitizeText(evt.city) || "Málaga";
+            const sportCategory = mapSportCategory(evt.sport || "otros");
+
+            // Province filter
+            if (!isInMalagaProvince(city, venue, "", "search-discovery")) {
+              searchSkippedProvince++;
+              continue;
+            }
+
+            const dedupeKey = await generateDedupeKey(
+              normalizedTitle, normalizedVenue, startDatetime,
+              sportCategory, "search", evt.tickets_url || evt.title || ""
+            );
+
+            const row = {
+              dedupe_key: dedupeKey,
+              title,
+              normalized_title: normalizedTitle,
+              sport_category: sportCategory,
+              competition: sanitizeText(evt.competition) || null,
+              teams: sanitizeText(evt.teams) || null,
+              start_datetime: startDatetime,
+              start_date: toMadridDate(startDatetime),
+              venue_name: venue,
+              normalized_venue: normalizedVenue,
+              city,
+              tickets_url: sanitizeUrl(evt.tickets_url) || null,
+              image_url: sanitizeUrl(evt.image_url) || null,
+              price_info: sanitizeText(evt.price_info) || null,
+              source_url: page?.url || null,
+              status: "scheduled",
+              is_in_malaga_province: true,
+            };
+
+            const { error: upsertErr } = await supabase
+              .from("sports_events")
+              .upsert(row, { onConflict: "dedupe_key", ignoreDuplicates: false });
+
+            if (upsertErr) {
+              searchFailed++;
+              console.warn(`[sync-sports] Search upsert error: ${upsertErr.message}`);
+            } else {
+              searchUpserted++;
+            }
+          } catch (e) {
+            searchFailed++;
+          }
+        }
+      }
+
+      // Small delay between search queries
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+
+    if (searchRunId) {
+      await supabase
+        .from("sports_sync_runs")
+        .update({
+          status: "done",
+          finished_at: new Date().toISOString(),
+          items_fetched: searchFetched,
+          items_parsed: searchFetched,
+          items_upserted: searchUpserted,
+          items_failed: searchFailed,
+        })
+        .eq("id", searchRunId);
+    }
+
+    results.push({
+      slug: "search-discovery",
+      status: "done",
+      fetched: searchFetched,
+      upserted: searchUpserted,
+      failed: searchFailed,
+      skippedProvince: searchSkippedProvince,
+    });
+
+    console.log(`[sync-sports] Search discovery: fetched=${searchFetched} upserted=${searchUpserted} failed=${searchFailed} skipped=${searchSkippedProvince}`);
   }
 
   console.log(`[sync-sports] Complete. Results:`, JSON.stringify(results));
