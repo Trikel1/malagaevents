@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, Calendar, Pill, User, Building2 } from 'lucide-react';
+import { Home, CalendarDays, Calendar, Map, Pill, User, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppMode } from '@/contexts/AppModeContext';
 
@@ -20,7 +20,7 @@ const BottomNav = () => {
     if (appMode === 'deportes') {
       base.push({ to: '/venues', icon: Building2, label: t('nav.venues') });
     } else {
-      base.push({ to: '/pharmacies', icon: Pill, label: t('nav.pharmacies') });
+      base.push({ to: '/map', icon: Map, label: t('nav.map', 'Mapa') });
     }
 
     base.push({ to: '/profile', icon: User, label: t('nav.profile') });

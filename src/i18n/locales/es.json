@@ -33,7 +33,8 @@
     "calendar": "Calendario",
     "pharmacies": "Farmacias",
     "profile": "Perfil",
-    "venues": "Recintos"
+    "venues": "Recintos",
+    "map": "Mapa"
   },
   "onboarding": {
     "title": "Bienvenido a Málaga Events",
@@ -211,6 +212,10 @@
     "passwordsDontMatch": "Las contraseñas no coinciden",
     "emailInUse": "Este email ya está registrado",
     "invalidCredentials": "Credenciales inválidas"
+  },
+  "map": {
+    "eventsOnMap": "eventos en el mapa",
+    "noGeoEvents": "No hay eventos con ubicación exacta"
   },
   "sports": {
     "title": "Deportes",

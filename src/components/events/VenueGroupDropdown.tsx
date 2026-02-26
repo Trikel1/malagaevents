@@ -1,20 +1,15 @@
-import { useState, useMemo, useCallback, MouseEvent } from 'react';
+import { useState, useMemo, useCallback, useEffect, MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronDown, Building2, Theater, Loader2, LayoutGrid, Search } from 'lucide-react';
+import { ChevronDown, Building2, Theater, Loader2, LayoutGrid, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useVenues } from '@/hooks/useVenues';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -29,7 +24,6 @@ interface VenueGroupDropdownProps {
   onVenueIdsChange: (venueIds: string[]) => void;
 }
 
-// Extended Venue type with new DB columns
 interface VenueWithType extends Venue {
   venue_type?: 'theater' | 'hall';
   is_featured?: boolean;
@@ -58,22 +52,17 @@ const CANONICAL_THEATER_NAMES = [
 ];
 
 function classifyVenue(venue: VenueWithType): VenueGroup {
-  // First check the DB venue_type if available
-  if (venue.venue_type === 'theater') {
-    return 'theaters';
-  }
-  
+  if (venue.venue_type === 'theater') return 'theaters';
+
   const name = venue.name?.toLowerCase() || '';
   const normalizedName = venue.normalized_name?.toLowerCase() || '';
-  
-  // Check against canonical theater names
+
   for (const pattern of CANONICAL_THEATER_NAMES) {
     if (name.includes(pattern) || normalizedName.includes(pattern.replace(/\s+/g, '-'))) {
       return 'theaters';
     }
   }
-  
-  // Everything else is a "sala"
+
   return 'halls';
 }
 
@@ -90,7 +79,14 @@ export function VenueGroupDropdown({
   const [theatersOpen, setTheatersOpen] = useState(false);
   const [hallsSearchQuery, setHallsSearchQuery] = useState('');
   const [theatersSearchQuery, setTheatersSearchQuery] = useState('');
+  const [draftIds, setDraftIds] = useState<string[]>(selectedVenueIds);
 
+  // Sync draft when popover opens
+  useEffect(() => {
+    if (hallsOpen || theatersOpen) {
+      setDraftIds(selectedVenueIds);
+    }
+  }, [hallsOpen, theatersOpen, selectedVenueIds]);
 
   // Classify and filter venues into groups
   const venuesByGroup = useMemo(() => {
@@ -104,132 +100,108 @@ export function VenueGroupDropdown({
       .filter(v => v.name && !v.name.toLowerCase().includes('sin sala'))
       .forEach((venue) => {
         const group = classifyVenue(venue);
-        
         if (group === 'theaters') {
-          // Only add theaters that match our canonical list
           grouped.theaters.push(venue);
-        } else {
-          // For halls, only show featured ones (main venues in Málaga city)
-          if (venue.is_featured) {
-            grouped.halls.push(venue);
-          }
+        } else if (venue.is_featured) {
+          grouped.halls.push(venue);
         }
-        
-        // All always includes both featured halls and theaters
         if (group === 'theaters' || venue.is_featured) {
           grouped.all.push(venue);
         }
       });
 
-    // Sort alphabetically
     grouped.theaters.sort((a, b) => a.name.localeCompare(b.name));
     grouped.halls.sort((a, b) => a.name.localeCompare(b.name));
-
     return grouped;
   }, [venues]);
 
-  // Handle "Todos" button - STOP PROPAGATION to prevent Buscar activation
+  // Handle "Todos" button
   const handleSelectAll = useCallback((e: MouseEvent) => {
     e.stopPropagation();
     onGroupChange('all');
     onVenueIdsChange([]);
+    setDraftIds([]);
     setHallsOpen(false);
     setTheatersOpen(false);
   }, [onGroupChange, onVenueIdsChange]);
 
-  // Toggle individual venue in multi-select
-  const handleToggleVenue = useCallback((venue: Venue, group: VenueGroup) => {
-    const isSelected = selectedVenueIds.includes(venue.id);
-    let newIds: string[];
-    
-    if (isSelected) {
-      newIds = selectedVenueIds.filter(id => id !== venue.id);
-    } else {
-      // When adding from a group, ensure we're in that group's context
-      const groupVenueIds = venuesByGroup[group].map(v => v.id);
-      const currentGroupVenues = selectedVenueIds.filter(id => groupVenueIds.includes(id));
-      newIds = [...currentGroupVenues, venue.id];
-    }
-    
-    // If no venues selected, reset to all
-    if (newIds.length === 0) {
-      onGroupChange('all');
-      onVenueIdsChange([]);
-    } else {
-      onGroupChange(group);
-      onVenueIdsChange(newIds);
-    }
-  }, [selectedVenueIds, venuesByGroup, onGroupChange, onVenueIdsChange]);
+  // Draft-only toggle for individual venue
+  const handleToggleDraftVenue = useCallback((venueId: string) => {
+    setDraftIds(prev =>
+      prev.includes(venueId) ? prev.filter(id => id !== venueId) : [...prev, venueId]
+    );
+  }, []);
 
-  // Toggle "all" within a group
-  const handleToggleAllInGroup = useCallback((group: VenueGroup, allSelected: boolean) => {
-    if (allSelected) {
+  // Draft-only toggle all in group
+  const handleToggleAllDraftInGroup = useCallback((group: VenueGroup) => {
+    const groupVenueIds = venuesByGroup[group].map(v => v.id);
+    const allInDraft = groupVenueIds.every(id => draftIds.includes(id));
+    if (allInDraft) {
+      setDraftIds(prev => prev.filter(id => !groupVenueIds.includes(id)));
+    } else {
+      setDraftIds(prev => [...new Set([...prev, ...groupVenueIds])]);
+    }
+  }, [venuesByGroup, draftIds]);
+
+  // Apply: draft → active
+  const handleApplyGroup = useCallback((group: VenueGroup) => {
+    const groupVenueIds = venuesByGroup[group].map(v => v.id);
+    const selectedFromGroup = draftIds.filter(id => groupVenueIds.includes(id));
+    if (selectedFromGroup.length === 0) {
       onGroupChange('all');
       onVenueIdsChange([]);
     } else {
-      const groupVenueIds = venuesByGroup[group].map(v => v.id);
       onGroupChange(group);
-      onVenueIdsChange(groupVenueIds);
+      onVenueIdsChange(selectedFromGroup);
     }
-    
     if (group === 'halls') setHallsOpen(false);
     if (group === 'theaters') setTheatersOpen(false);
-  }, [venuesByGroup, onGroupChange, onVenueIdsChange]);
+  }, [venuesByGroup, draftIds, onGroupChange, onVenueIdsChange]);
 
-  // Check if all venues in a group are selected
-  const isGroupFullySelected = useCallback((group: VenueGroup): boolean => {
-    if (selectedGroup !== group) return false;
-    const groupVenueIds = venuesByGroup[group].map(v => v.id);
-    return groupVenueIds.length > 0 && groupVenueIds.every(id => selectedVenueIds.includes(id));
-  }, [selectedGroup, venuesByGroup, selectedVenueIds]);
+  // Clear: reset to show all
+  const handleClearGroup = useCallback((group: VenueGroup) => {
+    onGroupChange('all');
+    onVenueIdsChange([]);
+    setDraftIds([]);
+    if (group === 'halls') setHallsOpen(false);
+    if (group === 'theaters') setTheatersOpen(false);
+  }, [onGroupChange, onVenueIdsChange]);
 
-  // Get selected count for display
-  const getSelectedCount = useCallback((group: VenueGroup): number => {
-    if (selectedGroup !== group) return 0;
-    const groupVenueIds = venuesByGroup[group].map(v => v.id);
-    return selectedVenueIds.filter(id => groupVenueIds.includes(id)).length;
-  }, [selectedGroup, venuesByGroup, selectedVenueIds]);
-
-  // Handle popover open change with propagation stop and search reset
+  // Popover open/change handlers with search reset
   const handleHallsOpenChange = useCallback((open: boolean) => {
     setHallsOpen(open);
-    if (open) {
-      setTheatersOpen(false);
-    } else {
-      setHallsSearchQuery('');
-    }
+    if (open) setTheatersOpen(false);
+    else setHallsSearchQuery('');
   }, []);
 
   const handleTheatersOpenChange = useCallback((open: boolean) => {
     setTheatersOpen(open);
-    if (open) {
-      setHallsOpen(false);
-    } else {
-      setTheatersSearchQuery('');
-    }
+    if (open) setHallsOpen(false);
+    else setTheatersSearchQuery('');
   }, []);
 
-  // Render dropdown for a group
+  // Render dropdown for a group with Mostrar/Limpiar header
   const renderGroupDropdown = (group: VenueGroup, isOpen: boolean, setOpen: (v: boolean) => void) => {
     const groupVenues = venuesByGroup[group];
     const isHalls = group === 'halls';
     const label = isHalls ? t('events.halls', 'Salas') : t('events.theaters', 'Teatros');
-    const allLabel = isHalls 
-      ? t('events.allHalls', 'Todas las salas') 
-      : t('events.allTheaters', 'Todos los teatros');
     const Icon = isHalls ? Building2 : Theater;
-    const allSelected = isGroupFullySelected(group);
-    const selectedCount = getSelectedCount(group);
     const isActive = selectedGroup === group;
-    
-    // Get search query for this group
+
     const searchQuery = isHalls ? hallsSearchQuery : theatersSearchQuery;
     const setSearchQuery = isHalls ? setHallsSearchQuery : setTheatersSearchQuery;
-    
-    // Filter venues based on search query
+
     const filteredVenues = searchQuery
       ? groupVenues.filter(v => v.name.toLowerCase().includes(searchQuery.toLowerCase()))
       : groupVenues;
+
+    // Draft-based checks
+    const groupVenueIds = groupVenues.map(v => v.id);
+    const draftCount = draftIds.filter(id => groupVenueIds.includes(id)).length;
+    const allDraftSelected = groupVenueIds.length > 0 && groupVenueIds.every(id => draftIds.includes(id));
+
+    // Active count for button badge
+    const activeCount = selectedVenueIds.filter(id => groupVenueIds.includes(id)).length;
 
     return (
       <Popover open={isOpen} onOpenChange={setOpen}>
@@ -240,19 +212,18 @@ export function VenueGroupDropdown({
               'flex-1 h-10 text-sm gap-1.5 justify-center',
               isActive && 'shadow-sm'
             )}
-            // CRITICAL: Stop propagation to prevent Buscar from activating
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <Icon className="h-4 w-4 shrink-0" />
             <span className="truncate">{label}</span>
-            {selectedCount > 0 && !allSelected && (
-              <span className="text-xs opacity-80">({selectedCount})</span>
+            {activeCount > 0 && (
+              <span className="text-xs opacity-80">({activeCount})</span>
             )}
             <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent 
+        <PopoverContent
           className="w-[min(320px,calc(100vw-32px))] p-0 bg-popover border shadow-lg z-50"
           align="center"
           side="bottom"
@@ -260,37 +231,34 @@ export function VenueGroupDropdown({
           collisionPadding={16}
           avoidCollisions={true}
           sticky="always"
-          // Prevent auto-focus on mobile to avoid keyboard popup
           onOpenAutoFocus={(e) => { if (isMobile) e.preventDefault(); }}
-          // Stop propagation on content interactions
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <Command shouldFilter={false} className="max-h-[60vh]">
-            {/* Manual search input without autofocus */}
-            <div className="flex items-center border-b px-3">
-              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-              <input
-                type="text"
+          {/* Header: search + Mostrar + Limpiar */}
+          <div className="p-2 border-b flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
                 placeholder={t('common.search', 'Buscar...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                // NO autoFocus - user must tap to activate keyboard
+                className="pl-8 h-8 text-sm"
               />
             </div>
-            <CommandList 
-              className={cn(
-                "max-h-[50vh] overflow-y-auto",
-                "[&::-webkit-scrollbar]:w-2",
-                "[&::-webkit-scrollbar-track]:bg-transparent",
-                "[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
-                "[&::-webkit-scrollbar-thumb]:rounded-full",
-                // iOS scroll bounce and momentum
-                "overscroll-contain",
-                "[-webkit-overflow-scrolling:touch]"
-              )}
-            >
+            <Button size="sm" className="h-8 px-3 text-xs" onClick={() => handleApplyGroup(group)}>
+              {t('common.show', 'Mostrar')}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" onClick={() => handleClearGroup(group)}>
+              {t('common.clear', 'Limpiar')}
+            </Button>
+          </div>
+
+          <ScrollArea className={cn(
+            "max-h-[50vh]",
+            "overscroll-contain [-webkit-overflow-scrolling:touch]"
+          )}>
+            <div className="p-1">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -300,70 +268,62 @@ export function VenueGroupDropdown({
                   {t('errors.generic', 'Error al cargar')}
                 </div>
               ) : filteredVenues.length === 0 ? (
-                <CommandEmpty className="py-6 text-center text-muted-foreground">
-                  {t('events.noVenuesFound', 'No se encontraron venues')}
-                </CommandEmpty>
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  {t('common.noResults', 'Sin resultados')}
+                </div>
               ) : (
-                <CommandGroup className="p-1">
-                  {/* "All" option with checkbox - only show when not searching */}
+                <>
+                  {/* "All in group" toggle - only when not searching */}
                   {!searchQuery && (
-                    <CommandItem
-                      onSelect={() => handleToggleAllInGroup(group, allSelected)}
-                      className="flex items-center gap-3 px-3 py-2.5 cursor-pointer font-medium border-b mb-1"
+                    <div
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent cursor-pointer font-medium border-b mb-1"
+                      onClick={() => handleToggleAllDraftInGroup(group)}
                     >
-                      <Checkbox
-                        checked={allSelected}
-                        className="h-4 w-4"
-                      />
-                      <span className="flex-1">{allLabel}</span>
-                      <span className="text-xs text-muted-foreground">
-                        ({groupVenues.length})
+                      <Checkbox checked={allDraftSelected} className="h-4 w-4" />
+                      <span className="flex-1">
+                        {isHalls ? t('events.allHalls', 'Todas las salas') : t('events.allTheaters', 'Todos los teatros')}
                       </span>
-                    </CommandItem>
+                      <span className="text-xs text-muted-foreground">({groupVenues.length})</span>
+                    </div>
                   )}
-                  
+
                   {/* Individual venues with checkboxes */}
                   {filteredVenues.map((venue) => {
-                    const isSelected = selectedVenueIds.includes(venue.id);
-                    const showCity = venue.city && 
+                    const isSelected = draftIds.includes(venue.id);
+                    const showCity = venue.city &&
                       !venue.city.toLowerCase().includes('málaga') &&
                       !venue.city.toLowerCase().includes('malaga');
-                    
+
                     return (
-                      <CommandItem
+                      <div
                         key={venue.id}
-                        value={venue.name}
-                        onSelect={() => handleToggleVenue(venue, group)}
-                        className="flex items-center gap-3 px-3 py-2 cursor-pointer"
+                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent cursor-pointer"
+                        onClick={() => handleToggleDraftVenue(venue.id)}
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          className="h-4 w-4"
-                        />
+                        <Checkbox checked={isSelected} className="h-4 w-4" />
                         <div className="flex-1 min-w-0">
-                          <span className="block truncate">{venue.name}</span>
+                          <span className="block truncate text-sm">{venue.name}</span>
                           {showCity && (
                             <span className="text-xs text-muted-foreground block truncate">
                               {venue.city}
                             </span>
                           )}
                         </div>
-                      </CommandItem>
+                      </div>
                     );
                   })}
-                </CommandGroup>
+                </>
               )}
-            </CommandList>
-          </Command>
+            </div>
+          </ScrollArea>
         </PopoverContent>
       </Popover>
     );
   };
 
   return (
-    <div 
+    <div
       className="flex gap-2 w-full"
-      // Prevent any click from bubbling up to parent (e.g., Buscar handler)
       onClick={(e) => e.stopPropagation()}
     >
       {/* Todos Button */}
