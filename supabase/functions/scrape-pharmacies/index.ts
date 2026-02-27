@@ -85,8 +85,10 @@ function generateDedupeKey(name: string, address: string, municipality: string):
   return `phdir_${normalizeText(name)}_${normalizeText(address)}_${normalizeText(municipality)}`;
 }
 
-async function scrapeWithFirecrawl(url: string, apiKey: string, schema: any, prompt: string): Promise<any> {
+async function scrapeWithFirecrawl(url: string, apiKey: string, schema: any, prompt: string, timeoutMs = 25000): Promise<any> {
   console.log(`Scraping: ${url}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
@@ -101,6 +103,7 @@ async function scrapeWithFirecrawl(url: string, apiKey: string, schema: any, pro
         onlyMainContent: true,
         waitFor: 5000,
       }),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -111,8 +114,117 @@ async function scrapeWithFirecrawl(url: string, apiKey: string, schema: any, pro
 
     return await response.json();
   } catch (error) {
-    console.error(`Error scraping ${url}:`, error);
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      console.warn(`Firecrawl timeout for ${url} after ${timeoutMs}ms`);
+    } else {
+      console.error(`Error scraping ${url}:`, error);
+    }
     return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Try Jina Reader + AI Gateway as fallback for JS-heavy pages
+async function scrapeWithJinaAndAI(url: string, prompt: string): Promise<any[]> {
+  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!lovableApiKey) {
+    console.warn('LOVABLE_API_KEY not set, skipping Jina+AI fallback');
+    return [];
+  }
+
+  try {
+    console.log(`Jina+AI fallback for: ${url}`);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+
+    const jinaResp = await fetch(`https://r.jina.ai/${encodeURIComponent(url)}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Return-Format': 'markdown',
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+
+    if (!jinaResp.ok) {
+      console.warn(`Jina failed for ${url}: ${jinaResp.status}`);
+      return [];
+    }
+
+    const jinaData = await jinaResp.json();
+    const markdown = jinaData?.data?.content || jinaData?.content || '';
+    if (!markdown || markdown.length < 100) {
+      console.warn('Jina returned insufficient content');
+      return [];
+    }
+
+    // Send to AI Gateway for extraction
+    const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        temperature: 0,
+        messages: [
+          {
+            role: 'system',
+            content: 'You extract pharmacy data from scraped web content. Return ONLY valid JSON array.',
+          },
+          {
+            role: 'user',
+            content: `${prompt}\n\nContent:\n${markdown.substring(0, 15000)}`,
+          },
+        ],
+        tools: [{
+          type: 'function',
+          function: {
+            name: 'extract_pharmacies',
+            description: 'Extract pharmacy listings',
+            parameters: {
+              type: 'object',
+              properties: {
+                pharmacies: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      address: { type: 'string' },
+                      municipality: { type: 'string' },
+                      phone: { type: 'string' },
+                      duty_date: { type: 'string' },
+                    },
+                    required: ['name', 'address'],
+                  },
+                },
+              },
+              required: ['pharmacies'],
+            },
+          },
+        }],
+        tool_choice: { type: 'function', function: { name: 'extract_pharmacies' } },
+      }),
+    });
+
+    if (!aiResp.ok) {
+      console.warn(`AI Gateway failed: ${aiResp.status}`);
+      return [];
+    }
+
+    const aiData = await aiResp.json();
+    const toolCall = aiData?.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCall?.function?.arguments) {
+      const parsed = JSON.parse(toolCall.function.arguments);
+      return parsed.pharmacies || [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Jina+AI fallback error:', error);
+    return [];
   }
 }
 
@@ -165,31 +277,53 @@ Deno.serve(async (req) => {
       guardia_inserted: 0,
       directory_scraped: 0,
       directory_upserted: 0,
+      guardia_source: 'none',
+      directory_source: 'none',
       errors: [] as string[],
     };
 
     // ── 1. GUARDIA PHARMACIES ──
     let guardiaPharmacies: any[] = [];
 
+    // Try Firecrawl first (with timeout)
     if (firecrawlKey) {
-      // Try scraping the official guardia portal for Málaga province
       const guardiaResult = await scrapeWithFirecrawl(
         'https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29',
         firecrawlKey,
         GUARDIA_SCHEMA,
-        'Extract all on-duty pharmacy information shown on this page for Málaga province. For each pharmacy get: name, address, municipality/town, phone, and date of guard duty.'
+        'Extract all on-duty pharmacy information shown on this page for Málaga province (ID 29). For each pharmacy get: name, address, municipality/town, phone, and date of guard duty in YYYY-MM-DD format.',
+        20000
       );
 
-      if (guardiaResult?.success && guardiaResult?.data?.json?.pharmacies) {
+      if (guardiaResult?.success && guardiaResult?.data?.json?.pharmacies?.length > 5) {
         guardiaPharmacies = guardiaResult.data.json.pharmacies.map((p: any) => ({
           ...p,
           municipality: p.municipality || 'Málaga',
           source_ref: 'farmaciasguardia.farmaceuticos.com',
         }));
         results.guardia_scraped = guardiaPharmacies.length;
-        console.log(`Scraped ${guardiaPharmacies.length} guardia pharmacies`);
+        results.guardia_source = 'firecrawl';
+        console.log(`Scraped ${guardiaPharmacies.length} guardia pharmacies via Firecrawl`);
       } else {
-        console.log('Guardia scraping returned no data, using fallback rotation');
+        console.log('Firecrawl guardia returned insufficient data, trying Jina+AI...');
+      }
+    }
+
+    // Jina+AI fallback for guardia
+    if (guardiaPharmacies.length < 5) {
+      const jinaPharmacies = await scrapeWithJinaAndAI(
+        'https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29',
+        'Extract ALL on-duty pharmacies shown for Málaga province. For each pharmacy: name, full address, municipality/town, phone number, and duty_date in YYYY-MM-DD format.'
+      );
+      if (jinaPharmacies.length > guardiaPharmacies.length) {
+        guardiaPharmacies = jinaPharmacies.map((p: any) => ({
+          ...p,
+          municipality: p.municipality || 'Málaga',
+          source_ref: 'farmaciasguardia.farmaceuticos.com',
+        }));
+        results.guardia_scraped = guardiaPharmacies.length;
+        results.guardia_source = 'jina-ai';
+        console.log(`Scraped ${guardiaPharmacies.length} guardia pharmacies via Jina+AI`);
       }
     }
 
@@ -199,7 +333,7 @@ Deno.serve(async (req) => {
     const todayStr = today.toISOString().split('T')[0];
 
     let dutyEntries: any[];
-    if (guardiaPharmacies.length > 0) {
+    if (guardiaPharmacies.length > 5) {
       // Use scraped guardia data directly if it has dates
       dutyEntries = guardiaPharmacies.map(p => ({
         name: p.name,
@@ -213,14 +347,21 @@ Deno.serve(async (req) => {
         source_ref: p.source_ref,
       }));
     } else {
+      console.log('Using fallback duty rotation schedule');
+      results.guardia_source = 'fallback';
       dutyEntries = generateDutySchedule(FALLBACK_PHARMACIES, today);
     }
 
     // Clear future entries and insert new ones
-    await supabase
+    const { error: deleteError } = await supabase
       .from('pharmacies_guard')
       .delete()
       .gte('date_from', todayStr);
+
+    if (deleteError) {
+      console.error('Error deleting old guard entries:', deleteError.message);
+      results.errors.push(`guard_delete: ${deleteError.message}`);
+    }
 
     const batchSize = 50;
     for (let i = 0; i < dutyEntries.length; i += batchSize) {
@@ -240,26 +381,45 @@ Deno.serve(async (req) => {
     // ── 2. FULL DIRECTORY ──
     let directoryPharmacies: any[] = [];
 
+    // Try Firecrawl for directory (with timeout)
     if (firecrawlKey) {
       const dirResult = await scrapeWithFirecrawl(
         'https://icofma.es/listado-farmacias-provincia-malaga',
         firecrawlKey,
         DIRECTORY_SCHEMA,
-        'Extract ALL pharmacies listed on this page. This is the full directory of pharmacies in Málaga province. For each pharmacy get: name, address, municipality/town, and phone number.'
+        'Extract ALL pharmacies listed on this page. This is the full directory of pharmacies in Málaga province. For each pharmacy get: name, address, municipality/town, and phone number.',
+        20000
       );
 
-      if (dirResult?.success && dirResult?.data?.json?.pharmacies) {
+      if (dirResult?.success && dirResult?.data?.json?.pharmacies?.length > 5) {
         directoryPharmacies = dirResult.data.json.pharmacies;
         results.directory_scraped = directoryPharmacies.length;
-        console.log(`Scraped ${directoryPharmacies.length} directory pharmacies`);
+        results.directory_source = 'firecrawl';
+        console.log(`Scraped ${directoryPharmacies.length} directory pharmacies via Firecrawl`);
       } else {
-        console.log('Directory scraping returned no data, using fallback');
+        console.log('Firecrawl directory returned insufficient data, trying Jina+AI...');
       }
     }
 
-    // Use fallback if scraping failed
-    if (directoryPharmacies.length === 0) {
+    // Jina+AI fallback for directory
+    if (directoryPharmacies.length < 5) {
+      const jinaDir = await scrapeWithJinaAndAI(
+        'https://icofma.es/listado-farmacias-provincia-malaga',
+        'Extract ALL pharmacies listed. For each: name, address, municipality/town, phone number. This is the complete directory of pharmacies in Málaga province.'
+      );
+      if (jinaDir.length > directoryPharmacies.length) {
+        directoryPharmacies = jinaDir;
+        results.directory_scraped = directoryPharmacies.length;
+        results.directory_source = 'jina-ai';
+        console.log(`Scraped ${directoryPharmacies.length} directory pharmacies via Jina+AI`);
+      }
+    }
+
+    // Use fallback if both scrapers failed
+    if (directoryPharmacies.length < 5) {
       directoryPharmacies = FALLBACK_PHARMACIES;
+      results.directory_source = 'fallback';
+      results.directory_scraped = directoryPharmacies.length;
     }
 
     // Upsert into pharmacies_directory
@@ -288,7 +448,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('Pharmacy scraping complete:', results);
+    console.log('Pharmacy scraping complete:', JSON.stringify(results));
 
     return new Response(
       JSON.stringify({ success: true, ...results }),
