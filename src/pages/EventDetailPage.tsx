@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
@@ -40,6 +41,27 @@ const EventDetailPage = () => {
   const toggleFavorite = useToggleFavorite();
   
   const isFavorite = favorites?.some((f) => f.event_id === id) ?? false;
+
+  // Hide sticky CTA on scroll-down, show on scroll-up
+  const [ctaHidden, setCtaHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastScrollY.current;
+      if (Math.abs(delta) < 6) return;
+      if (y < 80) {
+        setCtaHidden(false);
+      } else if (delta > 0) {
+        setCtaHidden(true);
+      } else {
+        setCtaHidden(false);
+      }
+      lastScrollY.current = y;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleToggleFavorite = () => {
     if (!isAuthenticated) {
@@ -338,7 +360,10 @@ END:VCALENDAR`;
       </main>
 
       {/* Sticky bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border/60 px-4 py-3 pb-safe shadow-soft">
+      <div className={cn(
+        "fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border/60 px-4 py-3 pb-safe shadow-soft transition-transform duration-300 ease-out",
+        ctaHidden ? "translate-y-full" : "translate-y-0"
+      )}>
         <div className="max-w-lg mx-auto flex gap-2">
           <Button
             variant="outline"
