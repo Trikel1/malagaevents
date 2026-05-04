@@ -243,6 +243,48 @@
     "noVenues": "No se encontraron recintos",
     "map": "Mapa",
     "allVenues": "Todos los recintos",
-    "loading": "Cargando..."
+    "loading": "Cargando...",
+    "heroKicker": "Agenda deportiva",
+    "heroTitle": "Muévete por Málaga",
+    "heroSubtitle": "Carreras, torneos, clases y actividades deportivas en Málaga y provincia.",
+    "searchPlaceholder": "Buscar deportes, clubes, recintos…",
+    "exploreBySport": "Explorar deportes",
+    "exploreByMunicipality": "Explorar por municipio",
+    "todayInSport": "Hoy en deporte",
+    "weekendSport": "Deporte este finde",
+    "upcomingEvents": "Próximos eventos deportivos",
+    "allActivities": "Todas las actividades",
+    "organizers": {
+      "title": "¿Organizas actividades deportivas?",
+      "subtitle": "Da visibilidad a tu club, recinto o competición.",
+      "cta": "Publicar"
+    },
+    "cta": {
+      "tickets": "Entradas",
+      "register": "Inscribirme",
+      "directions": "Cómo llegar",
+      "view": "Ver actividad"
+    },
+    "empty": {
+      "today": "Sin actividades deportivas hoy.",
+      "weekend": "Sin actividades deportivas este fin de semana.",
+      "results": "No encontramos actividades con estos filtros.",
+      "venuesSoon": "Estamos incorporando recintos deportivos."
+    },
+    "filter": {
+      "free": "Gratis",
+      "withTickets": "Con entradas"
+    },
+    "running": "Running",
+    "ciclismo": "Ciclismo",
+    "natacion": "Natación",
+    "padel": "Pádel",
+    "triatlon": "Triatlón",
+    "senderismo": "Senderismo",
+    "fitness": "Fitness",
+    "voleibol": "Voleibol",
+    "rugby": "Rugby",
+    "acuaticos": "Deportes acuáticos",
+    "artes_marciales": "Artes marciales"
   }
 }

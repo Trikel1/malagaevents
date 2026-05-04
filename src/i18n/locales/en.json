@@ -243,6 +243,48 @@
     "noVenues": "No venues found",
     "map": "Map",
     "allVenues": "All venues",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "heroKicker": "Sports agenda",
+    "heroTitle": "Move around Málaga",
+    "heroSubtitle": "Races, tournaments, classes and sports activities across Málaga province.",
+    "searchPlaceholder": "Search sports, clubs, venues…",
+    "exploreBySport": "Explore sports",
+    "exploreByMunicipality": "Explore by town",
+    "todayInSport": "Today in sport",
+    "weekendSport": "Sport this weekend",
+    "upcomingEvents": "Upcoming sports events",
+    "allActivities": "All activities",
+    "organizers": {
+      "title": "Do you organize sports activities?",
+      "subtitle": "Give your club, venue or competition more visibility.",
+      "cta": "Publish"
+    },
+    "cta": {
+      "tickets": "Tickets",
+      "register": "Register",
+      "directions": "Directions",
+      "view": "View activity"
+    },
+    "empty": {
+      "today": "No sports activities today.",
+      "weekend": "No sports activities this weekend.",
+      "results": "No activities match these filters.",
+      "venuesSoon": "We are adding more sports venues."
+    },
+    "filter": {
+      "free": "Free",
+      "withTickets": "With tickets"
+    },
+    "running": "Running",
+    "ciclismo": "Cycling",
+    "natacion": "Swimming",
+    "padel": "Padel",
+    "triatlon": "Triathlon",
+    "senderismo": "Hiking",
+    "fitness": "Fitness",
+    "voleibol": "Volleyball",
+    "rugby": "Rugby",
+    "acuaticos": "Water sports",
+    "artes_marciales": "Martial arts"
   }
 }
