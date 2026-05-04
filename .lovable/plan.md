@@ -1,126 +1,121 @@
-## Diagnóstico (ya verificado contra fuentes reales)
 
-**¿Dónde está la lista de URLs?** En la tabla `sources_config` (16 fuentes activas: agenda-municipal, antojo-malaga, cultura-malaga, eventual-music, festival-malaga, fycma, la-cochera-cabaret, la-fabrica-cerveza, la-garrapata, la-termica, malaga-magazine, paris-15, sala-marte, sala-trinchera, teatro-cervantes, teatro-soho). No hay otra lista en código.
+# Sprint aprobado — Pipeline exhaustivo eventos culturales (versión final)
 
-**Estado real (eventos futuros en DB ahora mismo):**
+Implementación quirúrgica con los ajustes de seguridad y aceptación añadidos.
 
-| Fuente | Eventos | Causa raíz observada |
-|---|---|---|
-| La Térmica | 23 | OK |
-| Agenda Municipal | 11 | OK |
-| Teatro Soho | 11 | parcial — runs nuevos quedan `running` (timeout) |
-| Museo Picasso | 7 | OK |
-| Teatro Cervantes | 2 | parcial |
-| **Resto (11 fuentes)** | **0** | fallo silencioso |
-| paris-15 | 0 | Firecrawl timeout 30s en bucle (28 fallos/semana) — pero `curl https://paris15.es/eventos/` responde 200 en 1s con HTML válido |
-| sala-trinchera | 0 | run del 30-ene `running` para siempre — RSS `…/category/proximos-eventos/feed/` responde 200 con items `DD/MM Título` (08/05, 09/05, 15/05…) |
-| sala-marte | 0 | URL devuelve **301**; Firecrawl no resuelve y reporta "No events extracted" |
-| la-cochera-cabaret | 0 | run colgado; WP fallback devuelve `posts` genéricos (no eventos) |
-| antojo, eventual, festival, fycma, cultura, agenda, etc. | 0 / pocos | nunca sincronizadas o LLM extraction sin resultados |
+## Alcance
 
-**Causas raíz reales:**
+Solo se modifican:
+- `supabase/functions/sync-events/index.ts`
+- INSERTs en `sources_config` (sin schema migration)
 
-1. **Dependencia total de Firecrawl + extracción LLM** (un único `scrapeWithConfig` con `formats: ['json'] + jsonOptions.schema`) para todas las fuentes. Es lento (15-45s por intento), inconsistente y se queda sin tiempo. Las webs son perfectamente fetcheables con `fetch` directo.
-2. **`sync_runs` se quedan en estado `running`** indefinidamente cuando la edge function muere por wall-clock. Esto contamina logs y bloquea retry visibility.
-3. **`parseSpanishDate` no soporta `DD/MM` sin año** (formato exacto del RSS de Trinchera).
-4. **No se siguen redirects 301** (Sala Marte).
-5. **Fallback WP-Tribe** asume plugin "The Events Calendar" que la mayoría no tiene; cuando devuelve 200 con `posts` genéricos los toma como eventos basura.
-6. **Errores silenciosos**: si `events.length === 0` se marca `partial` sin distinguir "fuente OK pero sin programación" de "scraper roto".
-7. **Auto-archivado** (visible en estados): nada filtra bots, pero los eventos viejos sin nuevas occurrences caen → venues vacíos.
+No se toca: UI, auth, tickets, favoritos, farmacias, deportes, mapa, i18n, providers, App.tsx, ni ninguna otra edge function.
 
----
+## 1. Registro de fuentes (`sources_config`)
 
-## Plan de reparación (todo en `supabase/functions/sync-events/index.ts`, sin tocar UI ni schema)
+INSERT vía herramienta de inserción.
 
-### A. Reparar plomería
+**Activas** (`is_active=true`):
+fycma, teatro-estepona, marenostrum-fuengirola, starlite-marbella, mientrada-marbella, mientrada-edgar-neville, filarmonica-malaga, ayto-ronda, cultura-antequera, ayto-benalmadena, turismo-mijas, velez-teatro, torremolinos-cultura, entradas-fuengirola, turismo-coin, apta-axarquia, serrania-ronda, cochera-entradas.
 
-1. **Marcar como `failed` los `sync_runs` con `status='running'` y `started_at < now() - 30min`** al inicio del handler.
-2. **Seguir redirects** en todos los `fetch` directos (`redirect: 'follow'`).
-3. **`parseSpanishDate`**: aceptar `DD/MM` (sin año) y `DD-MM`; inferir próximo año si la fecha ya pasó. Aceptar también `HH.MMh`, `HHh`, `H:MM h`.
-4. **Status granular en `sync_runs.status`**: `success | partial_no_events | blocked | parse_error | timeout | failed`. Guardar `error_details.skip_reasons` con conteo.
-5. **No descartar eventos** sin imagen/precio/descripción/ticket — sólo exigir `title` + `start_date` válidos.
+**Inactivas con motivo en `notes`** (`is_active=false`, NO se ejecutan, NO generan runs):
+- culturama-diputacion → `blocked_403`
+- centro-cultural-mva → `blocked_403`
+- datos-abiertos-malaga → `unavailable_500`
+- lacocheracabaret-oficial → `bot_challenge`
 
-### B. Estrategia "fetcher directo primero, Firecrawl fallback"
+El loop principal filtra `is_active=true` antes de crear `sync_runs`, así no aparecen runs fallidos recurrentes.
 
-Para cada fuente, intentar en orden y registrar cuál ganó:
+## 2. Allowlist SSRF
+
+Añadir a `ALLOWED_SCRAPING_DOMAINS`: fycma.com, teatroestepona.com, marenostrumfuengirola.com, entradas.starlitemarbella.com, starlitemarbella.com, mientrada.net, orquestafilarmonicademalaga.com, ayuntamientoronda.es, cultura.antequera.es, antequera.es, benalmadena.es, turismo.mijas.es, mijas.es, velezmalaga.es, torremolinoscultura.es, entradas.fuengirola.es, fuengirola.es, turismocoin.es, axarquiacostadelsol.es, serraniaderonda.com, lacocheraentradas.com.
+
+## 3. Parsers nuevos (todos en `tryDirectFetcher`)
+
+Cada uno aislado, con try/catch, sin Firecrawl, sin bypass:
+
+- `fetchTheEventsCalendar(url, venue)` — prueba `/wp-json/tribe/events/v1/events?per_page=50&start_date=…`; si 404 cae a HTML calendar/list.
+- `fetchWpPostsList(url, venue, maxPages=5)` — recorre `/page/N`, visita posts (≤30 detalles).
+- `fetchCervantesDeep()` — descubre subpáginas desde el hub y agrega JSON-LD + cards.
+- `fetchMientrada(categoryUrl, venue)` — cards `.evento` con título/fecha/hora/precio/link.
+- `fetchFuengirolaEntradas()` — listing `/list/events`.
+- `fetchStarliteList()` — HTML básico, sin bypass.
+- `fetchFilarmonica()` — próximos eventos del home + detalle.
+- `fetchMunicipalAgenda(url, municipality, venue?)` — parser tolerante para Ronda, Antequera, Benalmádena, Mijas, Vélez, Torremolinos, Coín, Axarquía, Serranía Ronda.
+- `fetchGenericFallback(url, venue?)` — JSON-LD → OpenGraph → cards heurísticas.
+
+Cada parser devuelve `{ events, strategy_used, http_status, raw_count, pages_scanned, detail_pages_scanned, skip_reasons }`.
+
+## 4. Profundidad
+
+Cuando aplique cada parser:
+- Paginación `/page/N` o `?pageNum=N`.
+- 6 meses de calendario (`?eventDisplay=list&eventDate=YYYY-MM`).
+- Visita de detalle si la lista no trae fecha/hora completa.
+- JSON-LD primero, OpenGraph fallback, selectores específicos último.
+- Concurrencia ≤4, ≤30 detalles por fuente por run.
+- Timeout 12s, retry 1× con backoff 2s ante 429/503, `redirect:'follow'`.
+- UA `MalagaEventsBot/1.0 (+contact@malagaevents)`, `Accept-Language: es-ES`.
+
+## 5. Detección de estructura
+
+Antes de elegir parser específico, sondea: REST API → cards HTML → paginación → detalle → fallback genérico. Marenostrum, Cervantes, Trinchera y Paris 15 se confirman por estructura, no por suposición.
+
+## 6. Date parser reforzado
+
+`parseSpanishDate` añade: prefijos día (`sábado 9 mayo`), `DD/MM` y `DD/MM/YYYY`, ISO, horas `20h`, `20.00 h`, `20:00h`, rangos `del 9 al 11 de mayo` (genera `end_at`), múltiples pases (split y crear varios eventos), inferencia de próximo año razonable, ventana 24 meses.
+
+`original_date_text` se guarda en `tags` (existe como `ARRAY`) como `originaldate:<texto>` cuando útil; si no, en logs de diagnóstico. No bloquea ingesta.
+
+## 7. Validación mínima relajada
+
+Aceptar evento si `title.length >= 3`, `start_at` parseable y dentro de ventana ±0/+24 meses futuros. No descartar por falta de imagen/precio/ticket_url/descripción/categoría.
+
+## 8. Venue aliases
+
+`VENUE_ALIASES` en código con canónicos: La Trinchera, Paris 15, La Cochera Cabaret, Teatro Cervantes, Teatro Echegaray, Teatro Soho CaixaBank, La Térmica, FYCMA, Auditorio Edgar Neville, Teatro Auditorio Felipe VI, Marenostrum Fuengirola, Teatro Ciudad de Marbella, Starlite. Match con lower+unaccent+strip-punct+strip-prefijos. Fallback a `source.default_venue` si HTML no aporta.
+
+## 9. Diagnóstico (sin tocar enum de status)
+
+`sync_runs.status` mantiene los valores existentes (`running`, `completed`, `failed`). El estado técnico fino se guarda en `sync_runs.error_details` (jsonb):
 
 ```
-1. fetcher específico (HTML directo, RSS, JSON-LD, WP-REST)
-2. Firecrawl scrape JSON extraction (estado actual)
-3. marcar partial_no_events / blocked
-```
-
-Fetchers específicos a añadir:
-
-- **`fetchTrincheraRSS`** → GET `https://salatrinchera.com/category/proximos-eventos/feed/`, parsear `<item>`, regex `^(\d{1,2})\/(\d{1,2})\s+(.+)$` sobre `<title>`, `<link>` para detalle, `<description>` para texto, fecha = próximo `DD/MM` futuro. Venue = "Sala Trinchera".
-- **`fetchParis15HTML`** → GET `https://paris15.es/eventos/`, extraer JSON-LD (`<script type="application/ld+json">` con `@type: Event`) + fallback regex sobre tarjetas (`.qodef-events-list-item`, `.event-date`). Venue = "París 15".
-- **`fetchSalaMarteHTML`** → GET con `redirect: 'follow'` (resuelve el 301 a `/eventos/` o subdominio actual), extraer JSON-LD/microdata.
-- **`fetchCocheraCabaretWP`** → reemplazar `wp-json/tribe/events/v1/events` (404) por `wp-json/wp/v2/tribe_events` o, si no, por scrape HTML de `/programacion/` con JSON-LD.
-- **`fetchTeatroSohoHTML`** → ya devuelve HTML completo en 0.7s; extraer tarjetas `.event` o JSON-LD.
-- **`fetchTeatroCervantesHTML`** → HTML 200 directo (550kb); JSON-LD presente.
-- **`fetchGenericJSONLD`** helper compartido: busca todos los `<script type="application/ld+json">`, normaliza arrays/grafos, filtra `@type === 'Event' | 'TheaterEvent' | 'MusicEvent'`, mapea a evento estándar.
-
-### C. Helper `extractEventsFromHTML(html, baseUrl)` reutilizable
-
-1. JSON-LD `Event*` → evento canónico.
-2. OpenGraph/meta + microdata `itemtype="https://schema.org/Event"`.
-3. Patrones `<article>` con fecha + título + enlace.
-4. Devuelve `{events, source: 'json-ld'|'microdata'|'pattern', raw_count}`.
-
-### D. Logging por fuente (lo pide el brief)
-
-Por cada fuente, escribir en `sync_runs.error_details`:
-
-```json
 {
-  "strategy_used": "trinchera-rss" | "firecrawl-llm" | "json-ld" | ...,
-  "http_status": 200,
-  "events_found_raw": 12,
-  "events_parsed": 10,
-  "events_created": 6,
-  "events_updated": 4,
-  "events_skipped": 0,
-  "skip_reasons": { "no_date": 0, "past_date": 0, "duplicate": 4 },
-  "duration_ms": 4321,
-  "diagnostics": [...]
+  source_status: 'ok' | 'no_events' | 'parse_error' | 'blocked_403'
+               | 'bot_challenge' | 'unavailable_500' | 'requires_js'
+               | 'timeout' | 'partial',
+  strategy_used, parser_used, http_status,
+  pages_scanned, detail_pages_scanned,
+  events_found_raw, events_parsed, duplicates_detected,
+  skip_reasons: string[], duration_ms, requires_js, blocked
 }
 ```
 
-Ya existe `DiagnosticLogger`; sólo hay que serializar consistentemente en `success`, no sólo en `failed`.
+## 10. Resiliencia
 
-### E. Aliases de venue (ya estaban; verificar)
+- `Promise.allSettled` por fuente (mantenido).
+- `cleanupStuckRuns` >30 min (mantenido).
+- Invocación sin slug: procesar fuentes activas por prioridad con límite seguro por run (p. ej. lotes de 6) para no exceder wall-clock.
+- Invocación con `?slug=…` (o body `{slug}`) procesa solo esa fuente, ideal para verificación.
+- Fuentes `is_active=false` se omiten antes de crear el run.
 
-`VENUE_ALIASES` ya cubre Trinchera/Paris 15/Cochera. No tocar UI, sólo confirmar matching sin tildes.
+## 11. NO hacer
 
-### F. Tests rápidos al final
+Nada de migraciones de schema, nuevos campos obligatorios, admin UI, cambios fuera de `sync-events`, bypass de CAPTCHA/login/paywall, datos falsos o hardcodeo de eventos reales.
 
-Tras desplegar, llamar `supabase.functions.invoke('sync-events', { body: { sources: ['sala-trinchera','paris-15','sala-marte','la-cochera-cabaret','teatro-soho'] } })` y mostrar tabla con resultado por fuente.
+## 12. Verificación post-deploy
 
----
+Llamadas individuales por slug a `sync-events` y comprobación en `events` + `sync_runs.error_details`:
 
-## Lo que NO se toca
+- sala-trinchera ≥ eventos del RSS/lista/detalle
+- paris-15 ≥ 1 (o `source_status` claro)
+- cochera-entradas / la-cochera-cabaret mantiene ≥ 91
+- teatro-cervantes ≥ 5 tras deep crawl (o estado claro)
+- teatro-soho, la-termica mantienen ≥ actuales
+- fycma, teatro-estepona, marenostrum-fuengirola, mientrada-marbella, mientrada-edgar-neville, entradas-fuengirola, filarmonica-malaga, ayto-ronda, cultura-antequera, ayto-benalmadena, torremolinos-cultura, apta-axarquia, serrania-ronda → ≥1 evento o `source_status` técnico verificable
+- ninguna fuente queda `running` >30 min
+- `error_details` permite explicar cada resultado
 
-- Auth, tickets, farmacias, deportes (excepto compartir `parseSpanishDate` si aplicara).
-- Schema de tablas (`sources_config`, `events`, `event_occurrences`).
-- UI de venues/búsqueda/filtros (la corrección de plomería arregla los venues vacíos por sí sola).
-- Lista de fuentes — no se añaden ni se eliminan, sólo se reparan las existentes.
-- No se inventan eventos; si la fuente no tiene programación se marca `partial_no_events`.
+## 13. Criterio de éxito
 
----
-
-## Detalles técnicos
-
-- Archivo único editado: `supabase/functions/sync-events/index.ts` (~+400 líneas).
-- Sin nuevas dependencias.
-- Compatible con la cron actual; el cleanup de `running` colgados se ejecuta en cada invocación.
-- Firecrawl sigue siendo fallback — no se elimina, sólo se baja prioridad para evitar timeouts.
-
-## Criterio de éxito
-
-Tras 1 sync manual de las 5 fuentes test (Trinchera, Paris 15, Sala Marte, Cochera, Soho):
-- Trinchera ≥ 3 eventos futuros (RSS confirma 08/05, 09/05, 15/05 ya).
-- Paris 15 ≥ 1 evento futuro (HTML responde 200 con contenido).
-- Cada fuente con `strategy_used`, `http_status`, `duration_ms` en `sync_runs.error_details`.
-- Ningún `sync_runs` queda en `running` > 30 min.
-
-¿Procedo?
+El sprint se considera entregado solo si la verificación anterior demuestra cobertura real por fuente — no basta con que compile.
