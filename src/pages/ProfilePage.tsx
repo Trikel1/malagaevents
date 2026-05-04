@@ -50,7 +50,7 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground p-6 pb-12 rounded-b-3xl">
+      <header className="bg-gradient-hero text-white p-6 pb-12 rounded-b-3xl shadow-card">
         <h1 className="text-xl font-bold mb-4">{t('profile.title')}</h1>
         
         {isLoading ? (

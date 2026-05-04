@@ -29,6 +29,9 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
   const locale = locales[i18n.language] || es;
 
   const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale });
+  const dayShort = format(new Date(event.start_at), "d", { locale });
+  const monthShort = format(new Date(event.start_at), "MMM", { locale }).replace('.', '');
+  const timeShort = format(new Date(event.start_at), "HH:mm", { locale });
 
   const venueName = sanitizeText(event.venue?.name || event.venue_name || event.venue_normalized) || t('events.venueUnconfirmed', 'Por confirmar');
   const locationName = sanitizeText(event.location?.name || event.location_normalized || event.province) || 'Málaga';
@@ -42,30 +45,37 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
         ref={ref}
         to={`/events/${event.id}`}
         aria-label={`${eventTitle}, ${formattedDate}, ${venueName}`}
+        className="block animate-fade-in"
       >
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 h-full">
+        <Card className="overflow-hidden border-border/60 shadow-soft hover:shadow-card transition-all duration-300 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 h-full hover:-translate-y-0.5">
           <div className="relative overflow-hidden">
             <EventImage
               src={event.image_url}
               alt={imageAlt}
               variant="card"
               category={event.category}
-              className="group-hover:scale-105 transition-transform duration-300"
+              className="group-hover:scale-105 transition-transform duration-500"
               aspectRatio="3/2"
             />
+            {/* Floating date badge */}
+            <div className="absolute top-1.5 left-1.5 z-10 flex flex-col items-center justify-center bg-card/95 backdrop-blur-sm rounded-lg px-1.5 py-0.5 shadow-soft min-w-[34px]">
+              <span className="text-[11px] font-bold leading-none text-primary">{dayShort}</span>
+              <span className="text-[8px] font-semibold uppercase leading-none text-muted-foreground mt-0.5">{monthShort}</span>
+            </div>
             {event.is_free && (
-              <Badge className="absolute top-1.5 left-1.5 bg-green-500 hover:bg-green-500 z-10 text-[10px] px-1.5 py-0">
+              <Badge className="absolute top-1.5 right-1.5 bg-green-500 hover:bg-green-500 z-10 text-[10px] px-1.5 py-0">
                 {t('common.free')}
               </Badge>
             )}
+            {/* Subtle bottom gradient for legibility */}
+            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
           </div>
-          <CardContent className="p-2">
-            <h3 className="text-sm font-semibold line-clamp-1 mb-1">{eventTitle}</h3>
-            <p className="text-xs text-muted-foreground line-clamp-1">
-              <span className="capitalize">{formattedDate}</span>
-            </p>
-            <p className="text-xs text-muted-foreground line-clamp-1">
-              {venueName}
+          <CardContent className="p-2.5">
+            <h3 className="text-sm font-semibold line-clamp-1 mb-0.5 leading-tight">{eventTitle}</h3>
+            <p className="text-[11px] text-muted-foreground line-clamp-1">
+              <span className="capitalize font-medium text-foreground/70">{timeShort}</span>
+              <span className="mx-1">·</span>
+              <span className="line-clamp-1">{venueName}</span>
             </p>
           </CardContent>
         </Card>
@@ -80,7 +90,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
       aria-label={`${eventTitle}, ${formattedDate}, ${venueName}`}
     >
       <Card className={cn(
-        'overflow-hidden hover:shadow-lg transition-shadow group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
+        'overflow-hidden border-border/60 shadow-soft hover:shadow-card transition-all duration-300 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:-translate-y-0.5',
         compact ? 'flex-row flex' : ''
       )}>
         {/* Image */}

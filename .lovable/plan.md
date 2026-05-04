@@ -1,53 +1,36 @@
-# Reemplazo del mapa: Google Maps JS API
+# Refinamiento visual premium MalagaEvents
 
-Sustituir MapLibre + tiles de OpenStreetMap por **Google Maps JavaScript API** con estilo moderno (Map ID), clustering de marcadores e InfoWindow al seleccionar.
+Cambios quirúrgicos, aditivos y sin tocar lógica.
 
-## Archivos a modificar (mínimos)
+## Archivos a editar
 
-1. `src/modules/maps/GoogleMapView.tsx` *(nuevo)* — wrapper Google Maps con loader, clustering, InfoWindow, fallback si falta API key.
-2. `src/pages/MapPage.tsx` — cambiar import `ModernMap` → `GoogleMapView` (1 línea de import + 1 línea en JSX). El resto del page (header, sheet, hooks) se mantiene.
-3. `package.json` — añadir `@googlemaps/js-api-loader` y `@googlemaps/markerclusterer`.
+1. **`src/index.css`** — añadir tokens nuevos (`--surface`, `--surface-elevated`, `--shadow-soft/card/lift`, `--gradient-warm/hero/hero-sports/sunset`) en `:root` y en `.dark`. Aplicar `font-family: Inter` al `body`. Override de `--shadow-lift` para `[data-mode="deportes"]`. No se elimina ningún token existente.
 
-Archivos no tocados: routing, theme, Tailwind, hooks de datos, otros pages.
+2. **`tailwind.config.ts`** — extender `theme.extend` (aditivo): `boxShadow.{soft,card,lift}` ligados a tokens, `backgroundImage.{gradient-warm,gradient-hero,gradient-hero-sports,gradient-sunset}`, `fontFamily.sans` con Inter, animaciones `fade-in` y `lift`.
 
-## Variables de entorno (sin valores en código)
+3. **`index.html`** — añadir `<link>` preconnect + Inter de Google Fonts en `<head>`. Sin scripts ni cambios funcionales.
 
-- `VITE_GOOGLE_MAPS_API_KEY` — clave de Google Maps JS API
-- `VITE_GOOGLE_MAP_ID` — Map ID con estilo personalizado (creado en Google Cloud Console → Map Styles)
+4. **`src/components/layout/BottomNav.tsx`** — solo estética: `bg-card/85 backdrop-blur-xl`, pill activo (`bg-primary/10`), tap-target 44px. Mantiene todos los items y rutas.
 
-Si falta cualquiera de las dos en runtime, el componente muestra un panel amigable con instrucciones (sin romper la app). Si la API falla al cargar, botón "Reintentar".
+5. **`src/components/events/EventCard.tsx`** — refinamiento de variantes `dense` y normal: badge fecha flotante sobre imagen, sombras suaves, hover lift. Contrato de props intacto.
 
-## Detalles técnicos
+6. **`src/pages/Index.tsx`** — hero editorial (“¿Qué hacemos hoy en Málaga?”), chips rápidos refinados con scroll horizontal, mejor jerarquía de secciones. Mantiene `useEvents`, modo deportes, `quickActions`, navegación a `/events?filter=...` y `/pharmacies`.
 
-- Loader: `@googlemaps/js-api-loader` con `libraries: ['marker']` para `AdvancedMarkerElement`.
-- Mapa: `mapId` (estilo cloud-based moderno), `disableDefaultUI: false`, `mapTypeControl: false`, `fullscreenControl: false`, `streetViewControl: false`.
-- Centro: Málaga `(36.7213, -4.4214)`, zoom `12`.
-- Clustering: `@googlemaps/markerclusterer` (`MarkerClusterer`) con renderer por defecto.
-- Selección: click en marcador → abre `InfoWindow` con título/subtítulo + llama `onMarkerSelect(id)` para que `MapPage` abra el `MarkerSheet` existente.
-- Performance: instancia de mapa creada una sola vez (ref); marcadores se actualizan en `useEffect` al cambiar `markers` (limpia anteriores, crea nuevos, refresca cluster).
-- Responsive: contenedor `width:100%; height:100%`; el page ya define `h-[calc(100vh-180px)]`.
+7. **`src/pages/EventsPage.tsx`** — solo estilos del header (sticky con sombra suave), spacing y tipografía. Sin tocar `useEventsOptimized`, `FilterDrawer`, `VenueGroupDropdown`, `LocationFilter`, ni handlers.
 
-## Contrato de marcadores
+8. **`src/pages/EventDetailPage.tsx`** — hero con overlay editorial, info cards más limpias, sticky bottom CTA reutilizando handlers existentes (`window.open(event.ticket_url)`, `handleToggleFavorite`). Sin nuevos estados ni cambios de datos.
 
-Sin cambios. `GoogleMapView` acepta el mismo `MapMarker[]` que `ModernMap`:
+9. **`src/pages/ProfilePage.tsx`** — header con `bg-gradient-hero`, secciones más pulidas. `menuItems`, `signOut`, `useIsAdmin` y rutas intactos.
 
-```ts
-{ id, lat, lng, title?, subtitle?, onClick? }
-```
+10. **`src/pages/TicketsPage.tsx`** — header sticky con sombra suave, cards más limpias, vacío más cálido. Mutaciones (`useDeleteTicket`, `useTickets`) intactas.
 
-Props extra opcionales: `selectedMarkerId?: string`, `onMarkerSelect?: (id: string) => void`.
+## Garantías
 
-## Limpieza opcional
+- Cero cambios en `App.tsx`, providers, contexts, hooks, supabase client/types, `MainLayout`, edge functions, módulos `src/modules/maps/*`, i18n, types.
+- Cero rutas eliminadas o renombradas.
+- Cero contratos de props alterados.
+- Compatibilidad total con dark mode (todos los tokens nuevos tienen contraparte) y `data-mode="deportes"` (override de gradiente y sombra).
+- Ninguna dependencia nueva (Inter por `<link>`).
+- Las query strings de chips solo usan filtros ya soportados (`?filter=today|weekend|nearby`, `?category=…`, `?q=…`).
 
-`src/modules/maps/ModernMap.tsx` y `MarkerSheet.tsx` permanecen. `MarkerSheet` se sigue usando. `ModernMap` queda huérfano — puedo borrarlo en este mismo cambio si confirmas.
-
-## Pasos tras aprobación
-
-1. Instalar deps + crear `GoogleMapView.tsx`.
-2. Editar import/JSX en `MapPage.tsx`.
-3. Pedir las dos secrets (`VITE_GOOGLE_MAPS_API_KEY`, `VITE_GOOGLE_MAP_ID`) — sin estos valores el mapa muestra el fallback pero la app sigue funcionando.
-4. QA: cargar `/map`, verificar tiles modernos de Google, clustering al alejar zoom, click en marcador abre `MarkerSheet`.
-
-## Notas sobre la API key
-
-`VITE_GOOGLE_MAPS_API_KEY` se expone en el bundle del cliente (es la naturaleza de Google Maps JS). **Obligatorio** restringir la key en Google Cloud Console por **HTTP referrer** a tus dominios (`*.lovable.app`, dominio custom). Esto es estándar y seguro siempre que la restricción esté activa.
+¿Procedo a aplicar?

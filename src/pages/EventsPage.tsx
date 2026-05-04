@@ -144,7 +144,7 @@ const CultureEventsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header - Centered actions taking full width */}
-      <header className="bg-card border-b border-border sticky top-0 z-40">
+      <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 shadow-soft">
         <div className="p-4 space-y-3">
           {/* Row 1: 3 centered action buttons (no title) */}
           <div className="flex items-center justify-center gap-2">
