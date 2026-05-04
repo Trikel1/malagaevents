@@ -69,23 +69,24 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Hero header — editorial Mediterranean */}
       <header className={cn(
-        "text-white p-6 pb-14 bg-gradient-to-b",
-        appMode === 'deportes'
-          ? 'from-emerald-900 via-green-800 to-background'
-          : 'from-slate-900 via-blue-900 to-background'
+        "relative text-white px-5 pt-6 pb-16 overflow-hidden",
+        appMode === 'deportes' ? 'bg-gradient-hero-sports' : 'bg-gradient-hero'
       )}>
-        <div className="flex justify-between items-center mb-4">
+        {/* Subtle texture */}
+        <div className="absolute inset-0 opacity-[0.08] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 20% 10%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)', backgroundSize: '40px 40px, 60px 60px' }} />
+
+        <div className="relative flex justify-between items-center mb-5">
           {/* Segmented Control */}
-          <div className="flex bg-white/15 rounded-full p-0.5">
+          <div className="flex bg-white/15 backdrop-blur-md rounded-full p-0.5 border border-white/10">
             <button
               onClick={() => setAppMode('eventos')}
               className={cn(
                 'px-4 py-1.5 rounded-full text-sm font-semibold transition-all',
                 appMode === 'eventos'
                   ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-white/80 hover:text-white'
+                  : 'text-white/85 hover:text-white'
               )}
             >
               {t('sports.events')}
@@ -96,7 +97,7 @@ const Index = () => {
                 'px-4 py-1.5 rounded-full text-sm font-semibold transition-all',
                 appMode === 'deportes'
                   ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-white/80 hover:text-white'
+                  : 'text-white/85 hover:text-white'
               )}
             >
               {t('sports.title')}
@@ -107,15 +108,28 @@ const Index = () => {
             <LanguageSelector variant="compact" />
           </div>
         </div>
-        
+
+        {/* Editorial title */}
+        <div className="relative mb-5">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-white/70 font-semibold mb-1.5 flex items-center gap-1.5">
+            <MapPin className="h-3 w-3" /> Málaga
+          </p>
+          <h1 className="text-[28px] leading-[1.1] font-bold tracking-tight">
+            ¿Qué hacemos<br/>hoy en Málaga?
+          </h1>
+          <p className="text-sm text-white/80 mt-2 max-w-xs">
+            Eventos, planes y experiencias cerca de ti.
+          </p>
+        </div>
+
         {/* Search */}
         <form onSubmit={handleSearch} className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             placeholder={t('home.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-background text-foreground h-12 rounded-xl border-0 shadow-lg"
+            className="pl-11 bg-card text-foreground h-12 rounded-2xl border-0 shadow-card"
           />
         </form>
       </header>
