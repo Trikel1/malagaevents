@@ -29,7 +29,7 @@ export const MarkerSheet = ({ marker, onClose }: MarkerSheetProps) => {
               if (marker) navigate(`/events/${marker.id}`);
             }}
           >
-            {t('common.seeMore', 'Ver más')}
+            {t('map.viewEvent')}
           </Button>
         </div>
       </DrawerContent>

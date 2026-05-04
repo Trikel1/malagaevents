@@ -4,5 +4,6 @@ export interface MapMarker {
   lng: number;
   title: string;
   subtitle?: string;
+  approximate?: boolean;
   onClick?: () => void;
 }

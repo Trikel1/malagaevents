@@ -309,8 +309,19 @@
     "loadFailedDesc": "No se pudieron cargar los datos. Comprueba tu conexión e inténtalo de nuevo."
   },
   "map": {
+    "title": "Mapa",
     "eventsOnMap": "eventos en el mapa",
-    "noGeoEvents": "No hay eventos con ubicación exacta"
+    "noGeoEvents": "No hay eventos con ubicación exacta",
+    "viewMap": "Mapa",
+    "viewList": "Lista",
+    "useMyLocation": "Usar mi ubicación",
+    "searchThisArea": "Buscar en esta zona",
+    "approximateLocation": "Ubicación aproximada",
+    "viewEvent": "Ver evento",
+    "geolocationDenied": "Permiso de ubicación denegado",
+    "geolocationUnavailable": "No se pudo obtener tu ubicación",
+    "areaUpdated": "Resultados actualizados para esta zona",
+    "noEventsHere": "No hay eventos en esta zona"
   },
   "sports": {
     "title": "Deportes",

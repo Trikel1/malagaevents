@@ -309,8 +309,19 @@
     "loadFailedDesc": "Could not load the data. Check your connection and try again."
   },
   "map": {
+    "title": "Map",
     "eventsOnMap": "events on the map",
-    "noGeoEvents": "No events with exact location"
+    "noGeoEvents": "No events with exact location",
+    "viewMap": "Map",
+    "viewList": "List",
+    "useMyLocation": "Use my location",
+    "searchThisArea": "Search this area",
+    "approximateLocation": "Approximate location",
+    "viewEvent": "View event",
+    "geolocationDenied": "Location permission denied",
+    "geolocationUnavailable": "Could not get your location",
+    "areaUpdated": "Results updated for this area",
+    "noEventsHere": "No events in this area"
   },
   "sports": {
     "title": "Sports",
