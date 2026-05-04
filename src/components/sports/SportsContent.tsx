@@ -8,8 +8,10 @@ import { cn } from '@/lib/utils';
 import SportEventCard from '@/components/sports/SportEventCard';
 import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
 import { useSportsEvents } from '@/hooks/useSportsEvents';
-import { SPORT_CATEGORIES, SPORT_ICONS } from '@/types/sports';
+import { SPORT_CATEGORIES } from '@/types/sports';
 import type { SportCategory } from '@/types/sports';
+import SportIcon from '@/components/sports/SportIcon';
+import { Trophy } from 'lucide-react';
 
 const TIMEZONE = 'Europe/Madrid';
 
