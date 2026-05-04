@@ -150,11 +150,22 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
 
-  const filtered = useMemo(() => {
+  const filteredGroups = useMemo(() => {
     const nq = stripDiacritics(q.trim());
-    if (!nq) return PHARMACY_LOCALITIES;
-    return PHARMACY_LOCALITIES.filter((m) => stripDiacritics(m).includes(nq));
+    if (!nq) return PHARMACY_LOCALITY_GROUPS;
+    return PHARMACY_LOCALITY_GROUPS
+      .map((g) => ({
+        ...g,
+        entries: g.entries.filter((e) => stripDiacritics(e.name).includes(nq)),
+      }))
+      .filter((g) => g.entries.length > 0);
   }, [q]);
+
+  const handlePick = (name: string) => {
+    onChange(name);
+    setOpen(false);
+    setQ('');
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -162,6 +173,8 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
         <Button
           variant="outline"
           className="w-full justify-between rounded-xl h-11 bg-card"
+          aria-haspopup="listbox"
+          aria-expanded={open}
         >
           <span className="flex items-center gap-2 min-w-0">
             <MapPin className="h-4 w-4 text-primary shrink-0" />
@@ -176,7 +189,7 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               autoFocus
-              placeholder={t('pharmacies.locationSelector', 'Elige una localidad')}
+              placeholder={t('events.searchLocality', 'Buscar localidad')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="pl-8 h-9"
@@ -184,29 +197,35 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
           </div>
         </div>
         <ScrollArea className="max-h-[60vh]">
-          <div className="p-1">
-            {filtered.length === 0 ? (
+          <div className="p-1.5">
+            {filteredGroups.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-                {t('pharmacies.noPharmaciesFound', 'Sin resultados')}
+                {t('common.noResults', 'Sin resultados')}
               </div>
             ) : (
-              filtered.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => {
-                    onChange(m);
-                    setOpen(false);
-                    setQ('');
-                  }}
-                  className={cn(
-                    'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted transition',
-                    value === m && 'bg-muted font-semibold'
-                  )}
-                >
-                  <span className="truncate">{m}</span>
-                  {value === m && <Check className="h-4 w-4 text-primary shrink-0" />}
-                </button>
+              filteredGroups.map((group) => (
+                <div key={group.zone} className="mt-2 first:mt-0">
+                  <div className="sticky top-0 z-10 bg-popover/95 backdrop-blur-sm px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group.label}
+                  </div>
+                  {group.entries.map((e) => {
+                    const selected = value === e.name;
+                    return (
+                      <button
+                        key={e.slug}
+                        type="button"
+                        onClick={() => handlePick(e.name)}
+                        className={cn(
+                          'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm hover:bg-accent transition min-h-[44px]',
+                          selected && 'bg-accent/60 font-semibold'
+                        )}
+                      >
+                        <span className="truncate">{e.name}</span>
+                        {selected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
               ))
             )}
           </div>
