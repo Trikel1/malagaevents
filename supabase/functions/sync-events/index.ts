@@ -1482,6 +1482,9 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Cleanup stuck `running` sync_runs from prior crashed invocations
+    await cleanupStuckRuns(supabase);
+
     // Parse request body with validation
     let targetSlugs: string[] | null = null;
     
