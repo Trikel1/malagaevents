@@ -134,14 +134,26 @@
     "continue": "Продолжить"
   },
   "home": {
-    "searchPlaceholder": "Поиск событий, мест...",
+    "searchPlaceholder": "Искать события, площадки...",
     "todayEvents": "Сегодня в Málaga",
     "weekendEvents": "В эти выходные",
     "nearbyEvents": "Рядом с вами",
     "pharmaciesGuard": "Дежурные аптеки",
     "categories": "Категории",
     "enableLocation": "Включить местоположение",
-    "enableLocationDesc": "Разрешить просмотр ближайших событий"
+    "enableLocationDesc": "Разрешить просмотр ближайших событий",
+    "kicker": "ГОРОДСКАЯ АФИША",
+    "heroTitle": "Что делаем сегодня в Málaga?",
+    "heroSubtitle": "События, планы и впечатления рядом с вами.",
+    "quickToday": "Сегодня",
+    "quickWeekend": "В эти выходные",
+    "quickNearby": "Рядом",
+    "quickPharmacy": "Аптека",
+    "todayInMalaga": "Сегодня в Málaga",
+    "thisWeekend": "В эти выходные",
+    "nearby": "Рядом с вами",
+    "popularNow": "Популярно сейчас",
+    "viewAll": "Смотреть всё"
   },
   "events": {
     "title": "События",

@@ -141,7 +141,19 @@
     "pharmaciesGuard": "Pharmacies on duty",
     "categories": "Categories",
     "enableLocation": "Enable location",
-    "enableLocationDesc": "See nearby events"
+    "enableLocationDesc": "See nearby events",
+    "kicker": "CITY AGENDA",
+    "heroTitle": "What are we doing today in Málaga?",
+    "heroSubtitle": "Events, plans and experiences near you.",
+    "quickToday": "Today",
+    "quickWeekend": "This weekend",
+    "quickNearby": "Nearby",
+    "quickPharmacy": "Pharmacy",
+    "todayInMalaga": "Today in Málaga",
+    "thisWeekend": "This weekend",
+    "nearby": "Near you",
+    "popularNow": "Popular now",
+    "viewAll": "View all"
   },
   "events": {
     "title": "Events",

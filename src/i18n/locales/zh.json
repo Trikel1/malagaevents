@@ -134,14 +134,26 @@
     "continue": "继续"
   },
   "home": {
-    "searchPlaceholder": "搜索活动、地点...",
+    "searchPlaceholder": "搜索活动、场馆...",
     "todayEvents": "今天在马拉加",
     "weekendEvents": "本周末",
     "nearbyEvents": "您附近",
     "pharmaciesGuard": "值班药店",
     "categories": "类别",
     "enableLocation": "启用定位",
-    "enableLocationDesc": "允许查看附近的活动"
+    "enableLocationDesc": "允许查看附近的活动",
+    "kicker": "城市日程",
+    "heroTitle": "今天在Málaga做什么？",
+    "heroSubtitle": "发现你附近的活动、计划和体验。",
+    "quickToday": "今天",
+    "quickWeekend": "本周末",
+    "quickNearby": "附近",
+    "quickPharmacy": "药房",
+    "todayInMalaga": "今天在Málaga",
+    "thisWeekend": "本周末",
+    "nearby": "附近",
+    "popularNow": "当前热门",
+    "viewAll": "查看全部"
   },
   "events": {
     "title": "活动",

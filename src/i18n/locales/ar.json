@@ -134,14 +134,26 @@
     "continue": "متابعة"
   },
   "home": {
-    "searchPlaceholder": "البحث عن فعاليات، أماكن...",
+    "searchPlaceholder": "ابحث عن فعاليات أو أماكن...",
     "todayEvents": "اليوم في Málaga",
     "weekendEvents": "نهاية هذا الأسبوع",
     "nearbyEvents": "بالقرب منك",
     "pharmaciesGuard": "صيدليات المناوبة",
     "categories": "الفئات",
     "enableLocation": "تفعيل الموقع",
-    "enableLocationDesc": "يسمح برؤية الفعاليات القريبة"
+    "enableLocationDesc": "يسمح برؤية الفعاليات القريبة",
+    "kicker": "أجندة المدينة",
+    "heroTitle": "ماذا نفعل اليوم في Málaga؟",
+    "heroSubtitle": "فعاليات وخطط وتجارب بالقرب منك.",
+    "quickToday": "اليوم",
+    "quickWeekend": "نهاية هذا الأسبوع",
+    "quickNearby": "بالقرب منك",
+    "quickPharmacy": "الصيدلية",
+    "todayInMalaga": "اليوم في Málaga",
+    "thisWeekend": "نهاية هذا الأسبوع",
+    "nearby": "بالقرب منك",
+    "popularNow": "الأكثر رواجًا الآن",
+    "viewAll": "عرض الكل"
   },
   "events": {
     "title": "الفعاليات",

@@ -54,10 +54,10 @@ const Index = () => {
   };
 
   const quickActions = [
-    { icon: Calendar, label: t('common.today'), action: () => navigate('/events?filter=today') },
-    { icon: Calendar, label: t('common.thisWeekend'), action: () => navigate('/events?filter=weekend') },
-    { icon: MapPin, label: t('common.nearby'), action: () => navigate('/events?filter=nearby') },
-    { icon: Pill, label: t('pharmacies.short'), action: () => navigate('/pharmacies') },
+    { icon: Calendar, label: t('home.quickToday'), action: () => navigate('/events?filter=today') },
+    { icon: Calendar, label: t('home.quickWeekend'), action: () => navigate('/events?filter=weekend') },
+    { icon: MapPin, label: t('home.quickNearby'), action: () => navigate('/events?filter=nearby') },
+    { icon: Pill, label: t('home.quickPharmacy'), action: () => navigate('/pharmacies') },
   ];
 
   const handleSearch = (e: React.FormEvent) => {

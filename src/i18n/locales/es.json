@@ -134,14 +134,26 @@
     "continue": "Continuar"
   },
   "home": {
-    "searchPlaceholder": "Buscar eventos, lugares...",
+    "searchPlaceholder": "Buscar eventos, recintos...",
     "todayEvents": "Hoy en Málaga",
     "weekendEvents": "Este fin de semana",
     "nearbyEvents": "Cerca de ti",
     "pharmaciesGuard": "Farmacias de guardia",
     "categories": "Categorías",
     "enableLocation": "Activar ubicación",
-    "enableLocationDesc": "Permite ver eventos cercanos"
+    "enableLocationDesc": "Permite ver eventos cercanos",
+    "kicker": "AGENDA DE LA CIUDAD",
+    "heroTitle": "¿Qué hacemos hoy en Málaga?",
+    "heroSubtitle": "Eventos, planes y experiencias cerca de ti.",
+    "quickToday": "Hoy",
+    "quickWeekend": "Este fin de semana",
+    "quickNearby": "Cerca",
+    "quickPharmacy": "Farmacia",
+    "todayInMalaga": "Hoy en Málaga",
+    "thisWeekend": "Este fin de semana",
+    "nearby": "Cerca de ti",
+    "popularNow": "Populares ahora",
+    "viewAll": "Ver todo"
   },
   "events": {
     "title": "Eventos",
