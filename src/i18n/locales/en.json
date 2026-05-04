@@ -321,7 +321,19 @@
     "geolocationDenied": "Location permission denied",
     "geolocationUnavailable": "Could not get your location",
     "areaUpdated": "Results updated for this area",
-    "noEventsHere": "No events in this area"
+    "noEventsHere": "No events in this area",
+    "subtitle": "Explore events, venues and services near you.",
+    "searchPlaceholder": "Search events, venues or addresses…",
+    "all": "All",
+    "events": "Events",
+    "venues": "Venues",
+    "sports": "Sports",
+    "pharmacies": "Pharmacies",
+    "noResults": "No results",
+    "openDirections": "Directions",
+    "viewVenueEvents": "View events",
+    "onDuty": "On duty",
+    "nearYou": "Near you"
   },
   "sports": {
     "title": "Sports",

@@ -37,6 +37,20 @@ const VENUE_COORDS: Record<string, { lat: number; lng: number }> = {
   'estadio la rosaleda': { lat: 36.7411, lng: -4.4262 },
   'la malagueta': { lat: 36.7187, lng: -4.4129 },
   'plaza de la merced': { lat: 36.7235, lng: -4.4178 },
+  'plaza de la constitucion': { lat: 36.7202, lng: -4.4203 },
+  'plaza de la constitución': { lat: 36.7202, lng: -4.4203 },
+  'sala marte': { lat: 36.7012, lng: -4.4571 },
+  'auditorio municipal de málaga': { lat: 36.6862, lng: -4.4734 },
+  'auditorio eduardo ocón': { lat: 36.7228, lng: -4.4063 },
+  'auditorio eduardo ocon': { lat: 36.7228, lng: -4.4063 },
+  'contenedor cultural uma': { lat: 36.7156, lng: -4.4773 },
+  'muelle uno': { lat: 36.7155, lng: -4.4150 },
+  'cac málaga': { lat: 36.7148, lng: -4.4321 },
+  'cac malaga': { lat: 36.7148, lng: -4.4321 },
+  'jardín botánico la concepción': { lat: 36.7641, lng: -4.4098 },
+  'jardin botanico la concepcion': { lat: 36.7641, lng: -4.4098 },
+  'palacio de deportes josé maría martín carpena': { lat: 36.6912, lng: -4.4828 },
+  'ciudad deportiva de carranque': { lat: 36.7172, lng: -4.4499 },
 };
 
 const normalize = (s: string): string =>
