@@ -6,14 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { SportEvent, SportCategory } from '@/types/sports';
-import SportIcon, { getSportIcon, getSportRing } from '@/components/sports/SportIcon';
+import SportIcon, { getSportIcon } from '@/components/sports/SportIcon';
 import {
   cleanSportTitle,
   isRegistrationUrl,
   isFreeEvent,
   buildDirectionsUrl,
 } from '@/lib/sports';
-import { cn } from '@/lib/utils';
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
