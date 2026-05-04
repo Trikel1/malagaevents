@@ -136,18 +136,7 @@ export const GoogleMapView = ({ markers, onMarkerSelect }: GoogleMapViewProps) =
   const handleRetry = useCallback(() => setRetryToken((n) => n + 1), []);
 
   if (status === 'missing-key') {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted/30 p-6">
-        <div className="max-w-sm text-center space-y-3">
-          <AlertTriangle className="h-8 w-8 mx-auto text-muted-foreground" />
-          <h3 className="font-semibold text-sm">Google Maps no configurado</h3>
-          <p className="text-xs text-muted-foreground">
-            Falta <code>VITE_GOOGLE_MAPS_API_KEY</code> o <code>VITE_GOOGLE_MAP_ID</code>.
-            Añádelos en variables de entorno para activar el mapa.
-          </p>
-        </div>
-      </div>
-    );
+    return <DemoMapView markers={markers} onMarkerSelect={onMarkerSelect} />;
   }
 
   return (
