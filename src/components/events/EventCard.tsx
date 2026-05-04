@@ -100,11 +100,11 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
           </div>
           <CardContent className="p-2.5">
             <h3 className="text-sm font-semibold line-clamp-1 mb-0.5 leading-tight">{eventTitle}</h3>
-            <p className="text-[11px] text-muted-foreground line-clamp-1">
-              <span className="capitalize font-medium text-foreground/70">{timeShort}</span>
-              <span className="mx-1">·</span>
-              <span className="line-clamp-1">{venueName}</span>
-            </p>
+            {denseMetaParts.length > 0 && (
+              <p className="text-[11px] text-muted-foreground truncate">
+                {denseMetaParts.join(' · ')}
+              </p>
+            )}
           </CardContent>
         </Card>
       </Link>
