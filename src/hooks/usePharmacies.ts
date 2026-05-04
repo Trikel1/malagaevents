@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Pharmacy } from '@/types';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+
+const TIMEZONE = 'Europe/Madrid';
 
 // Directory pharmacy type (from pharmacies_directory table)
 export interface PharmacyDirectory {
