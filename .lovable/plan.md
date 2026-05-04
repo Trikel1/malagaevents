@@ -1,165 +1,126 @@
+## Diagnóstico (ya verificado contra fuentes reales)
 
-# Sprint Deportes — UI premium + ingestión exhaustiva
+**¿Dónde está la lista de URLs?** En la tabla `sources_config` (16 fuentes activas: agenda-municipal, antojo-malaga, cultura-malaga, eventual-music, festival-malaga, fycma, la-cochera-cabaret, la-fabrica-cerveza, la-garrapata, la-termica, malaga-magazine, paris-15, sala-marte, sala-trinchera, teatro-cervantes, teatro-soho). No hay otra lista en código.
 
-Plan quirúrgico, sin tocar `App.tsx`, providers, auth, rutas, farmacias, eventos culturales, mapa general ni edge functions ajenas a deportes. No habrá migraciones de schema (los campos ya existen).
+**Estado real (eventos futuros en DB ahora mismo):**
 
-## A. Sistema visual deportivo (UI)
+| Fuente | Eventos | Causa raíz observada |
+|---|---|---|
+| La Térmica | 23 | OK |
+| Agenda Municipal | 11 | OK |
+| Teatro Soho | 11 | parcial — runs nuevos quedan `running` (timeout) |
+| Museo Picasso | 7 | OK |
+| Teatro Cervantes | 2 | parcial |
+| **Resto (11 fuentes)** | **0** | fallo silencioso |
+| paris-15 | 0 | Firecrawl timeout 30s en bucle (28 fallos/semana) — pero `curl https://paris15.es/eventos/` responde 200 en 1s con HTML válido |
+| sala-trinchera | 0 | run del 30-ene `running` para siempre — RSS `…/category/proximos-eventos/feed/` responde 200 con items `DD/MM Título` (08/05, 09/05, 15/05…) |
+| sala-marte | 0 | URL devuelve **301**; Firecrawl no resuelve y reporta "No events extracted" |
+| la-cochera-cabaret | 0 | run colgado; WP fallback devuelve `posts` genéricos (no eventos) |
+| antojo, eventual, festival, fycma, cultura, agenda, etc. | 0 / pocos | nunca sincronizadas o LLM extraction sin resultados |
 
-### A1. `src/components/sports/SportIcon.tsx` — mapping premium estático
-Se amplía el mapping con clases Tailwind explícitas (no dinámicas) y una entrada `label` opcional. Se cubren todos los deportes que devuelve `mapSportCategory` y los alias usados en datos reales:
+**Causas raíz reales:**
 
-```ts
-SPORT_VISUAL_MAP = {
-  futbol:       { Icon: CircleDot,  ring: 'ring-emerald-500/20' },
-  baloncesto:   { Icon: Dribbble,   ring: 'ring-orange-500/20' },
-  futsal:       { Icon: CircleDot,  ring: 'ring-emerald-500/20' },
-  balonmano:    { Icon: Hand,       ring: 'ring-blue-500/20' },
-  atletismo:    { Icon: Footprints, ring: 'ring-amber-500/20' },
-  running:      { Icon: Footprints, ring: 'ring-amber-500/20' },
-  ciclismo:     { Icon: Bike,       ring: 'ring-sky-500/20' },
-  natacion:     { Icon: Waves,      ring: 'ring-cyan-500/20' },
-  tenis:        { Icon: Trophy,     ring: 'ring-lime-500/20' },
-  padel:        { Icon: Trophy,     ring: 'ring-lime-500/20' },
-  voleibol:     { Icon: Volleyball, ring: 'ring-violet-500/20' },
-  rugby:        { Icon: Shield,     ring: 'ring-rose-500/20' },
-  motor:        { Icon: Car,        ring: 'ring-zinc-500/20' },
-  triatlon:     { Icon: Medal,      ring: 'ring-fuchsia-500/20' },
-  senderismo:   { Icon: Mountain,   ring: 'ring-stone-500/20' },
-  fitness:      { Icon: Dumbbell,   ring: 'ring-rose-500/20' },
-  acuaticos:    { Icon: Waves,      ring: 'ring-cyan-500/20' },
-  artes_marciales: { Icon: Swords,  ring: 'ring-red-500/20' },
-  otros:        { Icon: Award,      ring: 'ring-primary/20' },
+1. **Dependencia total de Firecrawl + extracción LLM** (un único `scrapeWithConfig` con `formats: ['json'] + jsonOptions.schema`) para todas las fuentes. Es lento (15-45s por intento), inconsistente y se queda sin tiempo. Las webs son perfectamente fetcheables con `fetch` directo.
+2. **`sync_runs` se quedan en estado `running`** indefinidamente cuando la edge function muere por wall-clock. Esto contamina logs y bloquea retry visibility.
+3. **`parseSpanishDate` no soporta `DD/MM` sin año** (formato exacto del RSS de Trinchera).
+4. **No se siguen redirects 301** (Sala Marte).
+5. **Fallback WP-Tribe** asume plugin "The Events Calendar" que la mayoría no tiene; cuando devuelve 200 con `posts` genéricos los toma como eventos basura.
+6. **Errores silenciosos**: si `events.length === 0` se marca `partial` sin distinguir "fuente OK pero sin programación" de "scraper roto".
+7. **Auto-archivado** (visible en estados): nada filtra bots, pero los eventos viejos sin nuevas occurrences caen → venues vacíos.
+
+---
+
+## Plan de reparación (todo en `supabase/functions/sync-events/index.ts`, sin tocar UI ni schema)
+
+### A. Reparar plomería
+
+1. **Marcar como `failed` los `sync_runs` con `status='running'` y `started_at < now() - 30min`** al inicio del handler.
+2. **Seguir redirects** en todos los `fetch` directos (`redirect: 'follow'`).
+3. **`parseSpanishDate`**: aceptar `DD/MM` (sin año) y `DD-MM`; inferir próximo año si la fecha ya pasó. Aceptar también `HH.MMh`, `HHh`, `H:MM h`.
+4. **Status granular en `sync_runs.status`**: `success | partial_no_events | blocked | parse_error | timeout | failed`. Guardar `error_details.skip_reasons` con conteo.
+5. **No descartar eventos** sin imagen/precio/descripción/ticket — sólo exigir `title` + `start_date` válidos.
+
+### B. Estrategia "fetcher directo primero, Firecrawl fallback"
+
+Para cada fuente, intentar en orden y registrar cuál ganó:
+
+```
+1. fetcher específico (HTML directo, RSS, JSON-LD, WP-REST)
+2. Firecrawl scrape JSON extraction (estado actual)
+3. marcar partial_no_events / blocked
+```
+
+Fetchers específicos a añadir:
+
+- **`fetchTrincheraRSS`** → GET `https://salatrinchera.com/category/proximos-eventos/feed/`, parsear `<item>`, regex `^(\d{1,2})\/(\d{1,2})\s+(.+)$` sobre `<title>`, `<link>` para detalle, `<description>` para texto, fecha = próximo `DD/MM` futuro. Venue = "Sala Trinchera".
+- **`fetchParis15HTML`** → GET `https://paris15.es/eventos/`, extraer JSON-LD (`<script type="application/ld+json">` con `@type: Event`) + fallback regex sobre tarjetas (`.qodef-events-list-item`, `.event-date`). Venue = "París 15".
+- **`fetchSalaMarteHTML`** → GET con `redirect: 'follow'` (resuelve el 301 a `/eventos/` o subdominio actual), extraer JSON-LD/microdata.
+- **`fetchCocheraCabaretWP`** → reemplazar `wp-json/tribe/events/v1/events` (404) por `wp-json/wp/v2/tribe_events` o, si no, por scrape HTML de `/programacion/` con JSON-LD.
+- **`fetchTeatroSohoHTML`** → ya devuelve HTML completo en 0.7s; extraer tarjetas `.event` o JSON-LD.
+- **`fetchTeatroCervantesHTML`** → HTML 200 directo (550kb); JSON-LD presente.
+- **`fetchGenericJSONLD`** helper compartido: busca todos los `<script type="application/ld+json">`, normaliza arrays/grafos, filtra `@type === 'Event' | 'TheaterEvent' | 'MusicEvent'`, mapea a evento estándar.
+
+### C. Helper `extractEventsFromHTML(html, baseUrl)` reutilizable
+
+1. JSON-LD `Event*` → evento canónico.
+2. OpenGraph/meta + microdata `itemtype="https://schema.org/Event"`.
+3. Patrones `<article>` con fecha + título + enlace.
+4. Devuelve `{events, source: 'json-ld'|'microdata'|'pattern', raw_count}`.
+
+### D. Logging por fuente (lo pide el brief)
+
+Por cada fuente, escribir en `sync_runs.error_details`:
+
+```json
+{
+  "strategy_used": "trinchera-rss" | "firecrawl-llm" | "json-ld" | ...,
+  "http_status": 200,
+  "events_found_raw": 12,
+  "events_parsed": 10,
+  "events_created": 6,
+  "events_updated": 4,
+  "events_skipped": 0,
+  "skip_reasons": { "no_date": 0, "past_date": 0, "duplicate": 4 },
+  "duration_ms": 4321,
+  "diagnostics": [...]
 }
 ```
 
-Color base se mantiene en `text-primary` / `bg-primary/10` (consistencia con tema verde deportivo en dark mode). Los `ring-*` se usan solo como halo opcional cuando `badge` y `accent` están activos. Sin emojis.
+Ya existe `DiagnosticLogger`; sólo hay que serializar consistentemente en `success`, no sólo en `failed`.
 
-### A2. Cards (`SportEventCard.tsx`)
-- Limpieza de títulos vía helper local `cleanSportTitle(title)`:
-  - elimina `"(HOME)"`, `"(AWAY)"`, `"(LOCAL)"`, `"(VISITANTE)"`, paréntesis huérfanos.
-  - colapsa espacios.
-  - si todo está en MAYÚSCULAS y >12 chars y no hay marca conocida (Málaga CF, Unicaja, ACB, LaLiga), aplica `toLocaleLowerCase` + capitalización por palabras conservando siglas.
-  - mantiene `event.title` original sin mutar (solo se usa el limpio para render).
-- Badges añadidos: precio (gratis si `price_info` matches `/gratis|free|libre/i`), estado (`Entradas`, `Inscripción`, `Próximo`).
-- CTAs contextuales:
-  - `tickets_url` → "Entradas"
-  - sino, si url contiene `inscrip|register` → "Inscribirme" (heurística sobre `tickets_url`)
-  - sino → "Ver actividad" (link a `source_url` si existe)
-  - botón secundario "Cómo llegar" cuando hay `venue` o `address` → abre Google/Apple Maps con query.
-- Header visual con `SportIcon` premium + `ring` del mapping.
+### E. Aliases de venue (ya estaban; verificar)
 
-### A3. Home Deportes (`SportsContent.tsx`)
-Estructura final (mantiene handlers actuales):
-1. Hero (ya existe en `Index.tsx`) — solo se ajustan copys i18n.
-2. Quick actions: Hoy / Este finde / Próximos 14d / Recintos.
-3. **Explorar deportes** — chips con `SportIcon` premium. Lista ampliada visualmente con: Todos, Fútbol, Baloncesto, Fútbol sala, Atletismo, Running, Triatlón, Ciclismo, Natación, Pádel/Tenis, Otros (sin romper `SPORT_CATEGORIES` actual; los chips extra solo aplican filtro `categories` via `mapSportCategory`).
-4. **Hoy en deporte** (existe).
-5. **Próximos 14 días** (existe como "Resultados filtrados", se renombra y prioriza).
-6. **Recintos destacados** — nueva sección compacta usando `useSportsVenues` (top 6 con eventos próximos), con CTA "Ver recintos" → `/venues`. Empty state institucional si no hay datos: "Estamos incorporando recintos deportivos."
-7. **Explorar por municipio** — nueva sección. Usa lista estática de municipios de Málaga. Cada chip llama a un nuevo estado `selectedMunicipality` que se traduce en `venueNames` filtrando los venues de `useSportsVenues()` por `city === municipio` (no requiere cambios de schema ni hook). Si no hay venues en ese municipio, se muestra empty state (sin inventar datos).
-8. **Para organizadores** — card CTA "¿Organizas actividades deportivas? Publica tu evento" → `navigate('/submit-event')` (ruta ya existente). Sin nuevas rutas.
+`VENUE_ALIASES` ya cubre Trinchera/Paris 15/Cochera. No tocar UI, sólo confirmar matching sin tildes.
 
-### A4. `VenuesPage.tsx`
-- Filtros adicionales por municipio (chips secundarios derivados de `venues.map(v => v.city)`).
-- Cards muestran "próximos eventos" via cuenta rápida usando `useSportsEvents({ venueNames: [v.name], fromDate: today, toDate: +30d })` solo para los visibles (con `enabled` / debounce ligero) — opcional, si añade complejidad se aplaza y se deja conteo solo para los 6 destacados de la home.
+### F. Tests rápidos al final
 
-### A5. Filtros deportivos (`SportsEventsPage.tsx`)
-- Añadir chip "Gratis" (filtra cliente-side por `price_info`).
-- Añadir chip "Con entradas" (filtra por `tickets_url != null`).
-- Sin cambios destructivos en el hook.
+Tras desplegar, llamar `supabase.functions.invoke('sync-events', { body: { sources: ['sala-trinchera','paris-15','sala-marte','la-cochera-cabaret','teatro-soho'] } })` y mostrar tabla con resultado por fuente.
 
-## B. i18n
+---
 
-Añadir keys nuevas en **es, en, ar** (resto: el fallback i18next caerá a la key + default literal del `t('...', 'fallback')`):
+## Lo que NO se toca
 
-```
-sports.heroKicker, sports.heroTitle, sports.heroSubtitle, sports.searchPlaceholder
-sports.exploreBySport, sports.todayInSport, sports.upcomingEvents
-sports.venuesTitle, sports.exploreByMunicipality
-sports.organizers.title, sports.organizers.subtitle, sports.organizers.cta
-sports.cta.tickets, sports.cta.register, sports.cta.directions, sports.cta.view
-sports.empty.today, sports.empty.results, sports.empty.venuesSoon
-sports.filter.free, sports.filter.withTickets
-sports.running, sports.ciclismo, sports.natacion, sports.padel, sports.triatlon,
-sports.senderismo, sports.fitness, sports.voleibol, sports.rugby, sports.acuaticos,
-sports.artes_marciales
-```
+- Auth, tickets, farmacias, deportes (excepto compartir `parseSpanishDate` si aplicara).
+- Schema de tablas (`sources_config`, `events`, `event_occurrences`).
+- UI de venues/búsqueda/filtros (la corrección de plomería arregla los venues vacíos por sí sola).
+- Lista de fuentes — no se añaden ni se eliminan, sólo se reparan las existentes.
+- No se inventan eventos; si la fuente no tiene programación se marca `partial_no_events`.
 
-## C. Ingestión exhaustiva (`supabase/functions/sync-sports/index.ts`)
+---
 
-Se mantienen las 22 fuentes activas (`sports_sources`) y la pipeline Jina+AI con fallback Firecrawl. Mejoras quirúrgicas:
+## Detalles técnicos
 
-### C1. Paginación / multi-URL por fuente
-Nuevo `SOURCE_EXTRA_URLS: Record<string, string[]>` para fuentes conocidas con paginación o calendario por mes:
-- `runedia`: añadir `?page=2`, `?page=3` (3 páginas).
-- `sportmaniacs`: `?page=2`, `?page=3`.
-- `fam-atletismo`, `atletismo-malaga`, `triatlon-malaga`: añadir URL `?mes=` para los próximos 3 meses (calculados con `Europe/Madrid`).
-- `imd-malaga`, `diputacion-deportes`, `koobin-deportes`: añadir `?page=2`.
-- `acb-unicaja`, `laliga-malaga`, `besoccer-malaga`: añadir vista de "siguiente jornada" cuando aplica.
+- Archivo único editado: `supabase/functions/sync-events/index.ts` (~+400 líneas).
+- Sin nuevas dependencias.
+- Compatible con la cron actual; el cleanup de `running` colgados se ejecuta en cada invocación.
+- Firecrawl sigue siendo fallback — no se elimina, sólo se baja prioridad para evitar timeouts.
 
-Se itera por `[source.url, ...extras]`, agregando `rawEvents` con dedupe por `dedupe_key`. Cada URL respeta el dominio de `ALLOWED_DOMAINS` (validado con `isDomainAllowed`). Errores por URL se aíslan (no tumban la fuente).
+## Criterio de éxito
 
-### C2. Robustez por fuente
-- Si una URL falla, se registra en `sports_sync_runs` y continúa con la siguiente (ya implementado a nivel fuente; se replica a nivel URL).
-- `last_error` por fuente conserva último mensaje cuando todas las URLs fallan.
-- Rate-limit: delay 1.5s entre URLs y 2.5s entre fuentes (subido desde 1.5s).
+Tras 1 sync manual de las 5 fuentes test (Trinchera, Paris 15, Sala Marte, Cochera, Soho):
+- Trinchera ≥ 3 eventos futuros (RSS confirma 08/05, 09/05, 15/05 ya).
+- Paris 15 ≥ 1 evento futuro (HTML responde 200 con contenido).
+- Cada fuente con `strategy_used`, `http_status`, `duration_ms` en `sync_runs.error_details`.
+- Ningún `sync_runs` queda en `running` > 30 min.
 
-### C3. Clasificación deportiva mejorada
-`mapSportCategory` se amplía con heurística sobre **título** + **competición** + **venue** (no solo `sport`):
-```
-running|carrera|maratón|10k|trail → atletismo
-triatl|ironman                    → atletismo (subcategoría triatlon en label si schema lo permite — solo si ya hay campo; si no, se mantiene atletismo)
-ciclismo|vuelta|btt               → otros (mapeo conservador, sin nuevo enum)
-padel|pádel                       → tenis
-balonmano                         → balonmano
-voleibol|vóley                    → otros
-natación|waterpolo                → otros
-```
-Sin migración de schema: se respeta el enum implícito actual (`sport_category` es text). Las claves nuevas como `running`, `triatlon`, `ciclismo` se mapean a las existentes para no romper filtros. Los chips visuales muestran sub-tipos vía `competition` o keywords del título.
-
-### C4. Limpieza de títulos en ingestión
-Antes de calcular `normalized_title` se aplica `cleanSportTitle` (mismo helper compartido lógicamente, duplicado en el edge function al no poder importar de `src/`):
-- elimina `(HOME)`, `(AWAY)`, `(LOCAL)`, `(VISITANTE)`, `· LaLiga` duplicado en título cuando ya está en `competition`.
-- conserva `title` original tal cual; el limpio se guarda en `title` del row final (consistente con render). `normalized_title` se computa sobre el limpio.
-
-### C5. Municipios
-`isInMalagaProvince` (ya cubre 100+ municipios) se mantiene. Se añade utilidad `inferMunicipality(address, venue, city)` que devuelve el municipio canónico encontrado en `MALAGA_PROVINCE_MUNICIPALITIES`; este valor sobreescribe `city` si la `city` original viene vacía o como "Málaga" pero `address`/`venue` apuntan a otro municipio (p. ej. Marbella). Sin inventar datos: si no hay match claro, se conserva el `city` extraído.
-
-### C6. Logs y trazabilidad
-- Por URL: `[sync-sports] {slug} url={u} fetched={n} kept={k}`.
-- `sports_sync_runs` recibe un row por fuente (agregado), como hoy. No se añaden tablas.
-
-### C7. Cumplimiento
-- `ALLOWED_DOMAINS` es la única vía de scraping (sin nuevas fuentes).
-- No se tocan robots.txt, no hay bypass.
-- Search-discovery (Firecrawl Search) se mantiene tras el batch como hoy.
-
-## D. Archivos tocados
-
-- `src/components/sports/SportIcon.tsx` — ampliación mapping + ring.
-- `src/components/sports/SportEventCard.tsx` — clean title, badges, CTAs, "Cómo llegar".
-- `src/components/sports/SportsContent.tsx` — secciones recintos destacados, municipios, organizadores.
-- `src/components/sports/SportsEventsPage.tsx` — chips Gratis / Con entradas.
-- `src/pages/VenuesPage.tsx` — chips por municipio.
-- `src/pages/Index.tsx` — copys i18n hero deportes (mínimo).
-- `src/i18n/locales/{es,en,ar}.json` — keys nuevas.
-- `supabase/functions/sync-sports/index.ts` — `SOURCE_EXTRA_URLS`, loop multi-URL, `cleanSportTitle`, `inferMunicipality`, `mapSportCategory` ampliado.
-
-## E. No-regresión / verificación
-
-- `appMode === 'eventos'` intacto: home cultural sin cambios.
-- Hooks (`useSportsEvents`, `useSportsVenues`) sin cambios de firma.
-- Sin migraciones SQL.
-- Build TS limpio (Lucide icons importados existen todos).
-- Mobile: chips con `overflow-x-auto scrollbar-hide` ya en uso.
-- Dark mode: solo clases `text-primary`/`bg-primary/*` y `border-border`.
-- i18n: cada `t()` con fallback literal para que el resto de idiomas no rompa.
-- Edge function: dedupe sigue funcionando (UNIQUE en `dedupe_key`); URLs adicionales respetan `ALLOWED_DOMAINS`.
-
-## F. Fuera de alcance (declarado)
-
-- No se crea panel admin nuevo.
-- No se introducen nuevas fuentes externas.
-- No se cambia el enum/text de `sport_category` en DB.
-- No se añade nueva tabla ni columnas.
-- No se toca `auth`, `App.tsx`, providers, farmacias, tickets, mapa general, eventos culturales.
+¿Procedo?
