@@ -5,7 +5,7 @@ import { MapPin } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
 import { useSportsEvents } from '@/hooks/useSportsEvents';
 import { useAppMode } from '@/contexts/AppModeContext';
-import { ModernMap } from '@/modules/maps/ModernMap';
+import { GoogleMapView } from '@/modules/maps/GoogleMapView';
 import { MarkerSheet } from '@/modules/maps/MarkerSheet';
 import type { MapMarker } from '@/modules/maps/types';
 
@@ -59,7 +59,13 @@ const MapPage = () => {
       </header>
 
       <div className="h-[calc(100vh-180px)] relative">
-        <ModernMap markers={markers} onMarkerSelect={setSelected} />
+        <GoogleMapView
+          markers={markers}
+          onMarkerSelect={(id) => {
+            const m = markers.find((mk) => mk.id === id);
+            if (m) setSelected(m);
+          }}
+        />
       </div>
 
       <MarkerSheet marker={selected} onClose={() => setSelected(null)} />
