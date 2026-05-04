@@ -1227,28 +1227,50 @@ async function syncSingleSource(
     
     let events: any[] = [];
     let scrapeResult: { success: boolean; data?: any; error?: string; attempts: number; totalTimeMs: number } | null = null;
+    let strategyUsed = 'firecrawl-llm';
+    let directHttpStatus: number | undefined;
     
-    // Try main scrape first
-    scrapeResult = await scrapeWithConfig(
-      urlToScrape,
-      extractionPrompt,
-      firecrawlApiKey,
-      config,
-      logger
-    );
-    
-    result.attempts = scrapeResult.attempts;
-    result.totalTimeMs = scrapeResult.totalTimeMs;
-    result.urlExamples = logger.getUrlExamples();
-    
-    // Extract events from main scrape
-    if (scrapeResult.success && scrapeResult.data?.success && scrapeResult.data?.data) {
-      if (scrapeResult.data.data.json?.events) {
-        events = scrapeResult.data.data.json.events;
-      } else if (scrapeResult.data.data.events) {
-        events = scrapeResult.data.data.events;
+    // STRATEGY 1: Try direct fetcher (HTML/RSS/JSON-LD) first — much faster than Firecrawl
+    const direct = await tryDirectFetcher(source.slug, source);
+    if (direct) {
+      directHttpStatus = direct.http_status;
+      logger.info('scrape', `Direct fetcher [${direct.strategy}]: ok=${direct.ok} http=${direct.http_status} events=${direct.events.length}`, { error: direct.error });
+      if (direct.ok && direct.events.length > 0) {
+        events = direct.events;
+        strategyUsed = direct.strategy;
+        scrapeResult = { success: true, data: { events }, attempts: 1, totalTimeMs: 0 };
+        logger.setUrlExample('listado', source.chosen_entrypoint || '');
       }
     }
+    
+    // STRATEGY 2: Firecrawl + LLM extraction (fallback)
+    if (events.length === 0) {
+      scrapeResult = await scrapeWithConfig(
+        urlToScrape,
+        extractionPrompt,
+        firecrawlApiKey,
+        config,
+        logger
+      );
+      
+      result.attempts = scrapeResult.attempts;
+      result.totalTimeMs = scrapeResult.totalTimeMs;
+      result.urlExamples = logger.getUrlExamples();
+      
+      if (scrapeResult.success && scrapeResult.data?.success && scrapeResult.data?.data) {
+        if (scrapeResult.data.data.json?.events) {
+          events = scrapeResult.data.data.json.events;
+          strategyUsed = 'firecrawl-llm';
+        } else if (scrapeResult.data.data.events) {
+          events = scrapeResult.data.data.events;
+          strategyUsed = 'firecrawl-llm';
+        }
+      }
+    } else {
+      result.attempts = 1;
+      result.urlExamples = logger.getUrlExamples();
+    }
+
     
     // If main scrape failed or no events, try WordPress API fallback for sources that have it
     if ((events.length === 0 || !scrapeResult.success) && config.alternativeEndpoint) {
