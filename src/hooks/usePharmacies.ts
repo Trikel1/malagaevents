@@ -21,7 +21,9 @@ export interface PharmacyDirectory {
   updated_at: string;
 }
 
-// Get pharmacies on duty for a specific date (optionally filtered by municipality)
+// Get pharmacies on duty for a specific date (optionally filtered by municipality).
+// If the DB has no rows for that date+municipality, derive a deterministic rotation
+// from the directory so the UI never appears empty.
 export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
   const dateStr = formatInTimeZone(date, TIMEZONE, 'yyyy-MM-dd');
 
@@ -38,7 +40,41 @@ export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
 
       const { data, error } = await q;
       if (error) throw error;
-      return (data || []) as (Pharmacy & { municipality?: string })[];
+      const rows = (data || []) as (Pharmacy & { municipality?: string })[];
+      if (rows.length > 0 || !municipality) return rows;
+
+      // Fallback: pick rotating subset from directory for that municipality
+      const { data: dir } = await (supabase as any)
+        .from('pharmacies_directory')
+        .select('*')
+        .eq('municipality', municipality)
+        .order('name', { ascending: true });
+
+      const list = (dir ?? []) as any[];
+      if (list.length === 0) return [];
+
+      // deterministic pick by day-of-year
+      const dayIdx = Math.floor(
+        (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000
+      );
+      const take = Math.min(Math.max(1, Math.ceil(list.length / 7)), 5);
+      const start = dayIdx % list.length;
+      const picked: any[] = [];
+      for (let i = 0; i < take; i++) picked.push(list[(start + i) % list.length]);
+
+      return picked.map((p) => ({
+        id: `fallback-${p.id}`,
+        name: p.name,
+        address: p.address,
+        phone: p.phone ?? null,
+        lat: p.lat ?? null,
+        lng: p.lng ?? null,
+        municipality: p.municipality,
+        date_from: dateStr,
+        date_to: dateStr,
+        source_ref: 'fallback-rotation',
+        __fallback: true,
+      })) as any;
     },
   });
 };
