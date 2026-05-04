@@ -641,15 +641,15 @@ const AdminPage = () => {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar evento?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('admin.dialogs.deleteEventTitle')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción no se puede deshacer.
+                            {t('admin.dialogs.deleteEventDesc')}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                           <AlertDialogAction onClick={() => handleDelete(event.id)}>
-                            Eliminar
+                            {t('common.delete')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
