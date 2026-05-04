@@ -575,8 +575,8 @@ const AdminPage = () => {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Últimos sync runs</CardTitle>
-                <CardDescription>Últimas 10 ejecuciones de sincronización deportiva</CardDescription>
+                <CardTitle className="text-base">{t('admin.sports.lastRuns')}</CardTitle>
+                <CardDescription>{t('admin.sports.lastRunsDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 {sportsRunsLoading ? (
@@ -584,7 +584,7 @@ const AdminPage = () => {
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </div>
                 ) : sportsRuns.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No hay ejecuciones registradas.</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">{t('admin.empty.noSyncRuns')}</p>
                 ) : (
                   <div className="space-y-2">
                     {sportsRuns.map((run: any) => (
