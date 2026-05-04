@@ -347,18 +347,77 @@ async function generateDedupeKey(
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function mapSportCategory(sport: string): string {
-  if (!sport) return "otros";
-  const s = sport.toLowerCase();
-  if (/f[uú]tbol\s*sala|futsal/i.test(s)) return "futsal";
-  if (/f[uú]tbol|football|soccer/i.test(s)) return "futbol";
-  if (/baloncesto|basketball|basket/i.test(s)) return "baloncesto";
-  if (/balonmano|handball/i.test(s)) return "balonmano";
-  if (/atletismo|running|marat[oó]n|carrera|cross/i.test(s)) return "atletismo";
-  if (/motor|rally|karting|f1|motogp/i.test(s)) return "motor";
-  if (/tenis|tennis|p[aá]del|padel/i.test(s)) return "tenis";
-  if (/triatl[oó]n|triathlon|ironman/i.test(s)) return "atletismo";
+function mapSportCategory(sport: string, title?: string, competition?: string, venue?: string): string {
+  const blob = `${sport || ""} ${title || ""} ${competition || ""} ${venue || ""}`.toLowerCase();
+  if (!blob.trim()) return "otros";
+  if (/f[uú]tbol\s*sala|futsal/.test(blob)) return "futsal";
+  if (/balonmano|handball/.test(blob)) return "balonmano";
+  if (/baloncesto|basketball|basket|acb|euroleague|eurocup/.test(blob)) return "baloncesto";
+  if (/triatl[oó]n|triathlon|ironman/.test(blob)) return "atletismo";
+  if (/atletismo|running|marat[oó]n|carrera|cross|10k|5k|trail|media\s*marat/.test(blob)) return "atletismo";
+  if (/p[aá]del|tenis|tennis/.test(blob)) return "tenis";
+  if (/motor|rally|karting|f1|motogp|formula/.test(blob)) return "motor";
+  if (/f[uú]tbol|football|soccer|laliga|copa\s*del\s*rey|champions/.test(blob)) return "futbol";
   return "otros";
+}
+
+/** Clean ugly scraped sports titles (mirror of src/lib/sports.ts). */
+const HOME_AWAY_TOKENS = /\s*[\(\[]\s*(home|away|local|visitante|visitor|fuera|casa)\s*[\)\]]/gi;
+const KNOWN_BRANDS = /(M[aá]laga\s*CF|Unicaja|ACB|LaLiga|Liga\s*Endesa|EuroCup|Copa\s*del\s*Rey|Ironman|Zurich)/i;
+const SMALL_WORDS = new Set(["de", "la", "el", "los", "las", "y", "vs", "del", "en", "al", "a"]);
+
+function smartTitleCase(input: string): string {
+  const original = input.split(" ");
+  return input
+    .toLowerCase()
+    .split(" ")
+    .map((w, i) => {
+      if (!w) return w;
+      if (/^[A-Z]{2,4}$/.test(original[i] || "")) return original[i];
+      if (i > 0 && SMALL_WORDS.has(w)) return w;
+      return w[0].toUpperCase() + w.slice(1);
+    })
+    .join(" ");
+}
+
+function cleanSportTitle(raw: string | null | undefined): string {
+  if (!raw) return "";
+  let t = String(raw)
+    .replace(HOME_AWAY_TOKENS, " ")
+    .replace(/\s*\(\s*\)\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const letters = t.replace(/[^A-Za-zÁÉÍÓÚÑ]/g, "");
+  const upperRatio = letters
+    ? letters.replace(/[^A-ZÁÉÍÓÚÑ]/g, "").length / letters.length
+    : 0;
+  if (t.length > 12 && upperRatio > 0.85 && !KNOWN_BRANDS.test(t)) {
+    t = smartTitleCase(t);
+  }
+  return t;
+}
+
+/** Infer the canonical Málaga-province municipality from address/venue/city. */
+function inferMunicipality(
+  city: string,
+  venue: string,
+  address: string,
+): string | null {
+  const haystacks = [address, venue, city].map((s) => normalizeText(s || ""));
+  for (const text of haystacks) {
+    if (!text) continue;
+    for (const muni of MALAGA_PROVINCE_MUNICIPALITIES) {
+      // Prefer multi-word municipality matches first (more specific)
+      if (muni.length > 4 && text.includes(muni)) {
+        // Title-case canonical name
+        return muni
+          .split(" ")
+          .map((w) => w[0].toUpperCase() + w.slice(1))
+          .join(" ");
+      }
+    }
+  }
+  return null;
 }
 
 function sanitizeText(text: string | null | undefined): string {
