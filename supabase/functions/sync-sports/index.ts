@@ -840,43 +840,70 @@ Deno.serve(async (req) => {
     const runId = runData?.id;
     const prompt = getSourcePrompt(source.slug);
 
-    console.log(`[sync-sports] Scraping ${source.slug}: ${source.url}`);
+    // Build URL list: primary + extras (paginations / monthly calendars).
+    const extraUrls = (SOURCE_EXTRA_URLS[source.slug] || []).filter(isDomainAllowed);
+    const urlsToScrape = [source.url, ...extraUrls];
+    console.log(`[sync-sports] Scraping ${source.slug}: ${urlsToScrape.length} URL(s)`);
 
-    // Primary: Jina Reader + AI extraction
     let rawEvents: any[] = [];
     let scrapeError: string | undefined;
+    const seenEventKeys = new Set<string>();
 
-    if (lovableApiKey) {
-      console.log(`[sync-sports] Trying Jina+AI pipeline for ${source.slug}`);
-      const jinaResult = await scrapeWithJinaAndAI(source.url, prompt, lovableApiKey);
-      if (jinaResult.success && jinaResult.events?.length) {
-        rawEvents = jinaResult.events;
-        console.log(`[sync-sports] Jina+AI success for ${source.slug}: ${rawEvents.length} events`);
-      } else {
-        console.warn(`[sync-sports] Jina+AI failed for ${source.slug}: ${jinaResult.error}`);
-        scrapeError = jinaResult.error;
-      }
-    }
+    for (let urlIdx = 0; urlIdx < urlsToScrape.length; urlIdx++) {
+      const url = urlsToScrape[urlIdx];
+      let urlEvents: any[] = [];
+      let urlError: string | undefined;
 
-    // Fallback: Firecrawl (if Jina+AI failed or returned no events)
-    if (rawEvents.length === 0 && firecrawlApiKey) {
-      console.log(`[sync-sports] Falling back to Firecrawl for ${source.slug}`);
-      const fcResult = await scrapeSourceFirecrawl(source.url, prompt, firecrawlApiKey);
-      if (fcResult.success) {
-        rawEvents =
-          fcResult.data?.data?.json?.events ||
-          fcResult.data?.data?.events ||
-          fcResult.data?.json?.events ||
-          [];
-        if (rawEvents.length > 0) {
-          scrapeError = undefined;
-          console.log(`[sync-sports] Firecrawl success for ${source.slug}: ${rawEvents.length} events`);
+      // Primary: Jina Reader + AI extraction
+      if (lovableApiKey) {
+        const jinaResult = await scrapeWithJinaAndAI(url, prompt, lovableApiKey);
+        if (jinaResult.success && jinaResult.events?.length) {
+          urlEvents = jinaResult.events;
+        } else {
+          urlError = jinaResult.error;
         }
-      } else {
-        console.warn(`[sync-sports] Firecrawl also failed for ${source.slug}: ${fcResult.error}`);
-        scrapeError = `Jina: ${scrapeError || "skipped"} | Firecrawl: ${fcResult.error}`;
+      }
+
+      // Fallback: Firecrawl
+      if (urlEvents.length === 0 && firecrawlApiKey) {
+        const fcResult = await scrapeSourceFirecrawl(url, prompt, firecrawlApiKey);
+        if (fcResult.success) {
+          urlEvents =
+            fcResult.data?.data?.json?.events ||
+            fcResult.data?.data?.events ||
+            fcResult.data?.json?.events ||
+            [];
+          if (urlEvents.length === 0 && !urlError) urlError = "Firecrawl returned no events";
+        } else {
+          urlError = `Jina: ${urlError || "skipped"} | Firecrawl: ${fcResult.error}`;
+        }
+      }
+
+      // Cheap dedupe across URLs of same source: title+date
+      let kept = 0;
+      for (const evt of urlEvents) {
+        const key = `${(evt.title || "").toLowerCase().trim()}|${(evt.date || "").trim()}`;
+        if (!key || seenEventKeys.has(key)) continue;
+        seenEventKeys.add(key);
+        rawEvents.push(evt);
+        kept++;
+      }
+      console.log(
+        `[sync-sports] ${source.slug} url=${url} fetched=${urlEvents.length} kept=${kept}${urlError ? ` err="${urlError.substring(0, 80)}"` : ""}`,
+      );
+
+      if (urlError && urlIdx === 0 && urlEvents.length === 0) {
+        scrapeError = urlError;
+      }
+
+      // Polite delay between URLs of the same source
+      if (urlIdx < urlsToScrape.length - 1) {
+        await new Promise((r) => setTimeout(r, 1500));
       }
     }
+
+    // Clear scrapeError if we got events from any URL
+    if (rawEvents.length > 0) scrapeError = undefined;
 
     // Both failed
     if (rawEvents.length === 0 && scrapeError) {
