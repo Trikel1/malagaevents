@@ -115,8 +115,9 @@ const VenuesPage = () => {
                   <p className="text-xs text-muted-foreground">{venue.city}{venue.address ? ` · ${venue.address}` : ''}</p>
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {venue.sports.map(s => (
-                      <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0">
-                        {SPORT_ICONS[s]} {t(`sports.${s}`)}
+                      <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+                        <SportIcon sport={s} className="h-3 w-3" />
+                        {t(`sports.${s}`)}
                       </Badge>
                     ))}
                   </div>
