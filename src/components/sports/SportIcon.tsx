@@ -116,37 +116,35 @@ export const getSportRing = (sport: string): string =>
 interface SportIconProps {
   sport: SportCategory | string;
   className?: string;
-  /** Render inside a soft circular badge */
+  /** Kept for backwards compatibility — no longer renders a decorative circle. */
   badge?: boolean;
   badgeSize?: 'sm' | 'md' | 'lg';
   active?: boolean;
-  /** Add a subtle colored ring (premium look) */
   accent?: boolean;
 }
 
-const SportIcon = ({ sport, className, badge, badgeSize = 'md', active, accent }: SportIconProps) => {
+/**
+ * Unified visual language: every sport renders as a single pictogram, same
+ * stroke weight (1.8), same line caps, no decorative ring or filled circle.
+ * Color is inherited via `currentColor`.
+ */
+const SportIcon = ({ sport, className, badge, badgeSize = 'md' }: SportIconProps) => {
   const Icon = getSportIcon(sport);
-  if (!badge) {
-    return <Icon className={cn('h-4 w-4', className)} aria-hidden="true" />;
-  }
-  const sizeCls =
-    badgeSize === 'lg' ? 'h-10 w-10' : badgeSize === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
-  const iconSize =
-    badgeSize === 'lg' ? 'h-5 w-5' : badgeSize === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-  const ring = accent ? `ring-1 ${getSportRing(sport)}` : '';
+  const sizeCls = badge
+    ? badgeSize === 'lg'
+      ? 'h-6 w-6'
+      : badgeSize === 'sm'
+        ? 'h-4 w-4'
+        : 'h-5 w-5'
+    : 'h-4 w-4';
   return (
-    <span
-      className={cn(
-        'inline-flex items-center justify-center rounded-full shrink-0 transition-colors',
-        sizeCls,
-        active ? 'bg-primary/15 text-primary' : 'bg-primary/10 text-primary',
-        ring,
-        className,
-      )}
+    <Icon
+      className={cn(sizeCls, className)}
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
-    >
-      <Icon className={iconSize} />
-    </span>
+    />
   );
 };
 
