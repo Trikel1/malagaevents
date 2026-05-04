@@ -1209,7 +1209,251 @@ async function fetchCocheraEntradas(): Promise<DirectFetchResult> {
   }
 }
 
-async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchResult | null> {
+// ---------------------------------------------------------------------------
+// La Garrapata (Málaga) — TicketAndRoll primary, QConciertos fallback
+// Reference-only social sources (NOT scraped, no auth):
+//   https://www.instagram.com/barlagarrapata/
+//   https://www.facebook.com/LaGarrapataBar/
+// ---------------------------------------------------------------------------
+const LA_GARRAPATA_VENUE = 'La Garrapata';
+const LA_GARRAPATA_ADDRESS = 'C/ Mariblanca 9, 29012 Málaga';
+const LA_GARRAPATA_CITY = 'Málaga';
+const LA_GARRAPATA_MAX_DETAIL_PAGES = 20;
+const LA_GARRAPATA_SPANISH_MONTHS: Record<string, number> = {
+  enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,
+  julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12,
+};
+
+function laGarrapataParseDetail(html: string, sourceUrl: string): NormalizedEvent | null {
+  try {
+    // Try JSON-LD first
+    const jl = extractJsonLdEvents(html, sourceUrl);
+    if (jl.length > 0) {
+      const ev = jl[0];
+      ev.venue = LA_GARRAPATA_VENUE;
+      ev.city = LA_GARRAPATA_CITY;
+      if (!ev.ticket_url) ev.ticket_url = sourceUrl;
+      return ev;
+    }
+
+    const text = stripTags(html);
+    // Title: prefer og:title, then <h1>
+    let title = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1]
+      || html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1] || '';
+    title = cleanTitle(stripTags(title));
+    if (!title || !isValidEventTitle(title)) return null;
+
+    // Día / Mes / Hora
+    const diaM = text.match(/D[ií]a\s*:?[\s]*([0-9]{1,2})/i);
+    const mesM = text.match(/Mes\s*:?[\s]*([A-Za-záéíóúñÁÉÍÓÚÑ]+)\s*(\d{4})?/i);
+    const horaM = text.match(/Hora\s*:?[\s]*(\d{1,2})[:\.h\s]?(\d{2})?\s*h?/i);
+
+    let date: string | undefined;
+    let time: string | undefined;
+    if (diaM && mesM) {
+      const day = parseInt(diaM[1], 10);
+      const monthName = mesM[1].toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const month = LA_GARRAPATA_SPANISH_MONTHS[monthName];
+      if (month) {
+        let year = mesM[2] ? parseInt(mesM[2], 10) : new Date().getFullYear();
+        const candidate = new Date(year, month - 1, day);
+        // Infer next future occurrence if year missing and date already past
+        if (!mesM[2] && candidate.getTime() < Date.now() - 24 * 3600 * 1000) {
+          year += 1;
+        }
+        date = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+      }
+    }
+    if (horaM) {
+      const hh = String(parseInt(horaM[1], 10)).padStart(2, '0');
+      const mm = horaM[2] ? horaM[2] : '00';
+      time = `${hh}:${mm}`;
+    }
+    if (!date) return null;
+
+    // Price
+    const priceM = text.match(/(\d{1,3}(?:[.,]\d{1,2})?)\s*€/);
+    const price = priceM ? `${priceM[1]} €` : undefined;
+
+    // Genre
+    const genM = text.match(/G[eé]nero\s*:?[\s]*([A-Za-zÁÉÍÓÚÑáéíóúñ\/\- ]{3,40})/i);
+    const genre = genM ? genM[1].trim() : undefined;
+
+    // Image: prefer og:image
+    let image = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1];
+    image = image ? normalizeImageUrl(image, sourceUrl) : undefined;
+
+    // Description: meta description
+    let desc = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1];
+    desc = desc ? decodeHtmlEntities(desc).substring(0, 400) : undefined;
+
+    return {
+      title,
+      description: desc,
+      occurrences: [{ date, time }],
+      venue: LA_GARRAPATA_VENUE,
+      city: LA_GARRAPATA_CITY,
+      image_url: image,
+      ticket_url: sourceUrl,
+      price,
+      tags: genre ? [genre] : undefined,
+    } as NormalizedEvent;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchLaGarrapata(): Promise<DirectFetchResult> {
+  const events: NormalizedEvent[] = [];
+  let httpStatus: number | undefined;
+  let parsedCount = 0;
+  let skippedPast = 0;
+  let skippedInvalid = 0;
+  let candidateCount = 0;
+  console.log('[la-garrapata] start');
+
+  // ---- Primary: TicketAndRoll ----
+  try {
+    console.log('[la-garrapata] primarySource ticketandroll');
+    const listUrl = 'https://ticketandroll.com/local/bar-la-garrapata';
+    const r = await fetchWithTimeout(listUrl, 12000);
+    httpStatus = r.status;
+    if (r.ok) {
+      const html = await r.text();
+      // Discover detail URLs on ticketandroll.com (event pages)
+      const linkSet = new Set<string>();
+      const linkRe = /href="(https?:\/\/(?:www\.)?ticketandroll\.com\/[^"#?]+)"/g;
+      let m: RegExpExecArray | null;
+      while ((m = linkRe.exec(html)) !== null) {
+        const u = m[1];
+        if (!isUrlAllowedForScraping(u)) continue;
+        // Heuristic: skip the local/bar-la-garrapata listing itself and obvious non-event paths
+        if (/\/local\//i.test(u)) continue;
+        if (/\.(jpg|jpeg|png|gif|webp|svg|css|js|pdf)(\?|$)/i.test(u)) continue;
+        if (/\/(politica|privacidad|cookies|terminos|contacto|login|registro)/i.test(u)) continue;
+        linkSet.add(u);
+      }
+      const candidates = Array.from(linkSet).slice(0, LA_GARRAPATA_MAX_DETAIL_PAGES);
+      candidateCount = candidates.length;
+      console.log(`[la-garrapata] candidateUrls: ${candidateCount}`);
+
+      for (const detailUrl of candidates) {
+        try {
+          const dr = await fetchWithTimeout(detailUrl, 10000);
+          if (!dr.ok) continue;
+          const dh = await dr.text();
+          // Confirm the page actually relates to La Garrapata
+          if (!/garrapata|mariblanca/i.test(dh)) continue;
+          const ev = laGarrapataParseDetail(dh, detailUrl);
+          if (!ev) { skippedInvalid++; continue; }
+          // Discard past events
+          const occ = ev.occurrences[0];
+          if (occ?.date) {
+            const parsed = parseSpanishDate(occ.date, occ.time);
+            if (parsed && parsed.getTime() < Date.now() - 24 * 3600 * 1000) {
+              skippedPast++;
+              continue;
+            }
+          }
+          events.push(ev);
+          parsedCount++;
+        } catch { /* per-detail isolation */ }
+      }
+      console.log(`[la-garrapata] parsedEvents: ${parsedCount}`);
+      console.log(`[la-garrapata] skippedPastEvents: ${skippedPast}`);
+      console.log(`[la-garrapata] skippedInvalidEvents: ${skippedInvalid}`);
+    } else {
+      console.log(`[la-garrapata] primary HTTP ${r.status}`);
+    }
+  } catch (e) {
+    console.log(`[la-garrapata] error: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // ---- Fallback: QConciertos ----
+  if (events.length === 0) {
+    console.log('[la-garrapata] fallback qconciertos');
+    try {
+      const qUrl = 'https://qconciertos.es/salas/la-garrapata-malaga/';
+      const r = await fetchWithTimeout(qUrl, 12000);
+      if (r.ok) {
+        if (httpStatus === undefined) httpStatus = r.status;
+        const html = await r.text();
+        // JSON-LD first
+        const jl = extractJsonLdEvents(html, qUrl);
+        for (const e of jl) {
+          e.venue = LA_GARRAPATA_VENUE;
+          e.city = LA_GARRAPATA_CITY;
+          if (!e.ticket_url) e.ticket_url = qUrl;
+          // discard past
+          const occ = e.occurrences?.[0];
+          if (occ?.date) {
+            const parsed = parseSpanishDate(occ.date, occ.time);
+            if (parsed && parsed.getTime() < Date.now() - 24 * 3600 * 1000) { skippedPast++; continue; }
+          }
+          events.push(e);
+        }
+        // Heuristic cards
+        if (events.length === 0) {
+          const cardRe = /<(?:article|div|li)[^>]*class="[^"]*(?:event|concierto|card|item)[^"]*"[^>]*>([\s\S]*?)<\/(?:article|div|li)>/gi;
+          let m: RegExpExecArray | null;
+          let n = 0;
+          while ((m = cardRe.exec(html)) !== null && n < 40) {
+            n++;
+            const block = m[1];
+            const title = cleanTitle(stripTags(block.match(/<h[2-4][^>]*>([\s\S]*?)<\/h[2-4]>/)?.[1] || ''));
+            if (!title || !isValidEventTitle(title)) continue;
+            const dateText = stripTags(block.match(/(\d{1,2}\s+(?:de\s+)?(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)(?:\s+\d{4})?)/i)?.[1] || block.match(/(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/)?.[1] || '');
+            const time = block.match(/(\d{1,2})[:\.](\d{2})/)?.[0]?.replace('.', ':');
+            const link = block.match(/href="(https?:\/\/[^"]+)"/)?.[1];
+            if (!dateText) continue;
+            const parsed = parseSpanishDate(dateText, time);
+            if (parsed && parsed.getTime() < Date.now() - 24 * 3600 * 1000) { skippedPast++; continue; }
+            events.push({
+              title,
+              occurrences: [{ date: dateText, time }],
+              venue: LA_GARRAPATA_VENUE,
+              city: LA_GARRAPATA_CITY,
+              ticket_url: link || qUrl,
+            });
+          }
+        }
+      } else if (httpStatus === undefined) {
+        httpStatus = r.status;
+      }
+    } catch (e) {
+      console.log(`[la-garrapata] fallback error: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // Force canonical venue/city/address tag for ALL events from this fetcher
+  for (const e of events) {
+    e.venue = LA_GARRAPATA_VENUE;
+    e.city = LA_GARRAPATA_CITY;
+  }
+
+  // Local dedupe (same fetcher)
+  const seen = new Set<string>();
+  const deduped: NormalizedEvent[] = [];
+  for (const e of events) {
+    const t = (e.title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    const d = e.occurrences?.[0]?.date || '';
+    const key = `${t}|${d}|la-garrapata`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(e);
+  }
+  console.log(`[la-garrapata] dedupedEvents: ${deduped.length}`);
+
+  return {
+    ok: true,
+    http_status: httpStatus,
+    events: deduped,
+    strategy: 'la-garrapata-ticketandroll+qconciertos',
+  };
+}
+
+
   switch (slug) {
     case 'la-garrapata':
       return fetchLaGarrapata();
