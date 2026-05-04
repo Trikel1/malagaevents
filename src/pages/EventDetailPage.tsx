@@ -336,6 +336,42 @@ END:VCALENDAR`;
           </>
         )}
       </main>
+
+      {/* Sticky bottom CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border/60 px-4 py-3 pb-safe shadow-soft">
+        <div className="max-w-lg mx-auto flex gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handleToggleFavorite}
+            disabled={toggleFavorite.isPending}
+            className="flex-shrink-0"
+            aria-label={isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Guardar')}
+          >
+            <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
+          </Button>
+          {event.ticket_url ? (
+            <Button
+              size="lg"
+              className="flex-1 shadow-lift"
+              onClick={() => window.open(event.ticket_url, '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {t('eventDetail.buyTickets')}
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              variant="secondary"
+              className="flex-1"
+              onClick={handleAddToCalendar}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              {t('eventDetail.addToCalendar')}
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
