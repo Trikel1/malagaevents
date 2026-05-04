@@ -28,25 +28,25 @@ const BottomNav = () => {
   }, [appMode, t]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border px-2 py-2 pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/85 backdrop-blur-xl border-t border-border/60 px-2 py-1.5 pb-safe shadow-soft">
       <div className="flex justify-around max-w-lg mx-auto">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.to || 
+          const isActive = location.pathname === item.to ||
             (item.to !== '/' && location.pathname.startsWith(item.to));
-          
+
           return (
             <NavLink
               key={item.to}
               to={item.to}
               className={cn(
-                'flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]',
-                isActive 
-                  ? 'text-primary' 
-                  : 'text-muted-foreground hover:text-foreground'
+                'flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-2xl min-w-[56px] min-h-[48px] transition-all duration-200',
+                isActive
+                  ? 'text-primary bg-primary/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
               )}
             >
-              <item.icon className={cn('h-5 w-5', isActive && 'stroke-[2.5px]')} />
-              <span className="text-xs font-medium">{item.label}</span>
+              <item.icon className={cn('h-5 w-5 transition-transform', isActive && 'stroke-[2.5px] scale-110')} />
+              <span className={cn('text-[11px] font-medium leading-tight', isActive && 'font-semibold')}>{item.label}</span>
             </NavLink>
           );
         })}
