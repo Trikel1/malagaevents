@@ -141,6 +141,33 @@ const SOURCE_PROMPTS: Record<string, string> = {
 const DEFAULT_PROMPT =
   "Extract all upcoming sports events. Include title, date, time, venue, city, teams, competition, sport type, and ticket/registration URL if available.";
 
+/**
+ * Extra URLs per source for exhaustive ingestion (paginations, monthly calendars).
+ * All URLs MUST live under the same registrable domain (validated via isDomainAllowed).
+ */
+const SOURCE_EXTRA_URLS: Record<string, string[]> = {
+  runedia: [
+    "https://runedia.mundodeportivo.com/carreras/malaga/?page=2",
+    "https://runedia.mundodeportivo.com/carreras/malaga/?page=3",
+  ],
+  sportmaniacs: [
+    "https://www.sportmaniacs.com/es/events?province=malaga&page=2",
+    "https://www.sportmaniacs.com/es/events?province=malaga&page=3",
+  ],
+  "imd-malaga": [
+    "https://imd.malaga.eu/es/actividades-deportivas/?page=2",
+  ],
+  "diputacion-deportes": [
+    "https://www.malaga.es/deportes/agenda/",
+  ],
+  "koobin-deportes": [
+    "https://www.koobin.com/deportes/malaga?page=2",
+  ],
+  "fam-atletismo": [
+    "https://www.fam.es/calendario-de-pruebas/?provincia=malaga",
+  ],
+};
+
 // ============================================================================
 // MÁLAGA PROVINCE MUNICIPALITIES (complete whitelist, normalized)
 // ============================================================================
