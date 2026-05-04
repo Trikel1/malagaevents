@@ -490,8 +490,8 @@ const PharmaciesPage = () => {
             </div>
           ) : dirPharmacies.length > 0 ? (
             <div className="space-y-2">
-              {dirPharmacies.map((p) => (
-                <PharmacyCard key={p.id} pharmacy={p} />
+              {dirPharmacies.map((p: any) => (
+                <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
               ))}
             </div>
           ) : (
