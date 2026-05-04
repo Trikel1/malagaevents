@@ -235,36 +235,65 @@ END:VCALENDAR`;
           <Badge variant="secondary" className="mb-2">
             {t(`categories.${event.category}`)}
           </Badge>
-          <h1 className="text-2xl font-bold">{event.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">{event.title}</h1>
         </div>
 
-        {/* Quick Info */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="p-3 flex items-center gap-3">
-              <div className="p-2 rounded-full bg-primary/10">
-                <Calendar className="h-5 w-5 text-primary" />
+        {/* Quick Info — ficha 2x2 */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="rounded-2xl shadow-soft">
+            <CardContent className="p-3 flex items-start gap-3">
+              <div className="p-2 rounded-full bg-primary/10 shrink-0">
+                <Calendar className="h-4 w-4 text-primary" />
               </div>
-              <div>
-                <p className="text-sm font-medium capitalize">{formattedDate}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formattedTime}{formattedEndTime && ` - ${formattedEndTime}`}
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.date', 'Fecha')}</p>
+                <p className="text-sm font-semibold capitalize leading-snug">{formattedDate}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl shadow-soft">
+            <CardContent className="p-3 flex items-start gap-3">
+              <div className="p-2 rounded-full bg-primary/10 shrink-0">
+                <Calendar className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.time', 'Hora')}</p>
+                <p className="text-sm font-semibold leading-snug">
+                  {formattedTime}{formattedEndTime && ` – ${formattedEndTime}`}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="p-3 flex items-center gap-3">
-              <div className="p-2 rounded-full bg-secondary/10">
-                <MapPin className="h-5 w-5 text-secondary" />
+          <Card className="rounded-2xl shadow-soft col-span-2">
+            <CardContent className="p-3 flex items-start gap-3">
+              <div className="p-2 rounded-full bg-secondary/10 shrink-0">
+                <MapPin className="h-4 w-4 text-secondary" />
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium break-words" style={{ overflowWrap: 'anywhere', whiteSpace: 'normal' }}>{event.venue_name}</p>
-                <p className="text-xs text-muted-foreground break-words" style={{ overflowWrap: 'anywhere', whiteSpace: 'normal' }}>{event.address}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.place', 'Lugar')}</p>
+                <p className="text-sm font-semibold break-words leading-snug" style={{ overflowWrap: 'anywhere' }}>{event.venue_name}</p>
+                <p className="text-xs text-muted-foreground break-words mt-0.5" style={{ overflowWrap: 'anywhere' }}>{event.address}</p>
               </div>
             </CardContent>
           </Card>
+
+          {(event.is_free || event.price_info) && (
+            <Card className="rounded-2xl shadow-soft col-span-2">
+              <CardContent className="p-3 flex items-start gap-3">
+                <div className="p-2 rounded-full bg-primary/10 shrink-0">
+                  <Euro className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.price', 'Precio')}</p>
+                  <p className="text-sm font-semibold leading-snug">
+                    {event.is_free ? t('common.free', 'Gratis') : event.price_info}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Action Buttons */}
