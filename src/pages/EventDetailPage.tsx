@@ -42,22 +42,38 @@ const EventDetailPage = () => {
   
   const isFavorite = favorites?.some((f) => f.event_id === id) ?? false;
 
-  // Hide sticky CTA on scroll-down, show on scroll-up
+  // Hide sticky CTA on scroll-down, show on scroll-up (mobile-friendly)
   const [ctaHidden, setCtaHidden] = useState(false);
   const lastScrollY = useRef(0);
+  const accumDelta = useRef(0);
   useEffect(() => {
+    const TOP_OFFSET = 96;        // siempre visible cerca del top
+    const HIDE_THRESHOLD = 80;    // bajar 80px seguidos para ocultar
+    const SHOW_THRESHOLD = 24;    // subir 24px para reaparecer
     const handleScroll = () => {
       const y = window.scrollY;
       const delta = y - lastScrollY.current;
-      if (Math.abs(delta) < 6) return;
-      if (y < 80) {
-        setCtaHidden(false);
-      } else if (delta > 0) {
-        setCtaHidden(true);
-      } else {
-        setCtaHidden(false);
-      }
       lastScrollY.current = y;
+
+      if (y < TOP_OFFSET) {
+        accumDelta.current = 0;
+        setCtaHidden(false);
+        return;
+      }
+
+      // reset acumulador si cambia la dirección
+      if ((delta > 0 && accumDelta.current < 0) || (delta < 0 && accumDelta.current > 0)) {
+        accumDelta.current = 0;
+      }
+      accumDelta.current += delta;
+
+      if (accumDelta.current > HIDE_THRESHOLD) {
+        setCtaHidden(true);
+        accumDelta.current = 0;
+      } else if (accumDelta.current < -SHOW_THRESHOLD) {
+        setCtaHidden(false);
+        accumDelta.current = 0;
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
