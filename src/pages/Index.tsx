@@ -115,10 +115,10 @@ const Index = () => {
             <MapPin className="h-3 w-3" /> Málaga
           </p>
           <h1 className="text-[28px] leading-[1.1] font-bold tracking-tight">
-            ¿Qué hacemos<br/>hoy en Málaga?
+            {t('home.heroTitle', '¿Qué hacemos hoy en Málaga?')}
           </h1>
           <p className="text-sm text-white/80 mt-2 max-w-xs">
-            Eventos, planes y experiencias cerca de ti.
+            {t('home.heroSubtitle', 'Eventos, planes y experiencias cerca de ti.')}
           </p>
         </div>
 
