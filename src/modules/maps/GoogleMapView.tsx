@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -39,19 +39,15 @@ export const GoogleMapView = ({ markers, onMarkerSelect }: GoogleMapViewProps) =
     let cancelled = false;
     setStatus('loading');
 
-    const loader = new Loader({
-      apiKey,
-      version: 'weekly',
-      libraries: ['marker'],
-    });
+    try {
+      setOptions({ key: apiKey, v: 'weekly', libraries: ['marker'] });
+    } catch {
+      // setOptions can only be called once; safe to ignore on retry
+    }
 
-    loader
-      .load()
-      .then(async () => {
+    importLibrary('maps')
+      .then(async ({ Map, InfoWindow }) => {
         if (cancelled || !containerRef.current) return;
-        const { Map, InfoWindow } = (await google.maps.importLibrary(
-          'maps'
-        )) as google.maps.MapsLibrary;
         const map = new Map(containerRef.current, {
           center: MALAGA_CENTER,
           zoom: DEFAULT_ZOOM,
