@@ -1687,6 +1687,7 @@ async function syncSingleSource(
     let directHttpStatus: number | undefined;
     
     // STRATEGY 1: Try direct fetcher (HTML/RSS/JSON-LD) first — much faster than Firecrawl
+    let directOkButEmpty = false;
     const direct = await tryDirectFetcher(source.slug, source);
     if (direct) {
       directHttpStatus = direct.http_status;
@@ -1696,11 +1697,16 @@ async function syncSingleSource(
         strategyUsed = direct.strategy;
         scrapeResult = { success: true, data: { events }, attempts: 1, totalTimeMs: 0 };
         logger.setUrlExample('listado', source.chosen_entrypoint || '');
+      } else if (direct.ok) {
+        // Direct fetcher succeeded HTTP-wise but parsed 0 events — don't waste Firecrawl on it
+        directOkButEmpty = true;
+        strategyUsed = direct.strategy;
+        scrapeResult = { success: true, data: { events: [] }, attempts: 1, totalTimeMs: 0 };
       }
     }
-    
-    // STRATEGY 2: Firecrawl + LLM extraction (fallback)
-    if (events.length === 0) {
+
+    // STRATEGY 2: Firecrawl + LLM extraction (fallback) — only if direct fetcher missing or HTTP-failed
+    if (events.length === 0 && !directOkButEmpty) {
       scrapeResult = await scrapeWithConfig(
         urlToScrape,
         extractionPrompt,
@@ -1708,11 +1714,11 @@ async function syncSingleSource(
         config,
         logger
       );
-      
+
       result.attempts = scrapeResult.attempts;
       result.totalTimeMs = scrapeResult.totalTimeMs;
       result.urlExamples = logger.getUrlExamples();
-      
+
       if (scrapeResult.success && scrapeResult.data?.success && scrapeResult.data?.data) {
         if (scrapeResult.data.data.json?.events) {
           events = scrapeResult.data.data.json.events;
