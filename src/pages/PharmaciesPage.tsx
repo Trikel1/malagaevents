@@ -218,7 +218,7 @@ const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => madridNow());
   const [municipality, setMunicipality] = useState<string>(DEFAULT_MUNICIPALITY);
   const [search, setSearch] = useState('');
 
