@@ -99,6 +99,9 @@ const ALLOWED_SCRAPING_DOMAINS = [
   'axarquiacostadelsol.es',
   'serraniaderonda.com',
   'lacocheraentradas.com',
+  // La Garrapata sources
+  'ticketandroll.com',
+  'qconciertos.es',
 ];
 
 function isUrlAllowedForScraping(urlString: string): boolean {
