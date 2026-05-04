@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft,
   Calendar,
@@ -74,6 +75,7 @@ import CategoryChip from '@/components/events/CategoryChip';
 
 // Small inline component to show sports_events count
 const SportsEventCount = () => {
+  const { t } = useTranslation();
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
     supabase.from('sports_events').select('*', { head: true, count: 'exact' })
@@ -81,13 +83,14 @@ const SportsEventCount = () => {
   }, []);
   return (
     <Badge variant="secondary" className="text-xs">
-      {count !== null ? `${count} eventos deportivos` : '…'}
+      {count !== null ? t('admin.sports.eventsCount', { count }) : '…'}
     </Badge>
   );
 };
 
 const AdminPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
@@ -127,10 +130,10 @@ const AdminPage = () => {
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Acceso denegado</h2>
-            <p className="text-muted-foreground mb-6">Debes iniciar sesión para acceder al panel de administración.</p>
+            <h2 className="text-xl font-bold mb-2">{t('admin.accessDenied')}</h2>
+            <p className="text-muted-foreground mb-6">{t('admin.accessDeniedDesc')}</p>
             <Button onClick={() => navigate('/auth')} className="w-full">
-              Iniciar sesión
+              {t('admin.actions.login')}
             </Button>
           </CardContent>
         </Card>
@@ -145,10 +148,10 @@ const AdminPage = () => {
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Sin permisos</h2>
-            <p className="text-muted-foreground mb-6">No tienes permisos de administrador para acceder a esta sección.</p>
+            <h2 className="text-xl font-bold mb-2">{t('admin.noPermissions')}</h2>
+            <p className="text-muted-foreground mb-6">{t('admin.noPermissionsDesc')}</p>
             <Button onClick={() => navigate('/')} className="w-full">
-              Volver al inicio
+              {t('admin.actions.backToHome')}
             </Button>
           </CardContent>
         </Card>
@@ -159,70 +162,70 @@ const AdminPage = () => {
   const handleApprove = async (eventId: string) => {
     try {
       await approveEvent.mutateAsync(eventId);
-      toast({ title: 'Evento aprobado', description: 'El evento ha sido publicado.' });
+      toast({ title: t('admin.toasts.approved'), description: t('admin.toasts.approvedDesc') });
     } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo aprobar el evento.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.errorApprove'), variant: 'destructive' });
     }
   };
 
   const handleReject = async (eventId: string) => {
     try {
       await rejectEvent.mutateAsync(eventId);
-      toast({ title: 'Evento rechazado', description: 'El evento ha sido rechazado.' });
+      toast({ title: t('admin.toasts.rejected'), description: t('admin.toasts.rejectedDesc') });
     } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo rechazar el evento.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.errorReject'), variant: 'destructive' });
     }
   };
 
   const handleDelete = async (eventId: string) => {
     try {
       await deleteEvent.mutateAsync(eventId);
-      toast({ title: 'Evento eliminado', description: 'El evento ha sido eliminado.' });
+      toast({ title: t('admin.toasts.deleted'), description: t('admin.toasts.deletedDesc') });
     } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo eliminar el evento.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.errorDelete'), variant: 'destructive' });
     }
   };
 
   const handleToggleSource = async (id: string, currentState: boolean) => {
     try {
       await toggleSource.mutateAsync({ id, is_active: !currentState });
-      toast({ title: currentState ? 'Fuente desactivada' : 'Fuente activada' });
+      toast({ title: currentState ? t('admin.toasts.sourceDeactivated') : t('admin.toasts.sourceActivated') });
     } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo cambiar el estado.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.errorToggle'), variant: 'destructive' });
     }
   };
 
   const handleAddSource = async () => {
     if (!newSource.name || !newSource.url) {
-      toast({ title: 'Error', description: 'Nombre y URL son requeridos.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.nameUrlRequired'), variant: 'destructive' });
       return;
     }
     try {
       await addSource.mutateAsync(newSource);
-      toast({ title: 'Fuente añadida', description: 'La nueva fuente ha sido añadida.' });
+      toast({ title: t('admin.toasts.sourceAdded'), description: t('admin.toasts.sourceAddedDesc') });
       setNewSource({ name: '', url: '', category: 'other' });
       setAddDialogOpen(false);
     } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo añadir la fuente.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.errorAddSource'), variant: 'destructive' });
     }
   };
 
   const handleDeleteSource = async (id: string) => {
     try {
       await deleteSource.mutateAsync(id);
-      toast({ title: 'Fuente eliminada' });
+      toast({ title: t('admin.toasts.sourceDeleted') });
     } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo eliminar la fuente.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.errorDeleteSource'), variant: 'destructive' });
     }
   };
 
   const handleRunScraping = async () => {
     try {
-      toast({ title: 'Scraping iniciado', description: 'El proceso puede tardar varios minutos.' });
+      toast({ title: t('admin.toasts.scrapingStarted'), description: t('admin.toasts.scrapingStartedDesc') });
       await runScraping.mutateAsync();
-      toast({ title: 'Scraping completado', description: 'Los eventos han sido actualizados.' });
+      toast({ title: t('admin.toasts.scrapingDone'), description: t('admin.toasts.scrapingDoneDesc') });
     } catch (error) {
-      toast({ title: 'Error', description: 'Error durante el scraping.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: t('admin.toasts.scrapingError'), variant: 'destructive' });
     }
   };
 
@@ -252,10 +255,10 @@ const AdminPage = () => {
       if (error) throw error;
       if (data?.recentRuns) setSportsRuns(data.recentRuns);
       setSportsSyncResult(data?.syncResult || data);
-      toast({ title: 'Sync deportes completado', description: data?.ok ? 'Sincronización exitosa.' : 'Revisa los resultados.' });
+      toast({ title: t('admin.toasts.sportsSyncDone'), description: data?.ok ? t('admin.toasts.sportsSyncOk') : t('admin.toasts.sportsSyncReview') });
     } catch (error: any) {
       setSportsSyncResult({ error: error?.message || 'Unknown error' });
-      toast({ title: 'Error', description: error?.message || 'No se pudo ejecutar el sync.', variant: 'destructive' });
+      toast({ title: t('common.error'), description: error?.message || t('admin.toasts.sportsSyncError'), variant: 'destructive' });
     } finally {
       setSportsSyncing(false);
     }
@@ -269,8 +272,8 @@ const AdminPage = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold">Panel de Administración</h1>
-          <p className="text-sm text-muted-foreground">Gestión de eventos y fuentes</p>
+          <h1 className="text-xl font-bold">{t('admin.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('admin.subtitle')}</p>
         </div>
       </header>
 
@@ -281,21 +284,21 @@ const AdminPage = () => {
             <CardContent className="pt-4 text-center">
               <Calendar className="h-6 w-6 mx-auto mb-1 text-primary" />
               <p className="text-2xl font-bold">{stats?.totalEvents || 0}</p>
-              <p className="text-xs text-muted-foreground">Publicados</p>
+              <p className="text-xs text-muted-foreground">{t('admin.stats.published')}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 text-center">
               <Clock className="h-6 w-6 mx-auto mb-1 text-orange-500" />
               <p className="text-2xl font-bold">{stats?.pendingEvents || 0}</p>
-              <p className="text-xs text-muted-foreground">Pendientes</p>
+              <p className="text-xs text-muted-foreground">{t('admin.stats.pending')}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 text-center">
               <Globe className="h-6 w-6 mx-auto mb-1 text-green-500" />
               <p className="text-2xl font-bold">{stats?.activeSources || 0}</p>
-              <p className="text-xs text-muted-foreground">Fuentes</p>
+              <p className="text-xs text-muted-foreground">{t('admin.stats.sources')}</p>
             </CardContent>
           </Card>
         </div>
@@ -303,17 +306,17 @@ const AdminPage = () => {
         <Tabs defaultValue="pending" className="w-full">
           <TabsList className="w-full">
             <TabsTrigger value="pending" className="flex-1">
-              Pendientes
+              {t('admin.tabs.pending')}
               {(pendingEvents?.length || 0) > 0 && (
                 <Badge variant="destructive" className="ml-2">{pendingEvents?.length}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="sources" className="flex-1">Fuentes</TabsTrigger>
+            <TabsTrigger value="sources" className="flex-1">{t('admin.tabs.sources')}</TabsTrigger>
             <TabsTrigger value="deportes" className="flex-1" onClick={fetchSportsRuns}>
               <Dumbbell className="h-4 w-4 mr-1" />
-              Deportes
+              {t('admin.tabs.sports')}
             </TabsTrigger>
-            <TabsTrigger value="all" className="flex-1">Todos</TabsTrigger>
+            <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
 
           {/* Pending Events Tab */}
@@ -347,7 +350,7 @@ const AdminPage = () => {
                         disabled={approveEvent.isPending}
                       >
                         <Check className="h-4 w-4 mr-1" />
-                        Aprobar
+                        {t('admin.actions.approve')}
                       </Button>
                       <Button
                         size="sm"
@@ -356,7 +359,7 @@ const AdminPage = () => {
                         disabled={rejectEvent.isPending}
                       >
                         <X className="h-4 w-4 mr-1" />
-                        Rechazar
+                        {t('admin.actions.reject')}
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -366,15 +369,15 @@ const AdminPage = () => {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>¿Eliminar evento?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('admin.dialogs.deleteEventTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta acción no se puede deshacer.
+                              {t('admin.dialogs.deleteEventDesc')}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction onClick={() => handleDelete(event.id)}>
-                              Eliminar
+                              {t('common.delete')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -387,8 +390,8 @@ const AdminPage = () => {
               <Card className="bg-muted/50 border-dashed">
                 <CardContent className="py-8 text-center">
                   <Check className="h-12 w-12 mx-auto mb-2 text-green-500" />
-                  <p className="font-medium">No hay eventos pendientes</p>
-                  <p className="text-sm text-muted-foreground">Todos los eventos han sido revisados</p>
+                  <p className="font-medium">{t('admin.empty.noPending')}</p>
+                  <p className="text-sm text-muted-foreground">{t('admin.empty.noPendingDesc')}</p>
                 </CardContent>
               </Card>
             )}
@@ -403,26 +406,26 @@ const AdminPage = () => {
                 ) : (
                   <Play className="h-4 w-4 mr-2" />
                 )}
-                Ejecutar scraping
+                {t('admin.actions.runScraping')}
               </Button>
               
               <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline">
                     <Plus className="h-4 w-4 mr-2" />
-                    Añadir fuente
+                    {t('admin.actions.addSource')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Nueva fuente de scraping</DialogTitle>
+                    <DialogTitle>{t('admin.dialogs.newSourceTitle')}</DialogTitle>
                     <DialogDescription>
-                      Añade una nueva web para extraer eventos automáticamente.
+                      {t('admin.dialogs.newSourceDesc')}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Nombre</Label>
+                      <Label>{t('admin.dialogs.name')}</Label>
                       <Input
                         value={newSource.name}
                         onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
@@ -430,7 +433,7 @@ const AdminPage = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>URL</Label>
+                      <Label>{t('admin.dialogs.url')}</Label>
                       <Input
                         value={newSource.url}
                         onChange={(e) => setNewSource({ ...newSource, url: e.target.value })}
@@ -438,7 +441,7 @@ const AdminPage = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Categoría por defecto</Label>
+                      <Label>{t('admin.dialogs.defaultCategory')}</Label>
                       <Select
                         value={newSource.category}
                         onValueChange={(v) => setNewSource({ ...newSource, category: v })}
@@ -456,10 +459,10 @@ const AdminPage = () => {
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-                      Cancelar
+                      {t('common.cancel')}
                     </Button>
                     <Button onClick={handleAddSource} disabled={addSource.isPending}>
-                      Añadir
+                      {t('common.add')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -499,15 +502,15 @@ const AdminPage = () => {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>¿Eliminar fuente?</AlertDialogTitle>
+                            <AlertDialogTitle>{t('admin.dialogs.deleteSourceTitle')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Se eliminará "{source.name}" de las fuentes de scraping.
+                              {t('admin.dialogs.deleteSourceDesc', { name: source.name })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                             <AlertDialogAction onClick={() => handleDeleteSource(source.id)}>
-                              Eliminar
+                              {t('common.delete')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -528,17 +531,17 @@ const AdminPage = () => {
                 ) : (
                   <Play className="h-4 w-4 mr-2" />
                 )}
-                Sync Deportes ahora
+                {t('admin.actions.syncSportsNow')}
               </Button>
               <SportsEventCount />
-              <Badge variant="outline" className="text-xs">Cron: cada hora</Badge>
+              <Badge variant="outline" className="text-xs">{t('admin.sports.cron')}</Badge>
             </div>
 
             {/* Sync Result Summary */}
             {sportsSyncResult && (
               <Card className={sportsSyncResult.error ? 'border-destructive' : 'border-primary'}>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Resultado del último sync</CardTitle>
+                  <CardTitle className="text-sm">{t('admin.sports.lastResult')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {sportsSyncResult.results ? (
