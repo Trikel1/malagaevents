@@ -81,6 +81,24 @@ const ALLOWED_SCRAPING_DOMAINS = [
   'mmalaga.es',
   'lafabricadecerveza.com',
   'barlagarrapata.com',
+  // Phase 3 — Málaga province coverage
+  'fycma.com',
+  'teatroestepona.com',
+  'marenostrumfuengirola.com',
+  'starlitemarbella.com',
+  'mientrada.net',
+  'orquestafilarmonicademalaga.com',
+  'ayuntamientoronda.es',
+  'antequera.es',
+  'benalmadena.es',
+  'mijas.es',
+  'velezmalaga.es',
+  'torremolinoscultura.es',
+  'fuengirola.es',
+  'turismocoin.es',
+  'axarquiacostadelsol.es',
+  'serraniaderonda.com',
+  'lacocheraentradas.com',
 ];
 
 function isUrlAllowedForScraping(urlString: string): boolean {
