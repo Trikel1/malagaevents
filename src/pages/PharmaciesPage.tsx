@@ -408,6 +408,29 @@ const PharmaciesPage = () => {
           </div>
         </div>
 
+        {/* Near me */}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant={userLoc ? 'default' : 'outline'}
+            className="rounded-full h-9 px-4 text-sm"
+            onClick={handleLocate}
+            disabled={locating}
+          >
+            <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} />
+            {locating
+              ? t('pharmacies.locating', 'Localizando…')
+              : userLoc
+              ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
+              : t('pharmacies.nearMe', 'Cerca de mí')}
+          </Button>
+          {userLoc && (
+            <span className="text-[11px] text-muted-foreground">
+              {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
+            </span>
+          )}
+        </div>
+
         {/* On-duty section */}
         <section>
           <div className="flex items-center justify-between mb-2">
