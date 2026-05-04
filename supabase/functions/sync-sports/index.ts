@@ -141,6 +141,33 @@ const SOURCE_PROMPTS: Record<string, string> = {
 const DEFAULT_PROMPT =
   "Extract all upcoming sports events. Include title, date, time, venue, city, teams, competition, sport type, and ticket/registration URL if available.";
 
+/**
+ * Extra URLs per source for exhaustive ingestion (paginations, monthly calendars).
+ * All URLs MUST live under the same registrable domain (validated via isDomainAllowed).
+ */
+const SOURCE_EXTRA_URLS: Record<string, string[]> = {
+  runedia: [
+    "https://runedia.mundodeportivo.com/carreras/malaga/?page=2",
+    "https://runedia.mundodeportivo.com/carreras/malaga/?page=3",
+  ],
+  sportmaniacs: [
+    "https://www.sportmaniacs.com/es/events?province=malaga&page=2",
+    "https://www.sportmaniacs.com/es/events?province=malaga&page=3",
+  ],
+  "imd-malaga": [
+    "https://imd.malaga.eu/es/actividades-deportivas/?page=2",
+  ],
+  "diputacion-deportes": [
+    "https://www.malaga.es/deportes/agenda/",
+  ],
+  "koobin-deportes": [
+    "https://www.koobin.com/deportes/malaga?page=2",
+  ],
+  "fam-atletismo": [
+    "https://www.fam.es/calendario-de-pruebas/?provincia=malaga",
+  ],
+};
+
 // ============================================================================
 // MÁLAGA PROVINCE MUNICIPALITIES (complete whitelist, normalized)
 // ============================================================================
@@ -347,18 +374,77 @@ async function generateDedupeKey(
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function mapSportCategory(sport: string): string {
-  if (!sport) return "otros";
-  const s = sport.toLowerCase();
-  if (/f[uú]tbol\s*sala|futsal/i.test(s)) return "futsal";
-  if (/f[uú]tbol|football|soccer/i.test(s)) return "futbol";
-  if (/baloncesto|basketball|basket/i.test(s)) return "baloncesto";
-  if (/balonmano|handball/i.test(s)) return "balonmano";
-  if (/atletismo|running|marat[oó]n|carrera|cross/i.test(s)) return "atletismo";
-  if (/motor|rally|karting|f1|motogp/i.test(s)) return "motor";
-  if (/tenis|tennis|p[aá]del|padel/i.test(s)) return "tenis";
-  if (/triatl[oó]n|triathlon|ironman/i.test(s)) return "atletismo";
+function mapSportCategory(sport: string, title?: string, competition?: string, venue?: string): string {
+  const blob = `${sport || ""} ${title || ""} ${competition || ""} ${venue || ""}`.toLowerCase();
+  if (!blob.trim()) return "otros";
+  if (/f[uú]tbol\s*sala|futsal/.test(blob)) return "futsal";
+  if (/balonmano|handball/.test(blob)) return "balonmano";
+  if (/baloncesto|basketball|basket|acb|euroleague|eurocup/.test(blob)) return "baloncesto";
+  if (/triatl[oó]n|triathlon|ironman/.test(blob)) return "atletismo";
+  if (/atletismo|running|marat[oó]n|carrera|cross|10k|5k|trail|media\s*marat/.test(blob)) return "atletismo";
+  if (/p[aá]del|tenis|tennis/.test(blob)) return "tenis";
+  if (/motor|rally|karting|f1|motogp|formula/.test(blob)) return "motor";
+  if (/f[uú]tbol|football|soccer|laliga|copa\s*del\s*rey|champions/.test(blob)) return "futbol";
   return "otros";
+}
+
+/** Clean ugly scraped sports titles (mirror of src/lib/sports.ts). */
+const HOME_AWAY_TOKENS = /\s*[\(\[]\s*(home|away|local|visitante|visitor|fuera|casa)\s*[\)\]]/gi;
+const KNOWN_BRANDS = /(M[aá]laga\s*CF|Unicaja|ACB|LaLiga|Liga\s*Endesa|EuroCup|Copa\s*del\s*Rey|Ironman|Zurich)/i;
+const SMALL_WORDS = new Set(["de", "la", "el", "los", "las", "y", "vs", "del", "en", "al", "a"]);
+
+function smartTitleCase(input: string): string {
+  const original = input.split(" ");
+  return input
+    .toLowerCase()
+    .split(" ")
+    .map((w, i) => {
+      if (!w) return w;
+      if (/^[A-Z]{2,4}$/.test(original[i] || "")) return original[i];
+      if (i > 0 && SMALL_WORDS.has(w)) return w;
+      return w[0].toUpperCase() + w.slice(1);
+    })
+    .join(" ");
+}
+
+function cleanSportTitle(raw: string | null | undefined): string {
+  if (!raw) return "";
+  let t = String(raw)
+    .replace(HOME_AWAY_TOKENS, " ")
+    .replace(/\s*\(\s*\)\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const letters = t.replace(/[^A-Za-zÁÉÍÓÚÑ]/g, "");
+  const upperRatio = letters
+    ? letters.replace(/[^A-ZÁÉÍÓÚÑ]/g, "").length / letters.length
+    : 0;
+  if (t.length > 12 && upperRatio > 0.85 && !KNOWN_BRANDS.test(t)) {
+    t = smartTitleCase(t);
+  }
+  return t;
+}
+
+/** Infer the canonical Málaga-province municipality from address/venue/city. */
+function inferMunicipality(
+  city: string,
+  venue: string,
+  address: string,
+): string | null {
+  const haystacks = [address, venue, city].map((s) => normalizeText(s || ""));
+  for (const text of haystacks) {
+    if (!text) continue;
+    for (const muni of MALAGA_PROVINCE_MUNICIPALITIES) {
+      // Prefer multi-word municipality matches first (more specific)
+      if (muni.length > 4 && text.includes(muni)) {
+        // Title-case canonical name
+        return muni
+          .split(" ")
+          .map((w) => w[0].toUpperCase() + w.slice(1))
+          .join(" ");
+      }
+    }
+  }
+  return null;
 }
 
 function sanitizeText(text: string | null | undefined): string {
@@ -754,43 +840,70 @@ Deno.serve(async (req) => {
     const runId = runData?.id;
     const prompt = getSourcePrompt(source.slug);
 
-    console.log(`[sync-sports] Scraping ${source.slug}: ${source.url}`);
+    // Build URL list: primary + extras (paginations / monthly calendars).
+    const extraUrls = (SOURCE_EXTRA_URLS[source.slug] || []).filter(isDomainAllowed);
+    const urlsToScrape = [source.url, ...extraUrls];
+    console.log(`[sync-sports] Scraping ${source.slug}: ${urlsToScrape.length} URL(s)`);
 
-    // Primary: Jina Reader + AI extraction
     let rawEvents: any[] = [];
     let scrapeError: string | undefined;
+    const seenEventKeys = new Set<string>();
 
-    if (lovableApiKey) {
-      console.log(`[sync-sports] Trying Jina+AI pipeline for ${source.slug}`);
-      const jinaResult = await scrapeWithJinaAndAI(source.url, prompt, lovableApiKey);
-      if (jinaResult.success && jinaResult.events?.length) {
-        rawEvents = jinaResult.events;
-        console.log(`[sync-sports] Jina+AI success for ${source.slug}: ${rawEvents.length} events`);
-      } else {
-        console.warn(`[sync-sports] Jina+AI failed for ${source.slug}: ${jinaResult.error}`);
-        scrapeError = jinaResult.error;
-      }
-    }
+    for (let urlIdx = 0; urlIdx < urlsToScrape.length; urlIdx++) {
+      const url = urlsToScrape[urlIdx];
+      let urlEvents: any[] = [];
+      let urlError: string | undefined;
 
-    // Fallback: Firecrawl (if Jina+AI failed or returned no events)
-    if (rawEvents.length === 0 && firecrawlApiKey) {
-      console.log(`[sync-sports] Falling back to Firecrawl for ${source.slug}`);
-      const fcResult = await scrapeSourceFirecrawl(source.url, prompt, firecrawlApiKey);
-      if (fcResult.success) {
-        rawEvents =
-          fcResult.data?.data?.json?.events ||
-          fcResult.data?.data?.events ||
-          fcResult.data?.json?.events ||
-          [];
-        if (rawEvents.length > 0) {
-          scrapeError = undefined;
-          console.log(`[sync-sports] Firecrawl success for ${source.slug}: ${rawEvents.length} events`);
+      // Primary: Jina Reader + AI extraction
+      if (lovableApiKey) {
+        const jinaResult = await scrapeWithJinaAndAI(url, prompt, lovableApiKey);
+        if (jinaResult.success && jinaResult.events?.length) {
+          urlEvents = jinaResult.events;
+        } else {
+          urlError = jinaResult.error;
         }
-      } else {
-        console.warn(`[sync-sports] Firecrawl also failed for ${source.slug}: ${fcResult.error}`);
-        scrapeError = `Jina: ${scrapeError || "skipped"} | Firecrawl: ${fcResult.error}`;
+      }
+
+      // Fallback: Firecrawl
+      if (urlEvents.length === 0 && firecrawlApiKey) {
+        const fcResult = await scrapeSourceFirecrawl(url, prompt, firecrawlApiKey);
+        if (fcResult.success) {
+          urlEvents =
+            fcResult.data?.data?.json?.events ||
+            fcResult.data?.data?.events ||
+            fcResult.data?.json?.events ||
+            [];
+          if (urlEvents.length === 0 && !urlError) urlError = "Firecrawl returned no events";
+        } else {
+          urlError = `Jina: ${urlError || "skipped"} | Firecrawl: ${fcResult.error}`;
+        }
+      }
+
+      // Cheap dedupe across URLs of same source: title+date
+      let kept = 0;
+      for (const evt of urlEvents) {
+        const key = `${(evt.title || "").toLowerCase().trim()}|${(evt.date || "").trim()}`;
+        if (!key || seenEventKeys.has(key)) continue;
+        seenEventKeys.add(key);
+        rawEvents.push(evt);
+        kept++;
+      }
+      console.log(
+        `[sync-sports] ${source.slug} url=${url} fetched=${urlEvents.length} kept=${kept}${urlError ? ` err="${urlError.substring(0, 80)}"` : ""}`,
+      );
+
+      if (urlError && urlIdx === 0 && urlEvents.length === 0) {
+        scrapeError = urlError;
+      }
+
+      // Polite delay between URLs of the same source
+      if (urlIdx < urlsToScrape.length - 1) {
+        await new Promise((r) => setTimeout(r, 1500));
       }
     }
+
+    // Clear scrapeError if we got events from any URL
+    if (rawEvents.length > 0) scrapeError = undefined;
 
     // Both failed
     if (rawEvents.length === 0 && scrapeError) {
@@ -836,7 +949,9 @@ Deno.serve(async (req) => {
 
     for (const evt of rawEvents) {
       try {
-        const title = sanitizeText(evt.title);
+        const rawTitle = sanitizeText(evt.title);
+        if (!rawTitle || rawTitle.length < 3) continue;
+        const title = cleanSportTitle(rawTitle);
         if (!title || title.length < 3) continue;
 
         const startDatetime = parseEventDate(evt.date, evt.time);
@@ -845,22 +960,28 @@ Deno.serve(async (req) => {
         const normalizedTitle = normalizeText(title);
         const venue = sanitizeText(evt.venue) || source.name;
         const normalizedVenue = normalizeText(venue);
-        const city = sanitizeText(evt.city) || "Málaga";
+        const rawCity = sanitizeText(evt.city) || "Málaga";
         const address = sanitizeText(evt.address || "");
-        const sportCategory = mapSportCategory(evt.sport || source.sport_category);
+        const inferred = inferMunicipality(rawCity, venue, address);
+        const city = inferred || rawCity;
+        const competition = sanitizeText(evt.competition) || null;
+        const sportCategory = mapSportCategory(
+          evt.sport || source.sport_category,
+          title,
+          competition || "",
+          venue,
+        );
         const stableRef = evt.tickets_url || evt.title || "";
 
-        // Málaga province filter
         const inMalaga = isInMalagaProvince(city, venue, address, source.slug);
         if (!inMalaga) {
           skippedProvince++;
-          console.log(`[sync-sports] Skipped (not Málaga): "${title}" venue="${venue}" city="${city}"`);
           continue;
         }
 
         const dedupeKey = await generateDedupeKey(
           normalizedTitle, normalizedVenue, startDatetime,
-          sportCategory, domain, stableRef
+          sportCategory, domain, stableRef,
         );
 
         const startDate = toMadridDate(startDatetime);
@@ -870,13 +991,14 @@ Deno.serve(async (req) => {
           title,
           normalized_title: normalizedTitle,
           sport_category: sportCategory,
-          competition: sanitizeText(evt.competition) || null,
+          competition,
           teams: sanitizeText(evt.teams) || null,
           start_datetime: startDatetime,
           start_date: startDate,
           venue_name: venue,
           normalized_venue: normalizedVenue,
           city,
+          address: address || null,
           tickets_url: sanitizeUrl(evt.tickets_url) || null,
           image_url: sanitizeUrl(evt.image_url) || null,
           price_info: sanitizeText(evt.price_info) || null,
@@ -1000,7 +1122,7 @@ Deno.serve(async (req) => {
             const venue = sanitizeText(evt.venue) || "Málaga";
             const normalizedVenue = normalizeText(venue);
             const city = sanitizeText(evt.city) || "Málaga";
-            const sportCategory = mapSportCategory(evt.sport || "otros");
+            const sportCategory = mapSportCategory(evt.sport || "otros", title, evt.competition || "", venue);
 
             // Province filter
             if (!isInMalagaProvince(city, venue, "", "search-discovery")) {

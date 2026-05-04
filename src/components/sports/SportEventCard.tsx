@@ -1,32 +1,52 @@
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Clock, ExternalLink } from 'lucide-react';
+import { MapPin, Clock, ExternalLink, Navigation, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { SportEvent, SportCategory } from '@/types/sports';
-import SportIcon, { getSportIcon } from '@/components/sports/SportIcon';
+import SportIcon, { getSportIcon, getSportRing } from '@/components/sports/SportIcon';
+import {
+  cleanSportTitle,
+  isRegistrationUrl,
+  isFreeEvent,
+  buildDirectionsUrl,
+} from '@/lib/sports';
+import { cn } from '@/lib/utils';
 
 const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
 };
 
 interface SportEventCardProps {
-  event: SportEvent;
+  event: SportEvent & { price_info?: string | null; address?: string | null; source_url?: string | null };
 }
 
 const SportEventCard = ({ event }: SportEventCardProps) => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
-  const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale });
+  const formattedDate = format(new Date(event.start_at), 'EEE d MMM · HH:mm', { locale });
   const sportCat = event.sport as SportCategory;
   const label = t(`sports.${sportCat}`, event.sport);
   const SportLucide = getSportIcon(event.sport);
+  const ringCls = getSportRing(event.sport);
+
+  const cleanTitle = cleanSportTitle(event.teams || event.title);
+  const isFree = isFreeEvent(event.price_info);
+  const isRegister = isRegistrationUrl(event.ticketsUrl);
+  const directions = buildDirectionsUrl(event.venue, event.city, event.address ?? null);
+
+  const ctaLabel = event.ticketsUrl
+    ? isRegister
+      ? t('sports.cta.register', 'Inscribirme')
+      : t('sports.cta.tickets', 'Entradas')
+    : t('sports.cta.view', 'Ver actividad');
+  const ctaUrl = event.ticketsUrl || event.source_url || null;
 
   return (
     <Card className="overflow-hidden border-border/60 hover:border-primary/30 transition-colors">
-      {/* Visual header — gradient + sport icon (no images required) */}
+      {/* Visual header — gradient + premium sport icon */}
       <div className="relative h-20 bg-gradient-to-br from-primary/15 via-primary/8 to-secondary/10 flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.08] pointer-events-none"
@@ -37,7 +57,14 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
           }}
           aria-hidden="true"
         />
-        <SportLucide className="h-9 w-9 text-primary/80" aria-hidden="true" />
+        <span
+          className={cn(
+            'inline-flex items-center justify-center h-12 w-12 rounded-full bg-background/80 backdrop-blur-sm ring-2',
+            ringCls,
+          )}
+        >
+          <SportLucide className="h-6 w-6 text-primary" aria-hidden="true" />
+        </span>
       </div>
 
       <CardContent className="p-3 space-y-2">
@@ -52,14 +79,16 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
               {event.competition}
             </Badge>
           )}
+          {isFree && (
+            <Badge className="text-[10px] px-1.5 py-0 gap-1 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20">
+              <Tag className="h-2.5 w-2.5" />
+              {t('sports.filter.free', 'Gratis')}
+            </Badge>
+          )}
         </div>
 
-        {/* Title / Teams */}
-        <h3 className="text-sm font-semibold line-clamp-2 leading-snug">
-          {event.teams || event.title}
-        </h3>
+        <h3 className="text-sm font-semibold line-clamp-2 leading-snug">{cleanTitle}</h3>
 
-        {/* Date + Venue compact */}
         <div className="text-xs text-muted-foreground space-y-1">
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3 flex-shrink-0" />
@@ -67,25 +96,39 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
           </div>
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3 flex-shrink-0" />
-            <span className="break-words" style={{ overflowWrap: 'anywhere' }}>{event.venue} · {event.city}</span>
+            <span className="break-words" style={{ overflowWrap: 'anywhere' }}>
+              {event.venue} · {event.city}
+            </span>
           </div>
         </div>
 
-        {/* CTA */}
-        {event.ticketsUrl && (
-          <Button
-            size="sm"
-            className="w-full h-7 text-xs"
-            onClick={() => window.open(event.ticketsUrl, '_blank')}
-          >
-            <ExternalLink className="h-3 w-3 mr-1" />
-            {t('sports.tickets')}
-          </Button>
-        )}
+        {/* CTAs */}
+        <div className="flex gap-1.5 pt-1">
+          {ctaUrl && (
+            <Button
+              size="sm"
+              className="flex-1 h-7 text-xs"
+              onClick={() => window.open(ctaUrl, '_blank', 'noopener,noreferrer')}
+            >
+              <ExternalLink className="h-3 w-3 mr-1" />
+              {ctaLabel}
+            </Button>
+          )}
+          {directions && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs px-2"
+              aria-label={t('sports.cta.directions', 'Cómo llegar')}
+              onClick={() => window.open(directions, '_blank', 'noopener,noreferrer')}
+            >
+              <Navigation className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
 };
 
 export default SportEventCard;
-

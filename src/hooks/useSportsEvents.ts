@@ -43,8 +43,11 @@ interface DbSportsEvent {
   start_date: string;
   venue_name: string;
   city: string;
+  address: string | null;
   tickets_url: string | null;
   image_url: string | null;
+  price_info: string | null;
+  source_url: string | null;
 }
 
 function mapToSportEvent(row: DbSportsEvent): SportEvent {
@@ -57,8 +60,11 @@ function mapToSportEvent(row: DbSportsEvent): SportEvent {
     start_at: row.start_datetime,
     venue: row.venue_name,
     city: row.city,
+    address: row.address ?? undefined,
     ticketsUrl: row.tickets_url ?? undefined,
     imageUrl: row.image_url ?? undefined,
+    price_info: row.price_info,
+    source_url: row.source_url,
   };
 }
 
@@ -74,7 +80,7 @@ export interface SportsEventsFilters {
 async function fetchSportsEvents(filters: SportsEventsFilters): Promise<SportEvent[]> {
   let query = supabase
     .from('sports_events')
-    .select('id, title, sport_category, teams, competition, start_datetime, start_date, venue_name, city, tickets_url, image_url')
+    .select('id, title, sport_category, teams, competition, start_datetime, start_date, venue_name, city, address, tickets_url, image_url, price_info, source_url')
     .eq('status', 'scheduled')
     .eq('is_in_malaga_province', true)
     .order('start_datetime', { ascending: true });

@@ -7,8 +7,11 @@ export interface SportEvent {
   start_at: string;
   venue: string;
   city: string;
+  address?: string;
   ticketsUrl?: string;
   imageUrl?: string;
+  price_info?: string | null;
+  source_url?: string | null;
 }
 
 export const SPORT_CATEGORIES = [
@@ -17,17 +20,6 @@ export const SPORT_CATEGORIES = [
 ] as const;
 
 export type SportCategory = typeof SPORT_CATEGORIES[number];
-
-export const SPORT_ICONS: Record<SportCategory, string> = {
-  futbol: '⚽',
-  baloncesto: '🏀',
-  futsal: '⚽',
-  balonmano: '🤾',
-  atletismo: '🏃',
-  motor: '🏎️',
-  tenis: '🎾',
-  otros: '🏅',
-};
 
 export const SPORT_LABELS: Record<SportCategory, string> = {
   futbol: 'Fútbol',
@@ -39,4 +31,3 @@ export const SPORT_LABELS: Record<SportCategory, string> = {
   tenis: 'Tenis',
   otros: 'Otros',
 };
-
