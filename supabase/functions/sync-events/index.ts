@@ -735,6 +735,81 @@ function extractJsonLdEvents(html: string, baseUrl: string): NormalizedEvent[] {
   return out;
 }
 
+const SPANISH_MONTHS_SHORT: Record<string, number> = {
+  ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6,
+  jul: 7, ago: 8, sep: 9, oct: 10, nov: 11, dic: 12,
+};
+const SPANISH_MONTHS_LONG: Record<string, number> = {
+  enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,
+  julio: 7, agosto: 8, septiembre: 9, octubre: 10, noviembre: 11, diciembre: 12,
+};
+
+/** Paris 15: parse qodef-event-content cards */
+async function fetchParis15Cards(): Promise<DirectFetchResult> {
+  try {
+    const r = await fetchWithTimeout('https://paris15.es/eventos/', 20000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'paris15-cards', error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events: NormalizedEvent[] = [];
+    const cardRe = /<div class="qodef-event-content qodef-events\d+"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
+    let m: RegExpExecArray | null;
+    while ((m = cardRe.exec(html)) !== null) {
+      const card = m[1];
+      const day = card.match(/qodef-event-day-number-holder">\s*(\d{1,2})/)?.[1];
+      const monthStr = card.match(/qodef-event-day-holder">\s*(\w+)/)?.[1]?.toLowerCase().substring(0, 3);
+      const titleHref = card.match(/<a href="([^"]+)"[^>]*>\s*([^<]+?)\s*<\/a>/);
+      const ticketHref = card.match(/qodef-event-buy-tickets-button"[^>]*?href="([^"]+)"|<a href="([^"]+)"[^>]*class="qodef-event-buy-tickets-button/);
+      const ticketUrl = ticketHref?.[1] || ticketHref?.[2];
+      if (!day || !monthStr || !titleHref) continue;
+      const month = SPANISH_MONTHS_SHORT[monthStr];
+      if (!month) continue;
+      const dd = day.padStart(2, '0');
+      const mm = String(month).padStart(2, '0');
+      events.push({
+        title: cleanTitle(titleHref[2]),
+        occurrences: [{ date: `${dd}/${mm}`, time: '21:00' }],
+        venue: 'París 15',
+        city: 'Málaga',
+        ticket_url: ticketUrl || titleHref[1],
+      });
+    }
+    return { ok: true, http_status: 200, events, strategy: 'paris15-cards' };
+  } catch (e) {
+    return { ok: false, events: [], strategy: 'paris15-cards', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** La Cochera Cabaret: parse event_brick cards */
+async function fetchCocheraCards(): Promise<DirectFetchResult> {
+  try {
+    const r = await fetchWithTimeout('https://lacocheracabaret.com/programacion/', 20000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'cochera-cards', error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events: NormalizedEvent[] = [];
+    // pattern: event_brick_date "DD mes YYYY" + post_item_title <a href>title</a>
+    const cardRe = /event_brick_date">\s*[^,]*,?\s*(\d{1,2})\s+(\w+)\s+(\d{4})\s*<\/div>\s*<div class="post_item_title">\s*<a href="([^"]+)">\s*([^<]+?)\s*<\/a>/g;
+    let m: RegExpExecArray | null;
+    while ((m = cardRe.exec(html)) !== null) {
+      const day = m[1].padStart(2, '0');
+      const monthName = m[2].toLowerCase();
+      const month = SPANISH_MONTHS_LONG[monthName] || SPANISH_MONTHS_SHORT[monthName.substring(0, 3)];
+      if (!month) continue;
+      const mm = String(month).padStart(2, '0');
+      const year = m[3];
+      events.push({
+        title: cleanTitle(m[5]),
+        occurrences: [{ date: `${day}/${mm}/${year}`, time: '21:00' }],
+        venue: 'La Cochera Cabaret',
+        city: 'Málaga',
+        ticket_url: m[4],
+      });
+    }
+    return { ok: true, http_status: 200, events, strategy: 'cochera-cards' };
+  } catch (e) {
+    return { ok: false, events: [], strategy: 'cochera-cards', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 /** Sala Trinchera: RSS with `<title>DD/MM Título</title>` */
 async function fetchTrincheraRSS(): Promise<DirectFetchResult> {
   const url = 'https://salatrinchera.com/category/proximos-eventos/feed/';
