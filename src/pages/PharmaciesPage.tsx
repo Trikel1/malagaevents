@@ -293,7 +293,7 @@ const PharmaciesPage = () => {
             <Button
               variant="outline"
               className="rounded-xl h-11 bg-card"
-              onClick={() => setSelectedDate(new Date())}
+              onClick={() => setSelectedDate(madridNow())}
             >
               {t('pharmacies.today', 'Hoy')}
             </Button>
