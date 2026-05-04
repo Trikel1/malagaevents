@@ -1211,6 +1211,8 @@ async function fetchCocheraEntradas(): Promise<DirectFetchResult> {
 
 async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchResult | null> {
   switch (slug) {
+    case 'la-garrapata':
+      return fetchLaGarrapata();
     case 'sala-trinchera':
       return fetchTrincheraRSS();
     case 'paris-15':
