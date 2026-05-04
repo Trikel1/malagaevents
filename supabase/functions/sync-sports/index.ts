@@ -1122,7 +1122,7 @@ Deno.serve(async (req) => {
             const venue = sanitizeText(evt.venue) || "Málaga";
             const normalizedVenue = normalizeText(venue);
             const city = sanitizeText(evt.city) || "Málaga";
-            const sportCategory = mapSportCategory(evt.sport || "otros");
+            const sportCategory = mapSportCategory(evt.sport || "otros", title, evt.competition || "", venue);
 
             // Province filter
             if (!isInMalagaProvince(city, venue, "", "search-discovery")) {
