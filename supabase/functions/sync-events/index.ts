@@ -891,6 +891,315 @@ async function fetchGenericHTML(url: string, defaultVenue: string, strategyTag: 
   }
 }
 
+
+// ---------------------------------------------------------------------------
+// Phase 3 parsers — Málaga province deep coverage
+// ---------------------------------------------------------------------------
+
+function stripTags(s: string): string {
+  return decodeHtmlEntities(s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ')).trim();
+}
+
+/** The Events Calendar (Tribe) — JSON REST first, HTML fallback */
+async function fetchTheEventsCalendar(baseUrl: string, defaultVenue: string, slug: string): Promise<DirectFetchResult> {
+  const origin = new URL(baseUrl).origin;
+  const today = new Date().toISOString().split('T')[0];
+  const restUrl = `${origin}/wp-json/tribe/events/v1/events?per_page=50&start_date=${today}`;
+  try {
+    const r = await fetchWithTimeout(restUrl, 15000, { headers: { Accept: 'application/json' } });
+    if (r.ok) {
+      const json = await r.json();
+      const events: NormalizedEvent[] = (json.events || []).map((e: any) => {
+        const start = e.start_date || e.utc_start_date;
+        const date = start ? String(start).split(' ')[0].split('T')[0] : '';
+        const time = start ? (String(start).split(/[ T]/)[1] || '').substring(0, 5) : undefined;
+        const img = e.image?.url || e.image?.sizes?.full?.url || e.image?.sizes?.large?.url;
+        return {
+          title: cleanTitle(e.title || ''),
+          description: e.excerpt ? stripTags(e.excerpt).substring(0, 400) : (e.description ? stripTags(e.description).substring(0, 400) : undefined),
+          occurrences: date ? [{ date, time }] : [],
+          venue: e.venue?.venue || defaultVenue,
+          city: e.venue?.city || undefined,
+          image_url: img,
+          ticket_url: e.website || e.url,
+          price: e.cost || undefined,
+        };
+      }).filter((e: NormalizedEvent) => e.title && e.occurrences.length > 0);
+      return { ok: true, http_status: 200, events, strategy: `${slug}-tribe-rest` };
+    }
+    // HTML fallback
+    const r2 = await fetchWithTimeout(baseUrl, 15000);
+    if (!r2.ok) return { ok: false, http_status: r2.status, events: [], strategy: `${slug}-tribe-html`, error: `HTTP ${r2.status}` };
+    const html = await r2.text();
+    let events = extractJsonLdEvents(html, baseUrl);
+    for (const e of events) if (!e.venue) e.venue = defaultVenue;
+    return { ok: true, http_status: r2.status, events, strategy: `${slug}-tribe-html` };
+  } catch (e) {
+    return { ok: false, events: [], strategy: `${slug}-tribe`, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** WordPress posts list (paged) — for listings without Tribe REST */
+async function fetchWpPostsList(baseUrl: string, defaultVenue: string, slug: string, maxPages = 3): Promise<DirectFetchResult> {
+  const events: NormalizedEvent[] = [];
+  let pages = 0;
+  let http = 0;
+  try {
+    for (let p = 1; p <= maxPages; p++) {
+      const u = p === 1 ? baseUrl : `${baseUrl.replace(/\/$/, '')}/page/${p}/`;
+      const r = await fetchWithTimeout(u, 12000);
+      http = r.status;
+      if (!r.ok) break;
+      pages++;
+      const html = await r.text();
+      // Per-page JSON-LD first
+      const jl = extractJsonLdEvents(html, u);
+      for (const e of jl) { if (!e.venue) e.venue = defaultVenue; events.push(e); }
+      // Heuristic title links
+      if (jl.length === 0) {
+        const linkRe = /<h[23][^>]*class="[^"]*entry-title[^"]*"[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+        let m: RegExpExecArray | null;
+        while ((m = linkRe.exec(html)) !== null) {
+          const title = cleanTitle(stripTags(m[2]));
+          if (!title || !isValidEventTitle(title)) continue;
+          // Try to grab a date near the entry
+          events.push({ title, occurrences: [], venue: defaultVenue, ticket_url: m[1] });
+        }
+      }
+      if (!/page\/\d+|paginat|next|siguient/i.test(html)) break;
+    }
+    return { ok: true, http_status: http || 200, events, strategy: `${slug}-wp-posts` };
+  } catch (e) {
+    return { ok: events.length > 0, http_status: http, events, strategy: `${slug}-wp-posts`, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** Cervantes deep crawl — hub + section subpages */
+async function fetchCervantesDeep(): Promise<DirectFetchResult> {
+  const hub = 'https://www.teatrocervantes.com/es/programacion/';
+  const events: NormalizedEvent[] = [];
+  let pages = 0;
+  try {
+    const r = await fetchWithTimeout(hub, 15000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'cervantes-deep', error: `HTTP ${r.status}` };
+    pages++;
+    const html = await r.text();
+    events.push(...extractJsonLdEvents(html, hub));
+    // Discover subpages under /es/programacion/<slug>/ and /es/espectaculo/<slug>/
+    const linkSet = new Set<string>();
+    const linkRe = /href="(https?:\/\/www\.teatrocervantes\.com\/es\/(?:programacion|espectaculo|temporada)[^"]+)"/g;
+    let m: RegExpExecArray | null;
+    while ((m = linkRe.exec(html)) !== null) linkSet.add(m[1]);
+    const subs = Array.from(linkSet).slice(0, 25);
+    for (const sub of subs) {
+      try {
+        const rs = await fetchWithTimeout(sub, 10000);
+        if (!rs.ok) continue;
+        pages++;
+        const sh = await rs.text();
+        const jl = extractJsonLdEvents(sh, sub);
+        for (const e of jl) { if (!e.venue) e.venue = 'Teatro Cervantes'; events.push(e); }
+      } catch { /* per-detail isolation */ }
+    }
+    return { ok: true, http_status: 200, events, strategy: 'cervantes-deep' };
+  } catch (e) {
+    return { ok: events.length > 0, events, strategy: 'cervantes-deep', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** mientrada.net — listing of evento cards */
+async function fetchMientrada(categoryUrl: string, defaultVenue: string, slug: string): Promise<DirectFetchResult> {
+  try {
+    const r = await fetchWithTimeout(categoryUrl, 15000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: `${slug}-mientrada`, error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events: NormalizedEvent[] = [];
+    // pattern: card with title link + date
+    const cardRe = /<div class="[^"]*evento[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/g;
+    let m: RegExpExecArray | null;
+    while ((m = cardRe.exec(html)) !== null) {
+      const block = m[1];
+      const title = cleanTitle(stripTags(block.match(/<h[2-4][^>]*>([\s\S]*?)<\/h[2-4]>/)?.[1] || ''));
+      if (!title || !isValidEventTitle(title)) continue;
+      const link = block.match(/href="(https?:\/\/[^"]+)"/)?.[1];
+      const dateText = stripTags(block.match(/(\d{1,2}\s+(?:de\s+)?\w+(?:\s+\d{4})?)/i)?.[1] || '');
+      const time = block.match(/(\d{1,2})[:\.](\d{2})/)?.[0];
+      const price = block.match(/(\d+(?:[.,]\d{2})?\s*€)/)?.[1];
+      const img = block.match(/<img[^>]+src="([^"]+)"/)?.[1];
+      events.push({
+        title,
+        occurrences: dateText ? [{ date: dateText, time }] : [],
+        venue: defaultVenue,
+        ticket_url: link,
+        price,
+        image_url: img ? normalizeImageUrl(img, categoryUrl) : undefined,
+      });
+    }
+    // JSON-LD complement
+    const jl = extractJsonLdEvents(html, categoryUrl);
+    for (const e of jl) { if (!e.venue) e.venue = defaultVenue; events.push(e); }
+    return { ok: true, http_status: 200, events, strategy: `${slug}-mientrada` };
+  } catch (e) {
+    return { ok: false, events: [], strategy: `${slug}-mientrada`, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** entradas.fuengirola.es — public listing */
+async function fetchFuengirolaEntradas(): Promise<DirectFetchResult> {
+  const url = 'https://entradas.fuengirola.es/list/events?lang=es';
+  try {
+    const r = await fetchWithTimeout(url, 15000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'fuengirola-list', error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events: NormalizedEvent[] = [];
+    // pattern: each event row links to /event/<id>
+    const itemRe = /<a[^>]+href="(\/event\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/g;
+    let m: RegExpExecArray | null;
+    const seen = new Set<string>();
+    while ((m = itemRe.exec(html)) !== null) {
+      const href = m[1];
+      if (seen.has(href)) continue;
+      seen.add(href);
+      const inner = stripTags(m[2]);
+      const title = cleanTitle(inner.replace(/^\s*\d{1,2}[\/\-\.]\d{1,2}(?:[\/\-\.]\d{2,4})?\s*/, '').substring(0, 200));
+      if (!title || !isValidEventTitle(title)) continue;
+      const dateMatch = inner.match(/(\d{1,2}[\/\-\.]\d{1,2}(?:[\/\-\.]\d{2,4})?)/);
+      const time = inner.match(/(\d{1,2}[:\.]\d{2})/)?.[1];
+      events.push({
+        title,
+        occurrences: dateMatch ? [{ date: dateMatch[1], time }] : [],
+        venue: 'Fuengirola',
+        city: 'Fuengirola',
+        ticket_url: 'https://entradas.fuengirola.es' + href,
+      });
+    }
+    // JSON-LD complement
+    events.push(...extractJsonLdEvents(html, url));
+    return { ok: true, http_status: 200, events, strategy: 'fuengirola-list' };
+  } catch (e) {
+    return { ok: false, events: [], strategy: 'fuengirola-list', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** Starlite Marbella ticketing — best-effort HTML */
+async function fetchStarliteList(): Promise<DirectFetchResult> {
+  try {
+    const r = await fetchWithTimeout('https://entradas.starlitemarbella.com/', 15000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'starlite-html', error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events = extractJsonLdEvents(html, 'https://entradas.starlitemarbella.com/');
+    for (const e of events) { if (!e.venue) e.venue = 'Starlite Marbella'; if (!e.city) e.city = 'Marbella'; }
+    // Try Next.js __NEXT_DATA__
+    if (events.length === 0) {
+      const nd = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+      if (nd) {
+        try {
+          const data = JSON.parse(nd[1]);
+          const stack: any[] = [data];
+          while (stack.length) {
+            const n = stack.pop();
+            if (!n || typeof n !== 'object') continue;
+            if (Array.isArray(n)) { stack.push(...n); continue; }
+            if (typeof n.title === 'string' && (typeof n.startDate === 'string' || typeof n.date === 'string')) {
+              const start = n.startDate || n.date;
+              const date = String(start).split('T')[0].split(' ')[0];
+              const time = String(start).match(/T?(\d{2}:\d{2})/)?.[1];
+              events.push({
+                title: cleanTitle(n.title),
+                occurrences: [{ date, time }],
+                venue: 'Starlite Marbella',
+                city: 'Marbella',
+                ticket_url: n.url || n.permalink,
+              });
+            }
+            for (const v of Object.values(n)) if (v && typeof v === 'object') stack.push(v);
+          }
+        } catch { /* json parse */ }
+      }
+    }
+    return { ok: true, http_status: 200, events, strategy: 'starlite-html' };
+  } catch (e) {
+    return { ok: false, events: [], strategy: 'starlite-html', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** Filarmónica de Málaga — home + JSON-LD */
+async function fetchFilarmonica(): Promise<DirectFetchResult> {
+  return fetchGenericHTML('https://orquestafilarmonicademalaga.com/', 'Orquesta Filarmónica de Málaga', 'filarmonica-html-jsonld');
+}
+
+/** Generic municipal/regional agenda — JSON-LD + heuristic cards */
+async function fetchMunicipalAgenda(url: string, municipality: string, defaultVenue: string | undefined, slug: string): Promise<DirectFetchResult> {
+  try {
+    const r = await fetchWithTimeout(url, 15000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: `${slug}-agenda`, error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events: NormalizedEvent[] = [];
+    // JSON-LD
+    events.push(...extractJsonLdEvents(html, url));
+    // Heuristic article cards with date + title
+    const artRe = /<(?:article|li|div)[^>]*class="[^"]*(?:event|evento|agenda|card|post)[^"]*"[^>]*>([\s\S]*?)<\/(?:article|li|div)>/gi;
+    let m: RegExpExecArray | null;
+    let count = 0;
+    while ((m = artRe.exec(html)) !== null && count < 80) {
+      count++;
+      const block = m[1];
+      const title = cleanTitle(stripTags(block.match(/<h[2-4][^>]*>([\s\S]*?)<\/h[2-4]>/)?.[1] || block.match(/<a[^>]+>([\s\S]*?)<\/a>/)?.[1] || ''));
+      if (!title || !isValidEventTitle(title)) continue;
+      const link = block.match(/href="(https?:\/\/[^"]+)"/)?.[1];
+      const dateText = stripTags(block.match(/(\d{1,2}\s+(?:de\s+)?(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+\d{4})?)/i)?.[1] || block.match(/(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)/)?.[1] || '');
+      const time = block.match(/(\d{1,2}[:\.]\d{2}\s*h?)/)?.[1];
+      events.push({
+        title,
+        occurrences: dateText ? [{ date: dateText, time }] : [],
+        venue: defaultVenue,
+        city: municipality,
+        ticket_url: link,
+      });
+    }
+    return { ok: true, http_status: 200, events, strategy: `${slug}-agenda` };
+  } catch (e) {
+    return { ok: false, events: [], strategy: `${slug}-agenda`, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** lacocheraentradas.com — homepage cards */
+async function fetchCocheraEntradas(): Promise<DirectFetchResult> {
+  try {
+    const r = await fetchWithTimeout('https://lacocheraentradas.com/', 15000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'cochera-entradas', error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events: NormalizedEvent[] = [];
+    events.push(...extractJsonLdEvents(html, 'https://lacocheraentradas.com/'));
+    // Cards heuristic similar to other ticketing sites
+    const blockRe = /<div[^>]*class="[^"]*(?:event|evento|item|card)[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
+    let m: RegExpExecArray | null;
+    let n = 0;
+    while ((m = blockRe.exec(html)) !== null && n < 60) {
+      n++;
+      const b = m[1];
+      const title = cleanTitle(stripTags(b.match(/<h[2-4][^>]*>([\s\S]*?)<\/h[2-4]>/)?.[1] || ''));
+      if (!title || !isValidEventTitle(title)) continue;
+      // skip non-Málaga events
+      const venueText = stripTags(b);
+      if (!/m[áa]laga|cochera/i.test(venueText)) continue;
+      const link = b.match(/href="(https?:\/\/[^"]+)"/)?.[1];
+      const dateText = stripTags(b.match(/(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?|\d{1,2}\s+(?:de\s+)?\w+(?:\s+\d{4})?)/i)?.[1] || '');
+      const time = b.match(/(\d{1,2}[:\.]\d{2})/)?.[1];
+      events.push({
+        title,
+        occurrences: dateText ? [{ date: dateText, time }] : [],
+        venue: 'La Cochera Cabaret',
+        city: 'Málaga',
+        ticket_url: link,
+      });
+    }
+    return { ok: true, http_status: 200, events, strategy: 'cochera-entradas' };
+  } catch (e) {
+    return { ok: false, events: [], strategy: 'cochera-entradas', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchResult | null> {
   switch (slug) {
     case 'sala-trinchera':
@@ -901,18 +1210,56 @@ async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchR
       return fetchGenericHTML('https://salamartemalaga.com/eventos/', 'Sala Marte', 'salamarte-html-jsonld');
     case 'la-cochera-cabaret':
       return fetchCocheraCards();
+    case 'cochera-entradas':
+      return fetchCocheraEntradas();
     case 'teatro-soho':
       return fetchGenericHTML(source.chosen_entrypoint || 'https://teatrodelsoho.com/programacion/', 'Teatro del Soho CaixaBank', 'soho-html-jsonld');
     case 'teatro-cervantes':
-      return fetchGenericHTML('https://www.teatrocervantes.com/es/programacion/', 'Teatro Cervantes', 'cervantes-html-jsonld');
+      return fetchCervantesDeep();
     case 'eventual-music':
       return fetchGenericHTML('https://www.eventualmusic.com/programacion.php', 'Sala Eventual', 'eventual-html-jsonld');
     case 'antojo-malaga':
       return fetchGenericHTML('https://antojomalaga.es/programacion', 'Antojo Málaga', 'antojo-html-jsonld');
+    // Phase 3
+    case 'fycma':
+      return fetchTheEventsCalendar('https://fycma.com/organizador/fycma/', 'FYCMA - Palacio de Ferias y Congresos', 'fycma');
+    case 'teatro-estepona':
+      return fetchTheEventsCalendar('https://teatroestepona.com/events/', 'Teatro Auditorio Felipe VI', 'estepona');
+    case 'marenostrum-fuengirola':
+      return fetchWpPostsList('https://marenostrumfuengirola.com/tipo_de_evento/2026/', 'Marenostrum Fuengirola', 'marenostrum');
+    case 'starlite-marbella':
+      return fetchStarliteList();
+    case 'mientrada-marbella':
+      return fetchMientrada('https://www.mientrada.net/local/teatro-ciudad-de-marbella/', 'Teatro Ciudad de Marbella', 'mientrada-marbella');
+    case 'mientrada-edgar-neville':
+      return fetchMientrada('https://www.mientrada.net/eventos/categoria/auditorio-edgar-neville/', 'Auditorio Edgar Neville', 'mientrada-edgar');
+    case 'filarmonica-malaga':
+      return fetchFilarmonica();
+    case 'entradas-fuengirola':
+      return fetchFuengirolaEntradas();
+    case 'ayto-ronda':
+      return fetchMunicipalAgenda('https://ayuntamientoronda.es/agenda-de-actividades-y-eventos/', 'Ronda', undefined, 'ronda');
+    case 'cultura-antequera':
+      return fetchMunicipalAgenda('https://cultura.antequera.es/agenda/', 'Antequera', undefined, 'antequera');
+    case 'ayto-benalmadena':
+      return fetchMunicipalAgenda('https://www.benalmadena.es/pags/agenda.php', 'Benalmádena', undefined, 'benalmadena');
+    case 'turismo-mijas':
+      return fetchMunicipalAgenda('https://turismo.mijas.es/es/12-principal/cultura/13-agenda-cultural', 'Mijas', undefined, 'mijas');
+    case 'velez-teatro':
+      return fetchMunicipalAgenda('https://www.velezmalaga.es/index.php?mod=agendadeactividades&tag=teatro', 'Vélez-Málaga', undefined, 'velez');
+    case 'torremolinos-cultura':
+      return fetchMunicipalAgenda('https://www.torremolinoscultura.es/eventos/getforcategory/actividades-para-todos-los-publicos', 'Torremolinos', undefined, 'torremolinos');
+    case 'turismo-coin':
+      return fetchMunicipalAgenda('https://turismocoin.es/agenda', 'Coín', undefined, 'coin');
+    case 'apta-axarquia':
+      return fetchMunicipalAgenda('https://axarquiacostadelsol.es/eventosaxarquiacostadelsol/', 'Vélez-Málaga', undefined, 'axarquia');
+    case 'serrania-ronda':
+      return fetchMunicipalAgenda('https://www.serraniaderonda.com/portal/es/eventos.php', 'Ronda', undefined, 'serrania');
     default:
       return null;
   }
 }
+
 
 /** Mark stuck `running` sync_runs as failed */
 async function cleanupStuckRuns(supabase: any) {
