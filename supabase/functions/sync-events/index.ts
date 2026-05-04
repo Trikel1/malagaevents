@@ -1314,8 +1314,7 @@ async function syncSingleSource(
     }
     
     // If still no events and main scrape failed
-    if (events.length === 0 && !scrapeResult.success) {
-      // For social media / best-effort sources, mark as blocked gracefully
+    if (events.length === 0 && scrapeResult && !scrapeResult.success) {
       const isBestEffort = ['la-garrapata'].includes(source.slug);
       const isBlocked = scrapeResult.error?.includes('403') || scrapeResult.error?.includes('401') || scrapeResult.error?.includes('login');
       
@@ -1323,7 +1322,6 @@ async function syncSingleSource(
         logger.warn('scrape', `Source ${source.slug} blocked or best-effort — skipping gracefully`);
         result.status = 'partial';
         result.error = isBlocked ? 'Source blocked (403/401)' : 'Best-effort source returned no events';
-        // Don't throw — just finish gracefully
       } else {
         if (scrapeResult.error?.includes('Throttled')) {
           result.status = 'throttled';
