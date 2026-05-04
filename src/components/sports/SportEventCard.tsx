@@ -30,7 +30,6 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
   const sportCat = event.sport as SportCategory;
   const label = t(`sports.${sportCat}`, event.sport);
   const SportLucide = getSportIcon(event.sport);
-  const ringCls = getSportRing(event.sport);
 
   const cleanTitle = cleanSportTitle(event.teams || event.title);
   const isFree = isFreeEvent(event.price_info);
@@ -46,25 +45,18 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
 
   return (
     <Card className="overflow-hidden border-border/60 hover:border-primary/30 transition-colors">
-      {/* Visual header — gradient + premium sport icon */}
-      <div className="relative h-20 bg-gradient-to-br from-primary/15 via-primary/8 to-secondary/10 flex items-center justify-center overflow-hidden">
+      {/* Visual header — minimal pictogram, no decorative ring */}
+      <div className="relative h-16 bg-gradient-to-br from-primary/8 to-primary/[0.03] flex items-center justify-center overflow-hidden">
         <div
-          className="absolute inset-0 opacity-[0.08] pointer-events-none"
+          className="absolute inset-0 opacity-[0.05] pointer-events-none"
           style={{
             backgroundImage:
-              'radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px), radial-gradient(circle at 75% 75%, currentColor 1px, transparent 1px)',
-            backgroundSize: '28px 28px, 36px 36px',
+              'radial-gradient(circle at 25% 25%, currentColor 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
           }}
           aria-hidden="true"
         />
-        <span
-          className={cn(
-            'inline-flex items-center justify-center h-12 w-12 rounded-full bg-background/80 backdrop-blur-sm ring-2',
-            ringCls,
-          )}
-        >
-          <SportLucide className="h-6 w-6 text-primary" aria-hidden="true" />
-        </span>
+        <SportLucide className="h-8 w-8 text-primary/90 relative" aria-hidden="true" />
       </div>
 
       <CardContent className="p-3 space-y-2">

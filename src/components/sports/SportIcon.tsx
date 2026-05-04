@@ -1,5 +1,4 @@
 import {
-  CircleDot,
   Trophy,
   Footprints,
   Bike,
@@ -7,7 +6,6 @@ import {
   Car,
   Hand,
   Award,
-  Dribbble,
   Volleyball,
   Shield,
   Medal,
@@ -18,9 +16,66 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SportCategory } from '@/types/sports';
+import type { SVGProps } from 'react';
+
+// ---------------------------------------------------------------------------
+// Custom inline SVG pictograms — minimalist, single-stroke, currentColor.
+// Designed to mimic the Lucide visual language (24x24, stroke 2, round caps)
+// so they sit perfectly next to other Lucide icons.
+// ---------------------------------------------------------------------------
+
+type IconProps = SVGProps<SVGSVGElement> & { size?: number | string };
+
+const baseSvgProps = {
+  width: 24,
+  height: 24,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.8,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+};
+
+/** Soccer ball: circle + central pentagon + short panel hints. */
+const FootballIcon = ({ className, size, ...rest }: IconProps) => (
+  <svg
+    {...baseSvgProps}
+    {...(size ? { width: size, height: size } : null)}
+    className={className}
+    aria-hidden="true"
+    {...rest}
+  >
+    <circle cx="12" cy="12" r="9" />
+    {/* central pentagon */}
+    <path d="M12 8.2 L15.2 10.6 L14 14.4 L10 14.4 L8.8 10.6 Z" />
+    {/* 5 short panel seams radiating outward */}
+    <path d="M12 8.2 L12 5" />
+    <path d="M15.2 10.6 L18 9.6" />
+    <path d="M14 14.4 L15.6 17" />
+    <path d="M10 14.4 L8.4 17" />
+    <path d="M8.8 10.6 L6 9.6" />
+  </svg>
+);
+
+/** Basketball: circle + vertical seam + two curved side seams. */
+const BasketballIcon = ({ className, size, ...rest }: IconProps) => (
+  <svg
+    {...baseSvgProps}
+    {...(size ? { width: size, height: size } : null)}
+    className={className}
+    aria-hidden="true"
+    {...rest}
+  >
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 3 L12 21" />
+    <path d="M3.5 9 C 7 11, 7 13, 3.5 15" />
+    <path d="M20.5 9 C 17 11, 17 13, 20.5 15" />
+  </svg>
+);
 
 interface SportVisual {
-  Icon: LucideIcon;
+  Icon: LucideIcon | ((props: IconProps) => JSX.Element);
   /** Subtle ring color used only in premium badge mode */
   ring: string;
 }
@@ -31,9 +86,9 @@ interface SportVisual {
  * No dynamic Tailwind class composition — every class is a literal string.
  */
 export const SPORT_VISUAL_MAP: Record<string, SportVisual> = {
-  futbol: { Icon: CircleDot, ring: 'ring-emerald-500/25' },
-  futsal: { Icon: CircleDot, ring: 'ring-emerald-500/25' },
-  baloncesto: { Icon: Dribbble, ring: 'ring-orange-500/25' },
+  futbol: { Icon: FootballIcon, ring: 'ring-emerald-500/25' },
+  futsal: { Icon: FootballIcon, ring: 'ring-emerald-500/25' },
+  baloncesto: { Icon: BasketballIcon, ring: 'ring-orange-500/25' },
   balonmano: { Icon: Hand, ring: 'ring-blue-500/25' },
   atletismo: { Icon: Footprints, ring: 'ring-amber-500/25' },
   running: { Icon: Footprints, ring: 'ring-amber-500/25' },
@@ -52,8 +107,8 @@ export const SPORT_VISUAL_MAP: Record<string, SportVisual> = {
   otros: { Icon: Award, ring: 'ring-primary/25' },
 };
 
-export const getSportIcon = (sport: string): LucideIcon =>
-  SPORT_VISUAL_MAP[sport]?.Icon ?? Award;
+export const getSportIcon = (sport: string) =>
+  (SPORT_VISUAL_MAP[sport]?.Icon ?? Award) as LucideIcon;
 
 export const getSportRing = (sport: string): string =>
   SPORT_VISUAL_MAP[sport]?.ring ?? 'ring-primary/25';
@@ -78,7 +133,7 @@ const SportIcon = ({ sport, className, badge, badgeSize = 'md', active, accent }
     badgeSize === 'lg' ? 'h-10 w-10' : badgeSize === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
   const iconSize =
     badgeSize === 'lg' ? 'h-5 w-5' : badgeSize === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-  const ring = accent ? `ring-2 ${getSportRing(sport)}` : '';
+  const ring = accent ? `ring-1 ${getSportRing(sport)}` : '';
   return (
     <span
       className={cn(
