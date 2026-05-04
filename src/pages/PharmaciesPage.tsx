@@ -100,12 +100,24 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm, fallback }: Pharma
             </div>
           </div>
           {onDuty && (
-            <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white shrink-0">
+            <Badge className={cn(
+              'shrink-0 text-white',
+              fallback
+                ? 'bg-amber-500 hover:bg-amber-500'
+                : 'bg-emerald-500 hover:bg-emerald-500'
+            )}>
               <Clock className="h-3 w-3 mr-1" />
               {t('pharmacies.onDutyToday', 'De guardia hoy')}
             </Badge>
           )}
         </div>
+
+        {typeof distanceKm === 'number' && (
+          <div className="text-[11px] text-primary font-medium mt-1 flex items-center gap-1">
+            <Navigation className="h-3 w-3" />
+            {formatDistance(distanceKm)} {t('pharmacies.distanceAway', 'de distancia')}
+          </div>
+        )}
 
         <div className="text-sm text-foreground/85 mt-2 flex items-start gap-2">
           <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
