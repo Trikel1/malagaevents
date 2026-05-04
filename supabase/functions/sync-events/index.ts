@@ -1297,7 +1297,6 @@ function laGarrapataParseDetail(html: string, sourceUrl: string): NormalizedEven
       image_url: image,
       ticket_url: sourceUrl,
       price,
-      tags: genre ? [genre] : undefined,
     } as NormalizedEvent;
   } catch {
     return null;
