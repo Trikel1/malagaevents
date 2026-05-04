@@ -238,7 +238,16 @@
     "loading": "Загрузка…",
     "error": "Не удалось загрузить аптеки.",
     "retry": "Повторить",
-    "updatedAt": "Обновлено"
+    "updatedAt": "Обновлено",
+    "nearMe": "Рядом со мной",
+    "locating": "Определение местоположения…",
+    "sortedByDistance": "По расстоянию",
+    "clearDistanceSort": "Сбросить сортировку",
+    "locationPermissionDenied": "Доступ к местоположению запрещён",
+    "locationUnsupported": "Геолокация не поддерживается",
+    "locationError": "Не удалось получить местоположение",
+    "distanceAway": "в пути",
+    "fallbackNotice": "Ориентировочное дежурство (нет официальных данных)."
   },
   "tickets": {
     "title": "Мои билеты",

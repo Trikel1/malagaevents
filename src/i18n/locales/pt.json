@@ -238,7 +238,16 @@
     "loading": "A carregar…",
     "error": "Não foi possível carregar as farmácias.",
     "retry": "Tentar de novo",
-    "updatedAt": "Atualizado"
+    "updatedAt": "Atualizado",
+    "nearMe": "Perto de mim",
+    "locating": "Localizando…",
+    "sortedByDistance": "Ordenado por distância",
+    "clearDistanceSort": "Remover ordenação",
+    "locationPermissionDenied": "Permissão de localização negada",
+    "locationUnsupported": "Geolocalização não suportada",
+    "locationError": "Não foi possível obter sua localização",
+    "distanceAway": "de distância",
+    "fallbackNotice": "Plantão estimado (dados oficiais indisponíveis)."
   },
   "tickets": {
     "title": "Os meus bilhetes",

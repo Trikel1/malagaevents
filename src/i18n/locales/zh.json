@@ -238,7 +238,16 @@
     "loading": "加载中…",
     "error": "无法加载药房。",
     "retry": "重试",
-    "updatedAt": "已更新"
+    "updatedAt": "已更新",
+    "nearMe": "附近",
+    "locating": "定位中…",
+    "sortedByDistance": "按距离排序",
+    "clearDistanceSort": "清除排序",
+    "locationPermissionDenied": "已拒绝位置权限",
+    "locationUnsupported": "设备不支持定位",
+    "locationError": "无法获取您的位置",
+    "distanceAway": "距离",
+    "fallbackNotice": "估算的值班药房(暂无官方数据)"
   },
   "tickets": {
     "title": "我的门票",

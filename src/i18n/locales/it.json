@@ -238,7 +238,16 @@
     "loading": "Caricamento…",
     "error": "Impossibile caricare le farmacie.",
     "retry": "Riprova",
-    "updatedAt": "Aggiornato"
+    "updatedAt": "Aggiornato",
+    "nearMe": "Vicino a me",
+    "locating": "Localizzazione…",
+    "sortedByDistance": "Ordinato per distanza",
+    "clearDistanceSort": "Rimuovi ordine",
+    "locationPermissionDenied": "Permesso di posizione negato",
+    "locationUnsupported": "Geolocalizzazione non supportata",
+    "locationError": "Impossibile ottenere la posizione",
+    "distanceAway": "di distanza",
+    "fallbackNotice": "Turno stimato (dati ufficiali non disponibili)."
   },
   "tickets": {
     "title": "I miei biglietti",

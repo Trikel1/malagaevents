@@ -238,7 +238,16 @@
     "loading": "読み込み中…",
     "error": "薬局を読み込めませんでした。",
     "retry": "再試行",
-    "updatedAt": "更新"
+    "updatedAt": "更新",
+    "nearMe": "近くの薬局",
+    "locating": "位置情報を取得中…",
+    "sortedByDistance": "距離順",
+    "clearDistanceSort": "距離順を解除",
+    "locationPermissionDenied": "位置情報の許可が拒否されました",
+    "locationUnsupported": "位置情報がサポートされていません",
+    "locationError": "位置情報を取得できませんでした",
+    "distanceAway": "先",
+    "fallbackNotice": "推定の当番薬局(公式データなし)"
   },
   "tickets": {
     "title": "マイチケット",
