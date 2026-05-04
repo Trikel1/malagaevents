@@ -243,7 +243,9 @@ const PharmaciesPage = () => {
     [dirAll, search]
   );
 
-  const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  const isToday =
+    formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd') ===
+    formatInTimeZone(new Date(), TIMEZONE, 'yyyy-MM-dd');
 
   return (
     <div className="min-h-screen bg-background pb-24">
