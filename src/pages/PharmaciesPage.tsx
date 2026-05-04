@@ -326,7 +326,7 @@ const PharmaciesPage = () => {
             <span className="text-xs text-muted-foreground">
               {isToday
                 ? t('pharmacies.onDutyToday', 'De guardia hoy')
-                : `${t('pharmacies.guardDate', 'Guardia el')} ${format(selectedDate, 'PPP', { locale })}`}
+                : `${t('pharmacies.guardDate', 'Guardia el')} ${formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}`}
             </span>
           </div>
 
