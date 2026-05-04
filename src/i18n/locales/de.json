@@ -238,7 +238,16 @@
     "loading": "Lädt…",
     "error": "Apotheken konnten nicht geladen werden.",
     "retry": "Erneut versuchen",
-    "updatedAt": "Aktualisiert"
+    "updatedAt": "Aktualisiert",
+    "nearMe": "In meiner Nähe",
+    "locating": "Standort wird ermittelt…",
+    "sortedByDistance": "Nach Entfernung sortiert",
+    "clearDistanceSort": "Distanzsortierung entfernen",
+    "locationPermissionDenied": "Standortzugriff verweigert",
+    "locationUnsupported": "Geolokalisierung wird nicht unterstützt",
+    "locationError": "Standort konnte nicht abgerufen werden",
+    "distanceAway": "entfernt",
+    "fallbackNotice": "Geschätzter Notdienst (offizielle Daten nicht verfügbar)."
   },
   "tickets": {
     "title": "Meine Tickets",

@@ -238,7 +238,16 @@
     "loading": "Loading…",
     "error": "Could not load pharmacies.",
     "retry": "Retry",
-    "updatedAt": "Updated"
+    "updatedAt": "Updated",
+    "nearMe": "Near me",
+    "locating": "Locating…",
+    "sortedByDistance": "Sorted by distance",
+    "clearDistanceSort": "Clear distance sort",
+    "locationPermissionDenied": "Location permission denied",
+    "locationUnsupported": "Your device doesn't support geolocation",
+    "locationError": "Couldn't get your location",
+    "distanceAway": "away",
+    "fallbackNotice": "Showing estimated on-duty schedule (official data unavailable for this date)."
   },
   "tickets": {
     "title": "My tickets",

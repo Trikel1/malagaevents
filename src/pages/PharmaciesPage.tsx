@@ -5,7 +5,7 @@ import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import {
   Phone, MapPin, Calendar as CalendarIcon, Clock, AlertTriangle,
-  Search, ChevronDown, Check, Navigation, X, Pill,
+  Search, ChevronDown, Check, Navigation, X, Pill, LocateFixed, Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,10 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 import EmptyState from '@/components/common/EmptyState';
 import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { usePharmaciesOnDuty, usePharmacyDirectory } from '@/hooks/usePharmacies';
-import { LOCALITIES_CATALOG } from '@/lib/localitiesCatalog';
+import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib/localitiesCatalog';
+import { haversineKm, formatDistance } from '@/lib/distance';
 import { cn } from '@/lib/utils';
 
 const locales: Record<string, Locale> = {
@@ -30,26 +32,26 @@ const DEFAULT_MUNICIPALITY = 'Málaga';
 // Returns "now" anchored to Europe/Madrid (so the day picker reflects Madrid's calendar day).
 const madridNow = () => toZonedTime(new Date(), TIMEZONE);
 
-// Curated municipalities for pharmacies (sorted by priority then alpha).
-const PHARMACY_LOCALITIES: string[] = (() => {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  // Capital first
-  out.push('Málaga');
-  seen.add('málaga');
-  // Then catalog by priority desc
-  const sorted = [...LOCALITIES_CATALOG].sort(
-    (a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.name.localeCompare(b.name)
-  );
-  for (const e of sorted) {
-    const k = e.name.toLowerCase();
-    if (!seen.has(k)) {
-      seen.add(k);
-      out.push(e.name);
-    }
+// Curated list grouped by zone — mirrors the Events location filter pattern.
+type LocalityGroup = { zone: ZoneKey; label: string; entries: { name: string; slug: string }[] };
+
+const PHARMACY_LOCALITY_GROUPS: LocalityGroup[] = (() => {
+  const byZone = new Map<ZoneKey, { name: string; slug: string }[]>();
+  for (const e of LOCALITIES_CATALOG) {
+    const arr = byZone.get(e.zone) ?? [];
+    arr.push({ name: e.name, slug: e.slug });
+    byZone.set(e.zone, arr);
   }
-  return out;
+  for (const [, arr] of byZone) arr.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  return ZONE_ORDER
+    .map((z) => ({ zone: z, label: ZONE_LABELS[z], entries: byZone.get(z) ?? [] }))
+    .filter((g) => g.entries.length > 0);
 })();
+
+const ALL_PHARMACY_LOCALITIES: string[] = PHARMACY_LOCALITY_GROUPS.flatMap((g) =>
+  g.entries.map((e) => e.name)
+);
+
 
 const stripDiacritics = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -73,9 +75,11 @@ interface PharmacyCardProps {
     lat?: number | null; lng?: number | null; municipality?: string;
   };
   onDuty?: boolean;
+  distanceKm?: number | null;
+  fallback?: boolean;
 }
 
-const PharmacyCard = ({ pharmacy, onDuty = false }: PharmacyCardProps) => {
+const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm, fallback }: PharmacyCardProps) => {
   const { t } = useTranslation();
   return (
     <Card className={cn(
@@ -96,12 +100,24 @@ const PharmacyCard = ({ pharmacy, onDuty = false }: PharmacyCardProps) => {
             </div>
           </div>
           {onDuty && (
-            <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white shrink-0">
+            <Badge className={cn(
+              'shrink-0 text-white',
+              fallback
+                ? 'bg-amber-500 hover:bg-amber-500'
+                : 'bg-emerald-500 hover:bg-emerald-500'
+            )}>
               <Clock className="h-3 w-3 mr-1" />
               {t('pharmacies.onDutyToday', 'De guardia hoy')}
             </Badge>
           )}
         </div>
+
+        {typeof distanceKm === 'number' && (
+          <div className="text-[11px] text-primary font-medium mt-1 flex items-center gap-1">
+            <Navigation className="h-3 w-3" />
+            {formatDistance(distanceKm)} {t('pharmacies.distanceAway', 'de distancia')}
+          </div>
+        )}
 
         <div className="text-sm text-foreground/85 mt-2 flex items-start gap-2">
           <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
@@ -148,11 +164,22 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
 
-  const filtered = useMemo(() => {
+  const filteredGroups = useMemo(() => {
     const nq = stripDiacritics(q.trim());
-    if (!nq) return PHARMACY_LOCALITIES;
-    return PHARMACY_LOCALITIES.filter((m) => stripDiacritics(m).includes(nq));
+    if (!nq) return PHARMACY_LOCALITY_GROUPS;
+    return PHARMACY_LOCALITY_GROUPS
+      .map((g) => ({
+        ...g,
+        entries: g.entries.filter((e) => stripDiacritics(e.name).includes(nq)),
+      }))
+      .filter((g) => g.entries.length > 0);
   }, [q]);
+
+  const handlePick = (name: string) => {
+    onChange(name);
+    setOpen(false);
+    setQ('');
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -160,6 +187,8 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
         <Button
           variant="outline"
           className="w-full justify-between rounded-xl h-11 bg-card"
+          aria-haspopup="listbox"
+          aria-expanded={open}
         >
           <span className="flex items-center gap-2 min-w-0">
             <MapPin className="h-4 w-4 text-primary shrink-0" />
@@ -174,7 +203,7 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               autoFocus
-              placeholder={t('pharmacies.locationSelector', 'Elige una localidad')}
+              placeholder={t('events.searchLocality', 'Buscar localidad')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="pl-8 h-9"
@@ -182,29 +211,35 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
           </div>
         </div>
         <ScrollArea className="max-h-[60vh]">
-          <div className="p-1">
-            {filtered.length === 0 ? (
+          <div className="p-1.5">
+            {filteredGroups.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-                {t('pharmacies.noPharmaciesFound', 'Sin resultados')}
+                {t('common.noResults', 'Sin resultados')}
               </div>
             ) : (
-              filtered.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => {
-                    onChange(m);
-                    setOpen(false);
-                    setQ('');
-                  }}
-                  className={cn(
-                    'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted transition',
-                    value === m && 'bg-muted font-semibold'
-                  )}
-                >
-                  <span className="truncate">{m}</span>
-                  {value === m && <Check className="h-4 w-4 text-primary shrink-0" />}
-                </button>
+              filteredGroups.map((group) => (
+                <div key={group.zone} className="mt-2 first:mt-0">
+                  <div className="sticky top-0 z-10 bg-popover/95 backdrop-blur-sm px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group.label}
+                  </div>
+                  {group.entries.map((e) => {
+                    const selected = value === e.name;
+                    return (
+                      <button
+                        key={e.slug}
+                        type="button"
+                        onClick={() => handlePick(e.name)}
+                        className={cn(
+                          'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm hover:bg-accent transition min-h-[44px]',
+                          selected && 'bg-accent/60 font-semibold'
+                        )}
+                      >
+                        <span className="truncate">{e.name}</span>
+                        {selected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
               ))
             )}
           </div>
@@ -218,9 +253,13 @@ const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
+  const { toast } = useToast();
+
   const [selectedDate, setSelectedDate] = useState<Date>(() => madridNow());
   const [municipality, setMunicipality] = useState<string>(DEFAULT_MUNICIPALITY);
   const [search, setSearch] = useState('');
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
 
   const { data: dutyAll, isLoading: isLoadingDuty } =
     usePharmaciesOnDuty(selectedDate, municipality);
@@ -234,18 +273,70 @@ const PharmaciesPage = () => {
       .some((s: string) => stripDiacritics(s).includes(q));
   };
 
+  const withDistanceAndSort = (arr: any[]): any[] => {
+    if (!userLoc) return arr.map((p) => ({ ...p, _distance: null }));
+    const enriched = arr.map((p) => {
+      const d = p.lat != null && p.lng != null
+        ? haversineKm(userLoc.lat, userLoc.lng, Number(p.lat), Number(p.lng))
+        : null;
+      return { ...p, _distance: d };
+    });
+    enriched.sort((a, b) => {
+      if (a._distance == null && b._distance == null) return 0;
+      if (a._distance == null) return 1;
+      if (b._distance == null) return -1;
+      return a._distance - b._distance;
+    });
+    return enriched;
+  };
+
   const dutyPharmacies = useMemo(
-    () => (dutyAll ?? []).filter(matchesSearch),
-    [dutyAll, search]
+    () => withDistanceAndSort((dutyAll ?? []).filter(matchesSearch)),
+    [dutyAll, search, userLoc]
   );
   const dirPharmacies = useMemo(
-    () => (dirAll ?? []).filter(matchesSearch),
-    [dirAll, search]
+    () => withDistanceAndSort((dirAll ?? []).filter(matchesSearch)),
+    [dirAll, search, userLoc]
   );
+
+  const dutyFallback = (dutyAll ?? []).some((p: any) => p?.__fallback);
 
   const isToday =
     formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd') ===
     formatInTimeZone(new Date(), TIMEZONE, 'yyyy-MM-dd');
+
+  const handleLocate = () => {
+    if (userLoc) {
+      setUserLoc(null);
+      return;
+    }
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast({
+        title: t('pharmacies.locationUnsupported', 'Tu dispositivo no soporta geolocalización'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      (err) => {
+        setLocating(false);
+        const denied = err.code === err.PERMISSION_DENIED;
+        toast({
+          title: denied
+            ? t('pharmacies.locationPermissionDenied', 'Permiso de ubicación denegado')
+            : t('pharmacies.locationError', 'No pudimos obtener tu ubicación'),
+          variant: 'destructive',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  };
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -317,6 +408,29 @@ const PharmaciesPage = () => {
           </div>
         </div>
 
+        {/* Near me */}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant={userLoc ? 'default' : 'outline'}
+            className="rounded-full h-9 px-4 text-sm"
+            onClick={handleLocate}
+            disabled={locating}
+          >
+            <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} />
+            {locating
+              ? t('pharmacies.locating', 'Localizando…')
+              : userLoc
+              ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
+              : t('pharmacies.nearMe', 'Cerca de mí')}
+          </Button>
+          {userLoc && (
+            <span className="text-[11px] text-muted-foreground">
+              {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
+            </span>
+          )}
+        </div>
+
         {/* On-duty section */}
         <section>
           <div className="flex items-center justify-between mb-2">
@@ -330,6 +444,13 @@ const PharmaciesPage = () => {
             </span>
           </div>
 
+          {dutyFallback && (
+            <div className="mb-2 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-300">
+              <Info className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{t('pharmacies.fallbackNotice', 'Mostrando guardia estimada (datos oficiales no disponibles para esta fecha).')}</span>
+            </div>
+          )}
+
           {isLoadingDuty ? (
             <div className="space-y-2">
               <PharmacyCardSkeleton />
@@ -337,8 +458,14 @@ const PharmaciesPage = () => {
             </div>
           ) : dutyPharmacies.length > 0 ? (
             <div className="space-y-2">
-              {dutyPharmacies.map((p) => (
-                <PharmacyCard key={p.id} pharmacy={{ ...p, municipality: (p as any).municipality }} onDuty />
+              {dutyPharmacies.map((p: any) => (
+                <PharmacyCard
+                  key={p.id}
+                  pharmacy={{ ...p, municipality: p.municipality }}
+                  onDuty
+                  fallback={!!p.__fallback}
+                  distanceKm={p._distance}
+                />
               ))}
             </div>
           ) : (
@@ -363,8 +490,8 @@ const PharmaciesPage = () => {
             </div>
           ) : dirPharmacies.length > 0 ? (
             <div className="space-y-2">
-              {dirPharmacies.map((p) => (
-                <PharmacyCard key={p.id} pharmacy={p} />
+              {dirPharmacies.map((p: any) => (
+                <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
               ))}
             </div>
           ) : (

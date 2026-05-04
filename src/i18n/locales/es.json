@@ -238,7 +238,16 @@
     "loading": "Cargando…",
     "error": "No se pudieron cargar las farmacias.",
     "retry": "Reintentar",
-    "updatedAt": "Actualizado"
+    "updatedAt": "Actualizado",
+    "nearMe": "Cerca de mí",
+    "locating": "Localizando…",
+    "sortedByDistance": "Ordenado por cercanía",
+    "clearDistanceSort": "Quitar orden por distancia",
+    "locationPermissionDenied": "Permiso de ubicación denegado",
+    "locationUnsupported": "Tu dispositivo no soporta geolocalización",
+    "locationError": "No pudimos obtener tu ubicación",
+    "distanceAway": "de distancia",
+    "fallbackNotice": "Mostrando guardia estimada (datos oficiales no disponibles para esta fecha)."
   },
   "tickets": {
     "title": "Mis entradas",

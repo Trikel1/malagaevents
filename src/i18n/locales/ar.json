@@ -238,7 +238,16 @@
     "loading": "جاري التحميل…",
     "error": "تعذر تحميل الصيدليات.",
     "retry": "إعادة المحاولة",
-    "updatedAt": "تم التحديث"
+    "updatedAt": "تم التحديث",
+    "nearMe": "بالقرب مني",
+    "locating": "جارٍ تحديد الموقع…",
+    "sortedByDistance": "مرتبة حسب المسافة",
+    "clearDistanceSort": "إلغاء الترتيب",
+    "locationPermissionDenied": "تم رفض إذن الموقع",
+    "locationUnsupported": "الجهاز لا يدعم تحديد الموقع",
+    "locationError": "تعذّر تحديد موقعك",
+    "distanceAway": "المسافة",
+    "fallbackNotice": "الوردية تقديرية (البيانات الرسمية غير متاحة)."
   },
   "tickets": {
     "title": "تذاكري",

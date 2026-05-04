@@ -238,7 +238,16 @@
     "loading": "Chargement…",
     "error": "Impossible de charger les pharmacies.",
     "retry": "Réessayer",
-    "updatedAt": "Mis à jour"
+    "updatedAt": "Mis à jour",
+    "nearMe": "Près de moi",
+    "locating": "Localisation…",
+    "sortedByDistance": "Trié par distance",
+    "clearDistanceSort": "Retirer le tri",
+    "locationPermissionDenied": "Permission de localisation refusée",
+    "locationUnsupported": "Géolocalisation non prise en charge",
+    "locationError": "Impossible d'obtenir votre position",
+    "distanceAway": "de distance",
+    "fallbackNotice": "Garde estimée affichée (données officielles indisponibles)."
   },
   "tickets": {
     "title": "Mes billets",
