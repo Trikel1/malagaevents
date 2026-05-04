@@ -652,6 +652,174 @@ function addJitter(baseMs: number, jitterMs: number): number {
 }
 
 // ============================================================================
+// DIRECT FETCHERS (HTML/RSS/JSON-LD) — tried before Firecrawl
+// ============================================================================
+
+const UA = 'Mozilla/5.0 (compatible; MalagaEventsBot/1.0; +https://malagaevents.lovable.app)';
+
+interface NormalizedEvent {
+  title: string;
+  description?: string;
+  occurrences: Array<{ date: string; time?: string; end_time?: string }>;
+  venue?: string;
+  city?: string;
+  image_url?: string;
+  ticket_url?: string;
+  price?: string;
+  is_free?: boolean;
+}
+
+interface DirectFetchResult {
+  ok: boolean;
+  http_status?: number;
+  events: NormalizedEvent[];
+  strategy: string;
+  error?: string;
+}
+
+async function fetchWithTimeout(url: string, ms = 15000, init: RequestInit = {}): Promise<Response> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, {
+      ...init,
+      redirect: 'follow',
+      signal: ctrl.signal,
+      headers: { 'User-Agent': UA, ...(init.headers || {}) },
+    });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** Extract events from any HTML via JSON-LD <script> blocks */
+function extractJsonLdEvents(html: string, baseUrl: string): NormalizedEvent[] {
+  const out: NormalizedEvent[] = [];
+  const re = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    const raw = m[1].trim();
+    if (!raw) continue;
+    let data: any;
+    try { data = JSON.parse(raw); } catch { continue; }
+    const queue: any[] = Array.isArray(data) ? [...data] : [data];
+    while (queue.length) {
+      const node = queue.shift();
+      if (!node || typeof node !== 'object') continue;
+      if (Array.isArray(node['@graph'])) queue.push(...node['@graph']);
+      const t = node['@type'];
+      const types = Array.isArray(t) ? t : [t];
+      if (!types.some((x: any) => typeof x === 'string' && /Event/i.test(x))) continue;
+      const title = node.name || node.headline;
+      const start = node.startDate;
+      if (!title || !start) continue;
+      const date = String(start).split('T')[0];
+      const timeMatch = String(start).match(/T(\d{2}:\d{2})/);
+      const venue = node.location?.name || undefined;
+      const city = node.location?.address?.addressLocality || undefined;
+      const img = Array.isArray(node.image) ? node.image[0] : (node.image?.url || node.image);
+      const offer = Array.isArray(node.offers) ? node.offers[0] : node.offers;
+      out.push({
+        title: cleanTitle(String(title)),
+        description: node.description ? String(node.description).substring(0, 500) : undefined,
+        occurrences: [{ date, time: timeMatch?.[1] }],
+        venue,
+        city,
+        image_url: typeof img === 'string' ? normalizeImageUrl(img, baseUrl) : undefined,
+        ticket_url: offer?.url || node.url,
+        price: offer?.price !== undefined ? String(offer.price) : undefined,
+        is_free: offer?.price === 0 || offer?.price === '0',
+      });
+    }
+  }
+  return out;
+}
+
+/** Sala Trinchera: RSS with `<title>DD/MM Título</title>` */
+async function fetchTrincheraRSS(): Promise<DirectFetchResult> {
+  const url = 'https://salatrinchera.com/category/proximos-eventos/feed/';
+  try {
+    const r = await fetchWithTimeout(url, 12000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'trinchera-rss', error: `HTTP ${r.status}` };
+    const xml = await r.text();
+    const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+    const events: NormalizedEvent[] = [];
+    for (const item of items) {
+      const titleRaw = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1]?.trim() || '';
+      const link = item.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim();
+      const desc = item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/)?.[1]?.trim();
+      const decoded = decodeHtmlEntities(titleRaw);
+      const dateMatch = decoded.match(/^(\d{1,2})\/(\d{1,2})\s+(.+)$/);
+      if (!dateMatch) continue;
+      const dd = dateMatch[1].padStart(2, '0');
+      const mm = dateMatch[2].padStart(2, '0');
+      events.push({
+        title: cleanTitle(dateMatch[3]),
+        description: desc ? decodeHtmlEntities(desc).replace(/<[^>]*>/g, '').substring(0, 400) : undefined,
+        occurrences: [{ date: `${dd}/${mm}`, time: '21:00' }],
+        venue: 'Sala Trinchera',
+        city: 'Málaga',
+        ticket_url: link,
+      });
+    }
+    return { ok: true, http_status: 200, events, strategy: 'trinchera-rss' };
+  } catch (e) {
+    return { ok: false, events: [], strategy: 'trinchera-rss', error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+/** Generic HTML + JSON-LD fetcher */
+async function fetchGenericHTML(url: string, defaultVenue: string, strategyTag: string): Promise<DirectFetchResult> {
+  try {
+    const r = await fetchWithTimeout(url, 20000);
+    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: strategyTag, error: `HTTP ${r.status}` };
+    const html = await r.text();
+    const events = extractJsonLdEvents(html, url);
+    for (const e of events) if (!e.venue) e.venue = defaultVenue;
+    return { ok: true, http_status: r.status, events, strategy: strategyTag };
+  } catch (e) {
+    return { ok: false, events: [], strategy: strategyTag, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchResult | null> {
+  switch (slug) {
+    case 'sala-trinchera':
+      return fetchTrincheraRSS();
+    case 'paris-15':
+      return fetchGenericHTML('https://paris15.es/eventos/', 'París 15', 'paris15-html-jsonld');
+    case 'sala-marte':
+      return fetchGenericHTML('https://salamartemalaga.com/eventos/', 'Sala Marte', 'salamarte-html-jsonld');
+    case 'la-cochera-cabaret':
+      return fetchGenericHTML('https://lacocheracabaret.com/programacion/', 'La Cochera Cabaret', 'cochera-html-jsonld');
+    case 'teatro-soho':
+      return fetchGenericHTML(source.chosen_entrypoint || 'https://teatrodelsoho.com/programacion/', 'Teatro del Soho CaixaBank', 'soho-html-jsonld');
+    case 'teatro-cervantes':
+      return fetchGenericHTML('https://www.teatrocervantes.com/es/programacion/', 'Teatro Cervantes', 'cervantes-html-jsonld');
+    case 'eventual-music':
+      return fetchGenericHTML('https://www.eventualmusic.com/programacion.php', 'Sala Eventual', 'eventual-html-jsonld');
+    case 'antojo-malaga':
+      return fetchGenericHTML('https://antojomalaga.es/programacion', 'Antojo Málaga', 'antojo-html-jsonld');
+    default:
+      return null;
+  }
+}
+
+/** Mark stuck `running` sync_runs as failed */
+async function cleanupStuckRuns(supabase: any) {
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  await supabase
+    .from('sync_runs')
+    .update({
+      status: 'failed',
+      finished_at: new Date().toISOString(),
+      error_details: { message: 'Auto-marked failed: stuck in running > 30min' },
+    })
+    .eq('status', 'running')
+    .lt('started_at', cutoff);
+}
+
+// ============================================================================
 // SCRAPING WITH ENHANCED RETRY AND TIMEOUT
 // ============================================================================
 
