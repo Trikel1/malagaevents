@@ -118,7 +118,7 @@ export const LeafletMap = ({
     layer.clearLayers();
     markers.forEach((m) => {
       const marker = L.marker([m.lat, m.lng], {
-        icon: m.approximate ? PIN_APPROX : PIN_DEFAULT,
+        icon: pinFor(m),
         title: m.title,
       });
       const safeTitle = (m.title ?? '').replace(/[<>&]/g, (c) =>
