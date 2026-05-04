@@ -273,8 +273,8 @@ const PharmaciesPage = () => {
       .some((s: string) => stripDiacritics(s).includes(q));
   };
 
-  const withDistanceAndSort = <T extends { lat?: number | null; lng?: number | null }>(arr: T[]) => {
-    if (!userLoc) return arr.map((p) => ({ ...p, _distance: null as number | null }));
+  const withDistanceAndSort = (arr: any[]): any[] => {
+    if (!userLoc) return arr.map((p) => ({ ...p, _distance: null }));
     const enriched = arr.map((p) => {
       const d = p.lat != null && p.lng != null
         ? haversineKm(userLoc.lat, userLoc.lng, Number(p.lat), Number(p.lng))
