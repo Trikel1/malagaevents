@@ -50,8 +50,8 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-hero text-white p-6 pb-12 rounded-b-3xl shadow-card">
-        <h1 className="text-xl font-bold mb-4">{t('profile.title')}</h1>
+      <header className="bg-gradient-hero text-white p-6 pb-10 rounded-b-3xl shadow-card">
+        <h1 className="text-2xl font-bold tracking-tight mb-4">{t('profile.title')}</h1>
         
         {isLoading ? (
           <div className="h-20 animate-pulse bg-white/10 rounded-lg" />
@@ -85,7 +85,7 @@ const ProfilePage = () => {
 
       <main className="p-4 -mt-6 space-y-4">
         {/* Appearance - Theme */}
-        <Card>
+        <Card className="rounded-2xl shadow-soft">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Palette className="h-4 w-4" />
@@ -98,7 +98,7 @@ const ProfilePage = () => {
         </Card>
 
         {/* Language */}
-        <Card>
+        <Card className="rounded-2xl shadow-soft">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Globe className="h-4 w-4" />
@@ -111,7 +111,7 @@ const ProfilePage = () => {
         </Card>
 
         {/* Menu Items */}
-        <Card>
+        <Card className="rounded-2xl shadow-soft">
           <CardContent className="p-0">
             {menuItems.map((item, index) => (
               <div key={item.to}>
