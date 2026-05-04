@@ -14,16 +14,16 @@ import ru from './locales/ru.json';
 import ar from './locales/ar.json';
 
 export const languages = [
-  { code: 'es', name: 'Español', flag: '🇪🇸', dir: 'ltr' },
-  { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷', dir: 'ltr' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹', dir: 'ltr' },
-  { code: 'pt', name: 'Português', flag: '🇵🇹', dir: 'ltr' },
-  { code: 'ar', name: 'العربية', flag: 'AR', dir: 'rtl' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵', dir: 'ltr' },
-  { code: 'zh', name: '中文', flag: '🇨🇳', dir: 'ltr' },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺', dir: 'ltr' },
+  { code: 'es', shortCode: 'ES', nativeName: 'Español', name: 'Español', flag: 'ES', dir: 'ltr' },
+  { code: 'en', shortCode: 'EN', nativeName: 'English', name: 'English', flag: 'EN', dir: 'ltr' },
+  { code: 'de', shortCode: 'DE', nativeName: 'Deutsch', name: 'Deutsch', flag: 'DE', dir: 'ltr' },
+  { code: 'fr', shortCode: 'FR', nativeName: 'Français', name: 'Français', flag: 'FR', dir: 'ltr' },
+  { code: 'it', shortCode: 'IT', nativeName: 'Italiano', name: 'Italiano', flag: 'IT', dir: 'ltr' },
+  { code: 'pt', shortCode: 'PT', nativeName: 'Português', name: 'Português', flag: 'PT', dir: 'ltr' },
+  { code: 'ar', shortCode: 'AR', nativeName: 'العربية', name: 'العربية', flag: 'AR', dir: 'rtl' },
+  { code: 'ja', shortCode: 'JA', nativeName: '日本語', name: '日本語', flag: 'JA', dir: 'ltr' },
+  { code: 'zh', shortCode: 'ZH', nativeName: '中文', name: '中文', flag: 'ZH', dir: 'ltr' },
+  { code: 'ru', shortCode: 'RU', nativeName: 'Русский', name: 'Русский', flag: 'RU', dir: 'ltr' },
 ] as const;
 
 export type LanguageCode = typeof languages[number]['code'];
