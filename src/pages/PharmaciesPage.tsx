@@ -301,7 +301,7 @@ const PharmaciesPage = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="rounded-xl h-11 bg-card flex-1 justify-start min-w-[140px]">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate, 'PPP', { locale })}
+                  {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-50 bg-popover" align="end">
