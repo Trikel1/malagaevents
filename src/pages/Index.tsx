@@ -139,18 +139,18 @@ const Index = () => {
           <SportsContent />
         ) : (
           <>
-            {/* Quick Actions */}
-            <div className="grid grid-cols-4 gap-3 py-2">
+            {/* Quick Actions - elevated card */}
+            <div className="grid grid-cols-4 gap-1 p-2 bg-card rounded-2xl shadow-card border border-border/60">
               {quickActions.map((action, i) => (
                 <button
                   key={i}
                   onClick={action.action}
-                  className="flex flex-col items-center gap-2 group"
+                  className="flex flex-col items-center gap-1.5 py-2 px-1 group rounded-xl hover:bg-muted/60 active:scale-95 transition-all"
                 >
-                  <div className="p-4 rounded-2xl bg-background/40 backdrop-blur-md border border-border/60 shadow-sm hover:shadow-lg hover:bg-accent/10 group-hover:scale-105 group-active:scale-95 transition-all duration-200">
-                    <action.icon className="h-6 w-6 text-primary" />
+                  <div className="p-2.5 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                    <action.icon className="h-5 w-5 text-primary" />
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center">
+                  <span className="text-[11px] font-medium text-foreground/80 group-hover:text-foreground transition-colors text-center leading-tight">
                     {action.label}
                   </span>
                 </button>
