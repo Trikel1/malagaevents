@@ -114,13 +114,19 @@ const Index = () => {
         {/* Editorial title */}
         <div className="relative">
           <p className="text-[11px] uppercase tracking-[0.18em] text-white/75 font-semibold mb-2">
-            {t('home.kicker', 'Agenda de la ciudad')}
+            {appMode === 'deportes'
+              ? t('sports.heroKicker', 'Agenda deportiva')
+              : t('home.kicker', 'Agenda de la ciudad')}
           </p>
           <h1 className="text-[26px] sm:text-3xl leading-[1.12] font-bold tracking-tight">
-            {t('home.heroTitle', '¿Qué hacemos hoy en Málaga?')}
+            {appMode === 'deportes'
+              ? t('sports.heroTitle', 'Muévete por Málaga')
+              : t('home.heroTitle', '¿Qué hacemos hoy en Málaga?')}
           </h1>
           <p className="text-sm text-white/85 mt-2 max-w-md">
-            {t('home.heroSubtitle', 'Eventos, planes y experiencias cerca de ti.')}
+            {appMode === 'deportes'
+              ? t('sports.heroSubtitle', 'Carreras, torneos, clases y actividades deportivas cerca de ti.')
+              : t('home.heroSubtitle', 'Eventos, planes y experiencias cerca de ti.')}
           </p>
         </div>
 
@@ -131,7 +137,9 @@ const Index = () => {
           <Input
             id="home-search"
             type="search"
-            placeholder={t('home.searchPlaceholder', 'Buscar eventos, lugares…')}
+            placeholder={appMode === 'deportes'
+              ? t('sports.searchPlaceholder', 'Buscar deportes, instalaciones…')
+              : t('home.searchPlaceholder', 'Buscar eventos, lugares…')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-11 bg-card text-foreground h-12 rounded-2xl border-0 shadow-soft focus-visible:ring-2 focus-visible:ring-primary"
