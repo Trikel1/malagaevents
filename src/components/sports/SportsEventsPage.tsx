@@ -12,7 +12,9 @@ import SportEventCard from '@/components/sports/SportEventCard';
 import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
 import { useSportsEvents } from '@/hooks/useSportsEvents';
-import { SPORT_CATEGORIES, SPORT_ICONS } from '@/types/sports';
+import { SPORT_CATEGORIES } from '@/types/sports';
+import SportIcon from '@/components/sports/SportIcon';
+import { Trophy } from 'lucide-react';
 import type { SportCategory } from '@/types/sports';
 
 const TIMEZONE = 'Europe/Madrid';
