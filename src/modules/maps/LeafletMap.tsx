@@ -30,8 +30,22 @@ const buildPinIcon = (color: string) =>
     popupAnchor: [0, -32],
   });
 
-const PIN_DEFAULT = buildPinIcon('hsl(173, 80%, 38%)');
-const PIN_APPROX = buildPinIcon('hsl(35, 80%, 50%)');
+const KIND_COLORS: Record<string, string> = {
+  event: 'hsl(173, 80%, 38%)',
+  venue: 'hsl(265, 70%, 55%)',
+  sport: 'hsl(150, 70%, 40%)',
+  pharmacy: 'hsl(0, 75%, 55%)',
+  demo: 'hsl(35, 80%, 50%)',
+};
+const PIN_DEFAULT = buildPinIcon(KIND_COLORS.event);
+const PIN_APPROX = buildPinIcon(KIND_COLORS.demo);
+const ICON_CACHE: Record<string, L.DivIcon> = {};
+const pinFor = (m: MapMarker) => {
+  if (m.approximate) return PIN_APPROX;
+  const key = m.kind ?? 'event';
+  if (!ICON_CACHE[key]) ICON_CACHE[key] = buildPinIcon(KIND_COLORS[key] ?? KIND_COLORS.event);
+  return ICON_CACHE[key];
+};
 
 const userIcon = L.divIcon({
   className: '',
