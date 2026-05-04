@@ -78,13 +78,13 @@ const Index = () => {
         <div className="absolute inset-0 opacity-[0.08] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 20% 10%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)', backgroundSize: '40px 40px, 60px 60px' }} />
 
         {/* Top controls */}
-        <div className="relative flex justify-between items-center gap-3 mb-6">
-          <div className="flex bg-white/15 backdrop-blur-md rounded-full p-0.5 border border-white/10">
+        <div className="relative flex justify-between items-center gap-2 mb-6 min-w-0">
+          <div className="flex bg-white/15 backdrop-blur-md rounded-full p-0.5 border border-white/10 min-w-0 shrink">
             <button
               onClick={() => setAppMode('eventos')}
               aria-pressed={appMode === 'eventos'}
               className={cn(
-                'px-4 py-1.5 rounded-full text-sm font-semibold transition-all min-h-[36px]',
+                'px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-all min-h-[36px] whitespace-nowrap',
                 appMode === 'eventos'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-white/85 hover:text-white'
@@ -96,7 +96,7 @@ const Index = () => {
               onClick={() => setAppMode('deportes')}
               aria-pressed={appMode === 'deportes'}
               className={cn(
-                'px-4 py-1.5 rounded-full text-sm font-semibold transition-all min-h-[36px]',
+                'px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-all min-h-[36px] whitespace-nowrap',
                 appMode === 'deportes'
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-white/85 hover:text-white'
@@ -105,11 +105,7 @@ const Index = () => {
               {t('sports.title')}
             </button>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="hidden xs:inline-flex items-center gap-1 px-2.5 h-8 rounded-full bg-white/12 backdrop-blur-md border border-white/15 text-[12px] font-medium text-white/90">
-              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-              Málaga
-            </span>
+          <div className="flex items-center gap-1 shrink-0">
             <ThemeToggle />
             <LanguageSelector variant="compact" />
           </div>
