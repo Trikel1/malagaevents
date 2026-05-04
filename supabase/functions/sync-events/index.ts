@@ -275,6 +275,22 @@ const VENUE_ALIASES: Record<string, string> = {
   'garrapata': 'La Garrapata',
   'la caja blanca': 'La Caja Blanca',
   'caja blanca': 'La Caja Blanca',
+  // Phase 3 — provincia Málaga
+  'teatro auditorio felipe vi': 'Teatro Auditorio Felipe VI',
+  'felipe vi': 'Teatro Auditorio Felipe VI',
+  'teatro estepona': 'Teatro Auditorio Felipe VI',
+  'marenostrum': 'Marenostrum Fuengirola',
+  'marenostrum fuengirola': 'Marenostrum Fuengirola',
+  'starlite': 'Starlite Marbella',
+  'starlite marbella': 'Starlite Marbella',
+  'starlite occident': 'Starlite Marbella',
+  'teatro ciudad de marbella': 'Teatro Ciudad de Marbella',
+  'ciudad de marbella': 'Teatro Ciudad de Marbella',
+  'auditorio edgar neville': 'Auditorio Edgar Neville',
+  'edgar neville': 'Auditorio Edgar Neville',
+  'orquesta filarmonica de malaga': 'Orquesta Filarmónica de Málaga',
+  'orquesta filarmónica de málaga': 'Orquesta Filarmónica de Málaga',
+  'filarmonica de malaga': 'Orquesta Filarmónica de Málaga',
 };
 
 const MALAGA_MUNICIPALITIES = [
