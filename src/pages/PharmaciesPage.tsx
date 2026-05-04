@@ -32,26 +32,26 @@ const DEFAULT_MUNICIPALITY = 'Málaga';
 // Returns "now" anchored to Europe/Madrid (so the day picker reflects Madrid's calendar day).
 const madridNow = () => toZonedTime(new Date(), TIMEZONE);
 
-// Curated municipalities for pharmacies (sorted by priority then alpha).
-const PHARMACY_LOCALITIES: string[] = (() => {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  // Capital first
-  out.push('Málaga');
-  seen.add('málaga');
-  // Then catalog by priority desc
-  const sorted = [...LOCALITIES_CATALOG].sort(
-    (a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.name.localeCompare(b.name)
-  );
-  for (const e of sorted) {
-    const k = e.name.toLowerCase();
-    if (!seen.has(k)) {
-      seen.add(k);
-      out.push(e.name);
-    }
+// Curated list grouped by zone — mirrors the Events location filter pattern.
+type LocalityGroup = { zone: ZoneKey; label: string; entries: { name: string; slug: string }[] };
+
+const PHARMACY_LOCALITY_GROUPS: LocalityGroup[] = (() => {
+  const byZone = new Map<ZoneKey, { name: string; slug: string }[]>();
+  for (const e of LOCALITIES_CATALOG) {
+    const arr = byZone.get(e.zone) ?? [];
+    arr.push({ name: e.name, slug: e.slug });
+    byZone.set(e.zone, arr);
   }
-  return out;
+  for (const [, arr] of byZone) arr.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  return ZONE_ORDER
+    .map((z) => ({ zone: z, label: ZONE_LABELS[z], entries: byZone.get(z) ?? [] }))
+    .filter((g) => g.entries.length > 0);
 })();
+
+const ALL_PHARMACY_LOCALITIES: string[] = PHARMACY_LOCALITY_GROUPS.flatMap((g) =>
+  g.entries.map((e) => e.name)
+);
+
 
 const stripDiacritics = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
