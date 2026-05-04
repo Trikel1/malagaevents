@@ -186,14 +186,18 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
               <Calendar className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               <time dateTime={event.start_at} className="capitalize">{formattedDate}</time>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Building2 className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-              <span className="line-clamp-1">{venueName}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-              <span className="line-clamp-1">{locationName}</span>
-            </div>
+            {venueDisplay && (
+              <div className="flex items-center gap-1.5">
+                <Building2 className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                <span className="line-clamp-1">{venueDisplay}</span>
+              </div>
+            )}
+            {showLocationRow && (
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                <span className="line-clamp-1">{locationDisplay}</span>
+              </div>
+            )}
           </div>
 
           {/* Tags */}
