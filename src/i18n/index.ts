@@ -11,17 +11,19 @@ import pt from './locales/pt.json';
 import ja from './locales/ja.json';
 import zh from './locales/zh.json';
 import ru from './locales/ru.json';
+import ar from './locales/ar.json';
 
 export const languages = [
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-  { code: 'pt', name: 'Português', flag: '🇵🇹' },
-  { code: 'ja', name: '日本語', flag: '🇯🇵' },
-  { code: 'zh', name: '中文', flag: '🇨🇳' },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'es', name: 'Español', flag: '🇪🇸', dir: 'ltr' },
+  { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷', dir: 'ltr' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹', dir: 'ltr' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹', dir: 'ltr' },
+  { code: 'ar', name: 'العربية', flag: 'AR', dir: 'rtl' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵', dir: 'ltr' },
+  { code: 'zh', name: '中文', flag: '🇨🇳', dir: 'ltr' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺', dir: 'ltr' },
 ] as const;
 
 export type LanguageCode = typeof languages[number]['code'];
@@ -36,6 +38,7 @@ const resources = {
   ja: { translation: ja },
   zh: { translation: zh },
   ru: { translation: ru },
+  ar: { translation: ar },
 };
 
 i18n
@@ -53,5 +56,17 @@ i18n
       lookupLocalStorage: 'malaga-events-lang',
     },
   });
+
+// Sync <html lang> and <html dir> with the active language for proper RTL support.
+const applyHtmlLangDir = (lng: string) => {
+  if (typeof document === 'undefined') return;
+  const base = (lng || 'es').split('-')[0];
+  const meta = languages.find((l) => l.code === base);
+  document.documentElement.lang = base;
+  document.documentElement.dir = meta?.dir === 'rtl' ? 'rtl' : 'ltr';
+};
+
+applyHtmlLangDir(i18n.language);
+i18n.on('languageChanged', applyHtmlLangDir);
 
 export default i18n;
