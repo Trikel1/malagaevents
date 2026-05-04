@@ -59,7 +59,7 @@ const TicketsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-40 p-4">
+      <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 p-4 shadow-soft">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">{t('tickets.title')}</h1>
           <Button asChild size="sm">
