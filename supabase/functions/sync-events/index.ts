@@ -422,11 +422,20 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
   let hour = 20, minute = 0;
   
   if (timeText) {
-    const timeMatch = timeText.match(/(\d{1,2})[:\.](\d{2})/);
+    // Accept HH:MM, HH.MM, "20h", "20 h", "20:00 h"
+    const timeMatch = timeText.match(/(\d{1,2})(?:[:\.](\d{2}))?\s*h?/i);
     if (timeMatch) {
       hour = parseInt(timeMatch[1]);
-      minute = parseInt(timeMatch[2]);
+      minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
     }
+  }
+  
+  // ISO first (YYYY-MM-DD or full ISO)
+  const isoMatch = dateText.match(/(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{1,2}):(\d{2}))?/);
+  if (isoMatch) {
+    const h = isoMatch[4] ? parseInt(isoMatch[4]) : hour;
+    const m = isoMatch[5] ? parseInt(isoMatch[5]) : minute;
+    return new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]), h, m);
   }
   
   const spanishMatch = dateText.match(/(\d{1,2})\s+(?:de\s+)?(\w+)(?:\s+(?:de\s+)?(\d{4}))?/i);
@@ -444,6 +453,7 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     }
   }
   
+  // DD/MM/YYYY or DD-MM-YYYY
   const numericMatch = dateText.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
   if (numericMatch) {
     const day = parseInt(numericMatch[1]);
@@ -453,9 +463,21 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     return new Date(year, month, day, hour, minute);
   }
   
-  const isoMatch = dateText.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) {
-    return new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]), hour, minute);
+  // DD/MM only — infer year (next future occurrence)
+  const shortMatch = dateText.match(/^\s*(\d{1,2})[\/\-\.](\d{1,2})\b/);
+  if (shortMatch) {
+    const day = parseInt(shortMatch[1]);
+    const month = parseInt(shortMatch[2]) - 1;
+    if (day >= 1 && day <= 31 && month >= 0 && month <= 11) {
+      const now = new Date();
+      let year = now.getFullYear();
+      let date = new Date(year, month, day, hour, minute);
+      // If already past by more than 1 day, assume next year
+      if (date.getTime() < now.getTime() - 24 * 3600 * 1000) {
+        date = new Date(year + 1, month, day, hour, minute);
+      }
+      return date;
+    }
   }
   
   return null;
