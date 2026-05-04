@@ -253,9 +253,13 @@ const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
+  const { toast } = useToast();
+
   const [selectedDate, setSelectedDate] = useState<Date>(() => madridNow());
   const [municipality, setMunicipality] = useState<string>(DEFAULT_MUNICIPALITY);
   const [search, setSearch] = useState('');
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
 
   const { data: dutyAll, isLoading: isLoadingDuty } =
     usePharmaciesOnDuty(selectedDate, municipality);
@@ -269,18 +273,70 @@ const PharmaciesPage = () => {
       .some((s: string) => stripDiacritics(s).includes(q));
   };
 
+  const withDistanceAndSort = <T extends { lat?: number | null; lng?: number | null }>(arr: T[]) => {
+    if (!userLoc) return arr.map((p) => ({ ...p, _distance: null as number | null }));
+    const enriched = arr.map((p) => {
+      const d = p.lat != null && p.lng != null
+        ? haversineKm(userLoc.lat, userLoc.lng, Number(p.lat), Number(p.lng))
+        : null;
+      return { ...p, _distance: d };
+    });
+    enriched.sort((a, b) => {
+      if (a._distance == null && b._distance == null) return 0;
+      if (a._distance == null) return 1;
+      if (b._distance == null) return -1;
+      return a._distance - b._distance;
+    });
+    return enriched;
+  };
+
   const dutyPharmacies = useMemo(
-    () => (dutyAll ?? []).filter(matchesSearch),
-    [dutyAll, search]
+    () => withDistanceAndSort((dutyAll ?? []).filter(matchesSearch)),
+    [dutyAll, search, userLoc]
   );
   const dirPharmacies = useMemo(
-    () => (dirAll ?? []).filter(matchesSearch),
-    [dirAll, search]
+    () => withDistanceAndSort((dirAll ?? []).filter(matchesSearch)),
+    [dirAll, search, userLoc]
   );
+
+  const dutyFallback = (dutyAll ?? []).some((p: any) => p?.__fallback);
 
   const isToday =
     formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd') ===
     formatInTimeZone(new Date(), TIMEZONE, 'yyyy-MM-dd');
+
+  const handleLocate = () => {
+    if (userLoc) {
+      setUserLoc(null);
+      return;
+    }
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast({
+        title: t('pharmacies.locationUnsupported', 'Tu dispositivo no soporta geolocalización'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      (err) => {
+        setLocating(false);
+        const denied = err.code === err.PERMISSION_DENIED;
+        toast({
+          title: denied
+            ? t('pharmacies.locationPermissionDenied', 'Permiso de ubicación denegado')
+            : t('pharmacies.locationError', 'No pudimos obtener tu ubicación'),
+          variant: 'destructive',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+  };
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
