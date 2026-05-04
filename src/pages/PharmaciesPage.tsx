@@ -43,15 +43,17 @@ interface PharmacyCardProps {
   showDutyBadge?: boolean;
 }
 
-const PharmacyCard = ({ pharmacy, showDutyBadge = false }: PharmacyCardProps) => (
-  <Card className="overflow-hidden">
+const PharmacyCard = ({ pharmacy, showDutyBadge = false }: PharmacyCardProps) => {
+  const { t } = useTranslation();
+  return (
+  <Card className={`overflow-hidden ${showDutyBadge ? 'border-green-500/40 ring-1 ring-green-500/20' : ''}`}>
     <CardContent className="p-4">
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="font-semibold text-lg">{pharmacy.name}</h3>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className="font-semibold text-lg leading-tight">{pharmacy.name}</h3>
         {showDutyBadge && (
           <Badge className="bg-green-500 hover:bg-green-500 text-white shrink-0">
             <Clock className="h-3 w-3 mr-1" />
-            De guardia
+            {t('pharmacies.onDuty', 'De guardia')}
           </Badge>
         )}
       </div>
@@ -88,7 +90,8 @@ const PharmacyCard = ({ pharmacy, showDutyBadge = false }: PharmacyCardProps) =>
       )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
