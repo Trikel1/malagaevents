@@ -134,14 +134,26 @@
     "continue": "Weiter"
   },
   "home": {
-    "searchPlaceholder": "Events, Orte suchen...",
+    "searchPlaceholder": "Events und Veranstaltungsorte suchen...",
     "todayEvents": "Heute in Málaga",
     "weekendEvents": "Dieses Wochenende",
     "nearbyEvents": "In deiner Nähe",
     "pharmaciesGuard": "Notdienst-Apotheken",
     "categories": "Kategorien",
     "enableLocation": "Standort aktivieren",
-    "enableLocationDesc": "Events in der Nähe anzeigen"
+    "enableLocationDesc": "Events in der Nähe anzeigen",
+    "kicker": "STADT-AGENDA",
+    "heroTitle": "Was unternehmen wir heute in Málaga?",
+    "heroSubtitle": "Events, Pläne und Erlebnisse in deiner Nähe.",
+    "quickToday": "Heute",
+    "quickWeekend": "Dieses Wochenende",
+    "quickNearby": "In der Nähe",
+    "quickPharmacy": "Apotheke",
+    "todayInMalaga": "Heute in Málaga",
+    "thisWeekend": "Dieses Wochenende",
+    "nearby": "In deiner Nähe",
+    "popularNow": "Jetzt beliebt",
+    "viewAll": "Alle ansehen"
   },
   "events": {
     "title": "Events",

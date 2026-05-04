@@ -141,7 +141,19 @@
     "pharmaciesGuard": "Farmacie di turno",
     "categories": "Categorie",
     "enableLocation": "Attiva posizione",
-    "enableLocationDesc": "Consente di vedere eventi vicini"
+    "enableLocationDesc": "Consente di vedere eventi vicini",
+    "kicker": "AGENDA DELLA CITTÀ",
+    "heroTitle": "Cosa facciamo oggi a Málaga?",
+    "heroSubtitle": "Eventi, programmi ed esperienze vicino a te.",
+    "quickToday": "Oggi",
+    "quickWeekend": "Questo weekend",
+    "quickNearby": "Vicino a te",
+    "quickPharmacy": "Farmacia",
+    "todayInMalaga": "Oggi a Málaga",
+    "thisWeekend": "Questo weekend",
+    "nearby": "Vicino a te",
+    "popularNow": "Popolari ora",
+    "viewAll": "Vedi tutto"
   },
   "events": {
     "title": "Eventi",

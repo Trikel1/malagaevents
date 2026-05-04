@@ -134,14 +134,26 @@
     "continue": "続行"
   },
   "home": {
-    "searchPlaceholder": "イベント、場所を検索...",
+    "searchPlaceholder": "イベントや会場を検索...",
     "todayEvents": "今日のマラガ",
     "weekendEvents": "今週末",
     "nearbyEvents": "近くのイベント",
     "pharmaciesGuard": "当番薬局",
     "categories": "カテゴリ",
     "enableLocation": "位置情報を有効にする",
-    "enableLocationDesc": "近くのイベントを見るには許可してください"
+    "enableLocationDesc": "近くのイベントを見るには許可してください",
+    "kicker": "シティアジェンダ",
+    "heroTitle": "今日はMálagaで何をする？",
+    "heroSubtitle": "近くのイベント、予定、体験を見つけよう。",
+    "quickToday": "今日",
+    "quickWeekend": "今週末",
+    "quickNearby": "近く",
+    "quickPharmacy": "薬局",
+    "todayInMalaga": "今日のMálaga",
+    "thisWeekend": "今週末",
+    "nearby": "近く",
+    "popularNow": "人気",
+    "viewAll": "すべて見る"
   },
   "events": {
     "title": "イベント",
