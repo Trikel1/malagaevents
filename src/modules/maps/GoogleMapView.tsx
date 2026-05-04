@@ -46,9 +46,12 @@ export const GoogleMapView = ({ markers, onMarkerSelect }: GoogleMapViewProps) =
     });
 
     loader
-      .importLibrary('maps')
-      .then(async ({ Map, InfoWindow }) => {
+      .load()
+      .then(async () => {
         if (cancelled || !containerRef.current) return;
+        const { Map, InfoWindow } = (await google.maps.importLibrary(
+          'maps'
+        )) as google.maps.MapsLibrary;
         const map = new Map(containerRef.current, {
           center: MALAGA_CENTER,
           zoom: DEFAULT_ZOOM,
