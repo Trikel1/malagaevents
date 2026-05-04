@@ -25,7 +25,98 @@
     "thisWeekend": "This weekend",
     "nearby": "Nearby",
     "show": "Show",
-    "clear": "Clear"
+    "clear": "Clear",
+    "add": "Add",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "tryAgain": "Try again",
+    "loadingDots": "…"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "Sorry, the page you are looking for does not exist.",
+    "backHome": "Back to home"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "subtitle": "Manage events and sources",
+    "accessDenied": "Access denied",
+    "accessDeniedDesc": "You must sign in to access the admin panel.",
+    "noPermissions": "No permissions",
+    "noPermissionsDesc": "You don't have admin permissions to access this section.",
+    "stats": {
+      "published": "Published",
+      "pending": "Pending",
+      "sources": "Sources"
+    },
+    "tabs": {
+      "pending": "Pending",
+      "sources": "Sources",
+      "sports": "Sports",
+      "all": "All"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "runScraping": "Run scraping",
+      "addSource": "Add source",
+      "syncSportsNow": "Sync Sports now",
+      "backToHome": "Back to home",
+      "login": "Sign in"
+    },
+    "dialogs": {
+      "deleteEventTitle": "Delete event?",
+      "deleteEventDesc": "This action cannot be undone.",
+      "deleteSourceTitle": "Delete source?",
+      "deleteSourceDesc": "\"{{name}}\" will be removed from scraping sources.",
+      "newSourceTitle": "New scraping source",
+      "newSourceDesc": "Add a new website to extract events automatically.",
+      "name": "Name",
+      "url": "URL",
+      "defaultCategory": "Default category"
+    },
+    "empty": {
+      "noPending": "No pending events",
+      "noPendingDesc": "All events have been reviewed",
+      "noSyncRuns": "No runs recorded."
+    },
+    "toasts": {
+      "approved": "Event approved",
+      "approvedDesc": "The event has been published.",
+      "rejected": "Event rejected",
+      "rejectedDesc": "The event has been rejected.",
+      "deleted": "Event deleted",
+      "deletedDesc": "The event has been deleted.",
+      "errorApprove": "Could not approve the event.",
+      "errorReject": "Could not reject the event.",
+      "errorDelete": "Could not delete the event.",
+      "sourceActivated": "Source activated",
+      "sourceDeactivated": "Source deactivated",
+      "errorToggle": "Could not change the state.",
+      "sourceAdded": "Source added",
+      "sourceAddedDesc": "The new source has been added.",
+      "errorAddSource": "Could not add the source.",
+      "nameUrlRequired": "Name and URL are required.",
+      "sourceDeleted": "Source deleted",
+      "errorDeleteSource": "Could not delete the source.",
+      "scrapingStarted": "Scraping started",
+      "scrapingStartedDesc": "The process may take several minutes.",
+      "scrapingDone": "Scraping completed",
+      "scrapingDoneDesc": "Events have been updated.",
+      "scrapingError": "Error during scraping.",
+      "sportsSyncDone": "Sports sync completed",
+      "sportsSyncOk": "Sync successful.",
+      "sportsSyncReview": "Check the results.",
+      "sportsSyncError": "Could not run the sync."
+    },
+    "sports": {
+      "cron": "Cron: hourly",
+      "lastResult": "Last sync result",
+      "lastRuns": "Latest sync runs",
+      "lastRunsDesc": "Last 10 sports sync executions",
+      "totalUpserted": "Total: {{upserted}} upserted, {{ok}}/{{total}} sources OK",
+      "eventsCount": "{{count}} sports events"
+    }
   },
   "nav": {
     "home": "Home",

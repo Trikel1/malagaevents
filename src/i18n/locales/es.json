@@ -25,7 +25,98 @@
     "thisWeekend": "Este finde",
     "nearby": "Cerca",
     "show": "Mostrar",
-    "clear": "Limpiar"
+    "clear": "Limpiar",
+    "add": "Añadir",
+    "remove": "Quitar",
+    "confirm": "Confirmar",
+    "tryAgain": "Inténtalo de nuevo",
+    "loadingDots": "…"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "Lo sentimos, la página que buscas no existe.",
+    "backHome": "Volver al inicio"
+  },
+  "admin": {
+    "title": "Panel de Administración",
+    "subtitle": "Gestión de eventos y fuentes",
+    "accessDenied": "Acceso denegado",
+    "accessDeniedDesc": "Debes iniciar sesión para acceder al panel de administración.",
+    "noPermissions": "Sin permisos",
+    "noPermissionsDesc": "No tienes permisos de administrador para acceder a esta sección.",
+    "stats": {
+      "published": "Publicados",
+      "pending": "Pendientes",
+      "sources": "Fuentes"
+    },
+    "tabs": {
+      "pending": "Pendientes",
+      "sources": "Fuentes",
+      "sports": "Deportes",
+      "all": "Todos"
+    },
+    "actions": {
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "runScraping": "Ejecutar scraping",
+      "addSource": "Añadir fuente",
+      "syncSportsNow": "Sync Deportes ahora",
+      "backToHome": "Volver al inicio",
+      "login": "Iniciar sesión"
+    },
+    "dialogs": {
+      "deleteEventTitle": "¿Eliminar evento?",
+      "deleteEventDesc": "Esta acción no se puede deshacer.",
+      "deleteSourceTitle": "¿Eliminar fuente?",
+      "deleteSourceDesc": "Se eliminará \"{{name}}\" de las fuentes de scraping.",
+      "newSourceTitle": "Nueva fuente de scraping",
+      "newSourceDesc": "Añade una nueva web para extraer eventos automáticamente.",
+      "name": "Nombre",
+      "url": "URL",
+      "defaultCategory": "Categoría por defecto"
+    },
+    "empty": {
+      "noPending": "No hay eventos pendientes",
+      "noPendingDesc": "Todos los eventos han sido revisados",
+      "noSyncRuns": "No hay ejecuciones registradas."
+    },
+    "toasts": {
+      "approved": "Evento aprobado",
+      "approvedDesc": "El evento ha sido publicado.",
+      "rejected": "Evento rechazado",
+      "rejectedDesc": "El evento ha sido rechazado.",
+      "deleted": "Evento eliminado",
+      "deletedDesc": "El evento ha sido eliminado.",
+      "errorApprove": "No se pudo aprobar el evento.",
+      "errorReject": "No se pudo rechazar el evento.",
+      "errorDelete": "No se pudo eliminar el evento.",
+      "sourceActivated": "Fuente activada",
+      "sourceDeactivated": "Fuente desactivada",
+      "errorToggle": "No se pudo cambiar el estado.",
+      "sourceAdded": "Fuente añadida",
+      "sourceAddedDesc": "La nueva fuente ha sido añadida.",
+      "errorAddSource": "No se pudo añadir la fuente.",
+      "nameUrlRequired": "Nombre y URL son requeridos.",
+      "sourceDeleted": "Fuente eliminada",
+      "errorDeleteSource": "No se pudo eliminar la fuente.",
+      "scrapingStarted": "Scraping iniciado",
+      "scrapingStartedDesc": "El proceso puede tardar varios minutos.",
+      "scrapingDone": "Scraping completado",
+      "scrapingDoneDesc": "Los eventos han sido actualizados.",
+      "scrapingError": "Error durante el scraping.",
+      "sportsSyncDone": "Sync deportes completado",
+      "sportsSyncOk": "Sincronización exitosa.",
+      "sportsSyncReview": "Revisa los resultados.",
+      "sportsSyncError": "No se pudo ejecutar el sync."
+    },
+    "sports": {
+      "cron": "Cron: cada hora",
+      "lastResult": "Resultado del último sync",
+      "lastRuns": "Últimos sync runs",
+      "lastRunsDesc": "Últimas 10 ejecuciones de sincronización deportiva",
+      "totalUpserted": "Total: {{upserted}} insertados, {{ok}}/{{total}} fuentes OK",
+      "eventsCount": "{{count}} eventos deportivos"
+    }
   },
   "nav": {
     "home": "Inicio",
