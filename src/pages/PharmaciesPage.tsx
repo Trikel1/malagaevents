@@ -90,7 +90,8 @@ const PharmacyCard = ({ pharmacy, showDutyBadge = false }: PharmacyCardProps) =>
       )}
     </CardContent>
   </Card>
-);
+  );
+};
 
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
