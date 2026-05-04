@@ -1,98 +1,53 @@
+# Reemplazo del mapa: Google Maps JS API
 
+Sustituir MapLibre + tiles de OpenStreetMap por **Google Maps JavaScript API** con estilo moderno (Map ID), clustering de marcadores e InfoWindow al seleccionar.
 
-# Phase 3.1: Replace Firecrawl with Jina Reader + AI extraction for Sports
+## Archivos a modificar (mínimos)
 
-## Problem
-Many sports sites (Unicaja, BeSoccer, Sportmaniacs, etc.) are JS-heavy SPAs that Firecrawl cannot render, returning empty results.
+1. `src/modules/maps/GoogleMapView.tsx` *(nuevo)* — wrapper Google Maps con loader, clustering, InfoWindow, fallback si falta API key.
+2. `src/pages/MapPage.tsx` — cambiar import `ModernMap` → `GoogleMapView` (1 línea de import + 1 línea en JSX). El resto del page (header, sheet, hooks) se mantiene.
+3. `package.json` — añadir `@googlemaps/js-api-loader` y `@googlemaps/markerclusterer`.
 
-## Solution: 2-Step Pipeline
-Replace Firecrawl's single-call approach with a two-step pipeline:
+Archivos no tocados: routing, theme, Tailwind, hooks de datos, otros pages.
 
-1. **Jina Reader** (`https://r.jina.ai/{url}`) -- renders JS-heavy pages via headless browser and returns clean markdown. Free tier available, no API key required for basic usage.
-2. **Lovable AI Gateway** (Gemini Flash) -- takes the markdown and extracts structured event JSON using the existing `SPORT_EVENT_SCHEMA`. The `LOVABLE_API_KEY` is already configured.
+## Variables de entorno (sin valores en código)
 
-This approach handles JS-heavy sites because Jina Reader uses a real headless browser under the hood.
+- `VITE_GOOGLE_MAPS_API_KEY` — clave de Google Maps JS API
+- `VITE_GOOGLE_MAP_ID` — Map ID con estilo personalizado (creado en Google Cloud Console → Map Styles)
 
-## Changes
+Si falta cualquiera de las dos en runtime, el componente muestra un panel amigable con instrucciones (sin romper la app). Si la API falla al cargar, botón "Reintentar".
 
-### 1. Replace `scrapeSource()` in `supabase/functions/sync-sports/index.ts`
+## Detalles técnicos
 
-Replace the single Firecrawl call with two sequential calls:
+- Loader: `@googlemaps/js-api-loader` con `libraries: ['marker']` para `AdvancedMarkerElement`.
+- Mapa: `mapId` (estilo cloud-based moderno), `disableDefaultUI: false`, `mapTypeControl: false`, `fullscreenControl: false`, `streetViewControl: false`.
+- Centro: Málaga `(36.7213, -4.4214)`, zoom `12`.
+- Clustering: `@googlemaps/markerclusterer` (`MarkerClusterer`) con renderer por defecto.
+- Selección: click en marcador → abre `InfoWindow` con título/subtítulo + llama `onMarkerSelect(id)` para que `MapPage` abra el `MarkerSheet` existente.
+- Performance: instancia de mapa creada una sola vez (ref); marcadores se actualizan en `useEffect` al cambiar `markers` (limpia anteriores, crea nuevos, refresca cluster).
+- Responsive: contenedor `width:100%; height:100%`; el page ya define `h-[calc(100vh-180px)]`.
 
-```text
-scrapeSource(url, prompt, apiKey)
-  becomes
-scrapeWithJinaAndAI(url, prompt)
-  Step 1: fetch("https://r.jina.ai/{url}") -> markdown
-  Step 2: POST Lovable AI Gateway with markdown + prompt -> structured JSON
+## Contrato de marcadores
+
+Sin cambios. `GoogleMapView` acepta el mismo `MapMarker[]` que `ModernMap`:
+
+```ts
+{ id, lat, lng, title?, subtitle?, onClick? }
 ```
 
-- Jina Reader call: `GET https://r.jina.ai/{encoded_url}` with `Accept: application/json` header (returns `{ content: "..." }` with rendered markdown)
-- AI extraction call: `POST https://ai.gateway.lovable.dev/v1/chat/completions` with `LOVABLE_API_KEY`, using `google/gemini-2.5-flash` model and tool calling to extract events matching the existing schema
-- Keep the 45s timeout, abort controller pattern
-- Fall back to Firecrawl if Jina Reader fails (graceful degradation)
+Props extra opcionales: `selectedMarkerId?: string`, `onMarkerSelect?: (id: string) => void`.
 
-### 2. Replace `searchSportsEvents()` 
+## Limpieza opcional
 
-Keep using Firecrawl Search API for web discovery queries (Jina Reader doesn't do web search). No change needed here.
+`src/modules/maps/ModernMap.tsx` y `MarkerSheet.tsx` permanecen. `MarkerSheet` se sigue usando. `ModernMap` queda huérfano — puedo borrarlo en este mismo cambio si confirmas.
 
-### 3. Remove Firecrawl as hard dependency
+## Pasos tras aprobación
 
-- `FIRECRAWL_API_KEY` becomes optional for source scraping (still needed for search discovery)
-- If neither Jina nor Firecrawl succeed, log and skip gracefully
+1. Instalar deps + crear `GoogleMapView.tsx`.
+2. Editar import/JSX en `MapPage.tsx`.
+3. Pedir las dos secrets (`VITE_GOOGLE_MAPS_API_KEY`, `VITE_GOOGLE_MAP_ID`) — sin estos valores el mapa muestra el fallback pero la app sigue funcionando.
+4. QA: cargar `/map`, verificar tiles modernos de Google, clustering al alejar zoom, click en marcador abre `MarkerSheet`.
 
-### 4. Update domain allowlist
+## Notas sobre la API key
 
-Jina Reader fetches the page server-side, so the allowlist check should validate the *target* URL before passing to Jina, not Jina's domain. No structural change needed -- just keep the existing check on `source.url`.
-
-## Technical Details
-
-### Jina Reader Request
-```typescript
-const jinaResponse = await fetch(`https://r.jina.ai/${encodeURIComponent(url)}`, {
-  headers: { "Accept": "application/json" },
-  signal: controller.signal,
-});
-const { content } = await jinaResponse.json(); // markdown string
-```
-
-### AI Extraction Request
-```typescript
-const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${lovableApiKey}`,
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    model: "google/gemini-2.5-flash",
-    messages: [
-      { role: "system", content: "Extract sports events from the provided webpage content." },
-      { role: "user", content: `${prompt}\n\nWebpage content:\n${content.substring(0, 30000)}` },
-    ],
-    tools: [{
-      type: "function",
-      function: {
-        name: "extract_events",
-        parameters: SPORT_EVENT_SCHEMA,
-      },
-    }],
-    tool_choice: { type: "function", function: { name: "extract_events" } },
-  }),
-});
-```
-
-### Fallback Chain
-```text
-For each source:
-  1. Try Jina Reader + Gemini extraction
-  2. If Jina fails -> try Firecrawl (if API key available)
-  3. If both fail -> log error, skip source
-```
-
-## Files Modified
-- `supabase/functions/sync-sports/index.ts` -- replace `scrapeSource`, add `scrapeWithJinaAndAI`, keep `searchSportsEvents` unchanged
-
-## No Frontend Changes
-This is entirely a backend pipeline change. The sports events UI, hooks, and filters remain untouched.
-
+`VITE_GOOGLE_MAPS_API_KEY` se expone en el bundle del cliente (es la naturaleza de Google Maps JS). **Obligatorio** restringir la key en Google Cloud Console por **HTTP referrer** a tus dominios (`*.lovable.app`, dominio custom). Esto es estándar y seguro siempre que la restricción esté activa.
