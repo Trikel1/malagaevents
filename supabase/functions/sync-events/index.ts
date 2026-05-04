@@ -1375,7 +1375,7 @@ async function syncSingleSource(
       result.status = result.inserted > 0 || result.updated > 0 ? 'success' : 'partial';
     }
     
-    // Update sync run
+    // Update sync run with full diagnostics
     if (syncRun?.id) {
       await supabase
         .from('sync_runs')
@@ -1386,11 +1386,18 @@ async function syncSingleSource(
           updated: result.updated,
           skipped: result.skipped,
           occurrences_created: result.occurrencesCreated,
-          error_details: result.error ? { 
-            message: result.error,
+          error_details: {
+            strategy_used: strategyUsed,
+            http_status: directHttpStatus,
+            events_found_raw: result.eventsFound,
+            events_created: result.inserted,
+            events_updated: result.updated,
+            events_skipped: result.skipped,
+            duration_ms: Date.now() - startTime,
             attempts: result.attempts,
             urlExamples: result.urlExamples,
-          } : null,
+            message: result.error || null,
+          },
         })
         .eq('id', syncRun.id);
     }
