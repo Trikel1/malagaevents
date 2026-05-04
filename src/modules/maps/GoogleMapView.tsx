@@ -4,6 +4,7 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import type { MapMarker } from './types';
+import { DemoMapView } from './DemoMapView';
 
 interface GoogleMapViewProps {
   markers: MapMarker[];
