@@ -24,7 +24,11 @@ const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
 };
 
+const TIMEZONE = 'Europe/Madrid';
 const DEFAULT_MUNICIPALITY = 'Málaga';
+
+// Returns "now" anchored to Europe/Madrid (so the day picker reflects Madrid's calendar day).
+const madridNow = () => toZonedTime(new Date(), TIMEZONE);
 
 // Curated municipalities for pharmacies (sorted by priority then alpha).
 const PHARMACY_LOCALITIES: string[] = (() => {
