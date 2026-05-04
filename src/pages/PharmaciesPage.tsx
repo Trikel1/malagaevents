@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import {
   Phone, MapPin, Calendar as CalendarIcon, Clock, AlertTriangle,
-  Search, ChevronDown, Check, Navigation, X, Pill,
+  Search, ChevronDown, Check, Navigation, X, Pill, LocateFixed, Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,10 +14,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 import EmptyState from '@/components/common/EmptyState';
 import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { usePharmaciesOnDuty, usePharmacyDirectory } from '@/hooks/usePharmacies';
-import { LOCALITIES_CATALOG } from '@/lib/localitiesCatalog';
+import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib/localitiesCatalog';
+import { haversineKm, formatDistance } from '@/lib/distance';
 import { cn } from '@/lib/utils';
 
 const locales: Record<string, Locale> = {
