@@ -310,7 +310,19 @@
   },
   "map": {
     "eventsOnMap": "地图上的活动",
-    "noGeoEvents": "没有精确位置的活动"
+    "noGeoEvents": "没有精确位置的活动",
+    "subtitle": "探索您附近的活动、场地和服务。",
+    "searchPlaceholder": "搜索活动、场地或地址…",
+    "all": "全部",
+    "events": "活动",
+    "venues": "场地",
+    "sports": "体育",
+    "pharmacies": "药店",
+    "noResults": "无结果",
+    "openDirections": "路线",
+    "viewVenueEvents": "查看活动",
+    "onDuty": "值班",
+    "nearYou": "在您附近"
   },
   "sports": {
     "title": "体育",

@@ -321,7 +321,19 @@
     "geolocationDenied": "Permiso de ubicación denegado",
     "geolocationUnavailable": "No se pudo obtener tu ubicación",
     "areaUpdated": "Resultados actualizados para esta zona",
-    "noEventsHere": "No hay eventos en esta zona"
+    "noEventsHere": "No hay eventos en esta zona",
+    "subtitle": "Explora eventos, recintos y servicios cerca de ti.",
+    "searchPlaceholder": "Buscar eventos, recintos o direcciones…",
+    "all": "Todos",
+    "events": "Eventos",
+    "venues": "Recintos",
+    "sports": "Deportes",
+    "pharmacies": "Farmacias",
+    "noResults": "Sin resultados",
+    "openDirections": "Cómo llegar",
+    "viewVenueEvents": "Ver eventos",
+    "onDuty": "De guardia",
+    "nearYou": "Cerca de ti"
   },
   "sports": {
     "title": "Deportes",

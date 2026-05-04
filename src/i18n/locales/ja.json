@@ -310,7 +310,19 @@
   },
   "map": {
     "eventsOnMap": "地図上のイベント",
-    "noGeoEvents": "正確な位置情報を持つイベントはありません"
+    "noGeoEvents": "正確な位置情報を持つイベントはありません",
+    "subtitle": "近くのイベント、会場、サービスを探そう。",
+    "searchPlaceholder": "イベント、会場、住所を検索…",
+    "all": "すべて",
+    "events": "イベント",
+    "venues": "会場",
+    "sports": "スポーツ",
+    "pharmacies": "薬局",
+    "noResults": "結果がありません",
+    "openDirections": "経路",
+    "viewVenueEvents": "イベントを見る",
+    "onDuty": "当番",
+    "nearYou": "近く"
   },
   "sports": {
     "title": "スポーツ",

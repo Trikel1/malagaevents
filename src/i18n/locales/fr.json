@@ -310,7 +310,19 @@
   },
   "map": {
     "eventsOnMap": "événements sur la carte",
-    "noGeoEvents": "Aucun événement avec localisation exacte"
+    "noGeoEvents": "Aucun événement avec localisation exacte",
+    "subtitle": "Explorez événements, lieux et services près de vous.",
+    "searchPlaceholder": "Rechercher événements, lieux ou adresses…",
+    "all": "Tous",
+    "events": "Événements",
+    "venues": "Lieux",
+    "sports": "Sports",
+    "pharmacies": "Pharmacies",
+    "noResults": "Aucun résultat",
+    "openDirections": "Itinéraire",
+    "viewVenueEvents": "Voir événements",
+    "onDuty": "De garde",
+    "nearYou": "Près de vous"
   },
   "sports": {
     "title": "Sports",
