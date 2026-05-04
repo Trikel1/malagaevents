@@ -90,7 +90,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
       aria-label={`${eventTitle}, ${formattedDate}, ${venueName}`}
     >
       <Card className={cn(
-        'overflow-hidden hover:shadow-lg transition-shadow group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2',
+        'overflow-hidden border-border/60 shadow-soft hover:shadow-card transition-all duration-300 group focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:-translate-y-0.5',
         compact ? 'flex-row flex' : ''
       )}>
         {/* Image */}
