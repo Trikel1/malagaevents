@@ -862,11 +862,11 @@ async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchR
     case 'sala-trinchera':
       return fetchTrincheraRSS();
     case 'paris-15':
-      return fetchGenericHTML('https://paris15.es/eventos/', 'París 15', 'paris15-html-jsonld');
+      return fetchParis15Cards();
     case 'sala-marte':
       return fetchGenericHTML('https://salamartemalaga.com/eventos/', 'Sala Marte', 'salamarte-html-jsonld');
     case 'la-cochera-cabaret':
-      return fetchGenericHTML('https://lacocheracabaret.com/programacion/', 'La Cochera Cabaret', 'cochera-html-jsonld');
+      return fetchCocheraCards();
     case 'teatro-soho':
       return fetchGenericHTML(source.chosen_entrypoint || 'https://teatrodelsoho.com/programacion/', 'Teatro del Soho CaixaBank', 'soho-html-jsonld');
     case 'teatro-cervantes':
