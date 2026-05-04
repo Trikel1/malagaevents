@@ -949,7 +949,9 @@ Deno.serve(async (req) => {
 
     for (const evt of rawEvents) {
       try {
-        const title = sanitizeText(evt.title);
+        const rawTitle = sanitizeText(evt.title);
+        if (!rawTitle || rawTitle.length < 3) continue;
+        const title = cleanSportTitle(rawTitle);
         if (!title || title.length < 3) continue;
 
         const startDatetime = parseEventDate(evt.date, evt.time);
@@ -958,22 +960,28 @@ Deno.serve(async (req) => {
         const normalizedTitle = normalizeText(title);
         const venue = sanitizeText(evt.venue) || source.name;
         const normalizedVenue = normalizeText(venue);
-        const city = sanitizeText(evt.city) || "Málaga";
+        const rawCity = sanitizeText(evt.city) || "Málaga";
         const address = sanitizeText(evt.address || "");
-        const sportCategory = mapSportCategory(evt.sport || source.sport_category);
+        const inferred = inferMunicipality(rawCity, venue, address);
+        const city = inferred || rawCity;
+        const competition = sanitizeText(evt.competition) || null;
+        const sportCategory = mapSportCategory(
+          evt.sport || source.sport_category,
+          title,
+          competition || "",
+          venue,
+        );
         const stableRef = evt.tickets_url || evt.title || "";
 
-        // Málaga province filter
         const inMalaga = isInMalagaProvince(city, venue, address, source.slug);
         if (!inMalaga) {
           skippedProvince++;
-          console.log(`[sync-sports] Skipped (not Málaga): "${title}" venue="${venue}" city="${city}"`);
           continue;
         }
 
         const dedupeKey = await generateDedupeKey(
           normalizedTitle, normalizedVenue, startDatetime,
-          sportCategory, domain, stableRef
+          sportCategory, domain, stableRef,
         );
 
         const startDate = toMadridDate(startDatetime);
@@ -983,13 +991,14 @@ Deno.serve(async (req) => {
           title,
           normalized_title: normalizedTitle,
           sport_category: sportCategory,
-          competition: sanitizeText(evt.competition) || null,
+          competition,
           teams: sanitizeText(evt.teams) || null,
           start_datetime: startDatetime,
           start_date: startDate,
           venue_name: venue,
           normalized_venue: normalizedVenue,
           city,
+          address: address || null,
           tickets_url: sanitizeUrl(evt.tickets_url) || null,
           image_url: sanitizeUrl(evt.image_url) || null,
           price_info: sanitizeText(evt.price_info) || null,
