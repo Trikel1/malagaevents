@@ -7,7 +7,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useSportsVenues } from '@/hooks/useSportsEvents';
-import { SPORT_CATEGORIES, SPORT_ICONS, type SportCategory } from '@/types/sports';
+import { SPORT_CATEGORIES, type SportCategory } from '@/types/sports';
+import SportIcon from '@/components/sports/SportIcon';
+import { Trophy } from 'lucide-react';
 
 const VenuesPage = () => {
   const { t } = useTranslation();
