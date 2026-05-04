@@ -33,10 +33,38 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
   const monthShort = format(new Date(event.start_at), "MMM", { locale }).replace('.', '');
   const timeShort = format(new Date(event.start_at), "HH:mm", { locale });
 
-  const venueName = sanitizeText(event.venue?.name || event.venue_name || event.venue_normalized) || t('events.venueUnconfirmed', 'Por confirmar');
-  const locationName = sanitizeText(event.location?.name || event.location_normalized || event.province) || 'Málaga';
+  // Strict cleaner: filter null/undefined/placeholders. Used for visible metadata only.
+  const cleanMetaPart = (val: string | null | undefined): string | null => {
+    if (val == null) return null;
+    const s = sanitizeText(String(val)).trim();
+    if (!s) return null;
+    const lower = s.toLowerCase();
+    if (
+      lower === 'null' || lower === 'undefined' ||
+      lower === '...' || lower === '…' ||
+      lower === 'n/a' || lower === 'na' ||
+      lower === 'no especificado' || lower === 'por confirmar' ||
+      /^[.\s·•|–—-]+$/.test(s)
+    ) return null;
+    // Reject raw slugs (lowercase with hyphens, no spaces) — likely venue_normalized fallback
+    if (/^[a-z0-9]+(-[a-z0-9]+)+$/.test(s)) return null;
+    return s;
+  };
+
+  const venueDisplay = cleanMetaPart(event.venue?.name) || cleanMetaPart(event.venue_name);
+  const locationDisplay = cleanMetaPart(event.location?.name) || cleanMetaPart(event.location_normalized) || cleanMetaPart(event.province);
+
+  const venueName = venueDisplay || t('events.venueUnconfirmed', 'Por confirmar'); // for aria-label only
+  const locationName = locationDisplay || 'Málaga'; // for aria-label only
   const eventTitle = sanitizeText(event.title) || t('events.untitled', 'Sin título');
   const imageAlt = generateAltText(event.title, event.venue_name);
+
+  // Build dense-mode metadata parts (time + venue), filtering empties
+  const denseMetaParts = [cleanMetaPart(timeShort), venueDisplay].filter((p): p is string => !!p);
+
+  // Should we show the location row in normal mode? Hide if redundant with venue or just "Málaga" duplicate
+  const showLocationRow = !!locationDisplay
+    && (!venueDisplay || locationDisplay.toLowerCase() !== venueDisplay.toLowerCase());
 
   // Dense mode: compact vertical card for 2-column grids
   if (dense) {
@@ -72,11 +100,11 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
           </div>
           <CardContent className="p-2.5">
             <h3 className="text-sm font-semibold line-clamp-1 mb-0.5 leading-tight">{eventTitle}</h3>
-            <p className="text-[11px] text-muted-foreground line-clamp-1">
-              <span className="capitalize font-medium text-foreground/70">{timeShort}</span>
-              <span className="mx-1">·</span>
-              <span className="line-clamp-1">{venueName}</span>
-            </p>
+            {denseMetaParts.length > 0 && (
+              <p className="text-[11px] text-muted-foreground truncate">
+                {denseMetaParts.join(' · ')}
+              </p>
+            )}
           </CardContent>
         </Card>
       </Link>
@@ -158,14 +186,18 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
               <Calendar className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
               <time dateTime={event.start_at} className="capitalize">{formattedDate}</time>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Building2 className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-              <span className="line-clamp-1">{venueName}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-              <span className="line-clamp-1">{locationName}</span>
-            </div>
+            {venueDisplay && (
+              <div className="flex items-center gap-1.5">
+                <Building2 className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                <span className="line-clamp-1">{venueDisplay}</span>
+              </div>
+            )}
+            {showLocationRow && (
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                <span className="line-clamp-1">{locationDisplay}</span>
+              </div>
+            )}
           </div>
 
           {/* Tags */}

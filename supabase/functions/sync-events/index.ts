@@ -1837,6 +1837,18 @@ async function syncSingleSource(
     
     // Update sync run with full diagnostics
     if (syncRun?.id) {
+      // source_status: technical detail — does NOT alter sync_runs.status enum
+      let sourceStatus: 'ok' | 'no_events' | 'parse_error' | 'blocked_403' | 'bot_challenge' | 'unavailable_500' | 'requires_js' | 'timeout' | 'partial' = 'ok';
+      if (result.inserted === 0 && result.updated === 0) {
+        if (directHttpStatus === 403) sourceStatus = 'blocked_403';
+        else if (directHttpStatus === 503) sourceStatus = 'bot_challenge';
+        else if (directHttpStatus && directHttpStatus >= 500) sourceStatus = 'unavailable_500';
+        else if (result.eventsFound > 0) sourceStatus = 'parse_error';
+        else sourceStatus = 'no_events';
+      } else if (result.status === 'partial') {
+        sourceStatus = 'partial';
+      }
+
       await supabase
         .from('sync_runs')
         .update({
@@ -1847,7 +1859,9 @@ async function syncSingleSource(
           skipped: result.skipped,
           occurrences_created: result.occurrencesCreated,
           error_details: {
+            source_status: sourceStatus,
             strategy_used: strategyUsed,
+            parser_used: strategyUsed,
             http_status: directHttpStatus,
             events_found_raw: result.eventsFound,
             events_created: result.inserted,
