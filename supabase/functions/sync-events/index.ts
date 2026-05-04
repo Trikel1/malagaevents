@@ -1451,8 +1451,7 @@ async function fetchLaGarrapata(): Promise<DirectFetchResult> {
     strategy: 'la-garrapata-ticketandroll+qconciertos',
   };
 }
-
-
+async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchResult | null> {
   switch (slug) {
     case 'la-garrapata':
       return fetchLaGarrapata();
