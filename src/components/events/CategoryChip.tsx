@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { EventCategory } from '@/types';
 
@@ -10,36 +9,88 @@ interface CategoryChipProps {
   size?: 'sm' | 'default';
 }
 
-const categoryColors: Record<EventCategory, string> = {
-  music: 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300',
-  theater: 'bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-300',
-  exhibitions: 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300',
-  kids: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300',
-  sports: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300',
-  festivals: 'bg-violet-100 text-violet-700 hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-300',
-  workshops: 'bg-teal-100 text-teal-700 hover:bg-teal-200 dark:bg-teal-900/30 dark:text-teal-300',
-  conferences: 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-900/30 dark:text-slate-300',
-  nightlife: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300',
-  other: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-900/30 dark:text-gray-300',
+// Static class mapping (Tailwind needs literal class names at build time).
+const categoryStyles: Record<EventCategory, { surface: string; dot: string }> = {
+  music: {
+    surface:
+      'bg-purple-50/90 text-purple-800 border-purple-200/70 hover:bg-purple-100/90 dark:bg-purple-950/40 dark:text-purple-200 dark:border-purple-800/50',
+    dot: 'bg-purple-500',
+  },
+  theater: {
+    surface:
+      'bg-pink-50/90 text-pink-800 border-pink-200/70 hover:bg-pink-100/90 dark:bg-pink-950/40 dark:text-pink-200 dark:border-pink-800/50',
+    dot: 'bg-pink-500',
+  },
+  exhibitions: {
+    surface:
+      'bg-amber-50/90 text-amber-800 border-amber-200/70 hover:bg-amber-100/90 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800/50',
+    dot: 'bg-amber-500',
+  },
+  kids: {
+    surface:
+      'bg-cyan-50/90 text-cyan-800 border-cyan-200/70 hover:bg-cyan-100/90 dark:bg-cyan-950/40 dark:text-cyan-200 dark:border-cyan-800/50',
+    dot: 'bg-cyan-500',
+  },
+  sports: {
+    surface:
+      'bg-emerald-50/90 text-emerald-800 border-emerald-200/70 hover:bg-emerald-100/90 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800/50',
+    dot: 'bg-emerald-500',
+  },
+  festivals: {
+    surface:
+      'bg-violet-50/90 text-violet-800 border-violet-200/70 hover:bg-violet-100/90 dark:bg-violet-950/40 dark:text-violet-200 dark:border-violet-800/50',
+    dot: 'bg-violet-500',
+  },
+  workshops: {
+    surface:
+      'bg-teal-50/90 text-teal-800 border-teal-200/70 hover:bg-teal-100/90 dark:bg-teal-950/40 dark:text-teal-200 dark:border-teal-800/50',
+    dot: 'bg-teal-500',
+  },
+  conferences: {
+    surface:
+      'bg-slate-50/90 text-slate-800 border-slate-200/70 hover:bg-slate-100/90 dark:bg-slate-900/60 dark:text-slate-200 dark:border-slate-700/60',
+    dot: 'bg-slate-500',
+  },
+  nightlife: {
+    surface:
+      'bg-indigo-50/90 text-indigo-800 border-indigo-200/70 hover:bg-indigo-100/90 dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-800/50',
+    dot: 'bg-indigo-500',
+  },
+  other: {
+    surface:
+      'bg-stone-50/90 text-stone-800 border-stone-200/70 hover:bg-stone-100/90 dark:bg-stone-900/60 dark:text-stone-200 dark:border-stone-700/60',
+    dot: 'bg-stone-500',
+  },
 };
 
 const CategoryChip = ({ category, isSelected, onClick, size = 'default' }: CategoryChipProps) => {
   const { t } = useTranslation();
+  const styles = categoryStyles[category] ?? categoryStyles.other;
 
   return (
-    <Button
-      variant="ghost"
-      size={size === 'sm' ? 'sm' : 'default'}
+    <button
+      type="button"
       onClick={onClick}
+      aria-pressed={isSelected}
       className={cn(
-        'rounded-full whitespace-nowrap transition-all',
-        categoryColors[category],
-        isSelected && 'ring-2 ring-primary ring-offset-2',
-        size === 'sm' ? 'h-7 px-3 text-xs' : 'h-9 px-4'
+        'inline-flex items-center gap-1.5 rounded-full border whitespace-nowrap font-semibold transition-all',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1',
+        'active:scale-[0.97]',
+        size === 'sm' ? 'h-8 px-3.5 text-xs' : 'h-9 px-4 text-sm',
+        isSelected
+          ? 'bg-primary/10 text-primary border-primary/30 ring-1 ring-primary/40'
+          : styles.surface,
       )}
     >
-      {t(`categories.${category}`)}
-    </Button>
+      <span
+        aria-hidden="true"
+        className={cn(
+          'h-1.5 w-1.5 rounded-full opacity-80',
+          isSelected ? 'bg-primary' : styles.dot,
+        )}
+      />
+      <span>{t(`categories.${category}`)}</span>
+    </button>
   );
 };
 
