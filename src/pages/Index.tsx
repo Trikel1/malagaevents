@@ -149,17 +149,17 @@ const Index = () => {
         ) : (
           <>
             {/* Quick Actions - elevated card */}
-            <div className="grid grid-cols-4 gap-1 p-2 bg-card rounded-2xl shadow-card border border-border/60">
+            <div className="grid grid-cols-4 gap-1 p-3 bg-card rounded-2xl shadow-card border border-border/60">
               {quickActions.map((action, i) => (
                 <button
                   key={i}
                   onClick={action.action}
-                  className="flex flex-col items-center gap-1.5 py-2 px-1 group rounded-xl hover:bg-muted/60 active:scale-95 transition-all"
+                  className="flex flex-col items-center gap-2 py-2 px-1 group rounded-xl hover:bg-muted/60 active:scale-[0.97] transition-all min-h-[88px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  <div className="p-2.5 rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                    <action.icon className="h-5 w-5 text-primary" />
+                  <div className="h-11 w-11 flex items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                    <action.icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
-                  <span className="text-[11px] font-medium text-foreground/80 group-hover:text-foreground transition-colors text-center leading-tight">
+                  <span className="text-xs font-medium text-foreground/85 group-hover:text-foreground transition-colors text-center leading-tight line-clamp-2">
                     {action.label}
                   </span>
                 </button>
@@ -168,8 +168,8 @@ const Index = () => {
 
             {/* Categories */}
             <section>
-              <h2 className="text-lg font-semibold mb-3">{t('home.categories')}</h2>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <h2 className="text-lg font-semibold tracking-tight mb-3">{t('home.categories')}</h2>
+              <div className="flex gap-2 overflow-x-auto pb-2 px-0.5 -mx-0.5 scrollbar-hide">
                 {EVENT_CATEGORIES.map((cat) => (
                   <CategoryChip
                     key={cat}
