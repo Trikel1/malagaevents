@@ -61,7 +61,7 @@ const TicketsPage = () => {
       {/* Header */}
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 p-4 shadow-soft">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">{t('tickets.title')}</h1>
+          <h1 className="text-xl font-bold tracking-tight">{t('tickets.title')}</h1>
           <Button asChild size="sm">
             <Link to="/tickets/add">
               <Plus className="h-4 w-4 mr-1" />
@@ -83,7 +83,7 @@ const TicketsPage = () => {
             {tickets.map((ticket) => {
               const Icon = getTicketIcon(ticket);
               return (
-                <Card key={ticket.id} className="overflow-hidden">
+                <Card key={ticket.id} className="overflow-hidden rounded-2xl shadow-soft hover:shadow-card transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <div className="p-2 rounded-lg bg-primary/10">
