@@ -23,7 +23,7 @@ export interface PharmacyDirectory {
 
 // Get pharmacies on duty for a specific date (optionally filtered by municipality)
 export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
-  const dateStr = format(date, 'yyyy-MM-dd');
+  const dateStr = formatInTimeZone(date, TIMEZONE, 'yyyy-MM-dd');
 
   return useQuery({
     queryKey: ['pharmacies', 'duty', dateStr, municipality ?? 'all'],
