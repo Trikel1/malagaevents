@@ -19,20 +19,22 @@ export interface PharmacyDirectory {
   updated_at: string;
 }
 
-// Get pharmacies on duty for a specific date
-export const usePharmaciesOnDuty = (date: Date) => {
+// Get pharmacies on duty for a specific date (optionally filtered by municipality)
+export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
   const dateStr = format(date, 'yyyy-MM-dd');
-  
+
   return useQuery({
-    queryKey: ['pharmacies', 'duty', dateStr],
+    queryKey: ['pharmacies', 'duty', dateStr, municipality ?? 'all'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('pharmacies_guard')
         .select('*')
         .lte('date_from', dateStr)
         .gte('date_to', dateStr)
         .order('name', { ascending: true });
+      if (municipality) q = q.eq('municipality', municipality);
 
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as (Pharmacy & { municipality?: string })[];
     },
