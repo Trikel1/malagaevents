@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Pharmacy } from '@/types';
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+
+const TIMEZONE = 'Europe/Madrid';
 
 // Directory pharmacy type (from pharmacies_directory table)
 export interface PharmacyDirectory {
@@ -21,7 +23,7 @@ export interface PharmacyDirectory {
 
 // Get pharmacies on duty for a specific date (optionally filtered by municipality)
 export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
-  const dateStr = format(date, 'yyyy-MM-dd');
+  const dateStr = formatInTimeZone(date, TIMEZONE, 'yyyy-MM-dd');
 
   return useQuery({
     queryKey: ['pharmacies', 'duty', dateStr, municipality ?? 'all'],

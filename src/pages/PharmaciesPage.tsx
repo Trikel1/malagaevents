@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import {
   Phone, MapPin, Calendar as CalendarIcon, Clock, AlertTriangle,
@@ -23,7 +24,11 @@ const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
 };
 
+const TIMEZONE = 'Europe/Madrid';
 const DEFAULT_MUNICIPALITY = 'Málaga';
+
+// Returns "now" anchored to Europe/Madrid (so the day picker reflects Madrid's calendar day).
+const madridNow = () => toZonedTime(new Date(), TIMEZONE);
 
 // Curated municipalities for pharmacies (sorted by priority then alpha).
 const PHARMACY_LOCALITIES: string[] = (() => {
@@ -213,7 +218,7 @@ const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => madridNow());
   const [municipality, setMunicipality] = useState<string>(DEFAULT_MUNICIPALITY);
   const [search, setSearch] = useState('');
 
@@ -238,7 +243,9 @@ const PharmaciesPage = () => {
     [dirAll, search]
   );
 
-  const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  const isToday =
+    formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd') ===
+    formatInTimeZone(new Date(), TIMEZONE, 'yyyy-MM-dd');
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -286,7 +293,7 @@ const PharmaciesPage = () => {
             <Button
               variant="outline"
               className="rounded-xl h-11 bg-card"
-              onClick={() => setSelectedDate(new Date())}
+              onClick={() => setSelectedDate(madridNow())}
             >
               {t('pharmacies.today', 'Hoy')}
             </Button>
@@ -294,7 +301,7 @@ const PharmaciesPage = () => {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="rounded-xl h-11 bg-card flex-1 justify-start min-w-[140px]">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(selectedDate, 'PPP', { locale })}
+                  {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-50 bg-popover" align="end">
@@ -319,7 +326,7 @@ const PharmaciesPage = () => {
             <span className="text-xs text-muted-foreground">
               {isToday
                 ? t('pharmacies.onDutyToday', 'De guardia hoy')
-                : `${t('pharmacies.guardDate', 'Guardia el')} ${format(selectedDate, 'PPP', { locale })}`}
+                : `${t('pharmacies.guardDate', 'Guardia el')} ${formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}`}
             </span>
           </div>
 
