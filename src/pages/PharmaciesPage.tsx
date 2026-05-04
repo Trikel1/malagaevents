@@ -79,7 +79,7 @@ interface PharmacyCardProps {
   fallback?: boolean;
 }
 
-const PharmacyCard = ({ pharmacy, onDuty = false }: PharmacyCardProps) => {
+const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm, fallback }: PharmacyCardProps) => {
   const { t } = useTranslation();
   return (
     <Card className={cn(
