@@ -75,6 +75,8 @@ interface PharmacyCardProps {
     lat?: number | null; lng?: number | null; municipality?: string;
   };
   onDuty?: boolean;
+  distanceKm?: number | null;
+  fallback?: boolean;
 }
 
 const PharmacyCard = ({ pharmacy, onDuty = false }: PharmacyCardProps) => {
