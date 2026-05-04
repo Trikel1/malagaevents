@@ -134,7 +134,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-32">
       {/* Hero Image */}
       <div className="relative">
         <EventImage
