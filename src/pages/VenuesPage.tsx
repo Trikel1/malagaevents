@@ -63,28 +63,33 @@ const VenuesPage = () => {
           <button
             onClick={() => setSelectedSport('all')}
             className={cn(
-              'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
+              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
               selectedSport === 'all'
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                ? 'bg-primary/10 text-primary border-primary/30'
+                : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20'
             )}
           >
-            🏅 {t('sports.all')}
+            <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('sports.all')}
           </button>
-          {SPORT_CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedSport(cat)}
-              className={cn(
-                'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
-                selectedSport === cat
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background border-border text-muted-foreground hover:bg-muted'
-              )}
-            >
-              {SPORT_ICONS[cat]} {t(`sports.${cat}`)}
-            </button>
-          ))}
+          {SPORT_CATEGORIES.map((cat) => {
+            const active = selectedSport === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedSport(cat)}
+                className={cn(
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
+                  active
+                    ? 'bg-primary/10 text-primary border-primary/30'
+                    : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20'
+                )}
+              >
+                <SportIcon sport={cat} className={cn('h-3.5 w-3.5', active ? 'text-primary' : 'text-muted-foreground')} />
+                {t(`sports.${cat}`)}
+              </button>
+            );
+          })}
         </div>
       </header>
 
