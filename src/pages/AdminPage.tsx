@@ -557,8 +557,11 @@ const AdminPage = () => {
                         </div>
                       ))}
                       <div className="pt-2 font-medium text-sm">
-                        Total: {sportsSyncResult.results.reduce((s: number, r: any) => s + (r.upserted || 0), 0)} upserted,{' '}
-                        {sportsSyncResult.results.filter((r: any) => r.status === 'done').length}/{sportsSyncResult.results.length} fuentes OK
+                        {t('admin.sports.totalUpserted', {
+                          upserted: sportsSyncResult.results.reduce((s: number, r: any) => s + (r.upserted || 0), 0),
+                          ok: sportsSyncResult.results.filter((r: any) => r.status === 'done').length,
+                          total: sportsSyncResult.results.length,
+                        })}
                       </div>
                     </div>
                   ) : sportsSyncResult.error ? (
