@@ -29,6 +29,7 @@ const locales: Record<string, Locale> = {
 
 const TIMEZONE = 'Europe/Madrid';
 const DEFAULT_MUNICIPALITY = 'Málaga';
+const ALL_PROVINCE_LABEL = 'Toda la provincia';
 
 // Returns "now" anchored to Europe/Madrid (so the day picker reflects Madrid's calendar day).
 const madridNow = () => toZonedTime(new Date(), TIMEZONE);
@@ -199,8 +200,10 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 w-[min(360px,calc(100vw-2rem))] z-50 max-h-[80vh] flex flex-col"
+        className="p-0 w-[min(360px,calc(100vw-2rem))] z-50 h-[70vh] flex flex-col"
         align="start"
+        sideOffset={6}
+        collisionPadding={16}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="p-2 border-b">
@@ -216,13 +219,26 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
         </div>
         <ScrollArea className="flex-1 min-h-0 overscroll-contain [-webkit-overflow-scrolling:touch]">
           <div className="p-1.5">
+            {/* Toda la provincia */}
+            <button
+              type="button"
+              onClick={() => handlePick(ALL_PROVINCE_LABEL)}
+              className={cn(
+                'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm hover:bg-accent transition min-h-[44px]',
+                value === ALL_PROVINCE_LABEL && 'bg-accent/60 font-semibold'
+              )}
+            >
+              <span className="truncate">{t('pharmacies.allProvince', 'Toda la provincia')}</span>
+              {value === ALL_PROVINCE_LABEL && <Check className="h-4 w-4 text-primary shrink-0" />}
+            </button>
+
             {filteredGroups.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-muted-foreground">
                 {t('common.noResults', 'Sin resultados')}
               </div>
             ) : (
               filteredGroups.map((group) => (
-                <div key={group.zone} className="mt-2 first:mt-0">
+                <div key={group.zone} className="mt-2">
                   <div className="sticky top-0 z-10 bg-popover/95 backdrop-blur-sm px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     {group.label}
                   </div>
@@ -265,9 +281,12 @@ const PharmaciesPage = () => {
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
 
+  const isAllProvince = municipality === ALL_PROVINCE_LABEL;
+  const municipalityFilter = isAllProvince ? undefined : municipality;
+
   const { data: dutyAll, isLoading: isLoadingDuty } =
-    usePharmaciesOnDuty(selectedDate, municipality);
-  const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipality);
+    usePharmaciesOnDuty(selectedDate, municipalityFilter);
+  const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipalityFilter);
 
   const matchesSearch = (p: any) => {
     const q = stripDiacritics(search.trim());

@@ -228,6 +228,105 @@ async function scrapeWithJinaAndAI(url: string, prompt: string): Promise<any[]> 
   }
 }
 
+// ── Overpass API (OpenStreetMap) — exhaustive directory for Málaga province ──
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.openstreetmap.fr/api/interpreter',
+];
+
+async function scrapeFromOverpass(): Promise<any[]> {
+  // ISO3166-2 = ES-MA = Málaga province
+  const query = `[out:json][timeout:60];
+area["ISO3166-2"="ES-MA"]->.malaga;
+(
+  node["amenity"="pharmacy"](area.malaga);
+  way["amenity"="pharmacy"](area.malaga);
+  relation["amenity"="pharmacy"](area.malaga);
+);
+out center tags;`;
+
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      console.log(`Querying Overpass: ${endpoint}`);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 75000);
+
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'User-Agent': 'MalagaEvents/1.0 (https://malagaevents.lovable.app; contact@malagaevents.app)',
+        },
+        body: `data=${encodeURIComponent(query)}`,
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+
+      if (!resp.ok) {
+        console.warn(`Overpass ${endpoint} failed: ${resp.status}`);
+        continue;
+      }
+      const data = await resp.json();
+      const elements: any[] = data?.elements || [];
+      console.log(`Overpass returned ${elements.length} pharmacy elements`);
+
+      const mapped = elements
+        .map((el: any) => {
+          const tags = el.tags || {};
+          const lat = el.lat ?? el.center?.lat ?? null;
+          const lng = el.lon ?? el.center?.lon ?? null;
+          if (!lat || !lng) return null;
+
+          const name = (tags.name || tags['name:es'] || tags.brand || '').trim();
+          if (!name || name.length < 2) return null;
+
+          const street = tags['addr:street'] || '';
+          const num = tags['addr:housenumber'] || '';
+          const postcode = tags['addr:postcode'] || '';
+          const city = tags['addr:city'] || tags['addr:suburb'] || tags['addr:town'] || tags['addr:village'] || 'Málaga';
+          const addrParts = [
+            [street, num].filter(Boolean).join(' ').trim(),
+            postcode,
+            city,
+          ].filter(Boolean);
+          const address = addrParts.join(', ') || `${city}, Málaga`;
+
+          const phone = (tags.phone || tags['contact:phone'] || tags['phone:mobile'] || '')
+            .toString()
+            .trim() || null;
+
+          return {
+            name,
+            address,
+            municipality: city,
+            phone,
+            lat: Number(lat),
+            lng: Number(lng),
+            source_ref: 'openstreetmap.org',
+          };
+        })
+        .filter(Boolean);
+
+      // Dedupe by name + lat/lng rounded
+      const seen = new Set<string>();
+      const unique = mapped.filter((p: any) => {
+        const key = `${normalizeText(p.name)}|${p.lat.toFixed(4)}|${p.lng.toFixed(4)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      console.log(`Overpass: ${unique.length} unique pharmacies after dedupe`);
+      return unique;
+    } catch (err) {
+      console.warn(`Overpass endpoint ${endpoint} error:`, err instanceof Error ? err.message : err);
+    }
+  }
+  return [];
+}
+
 function generateDutySchedule(pharmacies: any[], startDate: Date): any[] {
   const dutySchedule: any[] = [];
   const count = pharmacies.length;
@@ -381,8 +480,17 @@ Deno.serve(async (req) => {
     // ── 2. FULL DIRECTORY ──
     let directoryPharmacies: any[] = [];
 
-    // Try Firecrawl for directory (with timeout)
-    if (firecrawlKey) {
+    // PRIMARY: OpenStreetMap Overpass — exhaustive (>700 pharmacies in Málaga province)
+    const overpassPharmacies = await scrapeFromOverpass();
+    if (overpassPharmacies.length > 50) {
+      directoryPharmacies = overpassPharmacies;
+      results.directory_scraped = directoryPharmacies.length;
+      results.directory_source = 'overpass-osm';
+      console.log(`Using Overpass directory: ${directoryPharmacies.length} pharmacies`);
+    }
+
+    // Try Firecrawl for directory (with timeout) — only if Overpass failed
+    if (firecrawlKey && directoryPharmacies.length < 50) {
       const dirResult = await scrapeWithFirecrawl(
         'https://icofma.es/listado-farmacias-provincia-malaga',
         firecrawlKey,
