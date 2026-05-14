@@ -18,6 +18,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { useEvent, useSimilarEvents } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
+import SEO from '@/components/common/SEO';
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
@@ -173,6 +174,13 @@ END:VCALENDAR`;
 
   return (
     <div className="min-h-screen bg-background pb-32">
+      <SEO
+        title={`${event.title.slice(0, 55)} — MalagaEvents`}
+        description={(event.description?.replace(/\s+/g, ' ').trim().slice(0, 155) || `${event.title} en Málaga el ${formattedDate}. Detalles, ubicación y entradas.`)}
+        path={`/events/${event.id}`}
+        type="article"
+        image={event.image_url || undefined}
+      />
       {/* Hero Image */}
       <div className="relative">
         <EventImage
