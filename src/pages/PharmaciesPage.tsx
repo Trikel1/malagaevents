@@ -198,12 +198,15 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
           <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-[min(360px,calc(100vw-2rem))] z-50" align="start">
+      <PopoverContent
+        className="p-0 w-[min(360px,calc(100vw-2rem))] z-50 max-h-[80vh] flex flex-col"
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <div className="p-2 border-b">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              autoFocus
               placeholder={t('events.searchLocality', 'Buscar localidad')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -211,7 +214,7 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
             />
           </div>
         </div>
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="flex-1 min-h-0 overscroll-contain [-webkit-overflow-scrolling:touch]">
           <div className="p-1.5">
             {filteredGroups.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-muted-foreground">
