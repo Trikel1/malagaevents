@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom";
-import "vitest-axe/extend-expect";
+import { expect } from "vitest";
+import * as axeMatchers from "vitest-axe/matchers";
+expect.extend(axeMatchers);
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,
