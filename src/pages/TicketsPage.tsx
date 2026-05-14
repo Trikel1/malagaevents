@@ -20,6 +20,7 @@ import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useTickets, useDeleteTicket } from '@/hooks/useTickets';
 import { useAuthContext } from '@/contexts/AuthContext';
 import type { Ticket as TicketType } from '@/types';
+import SEO from '@/components/common/SEO';
 
 const TicketsPage = () => {
   const { t } = useTranslation();
