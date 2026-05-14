@@ -79,43 +79,51 @@ export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
   });
 };
 
-// Get all pharmacies from the province directory
+// Get all pharmacies from the province directory.
+// Paginates by 1000-row chunks to bypass Supabase's default row limit and return
+// the entire province directory when `municipality` is undefined.
 export const usePharmacyDirectory = (municipality?: string) => {
   return useQuery({
-    queryKey: ['pharmacies', 'directory', municipality],
+    queryKey: ['pharmacies', 'directory', municipality ?? '__all__'],
     queryFn: async () => {
-      let query = (supabase as any)
-        .from('pharmacies_directory')
-        .select('*')
-        .order('municipality', { ascending: true })
-        .order('name', { ascending: true });
+      const PAGE = 1000;
+      const all: PharmacyDirectory[] = [];
+      let from = 0;
 
-      if (municipality) {
-        query = query.eq('municipality', municipality);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.warn('pharmacies_directory query failed, falling back to pharmacies_guard:', error);
-        // Fallback to pharmacies_guard unique entries
-        const { data: fallback, error: fbError } = await supabase
-          .from('pharmacies_guard')
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        let query = (supabase as any)
+          .from('pharmacies_directory')
           .select('*')
-          .order('name', { ascending: true });
-        
-        if (fbError) throw fbError;
-        
-        const pharmacyMap = new Map<string, any>();
-        (fallback || []).forEach((p: any) => {
-          if (!pharmacyMap.has(p.name)) {
-            pharmacyMap.set(p.name, p);
-          }
-        });
-        return Array.from(pharmacyMap.values()) as PharmacyDirectory[];
+          .order('municipality', { ascending: true })
+          .order('name', { ascending: true })
+          .range(from, from + PAGE - 1);
+
+        if (municipality) query = query.eq('municipality', municipality);
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.warn('pharmacies_directory query failed, falling back to pharmacies_guard:', error);
+          const { data: fallback, error: fbError } = await supabase
+            .from('pharmacies_guard')
+            .select('*')
+            .order('name', { ascending: true });
+          if (fbError) throw fbError;
+          const map = new Map<string, any>();
+          (fallback || []).forEach((p: any) => {
+            if (!map.has(p.name)) map.set(p.name, p);
+          });
+          return Array.from(map.values()) as PharmacyDirectory[];
+        }
+
+        const chunk = (data || []) as PharmacyDirectory[];
+        all.push(...chunk);
+        if (chunk.length < PAGE) break;
+        from += PAGE;
       }
 
-      return (data || []) as PharmacyDirectory[];
+      return all;
     },
   });
 };
