@@ -8,13 +8,14 @@ interface SEOProps {
   path: string;
   type?: "website" | "article";
   image?: string;
+  noindex?: boolean;
 }
 
 /**
  * Per-route head tags. Title kept ≤60 chars, description 50–160 chars.
  * Canonical and og:url self-reference the current route.
  */
-const SEO = ({ title, description, path, type = "website", image }: SEOProps) => {
+const SEO = ({ title, description, path, type = "website", image, noindex }: SEOProps) => {
   const url = `${SITE}${path}`;
   return (
     <Helmet>
@@ -28,6 +29,7 @@ const SEO = ({ title, description, path, type = "website", image }: SEOProps) =>
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       {image && <meta property="og:image" content={image} />}
+      {noindex && <meta name="robots" content="noindex,nofollow" />}
     </Helmet>
   );
 };
