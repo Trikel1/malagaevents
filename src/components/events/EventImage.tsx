@@ -327,8 +327,8 @@ const EventImage = ({
         "w-full h-full flex flex-col items-center justify-center bg-gradient-to-br",
         config.gradient
       )}>
-        <IconComponent className="h-12 w-12 text-foreground/40 mb-2" />
-        <span className="text-xs font-medium text-foreground/50 uppercase tracking-wider">
+        <IconComponent className="h-12 w-12 text-foreground/70 mb-2" />
+        <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">
           {config.label}
         </span>
       </div>
