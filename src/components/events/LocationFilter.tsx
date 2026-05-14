@@ -252,7 +252,7 @@ const LocationFilter = ({
     return (
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col">
+        <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col" onOpenAutoFocus={(e) => e.preventDefault()}>
           <SheetHeader className="p-4 pb-2 text-left border-b">
             <SheetTitle className="flex items-center gap-2 text-base">
               <MapPin className="h-4 w-4 text-primary" />
