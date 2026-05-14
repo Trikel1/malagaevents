@@ -29,6 +29,7 @@ const locales: Record<string, Locale> = {
 
 const TIMEZONE = 'Europe/Madrid';
 const DEFAULT_MUNICIPALITY = 'Málaga';
+const ALL_PROVINCE_LABEL = 'Toda la provincia';
 
 // Returns "now" anchored to Europe/Madrid (so the day picker reflects Madrid's calendar day).
 const madridNow = () => toZonedTime(new Date(), TIMEZONE);
