@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import SEO from '@/components/common/SEO';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import EmptyState from '@/components/common/EmptyState';
@@ -340,6 +341,11 @@ const PharmaciesPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <SEO
+        title="Farmacias de guardia en Málaga hoy"
+        description="Consulta las farmacias de guardia abiertas hoy en Málaga capital y provincia. Direcciones, teléfonos y horario actualizado a diario."
+        path="/pharmacies"
+      />
       {/* Header */}
       <header className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white px-5 pt-5 pb-7 rounded-b-3xl space-y-3">
         <div className="flex items-center gap-2">

@@ -18,6 +18,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { EVENT_CATEGORIES } from '@/types';
 import SportsContent from '@/components/sports/SportsContent';
 import { useAppMode } from '@/contexts/AppModeContext';
+import SEO from '@/components/common/SEO';
 
 const Index = () => {
   const { t } = useTranslation();
@@ -69,6 +70,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Agenda de Málaga — Eventos, Deportes y Planes"
+        description="Descubre eventos, planes culturales, deportes y farmacias de guardia en Málaga ciudad y provincia. Tu agenda completa, actualizada cada día."
+        path="/"
+      />
       {/* Hero header — editorial Mediterranean (no overlap) */}
       <header className={cn(
         "relative text-white px-5 pt-5 pb-8 overflow-hidden",

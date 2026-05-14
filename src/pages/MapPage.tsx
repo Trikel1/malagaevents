@@ -13,6 +13,7 @@ import type { MapMarker, MarkerKind } from '@/modules/maps/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import SEO from '@/components/common/SEO';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { mapVenueToCoords, MALAGA_CENTER } from '@/lib/venueCoords';
@@ -200,6 +201,11 @@ const MapPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      <SEO
+        title="Mapa de eventos y farmacias en Málaga"
+        description="Mapa interactivo de Málaga con eventos, recintos y farmacias de guardia cercanas. Encuentra qué hay cerca de ti en tiempo real."
+        path="/map"
+      />
       {/* Header */}
       <header className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground px-4 pt-4 pb-3 rounded-b-2xl shadow-soft space-y-3">
         <div className="flex items-center justify-between gap-3">
