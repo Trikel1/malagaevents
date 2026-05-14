@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { EVENT_CATEGORIES } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import SEO from '@/components/common/SEO';
 
 const SubmitEventPage = () => {
   const { t } = useTranslation();
@@ -128,6 +129,11 @@ const SubmitEventPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-8">
+      <SEO
+        title="Enviar un evento de Málaga"
+        description="¿Organizas un evento en Málaga? Envíanos los detalles y lo añadimos a la agenda tras revisarlo. Gratuito y abierto a la comunidad."
+        path="/submit-event"
+      />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border sticky top-0 bg-background z-40">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

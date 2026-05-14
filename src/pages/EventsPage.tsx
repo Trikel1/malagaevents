@@ -17,6 +17,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SportsEventsPage from '@/components/sports/SportsEventsPage';
 import type { EventCategory } from '@/types';
+import SEO from '@/components/common/SEO';
 
 const EventsPage = () => {
   const { appMode } = useAppMode();
@@ -143,6 +144,11 @@ const CultureEventsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Eventos en Málaga — Conciertos, Cultura y Planes"
+        description="Todos los eventos de Málaga capital y provincia: conciertos, teatro, exposiciones, festivales y planes para hoy, este finde y los próximos días."
+        path="/events"
+      />
       {/* Header - Centered actions taking full width */}
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 shadow-soft">
         <div className="p-4 space-y-3">

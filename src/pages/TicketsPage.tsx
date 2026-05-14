@@ -20,6 +20,7 @@ import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useTickets, useDeleteTicket } from '@/hooks/useTickets';
 import { useAuthContext } from '@/contexts/AuthContext';
 import type { Ticket as TicketType } from '@/types';
+import SEO from '@/components/common/SEO';
 
 const TicketsPage = () => {
   const { t } = useTranslation();
@@ -58,6 +59,12 @@ const TicketsPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Mis entradas — MalagaEvents"
+        description="Tus entradas guardadas para eventos en Málaga. Accede rápidamente a códigos QR y detalles de tus tickets."
+        path="/tickets"
+        noindex
+      />
       {/* Header */}
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 p-4 shadow-soft">
         <div className="flex justify-between items-center">

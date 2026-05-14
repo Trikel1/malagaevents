@@ -10,6 +10,7 @@ import { useSportsVenues } from '@/hooks/useSportsEvents';
 import { SPORT_CATEGORIES, type SportCategory } from '@/types/sports';
 import SportIcon from '@/components/sports/SportIcon';
 import { Trophy } from 'lucide-react';
+import SEO from '@/components/common/SEO';
 
 const VenuesPage = () => {
   const { t } = useTranslation();
@@ -43,6 +44,11 @@ const VenuesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Recintos deportivos de Málaga"
+        description="Directorio de instalaciones y recintos deportivos en Málaga: estadios, polideportivos, piscinas y centros de entrenamiento."
+        path="/venues"
+      />
       <header className="bg-card border-b border-border sticky top-0 z-40 p-4 space-y-3">
         <div className="flex items-center gap-2">
           <Building2 className="h-5 w-5 text-primary" />

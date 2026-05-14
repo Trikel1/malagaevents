@@ -13,6 +13,7 @@ import {
   setMonth,
   setYear,
 } from 'date-fns';
+import SEO from '@/components/common/SEO';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar, ChevronDown, Check } from 'lucide-react';
@@ -188,6 +189,11 @@ const CalendarPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Calendario de eventos en Málaga"
+        description="Calendario mensual con todos los eventos, conciertos y planes en Málaga capital y provincia. Filtra por día y descubre qué hacer."
+        path="/calendar"
+      />
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-40 p-4">
         <div className="flex justify-between items-center mb-4">
