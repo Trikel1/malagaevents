@@ -8,6 +8,7 @@ import LanguageSelector from '@/components/common/LanguageSelector';
 import { ThemeSelector } from '@/components/theme/ThemeSelector';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useAdmin';
+import SEO from '@/components/common/SEO';
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -49,6 +50,12 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Mi perfil — MalagaEvents"
+        description="Gestiona tu cuenta, idioma, tema visual y preferencias en MalagaEvents."
+        path="/profile"
+        noindex
+      />
       {/* Header */}
       <header className="bg-gradient-hero text-white p-6 pb-10 rounded-b-3xl shadow-card">
         <h1 className="text-2xl font-bold tracking-tight mb-4">{t('profile.title')}</h1>

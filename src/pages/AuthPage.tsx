@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuthContext } from '@/contexts/AuthContext';
+import SEO from '@/components/common/SEO';
 
 const AuthPage = () => {
   const { t } = useTranslation();
@@ -59,6 +60,12 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Acceder a MalagaEvents"
+        description="Inicia sesión o crea una cuenta para guardar favoritos, gestionar entradas y recibir alertas de eventos en Málaga."
+        path="/auth"
+        noindex
+      />
       {/* Header */}
       <header className="p-4 flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
