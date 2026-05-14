@@ -281,9 +281,12 @@ const PharmaciesPage = () => {
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
 
+  const isAllProvince = municipality === ALL_PROVINCE_LABEL;
+  const municipalityFilter = isAllProvince ? undefined : municipality;
+
   const { data: dutyAll, isLoading: isLoadingDuty } =
-    usePharmaciesOnDuty(selectedDate, municipality);
-  const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipality);
+    usePharmaciesOnDuty(selectedDate, municipalityFilter);
+  const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipalityFilter);
 
   const matchesSearch = (p: any) => {
     const q = stripDiacritics(search.trim());
