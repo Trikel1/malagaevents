@@ -275,6 +275,7 @@ const LocationFilter = ({
         side="bottom"
         sideOffset={6}
         collisionPadding={16}
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
         {body}
       </PopoverContent>
