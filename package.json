@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:a11y": "vitest run src/test/a11y.test.tsx",
+    "prebuild": "vitest run src/test/a11y.test.tsx"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
