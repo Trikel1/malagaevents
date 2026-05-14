@@ -113,7 +113,7 @@ const Index = () => {
 
         {/* Editorial title */}
         <div className="relative">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-white/75 font-semibold mb-2">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-white font-semibold mb-2">
             {appMode === 'deportes'
               ? t('sports.heroKicker', 'Agenda deportiva')
               : t('home.kicker', 'Agenda de la ciudad')}
@@ -123,7 +123,7 @@ const Index = () => {
               ? t('sports.heroTitle', 'Muévete por Málaga')
               : t('home.heroTitle', '¿Qué hacemos hoy en Málaga?')}
           </h1>
-          <p className="text-sm text-white/85 mt-2 max-w-md">
+          <p className="text-sm text-white mt-2 max-w-md">
             {appMode === 'deportes'
               ? t('sports.heroSubtitle', 'Carreras, torneos, clases y actividades deportivas cerca de ti.')
               : t('home.heroSubtitle', 'Eventos, planes y experiencias cerca de ti.')}
