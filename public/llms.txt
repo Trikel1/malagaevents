@@ -1,0 +1,20 @@
+# MalagaEvents
+
+> Agenda diaria de eventos culturales, deporte, recintos y farmacias de guardia en Málaga capital y provincia.
+
+MalagaEvents agrega eventos de más de 17 fuentes oficiales (ayuntamientos, teatros, salas, federaciones deportivas y colegios farmacéuticos) y los presenta con filtros por fecha, localidad y categoría. La app cubre Málaga ciudad y los municipios de la provincia (Costa del Sol, Axarquía, Valle del Guadalhorce, Antequera, Serranía de Ronda y Guadalteba). Todas las fechas se calculan en zona horaria Europe/Madrid.
+
+## Pages
+
+- [Inicio](/): Eventos destacados de hoy y este fin de semana, accesos rápidos a deportes y farmacias.
+- [Eventos](/events): Listado completo de eventos culturales con filtros por localidad, categoría, recinto y fecha.
+- [Calendario](/calendar): Vista mensual y de lista de eventos, con selector rápido de meses.
+- [Recintos](/venues): Directorio de teatros, salas y espacios culturales de Málaga.
+- [Mapa](/map): Mapa interactivo con eventos, recintos y puntos de interés geolocalizados.
+- [Farmacias](/pharmacies): Farmacias de guardia y directorio por localidad de la provincia, con búsqueda y "cerca de mí".
+- [Enviar evento](/submit-event): Formulario para que organizadores propongan nuevos eventos.
+
+## Optional
+
+- [Mis entradas](/tickets): Sección personal para guardar entradas (requiere cuenta).
+- [Perfil](/profile): Gestión de cuenta y preferencias.
