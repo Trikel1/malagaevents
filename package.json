@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:a11y": "vitest run src/test/a11y.test.tsx",
-    "prebuild": "vitest run src/test/a11y.test.tsx"
+    "generate:sitemap": "tsx scripts/generate-sitemap.ts",
+    "predev": "tsx scripts/generate-sitemap.ts",
+    "prebuild": "tsx scripts/generate-sitemap.ts && vitest run src/test/a11y.test.tsx"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
