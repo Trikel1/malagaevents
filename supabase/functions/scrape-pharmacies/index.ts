@@ -254,7 +254,11 @@ out center tags;`;
 
       const resp = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+          'User-Agent': 'MalagaEvents/1.0 (https://malagaevents.lovable.app; contact@malagaevents.app)',
+        },
         body: `data=${encodeURIComponent(query)}`,
         signal: controller.signal,
       });
