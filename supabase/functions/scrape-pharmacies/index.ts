@@ -476,8 +476,17 @@ Deno.serve(async (req) => {
     // ── 2. FULL DIRECTORY ──
     let directoryPharmacies: any[] = [];
 
-    // Try Firecrawl for directory (with timeout)
-    if (firecrawlKey) {
+    // PRIMARY: OpenStreetMap Overpass — exhaustive (>700 pharmacies in Málaga province)
+    const overpassPharmacies = await scrapeFromOverpass();
+    if (overpassPharmacies.length > 50) {
+      directoryPharmacies = overpassPharmacies;
+      results.directory_scraped = directoryPharmacies.length;
+      results.directory_source = 'overpass-osm';
+      console.log(`Using Overpass directory: ${directoryPharmacies.length} pharmacies`);
+    }
+
+    // Try Firecrawl for directory (with timeout) — only if Overpass failed
+    if (firecrawlKey && directoryPharmacies.length < 50) {
       const dirResult = await scrapeWithFirecrawl(
         'https://icofma.es/listado-farmacias-provincia-malaga',
         firecrawlKey,
