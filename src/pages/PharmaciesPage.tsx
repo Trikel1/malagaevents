@@ -200,8 +200,10 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="p-0 w-[min(360px,calc(100vw-2rem))] z-50 max-h-[80vh] flex flex-col"
+        className="p-0 w-[min(360px,calc(100vw-2rem))] z-50 h-[70vh] flex flex-col"
         align="start"
+        sideOffset={6}
+        collisionPadding={16}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="p-2 border-b">
@@ -217,13 +219,26 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
         </div>
         <ScrollArea className="flex-1 min-h-0 overscroll-contain [-webkit-overflow-scrolling:touch]">
           <div className="p-1.5">
+            {/* Toda la provincia */}
+            <button
+              type="button"
+              onClick={() => handlePick(ALL_PROVINCE_LABEL)}
+              className={cn(
+                'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm hover:bg-accent transition min-h-[44px]',
+                value === ALL_PROVINCE_LABEL && 'bg-accent/60 font-semibold'
+              )}
+            >
+              <span className="truncate">{t('pharmacies.allProvince', 'Toda la provincia')}</span>
+              {value === ALL_PROVINCE_LABEL && <Check className="h-4 w-4 text-primary shrink-0" />}
+            </button>
+
             {filteredGroups.length === 0 ? (
               <div className="px-3 py-6 text-center text-sm text-muted-foreground">
                 {t('common.noResults', 'Sin resultados')}
               </div>
             ) : (
               filteredGroups.map((group) => (
-                <div key={group.zone} className="mt-2 first:mt-0">
+                <div key={group.zone} className="mt-2">
                   <div className="sticky top-0 z-10 bg-popover/95 backdrop-blur-sm px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     {group.label}
                   </div>
