@@ -180,6 +180,52 @@ END:VCALENDAR`;
         path={`/events/${event.id}`}
         type="article"
         image={event.image_url || undefined}
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Event",
+            name: event.title,
+            description: event.description || undefined,
+            startDate: event.start_at,
+            endDate: event.end_at || undefined,
+            eventStatus: "https://schema.org/EventScheduled",
+            eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+            image: event.image_url || undefined,
+            url: `https://malagaevents.lovable.app/events/${event.id}`,
+            location: {
+              "@type": "Place",
+              name: event.venue_name,
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: event.address || undefined,
+                addressLocality: "Málaga",
+                addressRegion: "Málaga",
+                addressCountry: "ES",
+              },
+              ...(event.lat && event.lng ? { geo: { "@type": "GeoCoordinates", latitude: event.lat, longitude: event.lng } } : {}),
+            },
+            ...(event.is_free || event.ticket_url
+              ? {
+                  offers: {
+                    "@type": "Offer",
+                    price: event.is_free ? "0" : undefined,
+                    priceCurrency: "EUR",
+                    url: event.ticket_url || undefined,
+                    availability: "https://schema.org/InStock",
+                  },
+                }
+              : {}),
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Inicio", item: "https://malagaevents.lovable.app/" },
+              { "@type": "ListItem", position: 2, name: "Eventos", item: "https://malagaevents.lovable.app/events" },
+              { "@type": "ListItem", position: 3, name: event.title, item: `https://malagaevents.lovable.app/events/${event.id}` },
+            ],
+          },
+        ]}
       />
       {/* Hero Image */}
       <div className="relative">

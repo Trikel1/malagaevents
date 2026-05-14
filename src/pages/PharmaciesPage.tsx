@@ -345,6 +345,38 @@ const PharmaciesPage = () => {
         title="Farmacias de guardia en Málaga hoy"
         description="Consulta las farmacias de guardia abiertas hoy en Málaga capital y provincia. Direcciones, teléfonos y horario actualizado a diario."
         path="/pharmacies"
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Inicio", item: "https://malagaevents.lovable.app/" },
+              { "@type": "ListItem", position: 2, name: "Farmacias de guardia", item: "https://malagaevents.lovable.app/pharmacies" },
+            ],
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "Farmacias de guardia en Málaga",
+            itemListElement: (dutyAll ?? []).slice(0, 20).map((p: any, idx: number) => ({
+              "@type": "ListItem",
+              position: idx + 1,
+              item: {
+                "@type": "Pharmacy",
+                name: p.name,
+                telephone: p.phone || undefined,
+                address: {
+                  "@type": "PostalAddress",
+                  streetAddress: p.address || undefined,
+                  addressLocality: p.municipality || "Málaga",
+                  addressRegion: "Málaga",
+                  addressCountry: "ES",
+                },
+                ...(p.lat && p.lng ? { geo: { "@type": "GeoCoordinates", latitude: p.lat, longitude: p.lng } } : {}),
+              },
+            })),
+          },
+        ]}
       />
       {/* Header */}
       <header className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white px-5 pt-5 pb-7 rounded-b-3xl space-y-3">
