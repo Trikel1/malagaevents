@@ -336,7 +336,7 @@ const CalendarPage = () => {
                         onClick={() => setSelectedDate(day)}
                         className={cn(
                           'aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-colors relative',
-                          !isSameMonth(day, currentDate) && 'text-muted-foreground/50',
+                          !isSameMonth(day, currentDate) && 'text-muted-foreground/80',
                           isToday(day) && 'bg-primary/10 font-bold',
                           isSelected && 'bg-primary text-primary-foreground',
                           !isSelected && 'hover:bg-muted'
