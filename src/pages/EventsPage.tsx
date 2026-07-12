@@ -259,6 +259,22 @@ const CultureEventsPage = () => {
     { key: 'next30', label: t('events.next30Days', 'Próximos 30 días') },
   ];
 
+  const quickCategories: { key: EventCategory; label: string }[] = [
+    { key: 'music' as EventCategory, label: t('categories.music', 'Conciertos') },
+    { key: 'theater' as EventCategory, label: t('categories.theater', 'Teatro') },
+    { key: 'festivals' as EventCategory, label: t('categories.festivals', 'Festivales') },
+    { key: 'exhibitions' as EventCategory, label: t('categories.exhibitions', 'Museos / Exposiciones') },
+  ];
+
+  const toggleCategory = useCallback((cat: EventCategory) => {
+    setFilters((prev) => ({
+      ...prev,
+      categories: prev.categories.includes(cat)
+        ? prev.categories.filter((c) => c !== cat)
+        : [...prev.categories, cat],
+    }));
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <SEO
