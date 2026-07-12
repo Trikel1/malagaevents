@@ -21,6 +21,7 @@ import {
   Dumbbell,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import SEO from '@/components/common/SEO';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -266,6 +267,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Admin — MalagaEvents" description="Panel de administración interno." path="/admin" noindex />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border sticky top-0 bg-background z-40">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

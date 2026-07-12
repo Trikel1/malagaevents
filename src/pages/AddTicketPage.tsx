@@ -12,6 +12,7 @@ import { useCreateTicket } from '@/hooks/useTickets';
 import { useAuthContext } from '@/contexts/AuthContext';
 import EmptyState from '@/components/common/EmptyState';
 import { Ticket } from 'lucide-react';
+import SEO from '@/components/common/SEO';
 
 const AddTicketPage = () => {
   const { t } = useTranslation();
@@ -66,6 +67,7 @@ const AddTicketPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Añadir entrada — MalagaEvents" description="Añade una entrada a tu colección personal." path="/tickets/add" noindex />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
