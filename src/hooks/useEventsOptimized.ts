@@ -145,8 +145,8 @@ const fetchEvents = async (
     query = query.or('ticket_url.not.is.null,buy_url.not.is.null');
   }
 
-  // Family / Kids — provisional heuristic (Fase 3B-1).
-  // Matches category=kids, event_type=kids, or title_normalized keywords.
+  // Family / Kids — prefer real columns (is_family_friendly, audience) populated
+  // by backfill_event_family_flags(), with heuristic fallback for gaps.
   if (options.filters?.familyKids) {
     const patterns = [
       'infantil',
@@ -163,12 +163,16 @@ const fetchEvents = async (
       'cantojuego',
     ];
     const clauses = [
+      'is_family_friendly.is.true',
+      'audience.eq.kids',
+      'audience.eq.family',
       'category.eq.kids',
       'event_type.eq.kids',
       ...patterns.map((p) => `title_normalized.ilike.%${p}%`),
     ];
     query = query.or(clauses.join(','));
   }
+
 
   // Venue filter
   if (options.venueIds && options.venueIds.length > 0) {
