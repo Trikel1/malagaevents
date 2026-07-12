@@ -125,7 +125,7 @@ const LocationFilter = ({
       variant={isActive ? 'default' : 'outline'}
       size="sm"
       className={cn(
-        'h-9 px-3 gap-1.5 max-w-full whitespace-nowrap rounded-full',
+        'h-9 px-2 sm:px-3 gap-1 sm:gap-1.5 max-w-full whitespace-nowrap rounded-full min-w-0',
         !isActive && 'bg-card hover:bg-accent border-border/60',
         isActive && 'shadow-sm'
       )}
@@ -133,7 +133,7 @@ const LocationFilter = ({
       aria-expanded={open}
     >
       <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span className="text-sm font-medium truncate max-w-[140px]">{triggerLabel}</span>
+      <span className="text-sm font-medium truncate max-w-[72px] sm:max-w-[140px]">{triggerLabel}</span>
       <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden="true" />
     </Button>
   );
