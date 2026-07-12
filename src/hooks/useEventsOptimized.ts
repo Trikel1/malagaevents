@@ -37,6 +37,8 @@ const generateQueryKey = (options: UseEventsOptions) => {
     options.filters?.datePreset || '',
     options.filters?.withTickets || false,
     options.filters?.familyKids || false,
+    options.filters?.ageRange || '',
+    options.filters?.isOutdoor || false,
     options.todayOnly || false,
     options.weekendOnly || false,
     options.venueIds?.join(',') || '',
