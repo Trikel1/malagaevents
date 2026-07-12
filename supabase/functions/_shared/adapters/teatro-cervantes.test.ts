@@ -1,6 +1,9 @@
 // Local harness: exercises the teatro-cervantes adapter against the live
 // listing page via Firecrawl (if FIRECRAWL_API_KEY is set) or a plain fetch
 // fallback. NO database access. NO writes. Read-only validation of parsing.
+//
+// Detail-follow is opt-in for this harness: set CERVANTES_TEST_DETAIL=1
+// to exercise the detail-page enrichment path against live pages.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { teatroCervantesAdapter } from "./teatro-cervantes.ts";
@@ -37,6 +40,10 @@ const logger = {
 };
 
 Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async () => {
+  // Keep the default fast path deterministic: no detail follow.
+  const followEnabled = Deno.env.get("CERVANTES_TEST_DETAIL") === "1";
+  if (!followEnabled) Deno.env.set("CERVANTES_DETAIL_FOLLOW", "0");
+
   const events = await teatroCervantesAdapter.fetchEvents({
     source,
     dryRun: true,
@@ -54,8 +61,11 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
   let pastCount = 0;
   let missingReq = 0;
   let timeAssumed = 0;
+  let detailFetched = 0;
+  let detailFailed = 0;
+  let rangeEvents = 0;
   const categories = new Set<string | null | undefined>();
-  const venues = new Set<string | null | undefined>();
+  const venueCounts: Record<string, number> = {};
   const dedupe = new Set<string>();
   let duplicates = 0;
 
@@ -65,9 +75,14 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
     assert(/^https?:\/\//.test(ev.sourceUrl), `sourceUrl must be absolute: ${ev.sourceUrl}`);
     const t = new Date(ev.startAt).getTime();
     if (isFinite(t) && t < now - 24 * 3600 * 1000) pastCount++;
-    if ((ev.raw as any)?.timeAssumed === true) timeAssumed++;
+    const raw = (ev.raw as Record<string, unknown> | undefined) ?? {};
+    if (raw.timeAssumed === true) timeAssumed++;
+    if (raw.detailFetched === true) detailFetched++;
+    if (raw.detailFailed === true) detailFailed++;
+    if (raw.rangeStartRaw) rangeEvents++;
     categories.add(ev.category);
-    venues.add(ev.venueName);
+    const v = ev.venueName ?? "null";
+    venueCounts[v] = (venueCounts[v] ?? 0) + 1;
     const k = ev.sourceUrl + "|" + ev.title + "|" + ev.startAt;
     if (dedupe.has(k)) duplicates++;
     dedupe.add(k);
@@ -79,8 +94,12 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
     pastCount,
     timeAssumed,
     duplicates,
+    rangeEvents,
+    detailFetched,
+    detailFailed,
+    detailFollow: followEnabled,
     categories: [...categories],
-    venues: [...venues],
+    venueCounts,
   });
 
   assertEquals(missingReq, 0, "no event should miss required fields");
