@@ -247,7 +247,10 @@ export type Database = {
         Row: {
           accessibility_info: string | null
           address: string
+          age_max: number | null
+          age_min: number | null
           age_restriction: string | null
+          audience: string | null
           buy_url: string | null
           capacity_info: string | null
           category: string
@@ -264,7 +267,9 @@ export type Database = {
           id: string
           image_status: string | null
           image_url: string | null
+          is_family_friendly: boolean | null
           is_free: boolean
+          is_outdoor: boolean | null
           last_seen_at: string | null
           last_synced_at: string | null
           lat: number | null
@@ -296,7 +301,10 @@ export type Database = {
         Insert: {
           accessibility_info?: string | null
           address: string
+          age_max?: number | null
+          age_min?: number | null
           age_restriction?: string | null
+          audience?: string | null
           buy_url?: string | null
           capacity_info?: string | null
           category: string
@@ -313,7 +321,9 @@ export type Database = {
           id?: string
           image_status?: string | null
           image_url?: string | null
+          is_family_friendly?: boolean | null
           is_free?: boolean
+          is_outdoor?: boolean | null
           last_seen_at?: string | null
           last_synced_at?: string | null
           lat?: number | null
@@ -345,7 +355,10 @@ export type Database = {
         Update: {
           accessibility_info?: string | null
           address?: string
+          age_max?: number | null
+          age_min?: number | null
           age_restriction?: string | null
+          audience?: string | null
           buy_url?: string | null
           capacity_info?: string | null
           category?: string
@@ -362,7 +375,9 @@ export type Database = {
           id?: string
           image_status?: string | null
           image_url?: string | null
+          is_family_friendly?: boolean | null
           is_free?: boolean
+          is_outdoor?: boolean | null
           last_seen_at?: string | null
           last_synced_at?: string | null
           lat?: number | null
@@ -1291,6 +1306,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_event_family_flags: {
+        Args: never
+        Returns: {
+          age_filled: number
+          audience_family: number
+          audience_kids: number
+          family_marked: number
+          outdoor_marked: number
+        }[]
+      }
       backfill_events_dedupe_keys: {
         Args: never
         Returns: {
