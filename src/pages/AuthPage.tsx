@@ -59,7 +59,14 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-warm relative overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute top-40 -right-16 h-72 w-72 rounded-full bg-secondary/25 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-accent/15 blur-3xl" />
+      </div>
+      <div className="relative">
+
       <SEO
         title="Acceder a MalagaEvents"
         description="Inicia sesión o crea una cuenta para guardar favoritos, gestionar entradas y recibir alertas de eventos en Málaga."
