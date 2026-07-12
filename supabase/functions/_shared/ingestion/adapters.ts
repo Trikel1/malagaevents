@@ -4,6 +4,7 @@
 
 import type { SourceAdapter } from "./types.ts";
 import { aytoMalagaAdapter } from "../adapters/ayto-malaga.ts";
+import { teatroCervantesAdapter } from "../adapters/teatro-cervantes.ts";
 
 const REGISTRY = new Map<string, SourceAdapter>();
 
@@ -12,6 +13,7 @@ function register(adapter: SourceAdapter) {
 }
 
 register(aytoMalagaAdapter);
+register(teatroCervantesAdapter);
 
 export function getAdapter(key: string | null | undefined): SourceAdapter | null {
   if (!key) return null;
