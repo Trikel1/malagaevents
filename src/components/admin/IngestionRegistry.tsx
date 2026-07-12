@@ -90,6 +90,45 @@ const truncate = (v: unknown, max = 220) => {
 };
 
 const IngestionRegistry = () => {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [busySourceId, setBusySourceId] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
+  };
+
+  const runDry = async (sourceId?: string) => {
+    setBusySourceId(sourceId ?? '__dispatcher__');
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-ingest', {
+        body: sourceId
+          ? { action: 'scrape-source', sourceId, dryRun: true }
+          : { action: 'ingest-dispatcher', dryRun: true },
+      });
+      if (error) throw error;
+      const summary = data as { inserted?: number; skippedDupes?: number; errors?: number; preview?: unknown[]; processed?: number };
+      toast({
+        title: 'Dry-run completado',
+        description: summary?.preview
+          ? `${summary.preview.length} eventos normalizados · ${summary.errors ?? 0} errores`
+          : `Procesadas ${summary?.processed ?? 0} fuentes`,
+      });
+      setAutoRefresh(true);
+      setTimeout(() => setAutoRefresh(false), 8000);
+      invalidateAll();
+    } catch (e: any) {
+      toast({
+        title: 'Dry-run falló',
+        description: e?.message ?? 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setBusySourceId(null);
+    }
+  };
+
   const sourcesQuery = useQuery({
     queryKey: ['admin', 'ingesta', 'event_sources'],
     queryFn: async () => {
