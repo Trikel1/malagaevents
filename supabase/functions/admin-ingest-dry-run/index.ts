@@ -118,13 +118,52 @@ Deno.serve(async (req) => {
 
   // 5. Sanitize: only whitelist safe scalar fields. Never echo headers,
   //    tokens, or arbitrary upstream payloads back to the browser.
-  const preview = parsed["preview"];
-  const previewCount = Array.isArray(preview) ? preview.length : undefined;
+  const rawPreview = parsed["preview"];
+  const previewCount = Array.isArray(rawPreview) ? rawPreview.length : undefined;
 
   const pickNumber = (k: string) =>
     typeof parsed[k] === "number" ? (parsed[k] as number) : undefined;
   const pickString = (k: string) =>
     typeof parsed[k] === "string" ? (parsed[k] as string) : undefined;
+
+  // Sanitize preview: whitelist fields, truncate strings to 300 chars,
+  // cap at 20 items. Never leak raw HTML, tokens, headers, or the full
+  // upstream `raw` blob.
+  const truncStr = (v: unknown): string | null => {
+    if (typeof v !== "string") return null;
+    const s = v.trim();
+    if (!s) return null;
+    return s.length > 300 ? s.slice(0, 300) + "…" : s;
+  };
+  const truncUrl = (v: unknown): string | null => {
+    const s = truncStr(v);
+    if (!s) return null;
+    return /^https?:\/\//i.test(s) ? s : null;
+  };
+
+  const preview: Array<Record<string, unknown>> = [];
+  if (Array.isArray(rawPreview)) {
+    for (const item of rawPreview.slice(0, 20)) {
+      if (!item || typeof item !== "object") continue;
+      const it = item as Record<string, unknown>;
+      const raw = (it["raw"] && typeof it["raw"] === "object")
+        ? (it["raw"] as Record<string, unknown>)
+        : {};
+      preview.push({
+        title: truncStr(it["title"]),
+        startAt: truncStr(it["startAt"]),
+        venueName: truncStr(it["venueName"]),
+        locality: truncStr(it["locality"]),
+        category: truncStr(it["category"]),
+        sourceUrl: truncUrl(it["sourceUrl"]),
+        ticketUrl: truncUrl(it["ticketUrl"]),
+        imageUrl: truncUrl(it["imageUrl"]),
+        timeAssumed: raw["timeAssumed"] === true,
+        dateLine: truncStr(raw["dateLine"]),
+        cycleText: truncStr(raw["cycleText"]),
+      });
+    }
+  }
 
   const safe = {
     ok: upstream.ok,
@@ -136,6 +175,7 @@ Deno.serve(async (req) => {
     skippedDupes: pickNumber("skippedDupes") ?? pickNumber("skipped_dupes"),
     errors: pickNumber("errors"),
     previewCount,
+    preview,
     error: !upstream.ok ? pickString("error") ?? "upstream_error" : undefined,
   };
 

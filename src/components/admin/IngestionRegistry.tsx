@@ -13,6 +13,8 @@ import {
   Play,
   Loader2,
   RefreshCw,
+  ExternalLink,
+  Copy,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +22,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 
 // Real schema (Phase 2A) — do NOT reference columns that don't exist.
@@ -65,6 +76,34 @@ type IngestionError = {
   created_at: string;
 };
 
+type PreviewItem = {
+  title: string | null;
+  startAt: string | null;
+  venueName: string | null;
+  locality: string | null;
+  category: string | null;
+  sourceUrl: string | null;
+  ticketUrl: string | null;
+  imageUrl: string | null;
+  timeAssumed: boolean;
+  dateLine: string | null;
+  cycleText: string | null;
+};
+
+type DryRunResponse = {
+  ok?: boolean;
+  dryRun?: boolean;
+  runId?: string;
+  status?: string;
+  inserted?: number;
+  updated?: number;
+  skippedDupes?: number;
+  errors?: number;
+  previewCount?: number;
+  preview?: PreviewItem[];
+  error?: string;
+};
+
 const fmt = (d: string | null | undefined) =>
   d ? format(new Date(d), "d MMM yyyy, HH:mm", { locale: es }) : '—';
 
@@ -94,12 +133,15 @@ const IngestionRegistry = () => {
   const qc = useQueryClient();
   const [busySourceId, setBusySourceId] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<DryRunResponse | null>(null);
+  const [previewSourceName, setPreviewSourceName] = useState<string>('');
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
   };
 
-  const runDry = async (sourceId?: string) => {
+  const runDry = async (sourceId?: string, sourceName?: string) => {
     setBusySourceId(sourceId ?? '__dispatcher__');
     try {
       if (sourceId) {
@@ -110,11 +152,10 @@ const IngestionRegistry = () => {
           { body: { sourceId } },
         );
         if (error) throw error;
-        const s = (data ?? {}) as {
-          previewCount?: number;
-          errors?: number;
-          status?: string;
-        };
+        const s = (data ?? {}) as DryRunResponse;
+        setPreviewData(s);
+        setPreviewSourceName(sourceName ?? '');
+        setPreviewOpen(true);
         toast({
           title: 'Dry-run completado',
           description:
@@ -346,7 +387,7 @@ const IngestionRegistry = () => {
                         size="sm"
                         variant="outline"
                         className="h-7 px-2 gap-1"
-                        onClick={() => runDry(s.id)}
+                        onClick={() => runDry(s.id, s.name)}
                         disabled={busySourceId !== null}
                       >
                         {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
@@ -429,6 +470,145 @@ const IngestionRegistry = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              <span>Dry-run</span>
+              {previewSourceName && (
+                <Badge variant="outline" className="text-xs">{previewSourceName}</Badge>
+              )}
+              {previewData?.status && statusBadge(previewData.status)}
+              <Badge variant="outline" className="text-xs">dry-run</Badge>
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {previewData
+                ? `${previewData.previewCount ?? 0} eventos normalizados · ${previewData.errors ?? 0} errores · WRITE_ENABLED=false`
+                : 'Sin datos'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 pr-3 -mr-3">
+            {!previewData ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Sin datos de preview.
+              </div>
+            ) : previewData.error ? (
+              <div className="py-6 text-sm text-destructive break-words">
+                {previewData.error}
+              </div>
+            ) : !previewData.preview || previewData.preview.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                <AlertCircle className="h-5 w-5 mx-auto mb-2 opacity-60" />
+                El adaptador no devolvió eventos parseables en este dry-run.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {previewData.preview.map((it, idx) => (
+                  <Card key={idx} className="border-muted">
+                    <CardContent className="py-3 text-sm space-y-1">
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="font-medium break-words flex-1 min-w-0">
+                          {it.title ?? <span className="italic text-muted-foreground">sin título</span>}
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {it.category && (
+                            <Badge variant="secondary" className="text-xs">{it.category}</Badge>
+                          )}
+                          {it.timeAssumed && (
+                            <Badge variant="outline" className="text-xs text-amber-600 border-amber-600/50">
+                              hora estimada
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
+                        {it.startAt && (
+                          <span>
+                            {(() => {
+                              try {
+                                return format(new Date(it.startAt), "EEE d MMM yyyy · HH:mm", { locale: es });
+                              } catch {
+                                return it.startAt;
+                              }
+                            })()}
+                          </span>
+                        )}
+                        {it.venueName && (
+                          <span className="inline-flex items-center gap-1">
+                            <Building2 className="h-3 w-3" /> {it.venueName}
+                          </span>
+                        )}
+                        {it.locality && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3 w-3" /> {it.locality}
+                          </span>
+                        )}
+                      </div>
+                      {(it.cycleText || it.dateLine) && (
+                        <div className="text-xs text-muted-foreground italic break-words">
+                          {it.cycleText && <span>Ciclo: {it.cycleText}</span>}
+                          {it.cycleText && it.dateLine && <span> · </span>}
+                          {it.dateLine && <span className="font-mono">{it.dateLine}</span>}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 text-xs pt-0.5 flex-wrap">
+                        {it.sourceUrl && (
+                          <a
+                            href={it.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" /> Fuente
+                          </a>
+                        )}
+                        {it.ticketUrl && (
+                          <a
+                            href={it.ticketUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" /> Entradas
+                          </a>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={async () => {
+                if (!previewData) return;
+                try {
+                  await navigator.clipboard.writeText(JSON.stringify(previewData, null, 2));
+                  toast({ title: 'JSON copiado al portapapeles' });
+                } catch {
+                  toast({
+                    title: 'No se pudo copiar',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              disabled={!previewData}
+            >
+              <Copy className="h-3.5 w-3.5" /> Copiar JSON
+            </Button>
+            <Button size="sm" onClick={() => setPreviewOpen(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
