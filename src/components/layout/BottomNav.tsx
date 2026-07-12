@@ -29,7 +29,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed left-3 right-3 z-50 glass-nav bottom-nav-dock"
+      className="fixed left-2 right-2 z-50 glass-nav bottom-nav-dock sm:left-3 sm:right-3"
       style={{
         bottom: 'max(8px, env(safe-area-inset-bottom, 0px))',
         paddingBottom: 'max(8px, env(safe-area-inset-bottom, 0px))',
