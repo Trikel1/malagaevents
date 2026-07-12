@@ -288,6 +288,76 @@ const IngestionRegistry = () => {
     }
   };
 
+  // ---- Enabled toggle -----------------------------------------------------
+  const [toggleOpen, setToggleOpen] = useState(false);
+  const [toggleSource, setToggleSource] = useState<EventSource | null>(null);
+  const [toggleChecked, setToggleChecked] = useState(false);
+  const [toggleNote, setToggleNote] = useState('');
+  const [toggleBusy, setToggleBusy] = useState(false);
+
+  const openToggleDialog = (s: EventSource) => {
+    setToggleSource(s);
+    setToggleChecked(false);
+    setToggleNote('');
+    setToggleOpen(true);
+  };
+
+  const submitToggle = async () => {
+    if (!toggleSource || !toggleChecked) return;
+    const nextEnabled = !toggleSource.enabled;
+    if (nextEnabled && !toggleSource.robots_ok) {
+      toast({
+        title: 'No se puede activar',
+        description: 'Confirma robots/manual antes de activar la fuente.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setToggleBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-source-toggle-enabled',
+        {
+          body: {
+            sourceId: toggleSource.id,
+            enabled: nextEnabled,
+            note: toggleNote.slice(0, 500),
+          },
+        },
+      );
+      if (error) throw error;
+      const res = (data ?? {}) as { action?: string; enabled?: boolean };
+      toast({
+        title: nextEnabled ? 'Fuente activada' : 'Fuente desactivada',
+        description: nextEnabled
+          ? `Ahora es candidata para ejecuciones futuras. NO se han escrito eventos. (${res.action ?? '—'})`
+          : `Fuente desactivada. NO se han escrito eventos. (${res.action ?? '—'})`,
+      });
+      setToggleOpen(false);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const robotsBlock = /robots_not_confirmed/i.test(msg);
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: robotsBlock
+          ? 'Robots no confirmado'
+          : forbidden
+            ? 'Sin permisos'
+            : 'No se pudo actualizar',
+        description: robotsBlock
+          ? 'No se puede activar la fuente hasta confirmar robots/manual.'
+          : forbidden
+            ? 'Necesitas rol admin.'
+            : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setToggleBusy(false);
+    }
+  };
+
+
 
 
 
