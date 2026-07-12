@@ -102,32 +102,57 @@ const IngestionRegistry = () => {
   const runDry = async (sourceId?: string) => {
     setBusySourceId(sourceId ?? '__dispatcher__');
     try {
-      const { data, error } = await supabase.functions.invoke('admin-ingest', {
-        body: sourceId
-          ? { action: 'scrape-source', sourceId, dryRun: true }
-          : { action: 'ingest-dispatcher', dryRun: true },
-      });
-      if (error) throw error;
-      const summary = data as { inserted?: number; skippedDupes?: number; errors?: number; preview?: unknown[]; processed?: number };
-      toast({
-        title: 'Dry-run completado',
-        description: summary?.preview
-          ? `${summary.preview.length} eventos normalizados · ${summary.errors ?? 0} errores`
-          : `Procesadas ${summary?.processed ?? 0} fuentes`,
-      });
+      if (sourceId) {
+        // Dedicated admin function: forces dryRun=true server-side and
+        // returns only a sanitized summary. No secrets in the browser.
+        const { data, error } = await supabase.functions.invoke(
+          'admin-ingest-dry-run',
+          { body: { sourceId } },
+        );
+        if (error) throw error;
+        const s = (data ?? {}) as {
+          previewCount?: number;
+          errors?: number;
+          status?: string;
+        };
+        toast({
+          title: 'Dry-run completado',
+          description:
+            typeof s.previewCount === 'number'
+              ? `${s.previewCount} eventos normalizados · ${s.errors ?? 0} errores`
+              : s.status
+                ? `Estado: ${s.status} · ${s.errors ?? 0} errores`
+                : 'Ejecución registrada',
+        });
+      } else {
+        const { data, error } = await supabase.functions.invoke('admin-ingest', {
+          body: { action: 'ingest-dispatcher', dryRun: true },
+        });
+        if (error) throw error;
+        const summary = data as { processed?: number; errors?: number };
+        toast({
+          title: 'Dry-run completado',
+          description: `Procesadas ${summary?.processed ?? 0} fuentes · ${summary?.errors ?? 0} errores`,
+        });
+      }
       setAutoRefresh(true);
       setTimeout(() => setAutoRefresh(false), 8000);
       invalidateAll();
     } catch (e: any) {
+      const msg = e?.message ?? '';
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
       toast({
-        title: 'Dry-run falló',
-        description: e?.message ?? 'Error desconocido',
+        title: forbidden ? 'Sin permisos' : 'No se pudo ejecutar dry-run',
+        description: forbidden
+          ? 'Necesitas rol admin para ejecutar esta acción.'
+          : msg || 'Error desconocido',
         variant: 'destructive',
       });
     } finally {
       setBusySourceId(null);
     }
   };
+
 
   const sourcesQuery = useQuery({
     queryKey: ['admin', 'ingesta', 'event_sources'],
