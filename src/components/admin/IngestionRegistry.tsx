@@ -141,7 +141,7 @@ const IngestionRegistry = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
   };
 
-  const runDry = async (sourceId?: string) => {
+  const runDry = async (sourceId?: string, sourceName?: string) => {
     setBusySourceId(sourceId ?? '__dispatcher__');
     try {
       if (sourceId) {
@@ -152,11 +152,10 @@ const IngestionRegistry = () => {
           { body: { sourceId } },
         );
         if (error) throw error;
-        const s = (data ?? {}) as {
-          previewCount?: number;
-          errors?: number;
-          status?: string;
-        };
+        const s = (data ?? {}) as DryRunResponse;
+        setPreviewData(s);
+        setPreviewSourceName(sourceName ?? '');
+        setPreviewOpen(true);
         toast({
           title: 'Dry-run completado',
           description:
