@@ -260,7 +260,7 @@ Deno.serve(async (req) => {
           .eq("dedupe_key", dedupeKey)
           .maybeSingle();
 
-        const contentHash = await (await import("../_shared/ingestion/normalize.ts")).stableHash(
+        const contentHash = await stableHash(
           [ev.title, ev.description ?? "", ev.startAt, ev.venueName ?? "", ev.imageUrl ?? "", ev.ticketUrl ?? ""].join("|"),
         );
         const nowIso = new Date().toISOString();
