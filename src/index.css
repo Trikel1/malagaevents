@@ -581,8 +581,8 @@
   }
 
   .bottom-nav-active-surface {
-    inset-left: 1px;
-    inset-right: 1px;
+    left: 1px;
+    right: 1px;
   }
 }
 
