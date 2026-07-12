@@ -157,6 +157,7 @@ Deno.serve(async (req) => {
   const token = authHeader.replace("Bearer ", "");
   const { data: userData, error: userErr } = await userClient.auth.getUser(token);
   if (userErr || !userData?.user) return json({ error: "invalid_token" }, 401);
+  const adminUserId = userData.user.id;
 
   // 2. authz: admin only
   const adminClient = createClient(supabaseUrl, serviceKey, {
