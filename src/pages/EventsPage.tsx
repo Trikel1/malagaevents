@@ -384,8 +384,98 @@ const CultureEventsPage = () => {
             onGroupChange={setSelectedVenueGroup}
             onVenueIdsChange={setSelectedVenueIds}
           />
+
+          {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
+          <div
+            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            role="toolbar"
+            aria-label={t('events.quickFilters', 'Filtros rápidos')}
+          >
+            {quickPresets.map((p) => {
+              const active = filters.datePreset === p.key;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => togglePreset(p.key)}
+                  aria-pressed={active}
+                  className={cn(
+                    'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted',
+                  )}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+
+            <span className="shrink-0 self-center mx-1 h-4 w-px bg-border" aria-hidden />
+
+            <button
+              type="button"
+              onClick={() => toggleBooleanFilter('familyKids')}
+              aria-pressed={!!filters.familyKids}
+              className={cn(
+                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                filters.familyKids
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted',
+              )}
+            >
+              {t('events.familyKids', 'Infantil / Familiar')}
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleBooleanFilter('isFree')}
+              aria-pressed={!!filters.isFree}
+              className={cn(
+                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                filters.isFree
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted',
+              )}
+            >
+              {t('events.freeOnly', 'Gratis')}
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleBooleanFilter('withTickets')}
+              aria-pressed={!!filters.withTickets}
+              className={cn(
+                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                filters.withTickets
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted',
+              )}
+            >
+              {t('events.withTickets', 'Con entradas')}
+            </button>
+            <button
+              type="button"
+              onClick={handleNearMe}
+              disabled={isRequestingLocation}
+              aria-pressed={!!userCoords}
+              className={cn(
+                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap inline-flex items-center gap-1.5',
+                userCoords
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted',
+                isRequestingLocation && 'opacity-60',
+              )}
+            >
+              <Navigation className="h-3 w-3" aria-hidden="true" />
+              {isRequestingLocation
+                ? t('events.locating', 'Localizando…')
+                : userCoords
+                  ? t('events.clearDistanceSort', 'Cerca de mí ✕')
+                  : t('events.nearMe', 'Cerca de mí')}
+            </button>
+          </div>
         </div>
       </header>
+
 
       <main className="p-4">
         {isLoadingEvents ? (
