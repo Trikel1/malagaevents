@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   const { data: hasAdmin, error: roleErr } = await adminClient.rpc("has_role", {
-    _user_id: userData.user.id,
+    _user_id: adminUserId,
     _role: "admin",
   });
   if (roleErr || !hasAdmin) return json({ error: "forbidden" }, 403);
