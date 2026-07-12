@@ -22,9 +22,10 @@ interface EventCardProps {
   onToggleFavorite?: (eventId: string) => void;
   compact?: boolean;
   dense?: boolean;
+  priority?: boolean;
 }
 
-const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense }, ref) => {
+const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority }, ref) => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
@@ -84,6 +85,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
               category={event.category}
               className="group-hover:scale-105 transition-transform duration-500"
               aspectRatio="3/2"
+              priority={priority}
             />
             {/* Floating date badge */}
             <div className="absolute top-1.5 left-1.5 z-10 flex flex-col items-center justify-center bg-card/95 backdrop-blur-sm rounded-lg px-1.5 py-0.5 shadow-soft min-w-[34px]">
@@ -132,6 +134,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
             variant={compact ? 'compact' : 'card'}
             category={event.category}
             className="group-hover:scale-105 transition-transform duration-300"
+            priority={priority}
           />
           
           {/* Free badge */}
