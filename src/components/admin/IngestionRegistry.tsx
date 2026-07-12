@@ -104,6 +104,43 @@ type DryRunResponse = {
   error?: string;
 };
 
+type PreflightAction = 'insert' | 'update' | 'skip' | 'conflict';
+
+type PreflightItem = {
+  action: PreflightAction;
+  title: string | null;
+  startAt: string | null;
+  venueName: string | null;
+  canonicalVenue: string | null;
+  locality: string | null;
+  category: string | null;
+  sourceUrl: string | null;
+  ticketUrl: string | null;
+  imageUrl: string | null;
+  existingEventId: string | null;
+  existingDedupeKey: string | null;
+  newDedupeKey: string;
+  reason: string;
+  raw: { timeAssumed: boolean; dateLine: string | null; cycleText: string | null };
+};
+
+type PreflightResponse = {
+  ok?: boolean;
+  dryRun?: boolean;
+  sourceId?: string;
+  sourceName?: string;
+  adapter?: string;
+  totalFetched?: number;
+  wouldInsert?: number;
+  wouldUpdate?: number;
+  wouldSkip?: number;
+  conflicts?: number;
+  warnings?: string[];
+  generatedAt?: string;
+  preview?: PreflightItem[];
+  error?: string;
+};
+
 const fmt = (d: string | null | undefined) =>
   d ? format(new Date(d), "d MMM yyyy, HH:mm", { locale: es }) : '—';
 
@@ -136,6 +173,9 @@ const IngestionRegistry = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<DryRunResponse | null>(null);
   const [previewSourceName, setPreviewSourceName] = useState<string>('');
+  const [preflightOpen, setPreflightOpen] = useState(false);
+  const [preflightData, setPreflightData] = useState<PreflightResponse | null>(null);
+  const [preflightBusyId, setPreflightBusyId] = useState<string | null>(null);
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
@@ -193,6 +233,39 @@ const IngestionRegistry = () => {
       setBusySourceId(null);
     }
   };
+
+  const runPreflight = async (sourceId: string, sourceName: string) => {
+    setPreflightBusyId(sourceId);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-ingest-preflight',
+        { body: { sourceId } },
+      );
+      if (error) throw error;
+      const s = (data ?? {}) as PreflightResponse;
+      setPreflightData({ ...s, sourceName: s.sourceName ?? sourceName });
+      setPreflightOpen(true);
+      toast({
+        title: 'Preflight completado',
+        description: `Insert ${s.wouldInsert ?? 0} · Update ${s.wouldUpdate ?? 0} · Skip ${s.wouldSkip ?? 0} · Conflict ${s.conflicts ?? 0}`,
+      });
+      setAutoRefresh(true);
+      setTimeout(() => setAutoRefresh(false), 4000);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: forbidden ? 'Sin permisos' : 'No se pudo ejecutar preflight',
+        description: forbidden ? 'Necesitas rol admin.' : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setPreflightBusyId(null);
+    }
+  };
+
+
 
 
   const sourcesQuery = useQuery({
@@ -383,16 +456,29 @@ const IngestionRegistry = () => {
                         {last ? fmt(last.started_at) : 'sin ejecuciones'}
                       </div>
                       {last && <div>{statusBadge(last.status)}</div>}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2 gap-1"
-                        onClick={() => runDry(s.id, s.name)}
-                        disabled={busySourceId !== null}
-                      >
-                        {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-                        Dry-run
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 gap-1"
+                          onClick={() => runDry(s.id, s.name)}
+                          disabled={busySourceId !== null || preflightBusyId !== null}
+                        >
+                          {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+                          Dry-run
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 gap-1"
+                          onClick={() => runPreflight(s.id, s.name)}
+                          disabled={busySourceId !== null || preflightBusyId !== null}
+                          title="Calcular diff sin escribir nada"
+                        >
+                          {preflightBusyId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
+                          Preparar escritura
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -606,6 +692,153 @@ const IngestionRegistry = () => {
             <Button size="sm" onClick={() => setPreviewOpen(false)}>
               Cerrar
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={preflightOpen} onOpenChange={setPreflightOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Preflight de escritura</span>
+              {preflightData?.sourceName && (
+                <Badge variant="outline" className="text-xs">{preflightData.sourceName}</Badge>
+              )}
+              {preflightData?.adapter && (
+                <Badge variant="outline" className="text-xs font-mono">{preflightData.adapter}</Badge>
+              )}
+              <Badge variant="outline" className="text-xs">dry-run</Badge>
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {preflightData
+                ? `Total ${preflightData.totalFetched ?? 0} · Insert ${preflightData.wouldInsert ?? 0} · Update ${preflightData.wouldUpdate ?? 0} · Skip ${preflightData.wouldSkip ?? 0} · Conflict ${preflightData.conflicts ?? 0}`
+                : 'Sin datos'}
+              {' · sin escrituras reales'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 pr-3 -mr-3">
+            {!preflightData ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">Sin datos.</div>
+            ) : preflightData.error ? (
+              <div className="py-6 text-sm text-destructive break-words">{preflightData.error}</div>
+            ) : (
+              <div className="space-y-3">
+                {preflightData.warnings && preflightData.warnings.length > 0 && (
+                  <Card className="border-amber-500/40">
+                    <CardContent className="py-2 text-xs space-y-1">
+                      <div className="font-medium flex items-center gap-1">
+                        <AlertCircle className="h-3.5 w-3.5" /> Warnings ({preflightData.warnings.length})
+                      </div>
+                      {preflightData.warnings.slice(0, 10).map((w, i) => (
+                        <div key={i} className="text-muted-foreground break-words font-mono">{w}</div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+                {(!preflightData.preview || preflightData.preview.length === 0) ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">
+                    <AlertCircle className="h-5 w-5 mx-auto mb-2 opacity-60" />
+                    Sin eventos para clasificar.
+                  </div>
+                ) : (
+                  preflightData.preview.map((it, idx) => {
+                    const actionBadge = (() => {
+                      switch (it.action) {
+                        case 'insert':
+                          return <Badge className="bg-emerald-600 hover:bg-emerald-600 text-xs">insert</Badge>;
+                        case 'update':
+                          return <Badge className="bg-blue-600 hover:bg-blue-600 text-xs">update</Badge>;
+                        case 'skip':
+                          return <Badge variant="secondary" className="text-xs">skip</Badge>;
+                        case 'conflict':
+                          return <Badge variant="destructive" className="text-xs">conflict</Badge>;
+                      }
+                    })();
+                    return (
+                      <Card key={idx} className="border-muted">
+                        <CardContent className="py-3 text-sm space-y-1">
+                          <div className="flex items-start justify-between gap-2 flex-wrap">
+                            <div className="font-medium break-words flex-1 min-w-0">
+                              {it.title ?? <span className="italic text-muted-foreground">sin título</span>}
+                            </div>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {actionBadge}
+                              {it.category && <Badge variant="secondary" className="text-xs">{it.category}</Badge>}
+                              {it.raw.timeAssumed && (
+                                <Badge variant="outline" className="text-xs text-amber-600 border-amber-600/50">
+                                  hora estimada
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
+                            {it.startAt && (
+                              <span>
+                                {(() => {
+                                  try { return format(new Date(it.startAt), "EEE d MMM yyyy · HH:mm", { locale: es }); }
+                                  catch { return it.startAt; }
+                                })()}
+                              </span>
+                            )}
+                            {(it.canonicalVenue ?? it.venueName) && (
+                              <span className="inline-flex items-center gap-1">
+                                <Building2 className="h-3 w-3" /> {it.canonicalVenue ?? it.venueName}
+                              </span>
+                            )}
+                            {it.locality && (
+                              <span className="inline-flex items-center gap-1">
+                                <MapPin className="h-3 w-3" /> {it.locality}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground font-mono break-all">
+                            {it.reason} · new={it.newDedupeKey.slice(0, 12)}…
+                            {it.existingEventId && (
+                              <> · existing={it.existingEventId.slice(0, 8)}…</>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs pt-0.5 flex-wrap">
+                            {it.sourceUrl && (
+                              <a href={it.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                                <ExternalLink className="h-3 w-3" /> Fuente
+                              </a>
+                            )}
+                            {it.ticketUrl && (
+                              <a href={it.ticketUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+                                <ExternalLink className="h-3 w-3" /> Entradas
+                              </a>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </ScrollArea>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={async () => {
+                if (!preflightData) return;
+                try {
+                  await navigator.clipboard.writeText(JSON.stringify(preflightData, null, 2));
+                  toast({ title: 'JSON copiado al portapapeles' });
+                } catch {
+                  toast({ title: 'No se pudo copiar', variant: 'destructive' });
+                }
+              }}
+              disabled={!preflightData}
+            >
+              <Copy className="h-3.5 w-3.5" /> Copiar JSON
+            </Button>
+            <Button size="sm" onClick={() => setPreflightOpen(false)}>Cerrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
