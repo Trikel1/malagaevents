@@ -404,6 +404,7 @@ const IngestionRegistry = () => {
 
   const enabledCount = sources.filter((s) => s.enabled).length;
   const robotsOkCount = sources.filter((s) => s.robots_ok).length;
+  const writeConfirmedCount = sources.filter((s) => !!s.write_confirmed_at).length;
   const lastRunBySource = new Map<string, EventSourceRun>();
   for (const r of runs) {
     if (!lastRunBySource.has(r.source_id)) lastRunBySource.set(r.source_id, r);
