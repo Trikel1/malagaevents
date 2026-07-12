@@ -156,6 +156,8 @@ export type Database = {
           schedule_cron: string | null
           slug: string
           updated_at: string
+          write_confirmed_at: string | null
+          write_confirmed_by: string | null
         }
         Insert: {
           adapter_key: string
@@ -174,6 +176,8 @@ export type Database = {
           schedule_cron?: string | null
           slug: string
           updated_at?: string
+          write_confirmed_at?: string | null
+          write_confirmed_by?: string | null
         }
         Update: {
           adapter_key?: string
@@ -192,6 +196,8 @@ export type Database = {
           schedule_cron?: string | null
           slug?: string
           updated_at?: string
+          write_confirmed_at?: string | null
+          write_confirmed_by?: string | null
         }
         Relationships: []
       }
@@ -300,19 +306,19 @@ export type Database = {
         }
         Insert: {
           accessibility_info?: string | null
-          address: string
+          address?: string
           age_max?: number | null
           age_min?: number | null
           age_restriction?: string | null
           audience?: string | null
           buy_url?: string | null
           capacity_info?: string | null
-          category: string
+          category?: string
           content_hash?: string | null
           country?: string | null
           created_at?: string
           dedupe_key?: string | null
-          description: string
+          description?: string
           description_full?: string | null
           description_short?: string | null
           end_at?: string | null
