@@ -15,6 +15,8 @@ import {
   RefreshCw,
   ExternalLink,
   Copy,
+  KeyRound,
+  ShieldOff,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +33,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 // Real schema (Phase 2A) — do NOT reference columns that don't exist.
@@ -48,6 +53,8 @@ type EventSource = {
   schedule_cron: string | null;
   robots_ok: boolean;
   notes: string | null;
+  write_confirmed_at: string | null;
+  write_confirmed_by: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -176,6 +183,57 @@ const IngestionRegistry = () => {
   const [preflightOpen, setPreflightOpen] = useState(false);
   const [preflightData, setPreflightData] = useState<PreflightResponse | null>(null);
   const [preflightBusyId, setPreflightBusyId] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmSource, setConfirmSource] = useState<EventSource | null>(null);
+  const [confirmChecked, setConfirmChecked] = useState(false);
+  const [confirmNote, setConfirmNote] = useState('');
+  const [confirmBusy, setConfirmBusy] = useState(false);
+
+  const openConfirmDialog = (s: EventSource) => {
+    setConfirmSource(s);
+    setConfirmChecked(false);
+    setConfirmNote('');
+    setConfirmOpen(true);
+  };
+
+  const submitConfirm = async () => {
+    if (!confirmSource || !confirmChecked) return;
+    const revoking = !!confirmSource.write_confirmed_at;
+    setConfirmBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-source-confirm-write',
+        {
+          body: {
+            sourceId: confirmSource.id,
+            confirm: !revoking,
+            note: confirmNote.slice(0, 500),
+          },
+        },
+      );
+      if (error) throw error;
+      const res = (data ?? {}) as { action?: string; writeConfirmedAt?: string | null };
+      toast({
+        title: revoking ? 'Autorización revocada' : 'Autorización registrada',
+        description: revoking
+          ? 'La fuente ya no está marcada como preparada para escritura.'
+          : `Marcada como preparada. Sigue sin escribir eventos ni activarse. (${res.action ?? '—'})`,
+      });
+      setConfirmOpen(false);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: forbidden ? 'Sin permisos' : 'No se pudo actualizar',
+        description: forbidden ? 'Necesitas rol admin.' : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setConfirmBusy(false);
+    }
+  };
+
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
@@ -274,7 +332,7 @@ const IngestionRegistry = () => {
       const { data, error } = await supabase
         .from('event_sources' as any)
         .select(
-          'id, slug, name, kind, base_url, adapter_key, locality_slug, category_hints, priority, enabled, schedule_cron, robots_ok, notes, created_at, updated_at',
+          'id, slug, name, kind, base_url, adapter_key, locality_slug, category_hints, priority, enabled, schedule_cron, robots_ok, notes, write_confirmed_at, write_confirmed_by, created_at, updated_at',
         )
         .order('priority', { ascending: false })
         .order('name', { ascending: true });
@@ -437,6 +495,9 @@ const IngestionRegistry = () => {
                         {typeof s.priority === 'number' && (
                           <Badge variant="outline" className="text-xs">p{s.priority}</Badge>
                         )}
+                        {s.write_confirmed_at
+                          ? <Badge className="bg-indigo-600 hover:bg-indigo-600 text-xs gap-1"><KeyRound className="h-3 w-3" /> escritura autorizada</Badge>
+                          : <Badge variant="outline" className="text-xs">escritura no autorizada</Badge>}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 space-x-2">
                         <span className="font-mono">{s.slug}</span>
@@ -477,6 +538,20 @@ const IngestionRegistry = () => {
                         >
                           {preflightBusyId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
                           Preparar escritura
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 gap-1"
+                          onClick={() => openConfirmDialog(s)}
+                          disabled={busySourceId !== null || preflightBusyId !== null || confirmBusy}
+                          title={s.write_confirmed_at
+                            ? 'Revocar autorización de escritura futura'
+                            : 'Autorizar escritura futura (no ejecuta nada)'}
+                        >
+                          {s.write_confirmed_at
+                            ? <><ShieldOff className="h-3 w-3" /> Revocar autorización</>
+                            : <><KeyRound className="h-3 w-3" /> Autorizar escritura futura</>}
                         </Button>
                       </div>
                     </div>
@@ -839,6 +914,91 @@ const IngestionRegistry = () => {
               <Copy className="h-3.5 w-3.5" /> Copiar JSON
             </Button>
             <Button size="sm" onClick={() => setPreflightOpen(false)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={confirmOpen} onOpenChange={(o) => { if (!confirmBusy) setConfirmOpen(o); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              {confirmSource?.write_confirmed_at
+                ? <><ShieldOff className="h-4 w-4" /> Revocar autorización</>
+                : <><KeyRound className="h-4 w-4" /> Autorizar escritura futura</>}
+              {confirmSource && (
+                <Badge variant="outline" className="text-xs">{confirmSource.name}</Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Acción de auditoría sobre <span className="font-mono">event_sources</span>. No modifica <span className="font-mono">events</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm">
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs leading-relaxed">
+              Esto no inserta eventos ni activa la fuente. Solo marca esta fuente como preparada para una futura escritura controlada.
+              <div className="mt-1 text-muted-foreground">
+                No cambia <span className="font-mono">enabled</span>, no cambia <span className="font-mono">robots_ok</span>, no ejecuta ninguna ingesta.
+              </div>
+            </div>
+
+            {confirmSource?.write_confirmed_at && (
+              <div className="text-xs text-muted-foreground">
+                Autorizada el <span className="font-mono">{fmt(confirmSource.write_confirmed_at)}</span>
+                {confirmSource.write_confirmed_by && (
+                  <> por <span className="font-mono">{confirmSource.write_confirmed_by.slice(0, 8)}…</span></>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="confirm-note" className="text-xs">Nota de auditoría (opcional, máx. 500)</Label>
+              <Textarea
+                id="confirm-note"
+                value={confirmNote}
+                onChange={(e) => setConfirmNote(e.target.value.slice(0, 500))}
+                placeholder="Motivo o contexto de la decisión…"
+                className="min-h-[70px] text-sm"
+                disabled={confirmBusy}
+              />
+              <div className="text-[10px] text-muted-foreground text-right">{confirmNote.length}/500</div>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="confirm-ack"
+                checked={confirmChecked}
+                onCheckedChange={(v) => setConfirmChecked(v === true)}
+                disabled={confirmBusy}
+              />
+              <Label htmlFor="confirm-ack" className="text-xs leading-snug cursor-pointer">
+                Entiendo que esto solo marca la fuente como preparada y no ejecuta ninguna escritura ni activa la fuente.
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setConfirmOpen(false)}
+              disabled={confirmBusy}
+            >
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={submitConfirm}
+              disabled={!confirmChecked || confirmBusy}
+              className="gap-1"
+            >
+              {confirmBusy
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : (confirmSource?.write_confirmed_at
+                  ? <ShieldOff className="h-3.5 w-3.5" />
+                  : <KeyRound className="h-3.5 w-3.5" />)}
+              {confirmSource?.write_confirmed_at ? 'Revocar autorización' : 'Autorizar'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
