@@ -214,11 +214,12 @@ const Index = () => {
                 </div>
               ) : todayEvents && todayEvents.length > 0 ? (
                 <div className="grid grid-cols-2 gap-3">
-                  {todayEvents.map((event) => (
+                  {todayEvents.map((event, idx) => (
                     <EventCard 
                       key={event.id}
                       event={event} 
                       dense
+                      priority={idx < 2}
                       isFavorite={isFavorite(event.id)}
                       onToggleFavorite={handleToggleFavorite}
                     />
