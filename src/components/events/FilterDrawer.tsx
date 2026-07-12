@@ -189,6 +189,40 @@ const FilterDrawer = ({
             </Label>
           </div>
 
+          {/* With tickets */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="with-tickets"
+              checked={localFilters.withTickets === true}
+              onCheckedChange={(checked) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  withTickets: checked ? true : undefined,
+                }))
+              }
+            />
+            <Label htmlFor="with-tickets" className="cursor-pointer">
+              {t('events.withTickets', 'Con entradas')}
+            </Label>
+          </div>
+
+          {/* Family / Kids */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="family-kids"
+              checked={localFilters.familyKids === true}
+              onCheckedChange={(checked) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  familyKids: checked ? true : undefined,
+                }))
+              }
+            />
+            <Label htmlFor="family-kids" className="cursor-pointer">
+              {t('events.familyKids', 'Infantil / Familiar')}
+            </Label>
+          </div>
+
           {/* Favorites only */}
           {showFavoritesFilter && (
             <div className="flex items-center space-x-2">
