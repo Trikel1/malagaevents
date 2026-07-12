@@ -309,7 +309,7 @@ const CultureEventsPage = () => {
         } : undefined}
       />
       {/* Header - Centered actions taking full width */}
-      <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 shadow-soft">
+      <header className="glass-nav border-b border-glass-border sticky top-0 z-40">
         <div className="p-3 sm:p-4 space-y-3">
           {/* Row 1: 3 centered action buttons (no title) */}
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 min-w-0">
