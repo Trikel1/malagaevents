@@ -1,12 +1,19 @@
 // scrape-source: run ONE ingestion source end-to-end.
 //
-// Phase 2A behaviour:
+// Phase 3E-1 behaviour:
 //  - Requires SYNC_ADMIN_KEY via `x-sync-key` header. No JWT, no anon access.
 //  - Default mode is dryRun=true.
-//  - Even when dryRun=false, this function DOES NOT insert into public.events
-//    yet. It validates + normalises + generates dedupe_key and would-be
-//    upserts, but the actual write path is disabled behind a `WRITE_ENABLED`
-//    guard that stays off in Phase 2A. This is deliberate.
+//  - Write path is now gated per-run (no global WRITE_ENABLED constant).
+//    To actually write into public.events, ALL of these must hold:
+//      * body.writeEnabled === true
+//      * body.dryRun === false
+//      * source.enabled === true
+//      * source.robots_ok === true
+//      * source.write_confirmed_at IS NOT NULL
+//      * source.adapter_key === adapter.key
+//      * body.maxWrites <= MAX_WRITES_PER_RUN (50)
+//    Otherwise the function returns `write_not_authorized` and logs an
+//    ingestion_error, without touching public.events.
 //  - Every run writes to event_source_runs; failures write to ingestion_errors.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
@@ -19,17 +26,20 @@ import type {
 } from "../_shared/ingestion/types.ts";
 import { getAdapter } from "../_shared/ingestion/adapters.ts";
 import { generateEventDedupeKey } from "../_shared/ingestion/dedupe.ts";
-import { stableHash } from "../_shared/ingestion/normalize.ts";
+import {
+  stableHash,
+  normalizeTitle,
+  normalizeVenueName,
+} from "../_shared/ingestion/normalize.ts";
 import { parseSpanishDateToMadrid } from "../_shared/ingestion/dates.ts";
 import { resolveVenueAlias } from "../_shared/ingestion/venues.ts";
 import { resolveLocalityAlias } from "../_shared/ingestion/localities.ts";
 
-// Feature flag: real insertion into public.events is disabled in Phase 2A.
-// DO NOT flip this without an explicit product decision and a migration
-// review — sync-events is still authoritative today.
-const WRITE_ENABLED = false;
+// Hard cap on writes per single run — cannot be exceeded even if body asks for more.
+const MAX_WRITES_PER_RUN = 50;
 
-type Deps = ReturnType<typeof createClient>;
+// deno-lint-ignore no-explicit-any
+type Deps = any;
 
 function json(body: unknown, status = 200, origin?: string | null) {
   return new Response(JSON.stringify(body), { status, headers: getAllHeaders(origin) });
@@ -45,7 +55,7 @@ function checkAuth(req: Request): boolean {
 async function loadSource(supabase: Deps, sourceId: string): Promise<EventSourceRow | null> {
   const { data, error } = await supabase
     .from("event_sources")
-    .select("id, slug, name, kind, base_url, adapter_key, locality_slug, category_hints, priority, enabled, schedule_cron, robots_ok, notes")
+    .select("id, slug, name, kind, base_url, adapter_key, locality_slug, category_hints, priority, enabled, schedule_cron, robots_ok, notes, write_confirmed_at, write_confirmed_by")
     .eq("id", sourceId)
     .maybeSingle();
   if (error || !data) return null;
@@ -56,6 +66,7 @@ async function startRun(
   supabase: Deps,
   sourceId: string,
   dryRun: boolean,
+  writeAuthorized: boolean,
 ): Promise<string | null> {
   const { data, error } = await supabase
     .from("event_source_runs")
@@ -66,7 +77,7 @@ async function startRun(
       updated: 0,
       skipped_dupes: 0,
       errors: 0,
-      meta: { dryRun, phase: "2A" },
+      meta: { dryRun, writeAuthorized, phase: "3E-1" },
     })
     .select("id")
     .single();
@@ -143,6 +154,62 @@ function isValidCanonical(ev: CanonicalEvent): boolean {
   return true;
 }
 
+type WriteAuth =
+  | { ok: true; maxWrites: number }
+  | { ok: false; reason: string };
+
+function authorizeWrite(
+  body: { writeEnabled?: boolean; dryRun?: boolean; maxWrites?: number },
+  source: EventSourceRow,
+  adapterKey: string,
+): WriteAuth {
+  if (body.writeEnabled !== true) return { ok: false, reason: "writeEnabled_false" };
+  if (body.dryRun !== false) return { ok: false, reason: "dryRun_true" };
+  if (!source.enabled) return { ok: false, reason: "source_disabled" };
+  if (!source.robots_ok) return { ok: false, reason: "robots_not_confirmed" };
+  if (!source.write_confirmed_at) return { ok: false, reason: "write_not_confirmed" };
+  if (source.adapter_key !== adapterKey) return { ok: false, reason: "adapter_mismatch" };
+  const requested = typeof body.maxWrites === "number" && body.maxWrites > 0
+    ? Math.floor(body.maxWrites)
+    : MAX_WRITES_PER_RUN;
+  if (requested > MAX_WRITES_PER_RUN) return { ok: false, reason: "max_writes_exceeded" };
+  return { ok: true, maxWrites: requested };
+}
+
+/** Find an existing event row: first by sha256 dedupe_key, then by legacy fallback. */
+async function findExistingEvent(
+  supabase: Deps,
+  ev: CanonicalEvent,
+  canonicalVenue: string | null,
+  dedupeKey: string,
+): Promise<{ id: string; content_hash: string | null; dedupe_key: string | null } | null> {
+  const { data: primary } = await supabase
+    .from("events")
+    .select("id, content_hash, dedupe_key")
+    .eq("dedupe_key", dedupeKey)
+    .maybeSingle();
+  if (primary) return primary as { id: string; content_hash: string | null; dedupe_key: string | null };
+
+  // Legacy fallback: title_normalized + venue_name_normalized + start_at ± 5 min.
+  const titleNorm = normalizeTitle(ev.title);
+  const venueNorm = normalizeVenueName(canonicalVenue ?? ev.venueName ?? "");
+  const startMs = new Date(ev.startAt).getTime();
+  if (!isFinite(startMs) || !titleNorm) return null;
+  const lo = new Date(startMs - 5 * 60_000).toISOString();
+  const hi = new Date(startMs + 5 * 60_000).toISOString();
+
+  const { data: legacy } = await supabase
+    .from("events")
+    .select("id, content_hash, dedupe_key")
+    .eq("title_normalized", titleNorm)
+    .eq("venue_name_normalized", venueNorm)
+    .gte("start_at", lo)
+    .lte("start_at", hi)
+    .limit(1)
+    .maybeSingle();
+  return (legacy as { id: string; content_hash: string | null; dedupe_key: string | null } | null) ?? null;
+}
+
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
 
@@ -156,7 +223,7 @@ Deno.serve(async (req) => {
     return json({ error: "unauthorized" }, 401, origin);
   }
 
-  let body: { sourceId?: string; dryRun?: boolean };
+  let body: { sourceId?: string; dryRun?: boolean; writeEnabled?: boolean; maxWrites?: number };
   try {
     body = await req.json();
   } catch {
@@ -178,32 +245,50 @@ Deno.serve(async (req) => {
   const source = await loadSource(supabase, sourceId);
   if (!source) return json({ error: "source_not_found" }, 404, origin);
 
-  if (!dryRun && !source.enabled) {
-    return json({ error: "source_disabled" }, 409, origin);
-  }
-  if (!dryRun && !source.robots_ok) {
-    return json({ error: "robots_not_confirmed" }, 409, origin);
-  }
-
   const adapter = getAdapter(source.adapter_key);
   if (!adapter) {
-    const runId = await startRun(supabase, sourceId, dryRun);
+    const runId = await startRun(supabase, sourceId, dryRun, false);
     if (runId) {
       await logError(supabase, sourceId, runId, "load_source", `no adapter for key=${source.adapter_key}`);
       await finishRun(supabase, runId, {
         status: "error", inserted: 0, updated: 0, skippedDupes: 0, errors: 1, durationMs: 0,
-        meta: { dryRun, reason: "no_adapter" },
+        meta: { dryRun, reason: "no_adapter", phase: "3E-1" },
       });
     }
     return json({ error: "adapter_not_found", adapter_key: source.adapter_key }, 400, origin);
   }
 
-  const runId = await startRun(supabase, sourceId, dryRun);
+  // Authorize write path (only relevant if caller asked for it).
+  let writeAuthorized = false;
+  let maxWrites = 0;
+  if (body.writeEnabled === true) {
+    const auth = authorizeWrite(body, source, adapter.key);
+    if (!auth.ok) {
+      const runId = await startRun(supabase, sourceId, dryRun, false);
+      if (runId) {
+        await logError(supabase, sourceId, runId, "authorize_write", `write_not_authorized: ${auth.reason}`);
+        await finishRun(supabase, runId, {
+          status: "error", inserted: 0, updated: 0, skippedDupes: 0, errors: 1, durationMs: 0,
+          meta: {
+            dryRun, writeAuthorized: false, reason: auth.reason,
+            adapter: adapter.key, phase: "3E-1",
+          },
+        });
+      }
+      return json({ error: "write_not_authorized", reason: auth.reason }, 403, origin);
+    }
+    writeAuthorized = true;
+    maxWrites = auth.maxWrites;
+  }
+
+  const runId = await startRun(supabase, sourceId, dryRun, writeAuthorized);
   if (!runId) return json({ error: "run_insert_failed" }, 500, origin);
 
   const startedAt = Date.now();
   let inserted = 0, updated = 0, skippedDupes = 0, errors = 0;
   const preview: CanonicalEvent[] = [];
+  const eventIds: string[] = [];
+  let events: CanonicalEvent[] = [];
 
   try {
     const logger = {
@@ -215,7 +300,6 @@ Deno.serve(async (req) => {
         console.error(JSON.stringify({ lvl: "error", src: source.slug, msg, ...extra })),
     };
 
-    let events: CanonicalEvent[] = [];
     try {
       events = await adapter.fetchEvents({ source, dryRun, logger });
     } catch (e) {
@@ -231,9 +315,9 @@ Deno.serve(async (req) => {
       }
       let canonicalVenue: string | null = null;
       try {
-        const v = await resolveVenueAlias(supabase, ev.venueName);
+        const v = await resolveVenueAlias(supabase as never, ev.venueName);
         canonicalVenue = v.canonicalName;
-        await resolveLocalityAlias(supabase, ev.locality); // touched for future use
+        await resolveLocalityAlias(supabase as never, ev.locality);
       } catch { /* alias lookup is best-effort */ }
 
       let dedupeKey: string;
@@ -245,68 +329,91 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      if (dryRun || !WRITE_ENABLED) {
+      // Dry-run / preview path (default). Never touches public.events.
+      if (dryRun || !writeAuthorized) {
         if (preview.length < 20) {
           preview.push({
             ...ev,
             raw: {
-              ...(ev.raw ?? {}),
+              ...(ev.raw && typeof ev.raw === "object" ? ev.raw as Record<string, unknown> : {}),
               dedupe_key: dedupeKey,
               canonicalVenue,
             },
           });
         }
-        skippedDupes++; // treat as "would upsert" for accounting
+        skippedDupes++; // "would upsert" accounting for dry-run
         continue;
       }
 
-      // Phase 2B upsert path — fully implemented but gated by WRITE_ENABLED.
-      // WRITE_ENABLED remains false until an explicit product decision.
+      // Write path — only reachable when writeAuthorized=true.
+      if (inserted + updated >= maxWrites) {
+        skippedDupes++;
+        continue;
+      }
+
       try {
-        const { data: existing } = await supabase
-          .from("events")
-          .select("id, content_hash")
-          .eq("dedupe_key", dedupeKey)
-          .maybeSingle();
+        const existing = await findExistingEvent(supabase, ev, canonicalVenue, dedupeKey);
 
         const contentHash = await stableHash(
           [ev.title, ev.description ?? "", ev.startAt, ev.venueName ?? "", ev.imageUrl ?? "", ev.ticketUrl ?? ""].join("|"),
         );
         const nowIso = new Date().toISOString();
 
-        const row = {
+        const row: Record<string, unknown> = {
           title: ev.title,
-          description: ev.description ?? null,
+          description: ev.description ?? "",
+          description_full: ev.description ?? null,
+          category: ev.category ?? "general",
           start_at: ev.startAt,
           end_at: ev.endAt ?? null,
-          venue_name: ev.venueName ?? null,
-          venue_address: ev.venueAddress ?? null,
-          category: ev.category ?? null,
-          image_url: ev.imageUrl ?? null,
-          source_url: ev.sourceUrl,
+          venue_name: canonicalVenue ?? ev.venueName ?? null,
+          venue_name_raw: ev.venueName ?? null,
+          address: ev.venueAddress ?? "",
+          location_name_raw: ev.locality,
+          is_free: false,
           ticket_url: ev.ticketUrl ?? null,
-          price_text: ev.priceText ?? null,
+          buy_url: ev.ticketUrl ?? null,
+          image_url: ev.imageUrl ?? null,
+          source_type: "official_feed",
+          source: source.slug,
+          source_ref: ev.sourceUrl,
+          url: ev.sourceUrl,
+          status: "published",
           dedupe_key: dedupeKey,
           source_id: source.id,
           content_hash: contentHash,
           last_seen_at: nowIso,
+          last_synced_at: nowIso,
         };
 
         if (existing) {
-          const ex = existing as { id: string; content_hash: string | null };
-          if (ex.content_hash === contentHash) {
+          if (existing.content_hash === contentHash && existing.dedupe_key === dedupeKey) {
             skippedDupes++;
-            // Still refresh last_seen_at so we know the event is alive.
-            await supabase.from("events").update({ last_seen_at: nowIso }).eq("id", ex.id);
+            await supabase.from("events").update({ last_seen_at: nowIso }).eq("id", existing.id);
           } else {
-            const { error: updErr } = await supabase.from("events").update(row).eq("id", ex.id);
-            if (updErr) { errors++; await logError(supabase, sourceId, runId, "upsert", updErr.message, { dedupeKey }); }
-            else updated++;
+            // Consolidate legacy dedupe_key to sha256 on update.
+            const { error: updErr } = await supabase.from("events").update(row).eq("id", existing.id);
+            if (updErr) {
+              errors++;
+              await logError(supabase, sourceId, runId, "upsert", updErr.message, { dedupeKey });
+            } else {
+              updated++;
+              eventIds.push(existing.id);
+            }
           }
         } else {
-          const { error: insErr } = await supabase.from("events").insert(row);
-          if (insErr) { errors++; await logError(supabase, sourceId, runId, "upsert", insErr.message, { dedupeKey }); }
-          else inserted++;
+          const { data: ins, error: insErr } = await supabase
+            .from("events")
+            .insert(row)
+            .select("id")
+            .single();
+          if (insErr) {
+            errors++;
+            await logError(supabase, sourceId, runId, "upsert", insErr.message, { dedupeKey });
+          } else if (ins) {
+            inserted++;
+            eventIds.push((ins as { id: string }).id);
+          }
         }
       } catch (e) {
         errors++;
@@ -321,10 +428,12 @@ Deno.serve(async (req) => {
       status, inserted, updated, skippedDupes, errors, durationMs,
       meta: {
         dryRun,
-        write_enabled: WRITE_ENABLED,
+        writeAuthorized,
+        maxWrites,
         adapter: adapter.key,
         events_fetched: events.length,
-        phase: "2A",
+        event_ids: eventIds,
+        phase: "3E-1",
       },
     });
 
@@ -338,7 +447,7 @@ Deno.serve(async (req) => {
     await logError(supabase, sourceId, runId, "finalize", (e as Error).message);
     await finishRun(supabase, runId, {
       status: "error", inserted, updated, skippedDupes, errors: errors + 1, durationMs,
-      meta: { dryRun, fatal: true },
+      meta: { dryRun, writeAuthorized, fatal: true, phase: "3E-1" },
     });
     return json({ error: "run_failed" }, 500, origin);
   }
