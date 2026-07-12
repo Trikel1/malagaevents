@@ -276,7 +276,7 @@ const IngestionRegistry = () => {
       const { data, error } = await supabase
         .from('event_sources' as any)
         .select(
-          'id, slug, name, kind, base_url, adapter_key, locality_slug, category_hints, priority, enabled, schedule_cron, robots_ok, notes, created_at, updated_at',
+          'id, slug, name, kind, base_url, adapter_key, locality_slug, category_hints, priority, enabled, schedule_cron, robots_ok, notes, write_confirmed_at, write_confirmed_by, created_at, updated_at',
         )
         .order('priority', { ascending: false })
         .order('name', { ascending: true });
