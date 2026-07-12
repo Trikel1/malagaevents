@@ -27,6 +27,21 @@ const BottomNav = () => {
     return base;
   }, [appMode, t]);
 
+  const activeIndex = useMemo(() => {
+    const idx = navItems.findIndex(
+      (item) =>
+        location.pathname === item.to ||
+        (item.to !== '/' && location.pathname.startsWith(item.to))
+    );
+    return idx >= 0 ? idx : 0;
+  }, [navItems, location.pathname]);
+
+  const hasActive = navItems.some(
+    (item) =>
+      location.pathname === item.to ||
+      (item.to !== '/' && location.pathname.startsWith(item.to))
+  );
+
   return (
     <nav
       className="fixed left-2 right-2 z-50 glass-nav rounded-[28px] px-1.5 pt-1.5"
@@ -36,7 +51,20 @@ const BottomNav = () => {
       }}
       aria-label={t('nav.primary', 'Navegación principal')}
     >
-      <div className="flex justify-between max-w-lg mx-auto gap-0.5">
+      <div
+        className="relative flex justify-between max-w-lg mx-auto gap-0.5"
+        style={
+          {
+            ['--item-count' as any]: navItems.length,
+            ['--active-index' as any]: activeIndex,
+          } as React.CSSProperties
+        }
+      >
+        <span
+          className="bottom-nav-liquid-indicator"
+          style={{ opacity: hasActive ? 1 : 0 }}
+          aria-hidden
+        />
         {navItems.map((item) => {
           const isActive =
             location.pathname === item.to ||
@@ -47,25 +75,26 @@ const BottomNav = () => {
               key={item.to}
               to={item.to}
               className={cn(
-                'flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-2 rounded-2xl min-h-[52px] transition-all duration-200 select-none',
+                'relative z-[1] flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-2 rounded-2xl min-h-[52px] select-none',
+                'transition-[color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
                 'active:scale-[0.96]',
                 isActive
-                  ? 'text-primary bg-primary/10'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
               )}
               aria-label={item.label}
             >
               <item.icon
                 className={cn(
-                  'h-[22px] w-[22px] shrink-0 transition-transform',
+                  'h-[22px] w-[22px] shrink-0 transition-transform duration-300',
                   isActive && 'stroke-[2.4px] scale-110'
                 )}
                 aria-hidden
               />
               <span
                 className={cn(
-                  'text-[10.5px] leading-[1.1] font-medium truncate max-w-full',
+                  'text-[10.5px] leading-[1.1] font-medium truncate max-w-full transition-all duration-300',
                   isActive && 'font-semibold'
                 )}
               >
