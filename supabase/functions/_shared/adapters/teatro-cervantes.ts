@@ -287,7 +287,17 @@ function inferVenue(cycleText: string | null, title?: string | null): string {
 
 /**
  * Inspect the detail-page markdown for a venue hint.
- * Falls back to cycleText / title when no clean signal.
+ *
+ * The Cervantes fiche pages do NOT print the venue in plain text — the
+ * global header links to malagaprocultura.com and *always* mentions
+ * teatroechegaray.com in a logo, which poisons naïve text search.
+ * The only reliable signal is the "Ver aforo" link that every fiche
+ * exposes: `/es/seccion/aforo-teatro-cervantes/`,
+ * `/es/seccion/aforo-teatro-echegaray/`,
+ * `/es/seccion/aforo-factoria-echegaray/`,
+ * `/es/seccion/aforo-bodegueros-38/`.
+ * We anchor exclusively on that link; if it's missing we fall back to
+ * the cycle/title heuristic (which usually points to Teatro Cervantes).
  */
 function inferVenueFromDetail(
   markdown: string,
@@ -295,23 +305,19 @@ function inferVenueFromDetail(
   fallbackTitle: string | null | undefined,
 ): string {
   if (markdown) {
-    // Look at the first ~40 lines: headings, breadcrumbs, top-of-fiche block.
-    const head = markdown.split("\n").slice(0, 60).join("\n");
-    const fromHead = inferVenueFromText(head);
-    if (fromHead) return fromHead;
-    // Look near any "lugar" / "sala" / "recinto" line anywhere.
-    const nearRe =
-      /(?:lugar|sala|recinto|espacio|donde|ubicaci[oó]n)[^\n]{0,120}/gi;
-    const hits = markdown.match(nearRe) ?? [];
-    for (const h of hits) {
-      const v = inferVenueFromText(h);
-      if (v) return v;
+    const aforoRe = /\/es\/seccion\/aforo-([a-z0-9\-]+)\//i;
+    const m = markdown.match(aforoRe);
+    if (m) {
+      const slug = m[1].toLowerCase();
+      if (slug.includes("factoria")) return "Factoría Echegaray";
+      if (slug.includes("bodegueros")) return "Bodegueros 38";
+      if (slug.includes("echegaray")) return "Teatro Echegaray";
+      if (slug.includes("cervantes")) return "Teatro Cervantes";
     }
-    const fromBody = inferVenueFromText(markdown);
-    if (fromBody) return fromBody;
   }
   return inferVenue(fallbackCycleText ?? null, fallbackTitle ?? null);
 }
+
 
 /** Try to extract a more precise date/time from the detail markdown. */
 function extractDateFromDetail(
@@ -448,6 +454,11 @@ export const teatroCervantesAdapter: SourceAdapter = {
     // Detail follow is ON by default; opt out via env for cheap harness runs.
     const detailFollowEnabled =
       (Deno.env.get("CERVANTES_DETAIL_FOLLOW") ?? "1") !== "0";
+    // Detail follow cap can be tightened via env (harness runs, budget control).
+    const rawLimit = parseInt(Deno.env.get("CERVANTES_DETAIL_LIMIT") ?? "", 10);
+    const detailLimit = Number.isFinite(rawLimit) && rawLimit > 0
+      ? Math.min(rawLimit, MAX_DETAIL_FOLLOWS)
+      : MAX_DETAIL_FOLLOWS;
 
     let markdown = "";
     try {
@@ -529,7 +540,7 @@ export const teatroCervantesAdapter: SourceAdapter = {
     if (detailFollowEnabled) {
       const toFollow = prepared
         .filter((p) => isInternalCervantesUrl(p.cand.eventUrl))
-        .slice(0, MAX_DETAIL_FOLLOWS);
+        .slice(0, detailLimit);
       await runPool(toFollow, async (p) => {
         const detailUrl = p.cand.eventUrl;
         try {
@@ -614,6 +625,7 @@ export const teatroCervantesAdapter: SourceAdapter = {
       timeAssumedCount,
       detailFollowEnabled,
       detailFollowCap: MAX_DETAIL_FOLLOWS,
+      detailLimit,
       detailFetched,
       detailFailed,
       venueImproved,
