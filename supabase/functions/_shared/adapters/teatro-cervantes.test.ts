@@ -43,6 +43,9 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
   // Keep the default fast path deterministic: no detail follow.
   const followEnabled = Deno.env.get("CERVANTES_TEST_DETAIL") === "1";
   if (!followEnabled) Deno.env.set("CERVANTES_DETAIL_FOLLOW", "0");
+  else if (!Deno.env.get("CERVANTES_DETAIL_LIMIT")) {
+    Deno.env.set("CERVANTES_DETAIL_LIMIT", "30");
+  }
 
   const events = await teatroCervantesAdapter.fetchEvents({
     source,
