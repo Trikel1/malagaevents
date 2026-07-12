@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
-import FilterDrawer, { type EventFilters, type DatePreset } from '@/components/events/FilterDrawer';
+import FilterDrawer, { type EventFilters, type DatePreset, type AgeRange } from '@/components/events/FilterDrawer';
 import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
