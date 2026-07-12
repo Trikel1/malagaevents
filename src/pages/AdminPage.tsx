@@ -308,7 +308,7 @@ const AdminPage = () => {
         </div>
 
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="w-full">
+          <TabsList className="w-full flex overflow-x-auto no-scrollbar whitespace-nowrap">
             <TabsTrigger value="pending" className="flex-1">
               {t('admin.tabs.pending')}
               {(pendingEvents?.length || 0) > 0 && (
