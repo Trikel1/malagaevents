@@ -448,6 +448,11 @@ export const teatroCervantesAdapter: SourceAdapter = {
     // Detail follow is ON by default; opt out via env for cheap harness runs.
     const detailFollowEnabled =
       (Deno.env.get("CERVANTES_DETAIL_FOLLOW") ?? "1") !== "0";
+    // Detail follow cap can be tightened via env (harness runs, budget control).
+    const rawLimit = parseInt(Deno.env.get("CERVANTES_DETAIL_LIMIT") ?? "", 10);
+    const detailLimit = Number.isFinite(rawLimit) && rawLimit > 0
+      ? Math.min(rawLimit, MAX_DETAIL_FOLLOWS)
+      : MAX_DETAIL_FOLLOWS;
 
     let markdown = "";
     try {
