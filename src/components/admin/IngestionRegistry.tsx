@@ -592,16 +592,16 @@ const IngestionRegistry = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 px-2 gap-1"
+                          className="h-6 px-1.5 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                           onClick={() => openConfirmDialog(s)}
                           disabled={busySourceId !== null || preflightBusyId !== null || confirmBusy}
                           title={s.write_confirmed_at
-                            ? 'Revocar autorización de escritura futura'
-                            : 'Autorizar escritura futura (no ejecuta nada)'}
+                            ? 'Revocar autorización de escritura futura (no publica eventos)'
+                            : 'Autorizar escritura futura — solo marca la fuente, no publica eventos'}
                         >
                           {s.write_confirmed_at
                             ? <><ShieldOff className="h-3 w-3" /> Revocar autorización</>
-                            : <><KeyRound className="h-3 w-3" /> Autorizar escritura futura</>}
+                            : <><KeyRound className="h-3 w-3" /> Autorizar (paso previo, no publica)</>}
                         </Button>
                       </div>
                     </div>
