@@ -850,6 +850,32 @@ const IngestionRegistry = () => {
               <div className="py-6 text-sm text-destructive break-words">{preflightData.error}</div>
             ) : (
               <div className="space-y-3">
+                {(() => {
+                  const src = preflightData.sourceId ? sourceById.get(preflightData.sourceId) : null;
+                  return (
+                    <Card className="border-primary/30 bg-primary/5">
+                      <CardContent className="py-2.5 text-xs space-y-1.5">
+                        <div className="font-medium">Este preflight no escribe eventos.</div>
+                        <div className="text-muted-foreground">
+                          Para escribir en una fase futura harán falta <span className="font-mono">robots_ok=true</span>, <span className="font-mono">enabled=true</span> y <span className="font-mono">write_confirmed_at</span>.
+                        </div>
+                        {src && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            <Badge variant="outline" className={`text-[10px] ${src.robots_ok ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                              robots_ok: {src.robots_ok ? 'sí' : 'no'}
+                            </Badge>
+                            <Badge variant="outline" className={`text-[10px] ${src.enabled ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                              enabled: {src.enabled ? 'sí' : 'no'}
+                            </Badge>
+                            <Badge variant="outline" className={`text-[10px] ${src.write_confirmed_at ? 'text-indigo-600 border-indigo-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                              write_confirmed: {src.write_confirmed_at ? 'sí' : 'no'}
+                            </Badge>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
                 {preflightData.warnings && preflightData.warnings.length > 0 && (
                   <Card className="border-amber-500/40">
                     <CardContent className="py-2 text-xs space-y-1">
