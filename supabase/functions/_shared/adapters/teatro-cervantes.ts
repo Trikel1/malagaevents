@@ -180,6 +180,33 @@ function parseListingDateLine(rawLine: string, now: Date): ParsedDate | null {
     };
   }
 
+  // 1b) Range single-month: "del D al D <month> [de Y]"
+  const rmb = line.match(rangeReB);
+  if (rmb) {
+    const startDay = parseInt(rmb[1], 10);
+    const endDay = parseInt(rmb[2], 10);
+    const month = MONTHS_ES[rmb[3]] ?? 0;
+    let year = rmb[4] ? parseInt(rmb[4], 10) : NaN;
+    if (!startDay || !endDay || !month) return null;
+    if (!Number.isFinite(year)) year = cur.y;
+
+    const startTs = madridWallTimeToDate(year, month, startDay, 0, 0).getTime();
+    const endTs = madridWallTimeToDate(year, month, endDay, 23, 59).getTime();
+    const nowTs = now.getTime();
+    let active = nowTs >= startTs && nowTs <= endTs;
+    if (!rmb[4] && endTs < nowTs) {
+      year += 1;
+      active = false;
+    }
+    return {
+      date: madridWallTimeToDate(year, month, startDay, 20, 0),
+      timeExplicit: false,
+      rangeStartRaw: `${startDay}/${month}/${year}`,
+      rangeEndRaw: `${endDay}/${month}/${year}`,
+      rangeWasActiveWhenParsed: active,
+    };
+  }
+
   // 2) List "D y D <month>"
   const lm = line.match(listRe);
   if (lm) {
