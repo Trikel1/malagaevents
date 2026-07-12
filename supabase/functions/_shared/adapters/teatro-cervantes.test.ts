@@ -54,8 +54,8 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
   let pastCount = 0;
   let missingReq = 0;
   let timeAssumed = 0;
-  const categories = new Set<string | null>();
-  const venues = new Set<string | null>();
+  const categories = new Set<string | null | undefined>();
+  const venues = new Set<string | null | undefined>();
   const dedupe = new Set<string>();
   let duplicates = 0;
 
