@@ -23,12 +23,17 @@ import { cn } from '@/lib/utils';
 import CategoryChip from './CategoryChip';
 import { EVENT_CATEGORIES, type EventCategory } from '@/types';
 
+export type DatePreset = 'today' | 'tomorrow' | 'thisWeek' | 'weekend' | 'next30';
+
 export interface EventFilters {
   dateFrom?: Date;
   dateTo?: Date;
   categories: EventCategory[];
   isFree?: boolean;
   onlyFavorites?: boolean;
+  datePreset?: DatePreset;
+  withTickets?: boolean;
+  familyKids?: boolean;
 }
 
 interface FilterDrawerProps {
