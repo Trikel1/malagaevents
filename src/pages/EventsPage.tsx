@@ -474,6 +474,40 @@ const CultureEventsPage = () => {
             >
               {t('events.familyKids', 'Infantil / Familiar')}
             </button>
+            {(['0-3', '4-8', '9-12'] as AgeRange[]).map((r) => {
+              const active = filters.ageRange === r;
+              const labelKey = `events.age${r.replace('-', 'to')}`;
+              const fallback = `${r} ${t('events.yearsShort', 'años')}`;
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => toggleAgeRange(r)}
+                  aria-pressed={active}
+                  className={cn(
+                    'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted',
+                  )}
+                >
+                  {t(labelKey, fallback)}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => toggleBooleanFilter('isOutdoor')}
+              aria-pressed={!!filters.isOutdoor}
+              className={cn(
+                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                filters.isOutdoor
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted',
+              )}
+            >
+              {t('events.outdoor', 'Al aire libre')}
+            </button>
             <button
               type="button"
               onClick={() => toggleBooleanFilter('isFree')}
