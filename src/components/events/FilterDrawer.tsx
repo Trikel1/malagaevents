@@ -70,6 +70,9 @@ const FilterDrawer = ({
       onlyFavorites: undefined,
       dateFrom: undefined,
       dateTo: undefined,
+      datePreset: undefined,
+      withTickets: undefined,
+      familyKids: undefined,
     });
   };
 
