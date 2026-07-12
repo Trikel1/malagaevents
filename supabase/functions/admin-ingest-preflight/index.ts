@@ -386,6 +386,50 @@ Deno.serve(async (req) => {
       .eq("id", runId);
   }
 
+  // 6. Issue a short-lived write token (Phase 3E-3A).
+  // The plaintext token is returned ONCE to the caller. Only its SHA-256
+  // hash is persisted in `ingestion_write_tokens`. No write endpoint yet
+  // consumes it — this is a trace/audit primitive for future controlled writes.
+  const generatedAtIso = new Date().toISOString();
+  let writeToken: string | null = null;
+  let writeTokenId: string | null = null;
+  let writeTokenExpiresAt: string | null = null;
+  if (errorsCount === 0 || totalFetched > 0) {
+    try {
+      const plaintext = generatePlaintextToken();
+      const hash = await sha256Hex(plaintext);
+      const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
+      const { data: tokRow, error: tokErr } = await adminClient
+        .from("ingestion_write_tokens")
+        .insert({
+          source_id: source.id,
+          admin_user_id: adminUserId,
+          token_hash: hash,
+          expires_at: expiresAt,
+          diff_summary: {
+            totalFetched,
+            wouldInsert,
+            wouldUpdate,
+            wouldSkip,
+            conflicts,
+            warnings: warnings.length,
+            generatedAt: generatedAtIso,
+          },
+          phase: "3E-3A",
+        })
+        .select("id, expires_at")
+        .single();
+      if (!tokErr && tokRow) {
+        const row = tokRow as { id: string; expires_at: string };
+        writeToken = plaintext;
+        writeTokenId = row.id;
+        writeTokenExpiresAt = row.expires_at;
+      }
+    } catch (_e) {
+      // token issuance is best-effort; preflight result is still valid.
+    }
+  }
+
   return json({
     ok: true,
     dryRun: true as const,
@@ -398,7 +442,10 @@ Deno.serve(async (req) => {
     wouldSkip,
     conflicts,
     warnings: warnings.slice(0, 50),
-    generatedAt: new Date().toISOString(),
+    generatedAt: generatedAtIso,
     preview,
+    writeToken,
+    writeTokenId,
+    writeTokenExpiresAt,
   });
 });
