@@ -76,6 +76,34 @@ type IngestionError = {
   created_at: string;
 };
 
+type PreviewItem = {
+  title: string | null;
+  startAt: string | null;
+  venueName: string | null;
+  locality: string | null;
+  category: string | null;
+  sourceUrl: string | null;
+  ticketUrl: string | null;
+  imageUrl: string | null;
+  timeAssumed: boolean;
+  dateLine: string | null;
+  cycleText: string | null;
+};
+
+type DryRunResponse = {
+  ok?: boolean;
+  dryRun?: boolean;
+  runId?: string;
+  status?: string;
+  inserted?: number;
+  updated?: number;
+  skippedDupes?: number;
+  errors?: number;
+  previewCount?: number;
+  preview?: PreviewItem[];
+  error?: string;
+};
+
 const fmt = (d: string | null | undefined) =>
   d ? format(new Date(d), "d MMM yyyy, HH:mm", { locale: es }) : '—';
 
