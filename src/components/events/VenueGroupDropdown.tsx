@@ -332,7 +332,7 @@ export function VenueGroupDropdown({
         onClick={handleSelectAll}
         onPointerDown={(e) => e.stopPropagation()}
         className={cn(
-          'flex-1 h-10 text-sm gap-1.5 justify-center',
+          'flex-1 min-w-0 h-10 text-sm gap-1 sm:gap-1.5 px-2 sm:px-3 justify-center',
           selectedGroup === 'all' && 'shadow-sm'
         )}
       >
