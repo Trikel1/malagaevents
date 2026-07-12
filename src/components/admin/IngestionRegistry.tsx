@@ -472,6 +472,55 @@ const IngestionRegistry = () => {
         </TabsList>
 
         <TabsContent value="sources" className="space-y-2">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="py-3 text-xs space-y-2">
+              <div className="font-medium text-sm flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" /> Flujo seguro de ingesta
+              </div>
+              <ol className="grid gap-1.5 sm:grid-cols-2">
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">1</Badge>
+                  <span>Dry-run</span>
+                  <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] ml-auto">disponible</Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">2</Badge>
+                  <span>Preparar escritura (preflight)</span>
+                  <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] ml-auto">disponible</Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">3</Badge>
+                  <span>Verificar robots/manualmente</span>
+                  <Badge variant="outline" className={`text-[10px] ml-auto ${robotsOkCount > 0 ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                    {robotsOkCount > 0 ? `${robotsOkCount} ok` : 'pendiente'}
+                  </Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">4</Badge>
+                  <span>Autorizar escritura futura</span>
+                  <Badge variant="outline" className={`text-[10px] ml-auto ${writeConfirmedCount > 0 ? 'text-indigo-600 border-indigo-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                    {writeConfirmedCount > 0 ? `${writeConfirmedCount} autorizadas` : 'pendiente'}
+                  </Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">5</Badge>
+                  <span>Activar fuente</span>
+                  <Badge variant="outline" className={`text-[10px] ml-auto ${enabledCount > 0 ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                    {enabledCount > 0 ? `${enabledCount} activas` : 'pendiente'}
+                  </Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">6</Badge>
+                  <span>Escritura real limitada</span>
+                  <Badge variant="outline" className="text-[10px] ml-auto text-muted-foreground">no disponible todavía</Badge>
+                </li>
+              </ol>
+              <div className="text-[11px] text-muted-foreground pt-1 border-t border-border/50">
+                Ningún paso de este panel publica eventos. La escritura real sigue deshabilitada por diseño.
+              </div>
+            </CardContent>
+          </Card>
+
           {sourcesQuery.isLoading ? (
             <Skeleton className="h-24 w-full" />
           ) : sources.length === 0 ? (
@@ -486,11 +535,11 @@ const IngestionRegistry = () => {
                       <div className="font-medium flex items-center gap-2 flex-wrap">
                         {s.name}
                         {s.enabled
-                          ? <Badge className="bg-emerald-600 hover:bg-emerald-600">Activa</Badge>
-                          : <Badge variant="secondary">Deshabilitada</Badge>}
+                          ? <Badge className="bg-emerald-600 hover:bg-emerald-600 text-xs">fuente activa</Badge>
+                          : <Badge variant="secondary" className="text-xs">fuente desactivada</Badge>}
                         {s.robots_ok
-                          ? <Badge variant="outline" className="text-xs">robots ok</Badge>
-                          : <Badge variant="outline" className="text-xs text-amber-600 border-amber-600/50">robots pend.</Badge>}
+                          ? <Badge className="bg-emerald-600 hover:bg-emerald-600 text-xs">robots confirmado</Badge>
+                          : <Badge variant="outline" className="text-xs text-amber-600 border-amber-600/50">robots pendiente</Badge>}
                         {s.kind && <Badge variant="outline" className="text-xs">{s.kind}</Badge>}
                         {typeof s.priority === 'number' && (
                           <Badge variant="outline" className="text-xs">p{s.priority}</Badge>
