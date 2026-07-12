@@ -290,11 +290,11 @@
 
   .glass-nav {
     background:
-      linear-gradient(180deg, hsl(var(--glass-highlight)) 0%, transparent 46%),
-      hsl(var(--surface-elevated) / 0.96);
-    backdrop-filter: blur(18px) saturate(130%);
-    -webkit-backdrop-filter: blur(18px) saturate(130%);
-    border: 1px solid hsl(var(--glass-border));
+      linear-gradient(180deg, hsl(var(--glass-highlight)) 0%, transparent 42%),
+      hsl(var(--surface-elevated) / 0.985);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border: 1px solid hsl(var(--border) / 0.8);
     box-shadow:
       0 1px 0 hsl(var(--glass-highlight)) inset,
       0 -6px 24px -20px hsl(var(--glass-shadow)),
@@ -459,7 +459,7 @@
 }
 
 .bottom-nav-dock {
-  border-radius: 26px;
+  border-radius: 24px;
   padding-left: 8px;
   padding-right: 8px;
   padding-top: 8px;
@@ -482,7 +482,7 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 7px 2px 6px;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -492,22 +492,22 @@
 .bottom-nav-item::before {
   content: '';
   position: absolute;
-  inset: 5px 7px 6px;
+  left: 50%;
+  bottom: 4px;
   z-index: -1;
-  border-radius: 16px;
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
   opacity: 0;
-  background:
-    linear-gradient(180deg, hsl(var(--primary) / 0.095), hsl(var(--primary) / 0.052));
-  box-shadow:
-    0 1px 0 hsl(var(--glass-highlight)) inset,
-    0 8px 18px -17px hsl(var(--primary) / 0.34);
-  transform: scale(0.94);
-  transition: opacity 260ms var(--liquid-ease), transform 360ms var(--liquid-ease), background 360ms var(--liquid-ease);
+  background: hsl(var(--primary) / 0.92);
+  box-shadow: 0 0 12px hsl(var(--primary) / 0.22);
+  transform: translateX(-50%) scaleX(0.45);
+  transition: opacity 260ms var(--liquid-ease), transform 360ms var(--liquid-ease), background-color 360ms var(--liquid-ease);
 }
 
 .bottom-nav-item-active::before {
   opacity: 1;
-  transform: scale(1);
+  transform: translateX(-50%) scaleX(1);
 }
 
 .bottom-nav-item:focus-visible {
@@ -535,8 +535,8 @@
 .bottom-nav-icon-shell {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   color: currentColor;
 }
 
@@ -555,11 +555,8 @@
 }
 
 .dark .bottom-nav-item::before {
-  background:
-    linear-gradient(180deg, hsl(var(--primary) / 0.14), hsl(var(--primary) / 0.075));
-  box-shadow:
-    0 1px 0 hsl(var(--glass-highlight)) inset,
-    0 8px 18px -16px hsl(var(--primary) / 0.44);
+  background: hsl(var(--primary) / 0.92);
+  box-shadow: 0 0 14px hsl(var(--primary) / 0.28);
 }
 
 
