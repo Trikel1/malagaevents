@@ -124,9 +124,12 @@ function parseListingDateLine(rawLine: string, now: Date): ParsedDate | null {
   if (!rawLine) return null;
   const line = stripAccents(rawLine).toLowerCase();
 
-  // Range: "del [wd] **D** <month> [de <Y>] al [wd] **D** <month2> [de <Y2>]"
+  // Range A: "del [wd] **D** <month> [de <Y>] al [wd] **D** [<month2>] [de <Y2>]"
   const rangeRe =
     /del\s+(?:\S+\s+)?\*{0,2}(\d{1,2})\*{0,2}\s+(?:de\s+)?([a-z]+)(?:\s+de\s+(\d{4}))?\s+al\s+(?:\S+\s+)?\*{0,2}(\d{1,2})\*{0,2}(?:\s+(?:de\s+)?([a-z]+))?(?:\s+de\s+(\d{4}))?/;
+  // Range B: "del [wd] **D** al [wd] **D** <month> [de <Y>]" (single month at end)
+  const rangeReB =
+    /del\s+(?:\S+\s+)?\*{0,2}(\d{1,2})\*{0,2}\s+al\s+(?:\S+\s+)?\*{0,2}(\d{1,2})\*{0,2}\s+(?:de\s+)?([a-z]+)(?:\s+de\s+(\d{4}))?/;
   // "12 y 13 de julio de 2026 20:30"  — take first day
   const listRe =
     /\*{0,2}(\d{1,2})\*{0,2}\s+y\s+\*{0,2}(\d{1,2})\*{0,2}\s+(?:de\s+)?([a-z]+)(?:\s+de\s+(\d{4}))?(?:[^0-9]{0,20}?(\d{1,2})[.:h](\d{2}))?/;
