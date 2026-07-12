@@ -34,6 +34,9 @@ const generateQueryKey = (options: UseEventsOptions) => {
     options.filters?.isFree || false,
     options.filters?.dateFrom?.toISOString() || '',
     options.filters?.dateTo?.toISOString() || '',
+    options.filters?.datePreset || '',
+    options.filters?.withTickets || false,
+    options.filters?.familyKids || false,
     options.todayOnly || false,
     options.weekendOnly || false,
     options.venueIds?.join(',') || '',
@@ -41,6 +44,30 @@ const generateQueryKey = (options: UseEventsOptions) => {
     options.page || 0,
     options.pageSize || 20,
   ];
+};
+
+// Compute a [start, end) UTC range for a preset in Europe/Madrid-ish local time
+const computePresetRange = (preset: NonNullable<EventFilters['datePreset']>, now: Date): [Date, Date] => {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = (n: number) => new Date(startOfToday.getTime() + n * 86400000);
+  switch (preset) {
+    case 'today':
+      return [startOfToday, day(1)];
+    case 'tomorrow':
+      return [day(1), day(2)];
+    case 'thisWeek':
+      return [startOfToday, day(7)];
+    case 'next30':
+      return [startOfToday, day(30)];
+    case 'weekend': {
+      const dow = now.getDay();
+      if (dow === 0) return [startOfToday, day(1)]; // Sun
+      if (dow === 6) return [startOfToday, day(2)]; // Sat -> Sat+Sun
+      if (dow === 5) return [startOfToday, day(3)]; // Fri -> Fri+Sat+Sun
+      const daysUntilFri = (5 - dow + 7) % 7;
+      return [day(daysUntilFri), day(daysUntilFri + 3)];
+    }
+  }
 };
 
 const fetchEvents = async (
