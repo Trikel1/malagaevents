@@ -318,6 +318,10 @@ const AdminPage = () => {
               <Dumbbell className="h-4 w-4 mr-1" />
               {t('admin.tabs.sports')}
             </TabsTrigger>
+            <TabsTrigger value="ingesta" className="flex-1">
+              <Database className="h-4 w-4 mr-1" />
+              Ingesta
+            </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
 
