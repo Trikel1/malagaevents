@@ -76,6 +76,8 @@ const FilterDrawer = ({
       datePreset: undefined,
       withTickets: undefined,
       familyKids: undefined,
+      ageRange: undefined,
+      isOutdoor: undefined,
     });
   };
 
