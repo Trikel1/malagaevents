@@ -1,12 +1,14 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, X, MapPin, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Search, SlidersHorizontal, X, MapPin, AlertTriangle, Navigation } from 'lucide-react';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
-import FilterDrawer, { type EventFilters } from '@/components/events/FilterDrawer';
+import FilterDrawer, { type EventFilters, type DatePreset } from '@/components/events/FilterDrawer';
 import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
