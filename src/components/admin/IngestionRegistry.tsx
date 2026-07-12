@@ -1001,6 +1001,24 @@ const IngestionRegistry = () => {
               </div>
             )}
 
+            {confirmSource && !confirmSource.robots_ok && (
+              <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-xs leading-relaxed">
+                <div className="font-medium flex items-center gap-1">
+                  <AlertCircle className="h-3.5 w-3.5" /> Robots/manual todavía no confirmado
+                </div>
+                <div className="text-muted-foreground mt-0.5">
+                  Esta autorización no escribe eventos, pero se recomienda confirmar robots antes de autorizar.
+                </div>
+              </div>
+            )}
+
+            {confirmSource && !confirmSource.enabled && !confirmSource.write_confirmed_at && (
+              <div className="rounded-md border border-border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+                La fuente sigue desactivada. Autorizar escritura futura no activa la fuente.
+              </div>
+            )}
+
+
             <div className="space-y-1.5">
               <Label htmlFor="confirm-note" className="text-xs">Nota de auditoría (opcional, máx. 500)</Label>
               <Textarea
