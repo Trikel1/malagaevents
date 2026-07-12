@@ -234,6 +234,60 @@ const IngestionRegistry = () => {
     }
   };
 
+  // ---- Robots confirmation ------------------------------------------------
+  const [robotsOpen, setRobotsOpen] = useState(false);
+  const [robotsSource, setRobotsSource] = useState<EventSource | null>(null);
+  const [robotsChecked, setRobotsChecked] = useState(false);
+  const [robotsNote, setRobotsNote] = useState('');
+  const [robotsBusy, setRobotsBusy] = useState(false);
+
+  const openRobotsDialog = (s: EventSource) => {
+    setRobotsSource(s);
+    setRobotsChecked(false);
+    setRobotsNote('');
+    setRobotsOpen(true);
+  };
+
+  const submitRobots = async () => {
+    if (!robotsSource || !robotsChecked) return;
+    const revoking = robotsSource.robots_ok === true;
+    setRobotsBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-source-confirm-robots',
+        {
+          body: {
+            sourceId: robotsSource.id,
+            confirm: !revoking,
+            note: robotsNote.slice(0, 500),
+          },
+        },
+      );
+      if (error) throw error;
+      const res = (data ?? {}) as { action?: string; robotsOk?: boolean };
+      toast({
+        title: revoking ? 'robots_ok revocado' : 'robots_ok confirmado',
+        description: revoking
+          ? 'La fuente vuelve a marcarse como robots pendiente. No se han escrito eventos.'
+          : `Verificación manual registrada. La fuente NO se ha activado ni escribe eventos. (${res.action ?? '—'})`,
+      });
+      setRobotsOpen(false);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: forbidden ? 'Sin permisos' : 'No se pudo actualizar',
+        description: forbidden ? 'Necesitas rol admin.' : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setRobotsBusy(false);
+    }
+  };
+
+
+
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
@@ -602,6 +656,20 @@ const IngestionRegistry = () => {
                           {s.write_confirmed_at
                             ? <><ShieldOff className="h-3 w-3" /> Revocar autorización</>
                             : <><KeyRound className="h-3 w-3" /> Autorizar (paso previo, no publica)</>}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-1.5 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                          onClick={() => openRobotsDialog(s)}
+                          disabled={busySourceId !== null || preflightBusyId !== null || confirmBusy || robotsBusy}
+                          title={s.robots_ok
+                            ? 'Revocar verificación manual de robots (no toca eventos)'
+                            : 'Confirmar verificación manual de robots — no activa la fuente'}
+                        >
+                          {s.robots_ok
+                            ? <><ShieldOff className="h-3 w-3" /> Revocar robots</>
+                            : <><ShieldCheck className="h-3 w-3" /> Confirmar robots/manual</>}
                         </Button>
                       </div>
                     </div>
@@ -1092,6 +1160,91 @@ const IngestionRegistry = () => {
                   ? <ShieldOff className="h-3.5 w-3.5" />
                   : <KeyRound className="h-3.5 w-3.5" />)}
               {confirmSource?.write_confirmed_at ? 'Revocar autorización' : 'Autorizar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={robotsOpen} onOpenChange={(o) => { if (!robotsBusy) setRobotsOpen(o); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              {robotsSource?.robots_ok
+                ? <><ShieldOff className="h-4 w-4" /> Revocar robots</>
+                : <><ShieldCheck className="h-4 w-4" /> Confirmar robots/manual</>}
+              {robotsSource && (
+                <Badge variant="outline" className="text-xs">{robotsSource.name}</Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Acción de auditoría sobre <span className="font-mono">event_sources.robots_ok</span>. No modifica <span className="font-mono">events</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm">
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs leading-relaxed">
+              Esta acción solo marca la verificación manual de robots. No activa la fuente y no escribe eventos.
+              <div className="mt-1 text-muted-foreground">
+                No cambia <span className="font-mono">enabled</span>, no cambia <span className="font-mono">write_confirmed_at</span>, no ejecuta ninguna ingesta.
+              </div>
+            </div>
+
+            {robotsSource?.base_url && (
+              <div className="text-xs text-muted-foreground break-all">
+                Fuente:{' '}
+                <a
+                  href={robotsSource.base_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary hover:underline font-mono"
+                >
+                  {robotsSource.base_url}
+                </a>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="robots-note" className="text-xs">Nota de auditoría (opcional, máx. 500)</Label>
+              <Textarea
+                id="robots-note"
+                value={robotsNote}
+                onChange={(e) => setRobotsNote(e.target.value.slice(0, 500))}
+                placeholder="Ej.: revisado robots.txt el DD/MM, permite paths /es/..."
+                className="min-h-[70px] text-sm"
+                disabled={robotsBusy}
+              />
+              <div className="text-[10px] text-muted-foreground text-right">{robotsNote.length}/500</div>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="robots-ack"
+                checked={robotsChecked}
+                onCheckedChange={(v) => setRobotsChecked(v === true)}
+                disabled={robotsBusy}
+              />
+              <Label htmlFor="robots-ack" className="text-xs leading-snug cursor-pointer">
+                He revisado manualmente la política de la fuente y entiendo que esto no ejecuta scraping ni escritura.
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button size="sm" variant="outline" onClick={() => setRobotsOpen(false)} disabled={robotsBusy}>
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={submitRobots}
+              disabled={!robotsChecked || robotsBusy}
+              className="gap-1"
+            >
+              {robotsBusy
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : (robotsSource?.robots_ok
+                  ? <ShieldOff className="h-3.5 w-3.5" />
+                  : <ShieldCheck className="h-3.5 w-3.5" />)}
+              {robotsSource?.robots_ok ? 'Revocar robots' : 'Confirmar robots'}
             </Button>
           </DialogFooter>
         </DialogContent>
