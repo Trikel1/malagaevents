@@ -204,8 +204,10 @@ const AuthPage = () => {
           </CardContent>
         </Card>
       </main>
+      </div>
     </div>
   );
 };
+
 
 export default AuthPage;
