@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Loader2,
   Dumbbell,
+  Database,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import SEO from '@/components/common/SEO';
@@ -73,6 +74,7 @@ import {
 } from '@/hooks/useAdmin';
 import { EVENT_CATEGORIES } from '@/types';
 import CategoryChip from '@/components/events/CategoryChip';
+import IngestionRegistry from '@/components/admin/IngestionRegistry';
 
 // Small inline component to show sports_events count
 const SportsEventCount = () => {
@@ -317,6 +319,10 @@ const AdminPage = () => {
             <TabsTrigger value="deportes" className="flex-1" onClick={fetchSportsRuns}>
               <Dumbbell className="h-4 w-4 mr-1" />
               {t('admin.tabs.sports')}
+            </TabsTrigger>
+            <TabsTrigger value="ingesta" className="flex-1">
+              <Database className="h-4 w-4 mr-1" />
+              Ingesta
             </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
@@ -660,6 +666,10 @@ const AdminPage = () => {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          <TabsContent value="ingesta" className="space-y-4">
+            <IngestionRegistry />
           </TabsContent>
         </Tabs>
       </main>
