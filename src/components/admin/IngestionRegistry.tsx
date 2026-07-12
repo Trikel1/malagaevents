@@ -404,6 +404,7 @@ const IngestionRegistry = () => {
 
   const enabledCount = sources.filter((s) => s.enabled).length;
   const robotsOkCount = sources.filter((s) => s.robots_ok).length;
+  const writeConfirmedCount = sources.filter((s) => !!s.write_confirmed_at).length;
   const lastRunBySource = new Map<string, EventSourceRun>();
   for (const r of runs) {
     if (!lastRunBySource.has(r.source_id)) lastRunBySource.set(r.source_id, r);
@@ -472,6 +473,55 @@ const IngestionRegistry = () => {
         </TabsList>
 
         <TabsContent value="sources" className="space-y-2">
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="py-3 text-xs space-y-2">
+              <div className="font-medium text-sm flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" /> Flujo seguro de ingesta
+              </div>
+              <ol className="grid gap-1.5 sm:grid-cols-2">
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">1</Badge>
+                  <span>Dry-run</span>
+                  <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] ml-auto">disponible</Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">2</Badge>
+                  <span>Preparar escritura (preflight)</span>
+                  <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] ml-auto">disponible</Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">3</Badge>
+                  <span>Verificar robots/manualmente</span>
+                  <Badge variant="outline" className={`text-[10px] ml-auto ${robotsOkCount > 0 ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                    {robotsOkCount > 0 ? `${robotsOkCount} ok` : 'pendiente'}
+                  </Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">4</Badge>
+                  <span>Autorizar escritura futura</span>
+                  <Badge variant="outline" className={`text-[10px] ml-auto ${writeConfirmedCount > 0 ? 'text-indigo-600 border-indigo-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                    {writeConfirmedCount > 0 ? `${writeConfirmedCount} autorizadas` : 'pendiente'}
+                  </Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">5</Badge>
+                  <span>Activar fuente</span>
+                  <Badge variant="outline" className={`text-[10px] ml-auto ${enabledCount > 0 ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                    {enabledCount > 0 ? `${enabledCount} activas` : 'pendiente'}
+                  </Badge>
+                </li>
+                <li className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] shrink-0">6</Badge>
+                  <span>Escritura real limitada</span>
+                  <Badge variant="outline" className="text-[10px] ml-auto text-muted-foreground">no disponible todavía</Badge>
+                </li>
+              </ol>
+              <div className="text-[11px] text-muted-foreground pt-1 border-t border-border/50">
+                Ningún paso de este panel publica eventos. La escritura real sigue deshabilitada por diseño.
+              </div>
+            </CardContent>
+          </Card>
+
           {sourcesQuery.isLoading ? (
             <Skeleton className="h-24 w-full" />
           ) : sources.length === 0 ? (
@@ -486,11 +536,11 @@ const IngestionRegistry = () => {
                       <div className="font-medium flex items-center gap-2 flex-wrap">
                         {s.name}
                         {s.enabled
-                          ? <Badge className="bg-emerald-600 hover:bg-emerald-600">Activa</Badge>
-                          : <Badge variant="secondary">Deshabilitada</Badge>}
+                          ? <Badge className="bg-emerald-600 hover:bg-emerald-600 text-xs">fuente activa</Badge>
+                          : <Badge variant="secondary" className="text-xs">fuente desactivada</Badge>}
                         {s.robots_ok
-                          ? <Badge variant="outline" className="text-xs">robots ok</Badge>
-                          : <Badge variant="outline" className="text-xs text-amber-600 border-amber-600/50">robots pend.</Badge>}
+                          ? <Badge className="bg-emerald-600 hover:bg-emerald-600 text-xs">robots confirmado</Badge>
+                          : <Badge variant="outline" className="text-xs text-amber-600 border-amber-600/50">robots pendiente</Badge>}
                         {s.kind && <Badge variant="outline" className="text-xs">{s.kind}</Badge>}
                         {typeof s.priority === 'number' && (
                           <Badge variant="outline" className="text-xs">p{s.priority}</Badge>
@@ -542,16 +592,16 @@ const IngestionRegistry = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 px-2 gap-1"
+                          className="h-6 px-1.5 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                           onClick={() => openConfirmDialog(s)}
                           disabled={busySourceId !== null || preflightBusyId !== null || confirmBusy}
                           title={s.write_confirmed_at
-                            ? 'Revocar autorización de escritura futura'
-                            : 'Autorizar escritura futura (no ejecuta nada)'}
+                            ? 'Revocar autorización de escritura futura (no publica eventos)'
+                            : 'Autorizar escritura futura — solo marca la fuente, no publica eventos'}
                         >
                           {s.write_confirmed_at
                             ? <><ShieldOff className="h-3 w-3" /> Revocar autorización</>
-                            : <><KeyRound className="h-3 w-3" /> Autorizar escritura futura</>}
+                            : <><KeyRound className="h-3 w-3" /> Autorizar (paso previo, no publica)</>}
                         </Button>
                       </div>
                     </div>
@@ -800,6 +850,32 @@ const IngestionRegistry = () => {
               <div className="py-6 text-sm text-destructive break-words">{preflightData.error}</div>
             ) : (
               <div className="space-y-3">
+                {(() => {
+                  const src = preflightData.sourceId ? sourceById.get(preflightData.sourceId) : null;
+                  return (
+                    <Card className="border-primary/30 bg-primary/5">
+                      <CardContent className="py-2.5 text-xs space-y-1.5">
+                        <div className="font-medium">Este preflight no escribe eventos.</div>
+                        <div className="text-muted-foreground">
+                          Para escribir en una fase futura harán falta <span className="font-mono">robots_ok=true</span>, <span className="font-mono">enabled=true</span> y <span className="font-mono">write_confirmed_at</span>.
+                        </div>
+                        {src && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            <Badge variant="outline" className={`text-[10px] ${src.robots_ok ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                              robots_ok: {src.robots_ok ? 'sí' : 'no'}
+                            </Badge>
+                            <Badge variant="outline" className={`text-[10px] ${src.enabled ? 'text-emerald-600 border-emerald-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                              enabled: {src.enabled ? 'sí' : 'no'}
+                            </Badge>
+                            <Badge variant="outline" className={`text-[10px] ${src.write_confirmed_at ? 'text-indigo-600 border-indigo-600/50' : 'text-amber-600 border-amber-600/50'}`}>
+                              write_confirmed: {src.write_confirmed_at ? 'sí' : 'no'}
+                            </Badge>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
                 {preflightData.warnings && preflightData.warnings.length > 0 && (
                   <Card className="border-amber-500/40">
                     <CardContent className="py-2 text-xs space-y-1">
@@ -950,6 +1026,24 @@ const IngestionRegistry = () => {
                 )}
               </div>
             )}
+
+            {confirmSource && !confirmSource.robots_ok && (
+              <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-xs leading-relaxed">
+                <div className="font-medium flex items-center gap-1">
+                  <AlertCircle className="h-3.5 w-3.5" /> Robots/manual todavía no confirmado
+                </div>
+                <div className="text-muted-foreground mt-0.5">
+                  Esta autorización no escribe eventos, pero se recomienda confirmar robots antes de autorizar.
+                </div>
+              </div>
+            )}
+
+            {confirmSource && !confirmSource.enabled && !confirmSource.write_confirmed_at && (
+              <div className="rounded-md border border-border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+                La fuente sigue desactivada. Autorizar escritura futura no activa la fuente.
+              </div>
+            )}
+
 
             <div className="space-y-1.5">
               <Label htmlFor="confirm-note" className="text-xs">Nota de auditoría (opcional, máx. 500)</Label>
