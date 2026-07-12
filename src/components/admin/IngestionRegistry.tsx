@@ -249,6 +249,24 @@ const IngestionRegistry = () => {
         <KpiCard icon={AlertCircle} label="Errores (50)" value={errors.length} loading={errorsQuery.isLoading} />
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          onClick={() => runDry()}
+          disabled={busySourceId !== null}
+          className="gap-1"
+        >
+          {busySourceId === '__dispatcher__' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+          Dry-run dispatcher
+        </Button>
+        <Button size="sm" variant="outline" onClick={invalidateAll} className="gap-1">
+          <RefreshCw className="h-3.5 w-3.5" /> Refrescar
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          Escritura real deshabilitada (WRITE_ENABLED=false)
+        </span>
+      </div>
+
       <Tabs defaultValue="sources" className="w-full">
         <TabsList className="w-full">
           <TabsTrigger value="sources" className="flex-1">Fuentes</TabsTrigger>
