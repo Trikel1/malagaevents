@@ -148,6 +148,17 @@ const CultureEventsPage = () => {
         title="Eventos en Málaga — Conciertos, Cultura y Planes"
         description="Todos los eventos de Málaga capital y provincia: conciertos, teatro, exposiciones, festivales y planes para hoy, este finde y los próximos días."
         path="/events"
+        jsonLd={displayedEvents && displayedEvents.length > 0 ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Eventos en Málaga",
+          itemListElement: displayedEvents.slice(0, 20).map((ev, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            url: `https://malagaevents.lovable.app/events/${ev.id}`,
+            name: ev.title,
+          })),
+        } : undefined}
       />
       {/* Header - Centered actions taking full width */}
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 shadow-soft">

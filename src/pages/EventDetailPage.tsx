@@ -175,7 +175,7 @@ END:VCALENDAR`;
   return (
     <div className="min-h-screen bg-background pb-32">
       <SEO
-        title={`${event.title.slice(0, 55)} — MalagaEvents`}
+        title={`${event.title.slice(0, 42)} — MalagaEvents`}
         description={(event.description?.replace(/\s+/g, ' ').trim().slice(0, 155) || `${event.title} en Málaga el ${formattedDate}. Detalles, ubicación y entradas.`)}
         path={`/events/${event.id}`}
         type="article"

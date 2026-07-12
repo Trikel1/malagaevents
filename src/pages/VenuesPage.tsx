@@ -48,6 +48,27 @@ const VenuesPage = () => {
         title="Recintos deportivos de Málaga"
         description="Directorio de instalaciones y recintos deportivos en Málaga: estadios, polideportivos, piscinas y centros de entrenamiento."
         path="/venues"
+        jsonLd={filtered.length > 0 ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Recintos deportivos de Málaga",
+          itemListElement: filtered.slice(0, 30).map((v, i) => ({
+            "@type": "ListItem",
+            position: i + 1,
+            item: {
+              "@type": "SportsActivityLocation",
+              name: v.name,
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: v.city,
+                streetAddress: v.address ?? undefined,
+                addressRegion: "Málaga",
+                addressCountry: "ES",
+              },
+              ...(v.lat && v.lng ? { geo: { "@type": "GeoCoordinates", latitude: v.lat, longitude: v.lng } } : {}),
+            },
+          })),
+        } : undefined}
       />
       <header className="bg-card border-b border-border sticky top-0 z-40 p-4 space-y-3">
         <div className="flex items-center gap-2">
