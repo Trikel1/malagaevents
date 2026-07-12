@@ -365,44 +365,49 @@
   content: '';
   position: absolute;
   border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.55;
+  filter: blur(110px);
+  opacity: 0.28;
   transition: transform var(--liquid-motion-slow) var(--liquid-ease),
               background-color var(--liquid-motion-slow) var(--liquid-ease),
               opacity var(--liquid-motion-slow) var(--liquid-ease);
   will-change: transform;
 }
 .liquid-backdrop::before {
-  width: 60vw; height: 60vw; top: -18vw; left: -14vw;
-  background: hsl(24 95% 70% / 0.45);
-  animation: liquid-float 22s var(--liquid-ease) infinite alternate;
+  width: 70vw; height: 70vw; top: -22vw; left: -18vw;
+  background: hsl(24 90% 72% / 0.55);
+  animation: liquid-float 36s var(--liquid-ease) infinite alternate;
 }
 .liquid-backdrop::after {
-  width: 65vw; height: 65vw; bottom: -22vw; right: -18vw;
-  background: hsl(200 80% 70% / 0.4);
-  animation: liquid-breathe 26s var(--liquid-ease) infinite alternate;
+  width: 72vw; height: 72vw; bottom: -26vw; right: -22vw;
+  background: hsl(200 75% 72% / 0.5);
+  animation: liquid-breathe 42s var(--liquid-ease) infinite alternate;
 }
 
 .liquid-blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(70px);
-  opacity: 0.35;
+  filter: blur(100px);
+  opacity: 0.2;
   transition: transform var(--liquid-motion-slow) var(--liquid-ease),
               background-color var(--liquid-motion-slow) var(--liquid-ease),
               opacity var(--liquid-motion-slow) var(--liquid-ease);
   will-change: transform;
 }
 .liquid-blob-1 {
-  width: 42vw; height: 42vw; top: 25%; left: 40%;
-  background: hsl(340 85% 75% / 0.35);
-  animation: liquid-float 30s var(--liquid-ease) infinite alternate;
+  width: 48vw; height: 48vw; top: 22%; left: 42%;
+  background: hsl(340 75% 78% / 0.5);
+  animation: liquid-float 34s var(--liquid-ease) infinite alternate;
 }
 .liquid-blob-2 {
-  width: 38vw; height: 38vw; top: 55%; left: -8%;
-  background: hsl(160 65% 65% / 0.3);
-  animation: liquid-breathe 34s var(--liquid-ease) infinite alternate;
+  width: 44vw; height: 44vw; top: 58%; left: -10%;
+  background: hsl(160 55% 70% / 0.45);
+  animation: liquid-breathe 40s var(--liquid-ease) infinite alternate;
 }
+
+.dark .liquid-backdrop::before,
+.dark .liquid-backdrop::after { opacity: 0.18; }
+.dark .liquid-blob { opacity: 0.14; }
+
 
 [data-mode="deportes"] .liquid-backdrop {
   background: linear-gradient(180deg, hsl(160 45% 96%) 0%, hsl(200 55% 97%) 55%, hsl(215 60% 96%) 100%);
