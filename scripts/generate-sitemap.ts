@@ -20,11 +20,9 @@ const staticEntries: SitemapEntry[] = [
   { path: "/venues", changefreq: "weekly", priority: "0.7" },
   { path: "/map", changefreq: "weekly", priority: "0.7" },
   { path: "/submit-event", changefreq: "monthly", priority: "0.4" },
-  { path: "/auth", changefreq: "yearly", priority: "0.2" },
-  { path: "/profile", changefreq: "monthly", priority: "0.3" },
-  { path: "/tickets", changefreq: "monthly", priority: "0.3" },
-  { path: "/tickets/add", changefreq: "yearly", priority: "0.2" },
 ];
+// Intentionally excluded (private / user-scoped / internal, marked noindex per route):
+// /auth, /auth/reset, /profile, /tickets, /tickets/add, /admin
 
 async function fetchEventEntries(): Promise<SitemapEntry[]> {
   const url = process.env.VITE_SUPABASE_URL;
