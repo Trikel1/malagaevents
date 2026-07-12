@@ -246,7 +246,16 @@ Deno.serve(async (req) => {
       }
 
       if (dryRun || !WRITE_ENABLED) {
-        preview.push({ ...ev, raw: { dedupe_key: dedupeKey, canonicalVenue } });
+        if (preview.length < 20) {
+          preview.push({
+            ...ev,
+            raw: {
+              ...(ev.raw ?? {}),
+              dedupe_key: dedupeKey,
+              canonicalVenue,
+            },
+          });
+        }
         skippedDupes++; // treat as "would upsert" for accounting
         continue;
       }
