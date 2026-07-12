@@ -315,9 +315,9 @@ Deno.serve(async (req) => {
       }
       let canonicalVenue: string | null = null;
       try {
-        const v = await resolveVenueAlias(supabase, ev.venueName);
+        const v = await resolveVenueAlias(supabase as never, ev.venueName);
         canonicalVenue = v.canonicalName;
-        await resolveLocalityAlias(supabase, ev.locality);
+        await resolveLocalityAlias(supabase as never, ev.locality);
       } catch { /* alias lookup is best-effort */ }
 
       let dedupeKey: string;
