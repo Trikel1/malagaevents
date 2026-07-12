@@ -228,6 +228,24 @@ const FilterDrawer = ({
             </Label>
           </div>
 
+          {/* Outdoor */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is-outdoor"
+              checked={localFilters.isOutdoor === true}
+              onCheckedChange={(checked) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  isOutdoor: checked ? true : undefined,
+                }))
+              }
+            />
+            <Label htmlFor="is-outdoor" className="cursor-pointer">
+              {t('events.outdoor', 'Al aire libre')}
+            </Label>
+          </div>
+
+
           {/* Favorites only */}
           {showFavoritesFilter && (
             <div className="flex items-center space-x-2">
