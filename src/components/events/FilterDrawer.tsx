@@ -23,12 +23,17 @@ import { cn } from '@/lib/utils';
 import CategoryChip from './CategoryChip';
 import { EVENT_CATEGORIES, type EventCategory } from '@/types';
 
+export type DatePreset = 'today' | 'tomorrow' | 'thisWeek' | 'weekend' | 'next30';
+
 export interface EventFilters {
   dateFrom?: Date;
   dateTo?: Date;
   categories: EventCategory[];
   isFree?: boolean;
   onlyFavorites?: boolean;
+  datePreset?: DatePreset;
+  withTickets?: boolean;
+  familyKids?: boolean;
 }
 
 interface FilterDrawerProps {
@@ -65,6 +70,9 @@ const FilterDrawer = ({
       onlyFavorites: undefined,
       dateFrom: undefined,
       dateTo: undefined,
+      datePreset: undefined,
+      withTickets: undefined,
+      familyKids: undefined,
     });
   };
 
@@ -178,6 +186,40 @@ const FilterDrawer = ({
             />
             <Label htmlFor="free-only" className="cursor-pointer">
               {t('events.freeOnly')}
+            </Label>
+          </div>
+
+          {/* With tickets */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="with-tickets"
+              checked={localFilters.withTickets === true}
+              onCheckedChange={(checked) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  withTickets: checked ? true : undefined,
+                }))
+              }
+            />
+            <Label htmlFor="with-tickets" className="cursor-pointer">
+              {t('events.withTickets', 'Con entradas')}
+            </Label>
+          </div>
+
+          {/* Family / Kids */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="family-kids"
+              checked={localFilters.familyKids === true}
+              onCheckedChange={(checked) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  familyKids: checked ? true : undefined,
+                }))
+              }
+            />
+            <Label htmlFor="family-kids" className="cursor-pointer">
+              {t('events.familyKids', 'Infantil / Familiar')}
             </Label>
           </div>
 
