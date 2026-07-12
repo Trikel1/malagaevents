@@ -37,6 +37,8 @@ const generateQueryKey = (options: UseEventsOptions) => {
     options.filters?.datePreset || '',
     options.filters?.withTickets || false,
     options.filters?.familyKids || false,
+    options.filters?.ageRange || '',
+    options.filters?.isOutdoor || false,
     options.todayOnly || false,
     options.weekendOnly || false,
     options.venueIds?.join(',') || '',
@@ -172,6 +174,37 @@ const fetchEvents = async (
     ];
     query = query.or(clauses.join(','));
   }
+
+  // Age range — conservative: use age_min/age_max columns.
+  // 0-3: age_min<=3 OR (age_min IS NULL AND title contains bebe/peques/infantil)
+  // 4-8: age_min<=8 AND (age_max IS NULL OR age_max>=4)
+  // 9-12: age_min<=12 AND (age_max IS NULL OR age_max>=9)
+  if (options.filters?.ageRange) {
+    const range = options.filters.ageRange;
+    if (range === '0-3') {
+      const infantPatterns = ['bebe', 'bebes', 'peques', 'infantil'];
+      const clauses = [
+        'age_min.lte.3',
+        ...infantPatterns.map((p) => `title_normalized.ilike.%${p}%`),
+      ];
+      query = query.or(clauses.join(','));
+    } else if (range === '4-8') {
+      query = query
+        .lte('age_min', 8)
+        .or('age_max.is.null,age_max.gte.4');
+    } else if (range === '9-12') {
+      query = query
+        .lte('age_min', 12)
+        .or('age_max.is.null,age_max.gte.9');
+    }
+  }
+
+  // Outdoor
+  if (options.filters?.isOutdoor) {
+    query = query.eq('is_outdoor', true);
+  }
+
+
 
 
   // Venue filter

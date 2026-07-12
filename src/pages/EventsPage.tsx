@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
-import FilterDrawer, { type EventFilters, type DatePreset } from '@/components/events/FilterDrawer';
+import FilterDrawer, { type EventFilters, type DatePreset, type AgeRange } from '@/components/events/FilterDrawer';
 import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
@@ -183,11 +183,18 @@ const CultureEventsPage = () => {
   }, [setSearchParams]);
 
   const toggleBooleanFilter = useCallback(
-    (key: 'isFree' | 'withTickets' | 'familyKids') => {
+    (key: 'isFree' | 'withTickets' | 'familyKids' | 'isOutdoor') => {
       setFilters((prev) => ({ ...prev, [key]: prev[key] ? undefined : true }));
     },
     [],
   );
+
+  const toggleAgeRange = useCallback((range: AgeRange) => {
+    setFilters((prev) => ({
+      ...prev,
+      ageRange: prev.ageRange === range ? undefined : range,
+    }));
+  }, []);
 
   const handleNearMe = useCallback(() => {
     if (userCoords) {
@@ -239,6 +246,8 @@ const CultureEventsPage = () => {
     (filters.isFree ? 1 : 0) +
     (filters.withTickets ? 1 : 0) +
     (filters.familyKids ? 1 : 0) +
+    (filters.ageRange ? 1 : 0) +
+    (filters.isOutdoor ? 1 : 0) +
     (filters.datePreset ? 1 : 0) +
     (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0) +
@@ -464,6 +473,40 @@ const CultureEventsPage = () => {
               )}
             >
               {t('events.familyKids', 'Infantil / Familiar')}
+            </button>
+            {(['0-3', '4-8', '9-12'] as AgeRange[]).map((r) => {
+              const active = filters.ageRange === r;
+              const labelKey = `events.age${r.replace('-', 'to')}`;
+              const fallback = `${r} ${t('events.yearsShort', 'años')}`;
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => toggleAgeRange(r)}
+                  aria-pressed={active}
+                  className={cn(
+                    'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background text-foreground border-border hover:bg-muted',
+                  )}
+                >
+                  {t(labelKey, fallback)}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => toggleBooleanFilter('isOutdoor')}
+              aria-pressed={!!filters.isOutdoor}
+              className={cn(
+                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                filters.isOutdoor
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-foreground border-border hover:bg-muted',
+              )}
+            >
+              {t('events.outdoor', 'Al aire libre')}
             </button>
             <button
               type="button"

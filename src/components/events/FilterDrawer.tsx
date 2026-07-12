@@ -24,6 +24,7 @@ import CategoryChip from './CategoryChip';
 import { EVENT_CATEGORIES, type EventCategory } from '@/types';
 
 export type DatePreset = 'today' | 'tomorrow' | 'thisWeek' | 'weekend' | 'next30';
+export type AgeRange = '0-3' | '4-8' | '9-12';
 
 export interface EventFilters {
   dateFrom?: Date;
@@ -34,6 +35,8 @@ export interface EventFilters {
   datePreset?: DatePreset;
   withTickets?: boolean;
   familyKids?: boolean;
+  ageRange?: AgeRange;
+  isOutdoor?: boolean;
 }
 
 interface FilterDrawerProps {
@@ -73,6 +76,8 @@ const FilterDrawer = ({
       datePreset: undefined,
       withTickets: undefined,
       familyKids: undefined,
+      ageRange: undefined,
+      isOutdoor: undefined,
     });
   };
 
@@ -222,6 +227,24 @@ const FilterDrawer = ({
               {t('events.familyKids', 'Infantil / Familiar')}
             </Label>
           </div>
+
+          {/* Outdoor */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is-outdoor"
+              checked={localFilters.isOutdoor === true}
+              onCheckedChange={(checked) =>
+                setLocalFilters((prev) => ({
+                  ...prev,
+                  isOutdoor: checked ? true : undefined,
+                }))
+              }
+            />
+            <Label htmlFor="is-outdoor" className="cursor-pointer">
+              {t('events.outdoor', 'Al aire libre')}
+            </Label>
+          </div>
+
 
           {/* Favorites only */}
           {showFavoritesFilter && (
