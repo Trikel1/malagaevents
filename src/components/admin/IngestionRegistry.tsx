@@ -183,6 +183,57 @@ const IngestionRegistry = () => {
   const [preflightOpen, setPreflightOpen] = useState(false);
   const [preflightData, setPreflightData] = useState<PreflightResponse | null>(null);
   const [preflightBusyId, setPreflightBusyId] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmSource, setConfirmSource] = useState<EventSource | null>(null);
+  const [confirmChecked, setConfirmChecked] = useState(false);
+  const [confirmNote, setConfirmNote] = useState('');
+  const [confirmBusy, setConfirmBusy] = useState(false);
+
+  const openConfirmDialog = (s: EventSource) => {
+    setConfirmSource(s);
+    setConfirmChecked(false);
+    setConfirmNote('');
+    setConfirmOpen(true);
+  };
+
+  const submitConfirm = async () => {
+    if (!confirmSource || !confirmChecked) return;
+    const revoking = !!confirmSource.write_confirmed_at;
+    setConfirmBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-source-confirm-write',
+        {
+          body: {
+            sourceId: confirmSource.id,
+            confirm: !revoking,
+            note: confirmNote.slice(0, 500),
+          },
+        },
+      );
+      if (error) throw error;
+      const res = (data ?? {}) as { action?: string; writeConfirmedAt?: string | null };
+      toast({
+        title: revoking ? 'Autorización revocada' : 'Autorización registrada',
+        description: revoking
+          ? 'La fuente ya no está marcada como preparada para escritura.'
+          : `Marcada como preparada. Sigue sin escribir eventos ni activarse. (${res.action ?? '—'})`,
+      });
+      setConfirmOpen(false);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: forbidden ? 'Sin permisos' : 'No se pudo actualizar',
+        description: forbidden ? 'Necesitas rol admin.' : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setConfirmBusy(false);
+    }
+  };
+
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
