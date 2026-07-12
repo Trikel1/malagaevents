@@ -234,6 +234,39 @@ const IngestionRegistry = () => {
     }
   };
 
+  const runPreflight = async (sourceId: string, sourceName: string) => {
+    setPreflightBusyId(sourceId);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-ingest-preflight',
+        { body: { sourceId } },
+      );
+      if (error) throw error;
+      const s = (data ?? {}) as PreflightResponse;
+      setPreflightData({ ...s, sourceName: s.sourceName ?? sourceName });
+      setPreflightOpen(true);
+      toast({
+        title: 'Preflight completado',
+        description: `Insert ${s.wouldInsert ?? 0} · Update ${s.wouldUpdate ?? 0} · Skip ${s.wouldSkip ?? 0} · Conflict ${s.conflicts ?? 0}`,
+      });
+      setAutoRefresh(true);
+      setTimeout(() => setAutoRefresh(false), 4000);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: forbidden ? 'Sin permisos' : 'No se pudo ejecutar preflight',
+        description: forbidden ? 'Necesitas rol admin.' : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setPreflightBusyId(null);
+    }
+  };
+
+
+
 
   const sourcesQuery = useQuery({
     queryKey: ['admin', 'ingesta', 'event_sources'],
