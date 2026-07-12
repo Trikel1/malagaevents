@@ -311,12 +311,22 @@ const IngestionRegistry = () => {
                         <div className="text-xs text-muted-foreground mt-0.5 italic">{s.notes}</div>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground text-right">
-                      <div className="flex items-center gap-1 justify-end">
+                    <div className="text-xs text-muted-foreground text-right flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {last ? fmt(last.started_at) : 'sin ejecuciones'}
                       </div>
                       {last && <div>{statusBadge(last.status)}</div>}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 gap-1"
+                        onClick={() => runDry(s.id)}
+                        disabled={busySourceId !== null}
+                      >
+                        {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+                        Dry-run
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
