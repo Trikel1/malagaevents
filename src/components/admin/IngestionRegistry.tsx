@@ -470,6 +470,145 @@ const IngestionRegistry = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              <span>Dry-run</span>
+              {previewSourceName && (
+                <Badge variant="outline" className="text-xs">{previewSourceName}</Badge>
+              )}
+              {previewData?.status && statusBadge(previewData.status)}
+              <Badge variant="outline" className="text-xs">dry-run</Badge>
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {previewData
+                ? `${previewData.previewCount ?? 0} eventos normalizados · ${previewData.errors ?? 0} errores · WRITE_ENABLED=false`
+                : 'Sin datos'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 pr-3 -mr-3">
+            {!previewData ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                Sin datos de preview.
+              </div>
+            ) : previewData.error ? (
+              <div className="py-6 text-sm text-destructive break-words">
+                {previewData.error}
+              </div>
+            ) : !previewData.preview || previewData.preview.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                <AlertCircle className="h-5 w-5 mx-auto mb-2 opacity-60" />
+                El adaptador no devolvió eventos parseables en este dry-run.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {previewData.preview.map((it, idx) => (
+                  <Card key={idx} className="border-muted">
+                    <CardContent className="py-3 text-sm space-y-1">
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="font-medium break-words flex-1 min-w-0">
+                          {it.title ?? <span className="italic text-muted-foreground">sin título</span>}
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {it.category && (
+                            <Badge variant="secondary" className="text-xs">{it.category}</Badge>
+                          )}
+                          {it.timeAssumed && (
+                            <Badge variant="outline" className="text-xs text-amber-600 border-amber-600/50">
+                              hora estimada
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5">
+                        {it.startAt && (
+                          <span>
+                            {(() => {
+                              try {
+                                return format(new Date(it.startAt), "EEE d MMM yyyy · HH:mm", { locale: es });
+                              } catch {
+                                return it.startAt;
+                              }
+                            })()}
+                          </span>
+                        )}
+                        {it.venueName && (
+                          <span className="inline-flex items-center gap-1">
+                            <Building2 className="h-3 w-3" /> {it.venueName}
+                          </span>
+                        )}
+                        {it.locality && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3 w-3" /> {it.locality}
+                          </span>
+                        )}
+                      </div>
+                      {(it.cycleText || it.dateLine) && (
+                        <div className="text-xs text-muted-foreground italic break-words">
+                          {it.cycleText && <span>Ciclo: {it.cycleText}</span>}
+                          {it.cycleText && it.dateLine && <span> · </span>}
+                          {it.dateLine && <span className="font-mono">{it.dateLine}</span>}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3 text-xs pt-0.5 flex-wrap">
+                        {it.sourceUrl && (
+                          <a
+                            href={it.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" /> Fuente
+                          </a>
+                        )}
+                        {it.ticketUrl && (
+                          <a
+                            href={it.ticketUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" /> Entradas
+                          </a>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={async () => {
+                if (!previewData) return;
+                try {
+                  await navigator.clipboard.writeText(JSON.stringify(previewData, null, 2));
+                  toast({ title: 'JSON copiado al portapapeles' });
+                } catch {
+                  toast({
+                    title: 'No se pudo copiar',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              disabled={!previewData}
+            >
+              <Copy className="h-3.5 w-3.5" /> Copiar JSON
+            </Button>
+            <Button size="sm" onClick={() => setPreviewOpen(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
