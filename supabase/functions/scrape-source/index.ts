@@ -38,7 +38,8 @@ import { resolveLocalityAlias } from "../_shared/ingestion/localities.ts";
 // Hard cap on writes per single run — cannot be exceeded even if body asks for more.
 const MAX_WRITES_PER_RUN = 50;
 
-type Deps = ReturnType<typeof createClient>;
+// deno-lint-ignore no-explicit-any
+type Deps = any;
 
 function json(body: unknown, status = 200, origin?: string | null) {
   return new Response(JSON.stringify(body), { status, headers: getAllHeaders(origin) });
