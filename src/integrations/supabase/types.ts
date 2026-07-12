@@ -85,6 +85,116 @@ export type Database = {
           },
         ]
       }
+      event_source_runs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          errors: number
+          finished_at: string | null
+          id: string
+          inserted: number
+          meta: Json
+          skipped_dupes: number
+          source_id: string
+          started_at: string
+          status: string
+          updated: number
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          errors?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          meta?: Json
+          skipped_dupes?: number
+          source_id: string
+          started_at?: string
+          status?: string
+          updated?: number
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          errors?: number
+          finished_at?: string | null
+          id?: string
+          inserted?: number
+          meta?: Json
+          skipped_dupes?: number
+          source_id?: string
+          started_at?: string
+          status?: string
+          updated?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_source_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_sources: {
+        Row: {
+          adapter_key: string
+          base_url: string
+          category_hints: string[]
+          created_at: string
+          enabled: boolean
+          id: string
+          kind: string
+          legacy_source_id: string | null
+          locality_slug: string
+          name: string
+          notes: string | null
+          priority: number
+          robots_ok: boolean
+          schedule_cron: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          adapter_key: string
+          base_url: string
+          category_hints?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind: string
+          legacy_source_id?: string | null
+          locality_slug?: string
+          name: string
+          notes?: string | null
+          priority?: number
+          robots_ok?: boolean
+          schedule_cron?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          adapter_key?: string
+          base_url?: string
+          category_hints?: string[]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          kind?: string
+          legacy_source_id?: string | null
+          locality_slug?: string
+          name?: string
+          notes?: string | null
+          priority?: number
+          robots_ok?: boolean
+          schedule_cron?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_submissions: {
         Row: {
           captcha_passed: boolean
@@ -141,6 +251,7 @@ export type Database = {
           buy_url: string | null
           capacity_info: string | null
           category: string
+          content_hash: string | null
           country: string | null
           created_at: string
           dedupe_key: string | null
@@ -154,6 +265,7 @@ export type Database = {
           image_status: string | null
           image_url: string | null
           is_free: boolean
+          last_seen_at: string | null
           last_synced_at: string | null
           lat: number | null
           lng: number | null
@@ -164,6 +276,7 @@ export type Database = {
           price_info: string | null
           province: string | null
           source: string | null
+          source_id: string | null
           source_ref: string | null
           source_type: string
           start_at: string
@@ -187,6 +300,7 @@ export type Database = {
           buy_url?: string | null
           capacity_info?: string | null
           category: string
+          content_hash?: string | null
           country?: string | null
           created_at?: string
           dedupe_key?: string | null
@@ -200,6 +314,7 @@ export type Database = {
           image_status?: string | null
           image_url?: string | null
           is_free?: boolean
+          last_seen_at?: string | null
           last_synced_at?: string | null
           lat?: number | null
           lng?: number | null
@@ -210,6 +325,7 @@ export type Database = {
           price_info?: string | null
           province?: string | null
           source?: string | null
+          source_id?: string | null
           source_ref?: string | null
           source_type?: string
           start_at: string
@@ -233,6 +349,7 @@ export type Database = {
           buy_url?: string | null
           capacity_info?: string | null
           category?: string
+          content_hash?: string | null
           country?: string | null
           created_at?: string
           dedupe_key?: string | null
@@ -246,6 +363,7 @@ export type Database = {
           image_status?: string | null
           image_url?: string | null
           is_free?: boolean
+          last_seen_at?: string | null
           last_synced_at?: string | null
           lat?: number | null
           lng?: number | null
@@ -256,6 +374,7 @@ export type Database = {
           price_info?: string | null
           province?: string | null
           source?: string | null
+          source_id?: string | null
           source_ref?: string | null
           source_type?: string
           start_at?: string
@@ -285,6 +404,13 @@ export type Database = {
             columns: ["organizer_user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
             referencedColumns: ["id"]
           },
           {
@@ -328,6 +454,86 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_errors: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          payload_sample: Json | null
+          run_id: string | null
+          source_id: string | null
+          stage: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          payload_sample?: Json | null
+          run_id?: string | null
+          source_id?: string | null
+          stage: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          payload_sample?: Json | null
+          run_id?: string | null
+          source_id?: string | null
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_errors_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "event_source_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingestion_errors_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locality_aliases: {
+        Row: {
+          alias: string
+          alias_normalized: string | null
+          created_at: string
+          id: string
+          location_id: string | null
+          municipio_slug: string
+        }
+        Insert: {
+          alias: string
+          alias_normalized?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          municipio_slug: string
+        }
+        Update: {
+          alias?: string
+          alias_normalized?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          municipio_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locality_aliases_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
             referencedColumns: ["id"]
           },
         ]
@@ -501,6 +707,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      raw_event_snapshots: {
+        Row: {
+          captured_at: string
+          content_hash: string
+          id: string
+          payload: Json
+          run_id: string | null
+          source_id: string
+          source_url: string
+        }
+        Insert: {
+          captured_at?: string
+          content_hash: string
+          id?: string
+          payload: Json
+          run_id?: string | null
+          source_id: string
+          source_url: string
+        }
+        Update: {
+          captured_at?: string
+          content_hash?: string
+          id?: string
+          payload?: Json
+          run_id?: string | null
+          source_id?: string
+          source_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "raw_event_snapshots_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "event_source_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raw_event_snapshots_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scraping_sources: {
         Row: {
@@ -948,6 +1199,51 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_aliases: {
+        Row: {
+          alias: string
+          alias_normalized: string | null
+          canonical_name: string | null
+          created_at: string
+          id: string
+          source_id: string | null
+          venue_id: string | null
+        }
+        Insert: {
+          alias: string
+          alias_normalized?: string | null
+          canonical_name?: string | null
+          created_at?: string
+          id?: string
+          source_id?: string | null
+          venue_id?: string | null
+        }
+        Update: {
+          alias?: string
+          alias_normalized?: string | null
+          canonical_name?: string | null
+          created_at?: string
+          id?: string
+          source_id?: string | null
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_aliases_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venue_aliases_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           address: string | null
@@ -995,6 +1291,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_events_dedupe_keys: {
+        Args: never
+        Returns: {
+          skipped_count: number
+          updated_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
