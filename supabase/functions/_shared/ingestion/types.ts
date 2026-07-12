@@ -32,6 +32,8 @@ export type EventSourceRow = {
   schedule_cron: string | null;
   robots_ok: boolean;
   notes: string | null;
+  write_confirmed_at?: string | null;
+  write_confirmed_by?: string | null;
 };
 
 export type RunStatus = "running" | "success" | "partial" | "error";
