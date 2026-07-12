@@ -17,6 +17,8 @@ import {
   Copy,
   KeyRound,
   ShieldOff,
+  Power,
+  PowerOff,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -285,6 +287,76 @@ const IngestionRegistry = () => {
       setRobotsBusy(false);
     }
   };
+
+  // ---- Enabled toggle -----------------------------------------------------
+  const [toggleOpen, setToggleOpen] = useState(false);
+  const [toggleSource, setToggleSource] = useState<EventSource | null>(null);
+  const [toggleChecked, setToggleChecked] = useState(false);
+  const [toggleNote, setToggleNote] = useState('');
+  const [toggleBusy, setToggleBusy] = useState(false);
+
+  const openToggleDialog = (s: EventSource) => {
+    setToggleSource(s);
+    setToggleChecked(false);
+    setToggleNote('');
+    setToggleOpen(true);
+  };
+
+  const submitToggle = async () => {
+    if (!toggleSource || !toggleChecked) return;
+    const nextEnabled = !toggleSource.enabled;
+    if (nextEnabled && !toggleSource.robots_ok) {
+      toast({
+        title: 'No se puede activar',
+        description: 'Confirma robots/manual antes de activar la fuente.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setToggleBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-source-toggle-enabled',
+        {
+          body: {
+            sourceId: toggleSource.id,
+            enabled: nextEnabled,
+            note: toggleNote.slice(0, 500),
+          },
+        },
+      );
+      if (error) throw error;
+      const res = (data ?? {}) as { action?: string; enabled?: boolean };
+      toast({
+        title: nextEnabled ? 'Fuente activada' : 'Fuente desactivada',
+        description: nextEnabled
+          ? `Ahora es candidata para ejecuciones futuras. NO se han escrito eventos. (${res.action ?? '—'})`
+          : `Fuente desactivada. NO se han escrito eventos. (${res.action ?? '—'})`,
+      });
+      setToggleOpen(false);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const robotsBlock = /robots_not_confirmed/i.test(msg);
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: robotsBlock
+          ? 'Robots no confirmado'
+          : forbidden
+            ? 'Sin permisos'
+            : 'No se pudo actualizar',
+        description: robotsBlock
+          ? 'No se puede activar la fuente hasta confirmar robots/manual.'
+          : forbidden
+            ? 'Necesitas rol admin.'
+            : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setToggleBusy(false);
+    }
+  };
+
 
 
 
@@ -670,6 +742,31 @@ const IngestionRegistry = () => {
                           {s.robots_ok
                             ? <><ShieldOff className="h-3 w-3" /> Revocar robots</>
                             : <><ShieldCheck className="h-3 w-3" /> Confirmar robots/manual</>}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-1.5 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                          onClick={() => openToggleDialog(s)}
+                          disabled={
+                            busySourceId !== null ||
+                            preflightBusyId !== null ||
+                            confirmBusy ||
+                            robotsBusy ||
+                            toggleBusy ||
+                            (!s.enabled && !s.robots_ok)
+                          }
+                          title={
+                            !s.enabled && !s.robots_ok
+                              ? 'No se puede activar la fuente hasta confirmar robots/manual.'
+                              : s.enabled
+                                ? 'Desactivar fuente (no toca eventos)'
+                                : 'Activar fuente — no ejecuta scraping ni escribe eventos'
+                          }
+                        >
+                          {s.enabled
+                            ? <><PowerOff className="h-3 w-3" /> Desactivar fuente</>
+                            : <><Power className="h-3 w-3" /> Activar fuente</>}
                         </Button>
                       </div>
                     </div>
@@ -1245,6 +1342,110 @@ const IngestionRegistry = () => {
                   ? <ShieldOff className="h-3.5 w-3.5" />
                   : <ShieldCheck className="h-3.5 w-3.5" />)}
               {robotsSource?.robots_ok ? 'Revocar robots' : 'Confirmar robots'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={toggleOpen} onOpenChange={(o) => { if (!toggleBusy) setToggleOpen(o); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              {toggleSource?.enabled
+                ? <><PowerOff className="h-4 w-4" /> Desactivar fuente</>
+                : <><Power className="h-4 w-4" /> Activar fuente</>}
+              {toggleSource && (
+                <Badge variant="outline" className="text-xs">{toggleSource.name}</Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Acción de auditoría sobre <span className="font-mono">event_sources.enabled</span>. No modifica <span className="font-mono">events</span> ni ejecuta scraping.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm">
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs leading-relaxed">
+              Activar la fuente <strong>NO escribe eventos</strong>. Solo permite que esta fuente sea candidata para ejecuciones futuras.
+              <div className="mt-1 text-muted-foreground">
+                No cambia <span className="font-mono">robots_ok</span>, no cambia <span className="font-mono">write_confirmed_at</span>, no ejecuta ninguna ingesta.
+              </div>
+            </div>
+
+            {toggleSource && !toggleSource.enabled && !toggleSource.robots_ok && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs leading-relaxed text-destructive">
+                No se puede activar la fuente hasta confirmar robots/manual.
+              </div>
+            )}
+
+            {toggleSource && (
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                <div className="rounded border border-border/60 p-2">
+                  <div className="text-muted-foreground">robots_ok</div>
+                  <div className={toggleSource.robots_ok ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}>
+                    {toggleSource.robots_ok ? 'true' : 'false'}
+                  </div>
+                </div>
+                <div className="rounded border border-border/60 p-2">
+                  <div className="text-muted-foreground">write_confirmed_at</div>
+                  <div className={toggleSource.write_confirmed_at ? 'text-indigo-600 font-medium' : 'text-muted-foreground'}>
+                    {toggleSource.write_confirmed_at ? 'sí' : 'no'}
+                  </div>
+                </div>
+                <div className="rounded border border-border/60 p-2">
+                  <div className="text-muted-foreground">enabled</div>
+                  <div className={toggleSource.enabled ? 'text-emerald-600 font-medium' : 'text-muted-foreground'}>
+                    {toggleSource.enabled ? 'true' : 'false'}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="toggle-note" className="text-xs">Nota de auditoría (opcional, máx. 500)</Label>
+              <Textarea
+                id="toggle-note"
+                value={toggleNote}
+                onChange={(e) => setToggleNote(e.target.value.slice(0, 500))}
+                placeholder="Ej.: activada tras validar preflight y robots"
+                className="min-h-[70px] text-sm"
+                disabled={toggleBusy}
+              />
+              <div className="text-[10px] text-muted-foreground text-right">{toggleNote.length}/500</div>
+            </div>
+
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="toggle-ack"
+                checked={toggleChecked}
+                onCheckedChange={(v) => setToggleChecked(v === true)}
+                disabled={toggleBusy}
+              />
+              <Label htmlFor="toggle-ack" className="text-xs leading-snug cursor-pointer">
+                Entiendo que esto no ejecuta scraping ni escritura.
+              </Label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button size="sm" variant="outline" onClick={() => setToggleOpen(false)} disabled={toggleBusy}>
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={submitToggle}
+              disabled={
+                !toggleChecked ||
+                toggleBusy ||
+                (toggleSource ? !toggleSource.enabled && !toggleSource.robots_ok : true)
+              }
+              className="gap-1"
+            >
+              {toggleBusy
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : (toggleSource?.enabled
+                  ? <PowerOff className="h-3.5 w-3.5" />
+                  : <Power className="h-3.5 w-3.5" />)}
+              {toggleSource?.enabled ? 'Desactivar fuente' : 'Activar fuente'}
             </Button>
           </DialogFooter>
         </DialogContent>
