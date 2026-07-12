@@ -147,6 +147,9 @@ type PreflightResponse = {
   warnings?: string[];
   generatedAt?: string;
   preview?: PreflightItem[];
+  writeToken?: string | null;
+  writeTokenId?: string | null;
+  writeTokenExpiresAt?: string | null;
   error?: string;
 };
 
