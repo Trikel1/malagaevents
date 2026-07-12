@@ -657,6 +657,20 @@ const IngestionRegistry = () => {
                             ? <><ShieldOff className="h-3 w-3" /> Revocar autorización</>
                             : <><KeyRound className="h-3 w-3" /> Autorizar (paso previo, no publica)</>}
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-1.5 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                          onClick={() => openRobotsDialog(s)}
+                          disabled={busySourceId !== null || preflightBusyId !== null || confirmBusy || robotsBusy}
+                          title={s.robots_ok
+                            ? 'Revocar verificación manual de robots (no toca eventos)'
+                            : 'Confirmar verificación manual de robots — no activa la fuente'}
+                        >
+                          {s.robots_ok
+                            ? <><ShieldOff className="h-3 w-3" /> Revocar robots</>
+                            : <><ShieldCheck className="h-3 w-3" /> Confirmar robots/manual</>}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
