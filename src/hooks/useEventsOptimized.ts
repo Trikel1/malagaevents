@@ -85,39 +85,19 @@ const fetchEvents = async (
     .eq('status', 'published')
     .order('start_at', { ascending: true });
 
-  // Date filters - use Europe/Madrid timezone
+  // Date filters - Europe/Madrid-approx local time
   const now = new Date();
-  
-  if (options.todayOnly) {
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-    query = query
-      .gte('start_at', todayStart.toISOString())
-      .lt('start_at', todayEnd.toISOString());
-  } else if (options.weekendOnly) {
-    // "Este finde" logic: Fri=>Fri+Sat+Sun, Sat=>Sat+Sun, Sun=>Sun, Mon-Thu=>next Fri+Sat+Sun
-    const dayOfWeek = now.getDay(); // 0=Sun
-    let weekendStart: Date;
-    let weekendEnd: Date;
+  const presetFromFilters = options.filters?.datePreset;
+  const legacyPreset: EventFilters['datePreset'] | undefined = options.todayOnly
+    ? 'today'
+    : options.weekendOnly
+      ? 'weekend'
+      : undefined;
+  const activePreset = presetFromFilters ?? legacyPreset;
 
-    if (dayOfWeek === 0) {
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      weekendEnd = new Date(weekendStart.getTime() + 1 * 24 * 60 * 60 * 1000);
-    } else if (dayOfWeek === 6) {
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000);
-    } else if (dayOfWeek === 5) {
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000);
-    } else {
-      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilFriday);
-      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000);
-    }
-
-    query = query
-      .gte('start_at', weekendStart.toISOString())
-      .lt('start_at', weekendEnd.toISOString());
+  if (activePreset) {
+    const [start, end] = computePresetRange(activePreset, now);
+    query = query.gte('start_at', start.toISOString()).lt('start_at', end.toISOString());
   } else if (options.filters?.dateFrom || options.filters?.dateTo) {
     if (options.filters.dateFrom) {
       query = query.gte('start_at', options.filters.dateFrom.toISOString());
@@ -132,14 +112,62 @@ const fetchEvents = async (
     query = query.gte('start_at', now.toISOString());
   }
 
-  // Category filter
+  // Category filter — expand certain categories to also match event_type
+  // (Fase 3B-1: category/event_type divergence is temporary until 3B-2).
   if (options.filters?.categories && options.filters.categories.length > 0) {
-    query = query.in('category', options.filters.categories);
+    const selected = options.filters.categories as string[];
+    const typeExpansion: Record<string, string[]> = {
+      festivals: ['festival'],
+      exhibitions: ['exhibitions', 'museum'],
+      kids: ['kids'],
+      music: ['music'],
+      theater: ['theater'],
+    };
+    const extraTypes = Array.from(
+      new Set(selected.flatMap((c) => typeExpansion[c] ?? [])),
+    );
+    if (extraTypes.length > 0) {
+      const catList = selected.join(',');
+      const typeList = extraTypes.join(',');
+      query = query.or(`category.in.(${catList}),event_type.in.(${typeList})`);
+    } else {
+      query = query.in('category', selected);
+    }
   }
 
   // Free filter
   if (options.filters?.isFree) {
     query = query.eq('is_free', true);
+  }
+
+  // With tickets — ticket_url OR buy_url not null
+  if (options.filters?.withTickets) {
+    query = query.or('ticket_url.not.is.null,buy_url.not.is.null');
+  }
+
+  // Family / Kids — provisional heuristic (Fase 3B-1).
+  // Matches category=kids, event_type=kids, or title_normalized keywords.
+  if (options.filters?.familyKids) {
+    const patterns = [
+      'infantil',
+      'familiar',
+      'familia',
+      'ninos',
+      'ninas',
+      'peques',
+      'cuento',
+      'cuentacuentos',
+      'titeres',
+      'marionetas',
+      'cantajuego',
+      'cantojuego',
+    ];
+    const clauses = [
+      'category.eq.kids',
+      'event_type.eq.kids',
+      ...patterns.map((p) => `title_normalized.ilike.%${p}%`),
+    ];
+    query = query.or(clauses.join(','));
   }
 
   // Venue filter
