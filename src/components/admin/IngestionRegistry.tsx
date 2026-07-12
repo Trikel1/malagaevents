@@ -234,6 +234,60 @@ const IngestionRegistry = () => {
     }
   };
 
+  // ---- Robots confirmation ------------------------------------------------
+  const [robotsOpen, setRobotsOpen] = useState(false);
+  const [robotsSource, setRobotsSource] = useState<EventSource | null>(null);
+  const [robotsChecked, setRobotsChecked] = useState(false);
+  const [robotsNote, setRobotsNote] = useState('');
+  const [robotsBusy, setRobotsBusy] = useState(false);
+
+  const openRobotsDialog = (s: EventSource) => {
+    setRobotsSource(s);
+    setRobotsChecked(false);
+    setRobotsNote('');
+    setRobotsOpen(true);
+  };
+
+  const submitRobots = async () => {
+    if (!robotsSource || !robotsChecked) return;
+    const revoking = robotsSource.robots_ok === true;
+    setRobotsBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'admin-source-confirm-robots',
+        {
+          body: {
+            sourceId: robotsSource.id,
+            confirm: !revoking,
+            note: robotsNote.slice(0, 500),
+          },
+        },
+      );
+      if (error) throw error;
+      const res = (data ?? {}) as { action?: string; robotsOk?: boolean };
+      toast({
+        title: revoking ? 'robots_ok revocado' : 'robots_ok confirmado',
+        description: revoking
+          ? 'La fuente vuelve a marcarse como robots pendiente. No se han escrito eventos.'
+          : `Verificación manual registrada. La fuente NO se ha activado ni escribe eventos. (${res.action ?? '—'})`,
+      });
+      setRobotsOpen(false);
+      invalidateAll();
+    } catch (e: any) {
+      const msg = e?.message ?? '';
+      const forbidden = /forbidden|unauthorized|invalid_token/i.test(msg);
+      toast({
+        title: forbidden ? 'Sin permisos' : 'No se pudo actualizar',
+        description: forbidden ? 'Necesitas rol admin.' : msg || 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setRobotsBusy(false);
+    }
+  };
+
+
+
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
