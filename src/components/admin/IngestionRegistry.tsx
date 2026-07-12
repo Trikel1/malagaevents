@@ -105,6 +105,9 @@ const IngestionRegistry = () => {
   const qc = useQueryClient();
   const [busySourceId, setBusySourceId] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<DryRunResponse | null>(null);
+  const [previewSourceName, setPreviewSourceName] = useState<string>('');
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
