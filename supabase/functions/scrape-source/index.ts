@@ -19,6 +19,7 @@ import type {
 } from "../_shared/ingestion/types.ts";
 import { getAdapter } from "../_shared/ingestion/adapters.ts";
 import { generateEventDedupeKey } from "../_shared/ingestion/dedupe.ts";
+import { stableHash } from "../_shared/ingestion/normalize.ts";
 import { parseSpanishDateToMadrid } from "../_shared/ingestion/dates.ts";
 import { resolveVenueAlias } from "../_shared/ingestion/venues.ts";
 import { resolveLocalityAlias } from "../_shared/ingestion/localities.ts";
