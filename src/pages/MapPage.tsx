@@ -325,10 +325,11 @@ const MapPage = () => {
           className="relative px-3 mt-3"
           style={{
             height:
-              'calc(100dvh - 260px - env(safe-area-inset-bottom, 0px))',
-            minHeight: '360px',
+              'calc(100dvh - 320px - env(safe-area-inset-bottom, 0px))',
+            minHeight: '340px',
           }}
         >
+
           <div className="glass-card-strong overflow-hidden h-full relative">
             <LeafletMap
               markers={filteredMarkers}
