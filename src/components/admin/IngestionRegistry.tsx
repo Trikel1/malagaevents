@@ -456,16 +456,29 @@ const IngestionRegistry = () => {
                         {last ? fmt(last.started_at) : 'sin ejecuciones'}
                       </div>
                       {last && <div>{statusBadge(last.status)}</div>}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2 gap-1"
-                        onClick={() => runDry(s.id, s.name)}
-                        disabled={busySourceId !== null}
-                      >
-                        {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-                        Dry-run
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 gap-1"
+                          onClick={() => runDry(s.id, s.name)}
+                          disabled={busySourceId !== null || preflightBusyId !== null}
+                        >
+                          {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+                          Dry-run
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 gap-1"
+                          onClick={() => runPreflight(s.id, s.name)}
+                          disabled={busySourceId !== null || preflightBusyId !== null}
+                          title="Calcular diff sin escribir nada"
+                        >
+                          {preflightBusyId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
+                          Preparar escritura
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
