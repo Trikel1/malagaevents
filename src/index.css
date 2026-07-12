@@ -290,15 +290,15 @@
 
   .glass-nav {
     background:
-      linear-gradient(180deg, hsl(var(--glass-highlight)) 0%, transparent 42%),
-      hsl(var(--glass-background));
-    backdrop-filter: blur(26px) saturate(150%);
-    -webkit-backdrop-filter: blur(26px) saturate(150%);
+      linear-gradient(180deg, hsl(var(--glass-highlight)) 0%, transparent 46%),
+      hsl(var(--surface-elevated) / 0.96);
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
     border: 1px solid hsl(var(--glass-border));
     box-shadow:
       0 1px 0 hsl(var(--glass-highlight)) inset,
-      0 -10px 30px -22px hsl(var(--glass-shadow)),
-      0 16px 40px -28px hsl(var(--glass-shadow));
+      0 -6px 24px -20px hsl(var(--glass-shadow)),
+      0 18px 44px -30px hsl(var(--glass-shadow));
   }
 
   .glass-dropdown,
@@ -492,15 +492,15 @@
 .bottom-nav-item::before {
   content: '';
   position: absolute;
-  inset: 4px 5px;
+  inset: 5px 7px 6px;
   z-index: -1;
   border-radius: 16px;
   opacity: 0;
   background:
-    linear-gradient(180deg, hsl(var(--primary) / 0.13), hsl(var(--primary) / 0.075));
+    linear-gradient(180deg, hsl(var(--primary) / 0.095), hsl(var(--primary) / 0.052));
   box-shadow:
     0 1px 0 hsl(var(--glass-highlight)) inset,
-    0 8px 18px -16px hsl(var(--primary) / 0.45);
+    0 8px 18px -17px hsl(var(--primary) / 0.34);
   transform: scale(0.94);
   transition: opacity 260ms var(--liquid-ease), transform 360ms var(--liquid-ease), background 360ms var(--liquid-ease);
 }
@@ -556,10 +556,10 @@
 
 .dark .bottom-nav-item::before {
   background:
-    linear-gradient(180deg, hsl(var(--primary) / 0.18), hsl(var(--primary) / 0.10));
+    linear-gradient(180deg, hsl(var(--primary) / 0.14), hsl(var(--primary) / 0.075));
   box-shadow:
     0 1px 0 hsl(var(--glass-highlight)) inset,
-    0 8px 18px -15px hsl(var(--primary) / 0.55);
+    0 8px 18px -16px hsl(var(--primary) / 0.44);
 }
 
 
