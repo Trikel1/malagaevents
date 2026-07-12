@@ -619,6 +619,7 @@ export const teatroCervantesAdapter: SourceAdapter = {
       timeAssumedCount,
       detailFollowEnabled,
       detailFollowCap: MAX_DETAIL_FOLLOWS,
+      detailLimit,
       detailFetched,
       detailFailed,
       venueImproved,
