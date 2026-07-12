@@ -552,8 +552,8 @@
 }
 
 .dark .bottom-nav-item::before {
-  background: hsl(var(--primary) / 0.92);
-  box-shadow: 0 0 14px hsl(var(--primary) / 0.28);
+  background: linear-gradient(180deg, hsl(var(--primary) / 0.22), hsl(var(--primary) / 0.08));
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.22);
 }
 
 
