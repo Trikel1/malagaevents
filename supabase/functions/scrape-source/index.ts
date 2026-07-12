@@ -250,11 +250,58 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Placeholder for Phase 2B — real upsert path stays disabled.
-      // When WRITE_ENABLED is flipped on:
-      //   1. select events where dedupe_key = dedupeKey
-      //   2. insert or update accordingly, setting source_id, last_seen_at
-      //   3. optionally store raw_event_snapshots
+      // Phase 2B upsert path — fully implemented but gated by WRITE_ENABLED.
+      // WRITE_ENABLED remains false until an explicit product decision.
+      try {
+        const { data: existing } = await supabase
+          .from("events")
+          .select("id, content_hash")
+          .eq("dedupe_key", dedupeKey)
+          .maybeSingle();
+
+        const contentHash = await (await import("../_shared/ingestion/normalize.ts")).stableHash(
+          [ev.title, ev.description ?? "", ev.startAt, ev.venueName ?? "", ev.imageUrl ?? "", ev.ticketUrl ?? ""].join("|"),
+        );
+        const nowIso = new Date().toISOString();
+
+        const row = {
+          title: ev.title,
+          description: ev.description ?? null,
+          start_at: ev.startAt,
+          end_at: ev.endAt ?? null,
+          venue_name: ev.venueName ?? null,
+          venue_address: ev.venueAddress ?? null,
+          category: ev.category ?? null,
+          image_url: ev.imageUrl ?? null,
+          source_url: ev.sourceUrl,
+          ticket_url: ev.ticketUrl ?? null,
+          price_text: ev.priceText ?? null,
+          dedupe_key: dedupeKey,
+          source_id: source.id,
+          content_hash: contentHash,
+          last_seen_at: nowIso,
+        };
+
+        if (existing) {
+          const ex = existing as { id: string; content_hash: string | null };
+          if (ex.content_hash === contentHash) {
+            skippedDupes++;
+            // Still refresh last_seen_at so we know the event is alive.
+            await supabase.from("events").update({ last_seen_at: nowIso }).eq("id", ex.id);
+          } else {
+            const { error: updErr } = await supabase.from("events").update(row).eq("id", ex.id);
+            if (updErr) { errors++; await logError(supabase, sourceId, runId, "upsert", updErr.message, { dedupeKey }); }
+            else updated++;
+          }
+        } else {
+          const { error: insErr } = await supabase.from("events").insert(row);
+          if (insErr) { errors++; await logError(supabase, sourceId, runId, "upsert", insErr.message, { dedupeKey }); }
+          else inserted++;
+        }
+      } catch (e) {
+        errors++;
+        await logError(supabase, sourceId, runId, "upsert", (e as Error).message, { dedupeKey });
+      }
     }
 
     const status: RunStatus = errors === 0 ? "success" : (inserted + updated + skippedDupes > 0 ? "partial" : "error");
