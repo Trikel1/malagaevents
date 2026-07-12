@@ -145,6 +145,7 @@ const IngestionRegistry = () => {
   });
 
   const runsQuery = useQuery({
+    refetchInterval: autoRefresh ? 2000 : false,
     queryKey: ['admin', 'ingesta', 'event_source_runs'],
     queryFn: async () => {
       const { data, error } = await supabase
