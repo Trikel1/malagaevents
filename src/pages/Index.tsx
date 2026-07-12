@@ -105,13 +105,21 @@ const Index = () => {
 
         {/* Top controls */}
         <div className="relative flex justify-between items-center gap-2 mb-8 min-w-0">
-          <div className="glass-button flex p-0.5 min-w-0 shrink text-white">
+          <div className="glass-button relative flex p-0.5 min-w-0 shrink text-white overflow-hidden">
+            <span
+              aria-hidden
+              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-white shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{
+                width: 'calc(50% - 2px)',
+                transform: `translateX(${appMode === 'eventos' ? '0%' : '100%'})`,
+              }}
+            />
             <button
               onClick={() => setAppMode('eventos')}
               aria-pressed={appMode === 'eventos'}
               className={cn(
-                'px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-all min-h-[36px] whitespace-nowrap',
-                appMode === 'eventos' ? 'bg-white text-slate-900 shadow-sm' : 'text-white/90 hover:text-white'
+                'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-300 min-h-[36px] whitespace-nowrap',
+                appMode === 'eventos' ? 'text-slate-900' : 'text-white/90 hover:text-white'
               )}
             >
               {t('sports.events')}
@@ -120,13 +128,14 @@ const Index = () => {
               onClick={() => setAppMode('deportes')}
               aria-pressed={appMode === 'deportes'}
               className={cn(
-                'px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-all min-h-[36px] whitespace-nowrap',
-                appMode === 'deportes' ? 'bg-white text-slate-900 shadow-sm' : 'text-white/90 hover:text-white'
+                'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-300 min-h-[36px] whitespace-nowrap',
+                appMode === 'deportes' ? 'text-slate-900' : 'text-white/90 hover:text-white'
               )}
             >
               {t('sports.title')}
             </button>
           </div>
+
           <div className="flex items-center gap-1 shrink-0">
             <ThemeToggle />
             <LanguageSelector variant="compact" />

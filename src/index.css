@@ -340,13 +340,145 @@
   }
 }
 
+/* ===================== Liquid Motion System ===================== */
+:root {
+  --liquid-motion-fast: 220ms;
+  --liquid-motion-normal: 520ms;
+  --liquid-motion-slow: 900ms;
+  --liquid-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.liquid-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: linear-gradient(180deg, hsl(24 90% 97%) 0%, hsl(45 33% 98%) 55%, hsl(200 60% 96%) 100%);
+  transition: background var(--liquid-motion-slow) var(--liquid-ease);
+}
+.dark .liquid-backdrop {
+  background: linear-gradient(180deg, hsl(220 25% 10%) 0%, hsl(220 30% 8%) 60%, hsl(210 40% 10%) 100%);
+}
+.liquid-backdrop::before,
+.liquid-backdrop::after {
+  content: '';
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.55;
+  transition: transform var(--liquid-motion-slow) var(--liquid-ease),
+              background-color var(--liquid-motion-slow) var(--liquid-ease),
+              opacity var(--liquid-motion-slow) var(--liquid-ease);
+  will-change: transform;
+}
+.liquid-backdrop::before {
+  width: 60vw; height: 60vw; top: -18vw; left: -14vw;
+  background: hsl(24 95% 70% / 0.45);
+  animation: liquid-float 22s var(--liquid-ease) infinite alternate;
+}
+.liquid-backdrop::after {
+  width: 65vw; height: 65vw; bottom: -22vw; right: -18vw;
+  background: hsl(200 80% 70% / 0.4);
+  animation: liquid-breathe 26s var(--liquid-ease) infinite alternate;
+}
+
+.liquid-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.35;
+  transition: transform var(--liquid-motion-slow) var(--liquid-ease),
+              background-color var(--liquid-motion-slow) var(--liquid-ease),
+              opacity var(--liquid-motion-slow) var(--liquid-ease);
+  will-change: transform;
+}
+.liquid-blob-1 {
+  width: 42vw; height: 42vw; top: 25%; left: 40%;
+  background: hsl(340 85% 75% / 0.35);
+  animation: liquid-float 30s var(--liquid-ease) infinite alternate;
+}
+.liquid-blob-2 {
+  width: 38vw; height: 38vw; top: 55%; left: -8%;
+  background: hsl(160 65% 65% / 0.3);
+  animation: liquid-breathe 34s var(--liquid-ease) infinite alternate;
+}
+
+[data-mode="deportes"] .liquid-backdrop {
+  background: linear-gradient(180deg, hsl(160 45% 96%) 0%, hsl(200 55% 97%) 55%, hsl(215 60% 96%) 100%);
+}
+[data-mode="deportes"] .liquid-backdrop::before { background: hsl(160 70% 65% / 0.4); }
+[data-mode="deportes"] .liquid-backdrop::after { background: hsl(210 85% 65% / 0.4); }
+[data-mode="deportes"] .liquid-blob-1 { background: hsl(190 80% 65% / 0.35); }
+[data-mode="deportes"] .liquid-blob-2 { background: hsl(150 60% 60% / 0.32); }
+
+[data-route="events"] .liquid-blob-1 { transform: translate(-6%, -4%); }
+[data-route="events"] .liquid-blob-2 { transform: translate(4%, 2%); }
+[data-route="map"] .liquid-backdrop::before { transform: translate(10%, 4%); opacity: 0.5; }
+[data-route="map"] .liquid-backdrop::after { transform: translate(-6%, -6%); }
+[data-route="map"] .liquid-blob-1 { background: hsl(210 85% 70% / 0.4); transform: translate(8%, -6%); }
+[data-route="calendar"] .liquid-blob-1 { transform: translate(-4%, 8%); }
+[data-route="calendar"] .liquid-blob-2 { transform: translate(6%, -4%); }
+[data-route="pharmacies"] .liquid-backdrop::before { background: hsl(140 70% 70% / 0.4); }
+[data-route="pharmacies"] .liquid-blob-1 { background: hsl(150 75% 65% / 0.35); }
+[data-route="tickets"] .liquid-blob-1 { background: hsl(280 75% 72% / 0.35); }
+[data-route="tickets"] .liquid-blob-2 { background: hsl(320 70% 70% / 0.3); }
+[data-route="profile"] .liquid-blob-1 { transform: translate(6%, 10%); }
+[data-route="admin"] .liquid-backdrop::before { opacity: 0.35; }
+[data-route="admin"] .liquid-blob-1 { opacity: 0.2; }
+
+.liquid-page-shell {
+  position: relative;
+  z-index: 1;
+  animation: liquid-page-enter var(--liquid-motion-normal) var(--liquid-ease) both;
+}
+
+@keyframes liquid-float {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(4%, 3%) scale(1.05); }
+  100% { transform: translate(-3%, 5%) scale(0.98); }
+}
+@keyframes liquid-breathe {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  50%  { transform: translate(-3%, -4%) scale(1.08); opacity: 0.55; }
+  100% { transform: translate(3%, 2%) scale(0.96); opacity: 0.35; }
+}
+@keyframes liquid-page-enter {
+  0%   { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.bottom-nav-liquid-indicator {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc((100% - 12px) / var(--item-count, 5));
+  transform: translateX(calc(var(--active-index, 0) * 100%));
+  transition: transform var(--liquid-motion-normal) var(--liquid-ease),
+              background-color var(--liquid-motion-normal) var(--liquid-ease),
+              opacity var(--liquid-motion-fast) var(--liquid-ease);
+  background: hsl(var(--primary) / 0.14);
+  border: 1px solid hsl(var(--primary) / 0.22);
+  border-radius: 18px;
+  box-shadow: 0 8px 22px -12px hsl(var(--primary) / 0.5),
+              inset 0 1px 0 hsl(0 0% 100% / 0.4);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  pointer-events: none;
+  z-index: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .liquid-hover,
   .liquid-press,
   .glass-card,
   .glass-button,
-  .glass-chip {
-    transition: none !important;
-  }
+  .glass-chip { transition: none !important; }
   .liquid-hover:hover { transform: none; }
+  .liquid-backdrop::before,
+  .liquid-backdrop::after,
+  .liquid-blob { animation: none !important; }
+  .liquid-page-shell { animation: none !important; }
+  .bottom-nav-liquid-indicator { transition: none !important; }
 }
