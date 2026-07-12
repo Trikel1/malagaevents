@@ -48,6 +48,8 @@ type EventSource = {
   schedule_cron: string | null;
   robots_ok: boolean;
   notes: string | null;
+  write_confirmed_at: string | null;
+  write_confirmed_by: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
