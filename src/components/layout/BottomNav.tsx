@@ -44,15 +44,15 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed left-2 right-2 z-50 glass-nav rounded-[28px] px-1.5 pt-1.5"
+      className="fixed left-3 right-3 z-50 glass-nav bottom-nav-dock"
       style={{
         bottom: 'max(8px, env(safe-area-inset-bottom, 0px))',
-        paddingBottom: 'max(6px, env(safe-area-inset-bottom, 0px))',
+        paddingBottom: 'max(8px, env(safe-area-inset-bottom, 0px))',
       }}
       aria-label={t('nav.primary', 'Navegación principal')}
     >
       <div
-        className="relative flex justify-between max-w-lg mx-auto gap-0.5"
+        className="bottom-nav-track max-w-lg mx-auto"
         style={
           {
             ['--item-count' as any]: navItems.length,
@@ -60,11 +60,6 @@ const BottomNav = () => {
           } as React.CSSProperties
         }
       >
-        <span
-          className="bottom-nav-liquid-indicator"
-          style={{ opacity: hasActive ? 1 : 0 }}
-          aria-hidden
-        />
         {navItems.map((item) => {
           const isActive =
             location.pathname === item.to ||
@@ -75,29 +70,22 @@ const BottomNav = () => {
               key={item.to}
               to={item.to}
               className={cn(
-                'relative z-[1] flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 px-1 py-2 rounded-2xl min-h-[52px] select-none',
-                'transition-[color,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60',
-                'active:scale-[0.96]',
+                'bottom-nav-item',
                 isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bottom-nav-item-active'
+                  : 'bottom-nav-item-idle'
               )}
               aria-label={item.label}
             >
-              <item.icon
-                className={cn(
-                  'h-[22px] w-[22px] shrink-0 transition-transform duration-300',
-                  isActive && 'stroke-[2.4px] scale-110'
-                )}
-                aria-hidden
-              />
-              <span
-                className={cn(
-                  'text-[10.5px] leading-[1.1] font-medium truncate max-w-full transition-all duration-300',
-                  isActive && 'font-semibold'
-                )}
-              >
+              <span className="bottom-nav-icon-shell" aria-hidden>
+                <item.icon
+                  className={cn(
+                    'h-[22px] w-[22px] shrink-0 transition-[transform,stroke-width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                    isActive && 'stroke-[2.35px] -translate-y-0.5'
+                  )}
+                />
+              </span>
+              <span className="bottom-nav-label">
                 {item.label}
               </span>
             </NavLink>
