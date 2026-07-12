@@ -14,6 +14,7 @@ import CalendarPage from "./pages/CalendarPage";
 import PharmaciesPage from "./pages/PharmaciesPage";
 import ProfilePage from "./pages/ProfilePage";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import TicketsPage from "./pages/TicketsPage";
 import AddTicketPage from "./pages/AddTicketPage";
 import SubmitEventPage from "./pages/SubmitEventPage";
@@ -49,6 +50,7 @@ const App = () => (
               {/* Pages without bottom nav */}
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/auth/reset" element={<ResetPasswordPage />} />
               <Route path="/tickets/add" element={<AddTicketPage />} />
               <Route path="/submit-event" element={<SubmitEventPage />} />
               <Route path="/admin" element={<AdminPage />} />
