@@ -387,7 +387,7 @@ const IngestionRegistry = () => {
                         size="sm"
                         variant="outline"
                         className="h-7 px-2 gap-1"
-                        onClick={() => runDry(s.id)}
+                        onClick={() => runDry(s.id, s.name)}
                         disabled={busySourceId !== null}
                       >
                         {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
