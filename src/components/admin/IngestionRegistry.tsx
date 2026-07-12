@@ -743,6 +743,31 @@ const IngestionRegistry = () => {
                             ? <><ShieldOff className="h-3 w-3" /> Revocar robots</>
                             : <><ShieldCheck className="h-3 w-3" /> Confirmar robots/manual</>}
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-1.5 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                          onClick={() => openToggleDialog(s)}
+                          disabled={
+                            busySourceId !== null ||
+                            preflightBusyId !== null ||
+                            confirmBusy ||
+                            robotsBusy ||
+                            toggleBusy ||
+                            (!s.enabled && !s.robots_ok)
+                          }
+                          title={
+                            !s.enabled && !s.robots_ok
+                              ? 'No se puede activar la fuente hasta confirmar robots/manual.'
+                              : s.enabled
+                                ? 'Desactivar fuente (no toca eventos)'
+                                : 'Activar fuente — no ejecuta scraping ni escribe eventos'
+                          }
+                        >
+                          {s.enabled
+                            ? <><PowerOff className="h-3 w-3" /> Desactivar fuente</>
+                            : <><Power className="h-3 w-3" /> Activar fuente</>}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
