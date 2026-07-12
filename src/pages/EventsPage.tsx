@@ -41,6 +41,7 @@ const CultureEventsPage = () => {
   const initialQuery = searchParams.get('q') || '';
   const initialCategory = searchParams.get('category') as EventCategory | null;
   const initialFilter = searchParams.get('filter');
+  const initialAge = searchParams.get('age') as AgeRange | null;
   const initialPreset: DatePreset | undefined =
     initialFilter === 'today'
       ? 'today'
@@ -55,7 +56,12 @@ const CultureEventsPage = () => {
   const [filters, setFilters] = useState<EventFilters>({
     categories: initialCategory ? [initialCategory] : [],
     datePreset: initialPreset,
+    familyKids: initialFilter === 'family' ? true : undefined,
+    isFree: initialFilter === 'free' ? true : undefined,
+    isOutdoor: initialFilter === 'outdoor' ? true : undefined,
+    ageRange: initialAge && ['0-3','4-8','9-12'].includes(initialAge) ? initialAge : undefined,
   });
+
 
   // Venue group filter state
   const [selectedVenueGroup, setSelectedVenueGroup] = useState<VenueGroup>('all');
@@ -303,7 +309,7 @@ const CultureEventsPage = () => {
         } : undefined}
       />
       {/* Header - Centered actions taking full width */}
-      <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 shadow-soft">
+      <header className="glass-nav sticky top-0 z-40 rounded-none">
         <div className="p-3 sm:p-4 space-y-3">
           {/* Row 1: 3 centered action buttons (no title) */}
           <div className="flex items-center justify-center gap-1.5 sm:gap-2 min-w-0">

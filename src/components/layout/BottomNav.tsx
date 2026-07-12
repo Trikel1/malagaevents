@@ -28,8 +28,9 @@ const BottomNav = () => {
   }, [appMode, t]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/85 backdrop-blur-xl border-t border-border/60 px-2 py-1.5 pb-safe shadow-soft">
+    <nav className="fixed bottom-3 left-3 right-3 z-50 glass-nav rounded-3xl px-2 py-1.5 pb-safe">
       <div className="flex justify-around max-w-lg mx-auto">
+
         {navItems.map((item) => {
           const isActive = location.pathname === item.to ||
             (item.to !== '/' && location.pathname.startsWith(item.to));
