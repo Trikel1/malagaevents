@@ -239,6 +239,8 @@ const CultureEventsPage = () => {
     (filters.isFree ? 1 : 0) +
     (filters.withTickets ? 1 : 0) +
     (filters.familyKids ? 1 : 0) +
+    (filters.ageRange ? 1 : 0) +
+    (filters.isOutdoor ? 1 : 0) +
     (filters.datePreset ? 1 : 0) +
     (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0) +
