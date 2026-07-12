@@ -147,6 +147,9 @@ type PreflightResponse = {
   warnings?: string[];
   generatedAt?: string;
   preview?: PreflightItem[];
+  writeToken?: string | null;
+  writeTokenId?: string | null;
+  writeTokenExpiresAt?: string | null;
   error?: string;
 };
 
@@ -1041,6 +1044,54 @@ const IngestionRegistry = () => {
                     </Card>
                   );
                 })()}
+                {preflightData.writeTokenId && (
+                  <Card className="border-indigo-500/40 bg-indigo-500/5">
+                    <CardContent className="py-2.5 text-xs space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-indigo-600 hover:bg-indigo-600 text-[10px] gap-1">
+                          <KeyRound className="h-3 w-3" /> Token temporal generado · caduca en 15 min
+                        </Badge>
+                        <span className="font-mono text-[11px] text-muted-foreground">
+                          id: {preflightData.writeTokenId.slice(0, 8)}…
+                        </span>
+                        {preflightData.writeTokenExpiresAt && (
+                          <span className="text-[11px] text-muted-foreground">
+                            caduca {fmt(preflightData.writeTokenExpiresAt)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-muted-foreground">
+                        Este token es un rastro de auditoría para una futura fase de escritura controlada. <strong>No ejecuta escritura</strong> — no existe todavía un endpoint que lo consuma.
+                      </div>
+                      {preflightData.writeToken && (
+                        <div className="pt-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(preflightData.writeToken ?? '');
+                                toast({
+                                  title: 'Token copiado (diagnóstico)',
+                                  description: 'Este token no ejecuta escritura y caduca en 15 minutos.',
+                                });
+                              } catch {
+                                toast({
+                                  title: 'No se pudo copiar',
+                                  variant: 'destructive',
+                                });
+                              }
+                            }}
+                            title="Copiar token de diagnóstico — no ejecuta escritura y caduca en 15 min"
+                          >
+                            <Copy className="h-3 w-3" /> Copiar token diagnóstico
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
                 {preflightData.warnings && preflightData.warnings.length > 0 && (
                   <Card className="border-amber-500/40">
                     <CardContent className="py-2 text-xs space-y-1">

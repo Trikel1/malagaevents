@@ -524,6 +524,50 @@ export type Database = {
           },
         ]
       }
+      ingestion_write_tokens: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          diff_summary: Json
+          expires_at: string
+          id: string
+          phase: string
+          source_id: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          diff_summary?: Json
+          expires_at: string
+          id?: string
+          phase?: string
+          source_id: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          diff_summary?: Json
+          expires_at?: string
+          id?: string
+          phase?: string
+          source_id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_write_tokens_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locality_aliases: {
         Row: {
           alias: string
