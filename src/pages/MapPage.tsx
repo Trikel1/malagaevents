@@ -200,119 +200,166 @@ const MapPage = () => {
   }, [filter]);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-gradient-warm relative">
       <SEO
         title="Mapa de eventos y farmacias en Málaga"
         description="Mapa interactivo de Málaga con eventos, recintos y farmacias de guardia cercanas. Encuentra qué hay cerca de ti en tiempo real."
         path="/map"
       />
-      {/* Header */}
-      <header className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground px-4 pt-4 pb-3 rounded-b-2xl shadow-soft space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <MapPin className="h-5 w-5 shrink-0" />
-            <div className="min-w-0">
-              <h1 className="text-lg font-bold truncate leading-tight">{t('map.title')}</h1>
-              <p className="text-[11px] text-primary-foreground/80 truncate">{t('map.subtitle')}</p>
+
+      {/* Ambient blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-64 overflow-hidden">
+        <div className="absolute -top-16 -left-10 h-56 w-56 rounded-full bg-secondary/25 blur-3xl" />
+        <div className="absolute top-6 -right-10 h-56 w-56 rounded-full bg-primary/25 blur-3xl" />
+      </div>
+
+      {/* Hero + controls (glass) */}
+      <header className="relative px-3 pt-3 space-y-3">
+        <div className="glass-panel p-4 sm:p-5 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <div className="h-10 w-10 shrink-0 rounded-2xl bg-primary/12 flex items-center justify-center">
+                <MapPin className="h-5 w-5 text-primary" aria-hidden />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-tight">
+                  Mapa de Málaga
+                </h1>
+                <p className="text-[12px] sm:text-[13px] text-muted-foreground leading-snug mt-0.5">
+                  Explora eventos, recintos, farmacias y puntos cercanos en la ciudad y la provincia.
+                </p>
+              </div>
             </div>
-            <Badge variant="secondary" className="bg-white/20 text-primary-foreground border-0 text-[11px] ml-1">
-              {filteredMarkers.length}
+
+            <div className="inline-flex glass-button p-0.5 text-xs shrink-0" role="tablist" aria-label={t('map.view', 'Vista')}>
+              <button
+                type="button"
+                onClick={() => setView('map')}
+                aria-pressed={view === 'map'}
+                className={cn(
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-full transition min-h-[32px]',
+                  view === 'map'
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <MapIcon className="h-3.5 w-3.5" aria-hidden />
+                <span className="hidden sm:inline">{t('map.viewMap', 'Mapa')}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('list')}
+                aria-pressed={view === 'list'}
+                className={cn(
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-full transition min-h-[32px]',
+                  view === 'list'
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <List className="h-3.5 w-3.5" aria-hidden />
+                <span className="hidden sm:inline">{t('map.viewList', 'Lista')}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" aria-hidden />
+            <label htmlFor="map-search" className="sr-only">{t('map.searchPlaceholder', 'Buscar')}</label>
+            <Input
+              id="map-search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('map.searchPlaceholder', 'Buscar eventos, recintos, farmacias…')}
+              className="glass-input pl-10 pr-10 h-11 border-0 focus-visible:ring-2 focus-visible:ring-primary"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground"
+                aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Filter chips */}
+          <div
+            className="flex gap-2 overflow-x-auto liquid-scroll -mx-1 px-1 pb-0.5"
+            role="toolbar"
+            aria-label={t('map.filters', 'Filtros')}
+          >
+            {FILTERS.map((f) => {
+              const active = filter === f.id;
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFilter(f.id)}
+                  aria-pressed={active}
+                  className={cn(
+                    'glass-chip liquid-press shrink-0 text-xs px-3.5 h-8 rounded-full font-medium transition whitespace-nowrap',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'text-foreground hover:bg-primary/5'
+                  )}
+                >
+                  {t(f.key)}
+                </button>
+              );
+            })}
+            <span className="shrink-0 self-center mx-1 h-4 w-px bg-border" aria-hidden />
+            <Badge variant="secondary" className="shrink-0 self-center bg-primary/10 text-primary border-0 rounded-full px-3 h-8 flex items-center text-xs font-semibold">
+              {filteredMarkers.length} {t('map.points', 'puntos')}
             </Badge>
           </div>
-
-          <div className="inline-flex rounded-full bg-white/15 backdrop-blur p-0.5 text-xs shrink-0">
-            <button
-              type="button"
-              onClick={() => setView('map')}
-              className={cn(
-                'flex items-center gap-1 px-2.5 py-1.5 rounded-full transition',
-                view === 'map' ? 'bg-white text-primary font-semibold shadow' : 'text-primary-foreground/90'
-              )}
-            >
-              <MapIcon className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t('map.viewMap')}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('list')}
-              className={cn(
-                'flex items-center gap-1 px-2.5 py-1.5 rounded-full transition',
-                view === 'list' ? 'bg-white text-primary font-semibold shadow' : 'text-primary-foreground/90'
-              )}
-            >
-              <List className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t('map.viewList')}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('map.searchPlaceholder')}
-            className="pl-9 pr-9 bg-white text-foreground border-0 h-9 rounded-full"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="Clear"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Filter chips */}
-        <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 scrollbar-none">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFilter(f.id)}
-              className={cn(
-                'shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition border',
-                filter === f.id
-                  ? 'bg-white text-primary border-white'
-                  : 'bg-white/10 text-primary-foreground border-white/20 hover:bg-white/20'
-              )}
-            >
-              {t(f.key)}
-            </button>
-          ))}
         </div>
       </header>
 
+      {/* Map / List body */}
       {view === 'map' ? (
-        <div className="h-[calc(100vh-220px)] relative">
-          <LeafletMap
-            markers={filteredMarkers}
-            center={MALAGA_CENTER}
-            zoom={13}
-            onMarkerSelect={handleSelect}
-            userLocation={userLocation}
-            flyTo={flyTo}
-          />
+        <div
+          className="relative px-3 mt-3"
+          style={{
+            height:
+              'calc(100dvh - 320px - env(safe-area-inset-bottom, 0px))',
+            minHeight: '340px',
+          }}
+        >
 
-          <div className="absolute bottom-4 left-3 right-3 z-[400] flex items-center justify-center pointer-events-none">
-            <Button
-              size="sm"
-              onClick={handleMyLocation}
-              className="pointer-events-auto rounded-full shadow-lg bg-background text-foreground hover:bg-background/90 border border-border/60"
-            >
-              <Locate className="h-4 w-4 mr-1.5" />
-              {t('map.useMyLocation')}
-            </Button>
+          <div className="glass-card-strong overflow-hidden h-full relative">
+            <LeafletMap
+              markers={filteredMarkers}
+              center={MALAGA_CENTER}
+              zoom={13}
+              onMarkerSelect={handleSelect}
+              userLocation={userLocation}
+              flyTo={flyTo}
+            />
+
+            {/* Floating locate button */}
+            <div className="absolute bottom-3 left-3 right-3 z-[400] flex items-center justify-center pointer-events-none">
+              <Button
+                size="sm"
+                onClick={handleMyLocation}
+                className="glass-button liquid-press pointer-events-auto rounded-full h-10 px-4 bg-card/90 text-foreground hover:bg-card border-border/60"
+              >
+                <Locate className="h-4 w-4 mr-1.5" />
+                {t('map.useMyLocation', 'Mi ubicación')}
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="px-4 py-3 space-y-2">
+        <div className="px-3 py-3 space-y-2.5">
           {filteredMarkers.length === 0 ? (
-            <Card className="p-6 text-center text-sm text-muted-foreground">{t('map.noResults')}</Card>
+            <div className="glass-card p-8 text-center">
+              <MapPin className="h-10 w-10 mx-auto mb-2 text-muted-foreground opacity-60" />
+              <p className="text-sm text-muted-foreground">{t('map.noResults', 'No hay puntos que coincidan.')}</p>
+            </div>
           ) : (
             filteredMarkers.map((m) => (
               <button
@@ -323,28 +370,30 @@ const MapPage = () => {
                   setFlyTo({ lat: m.lat, lng: m.lng, zoom: 16 });
                   setTimeout(() => setSelected(m), 400);
                 }}
-                className="w-full text-left"
+                className="w-full text-left glass-card liquid-hover liquid-press p-3.5 flex items-start gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <Card className="p-3 hover:shadow-md transition flex items-start gap-3">
-                  <div
-                    className="mt-0.5 h-9 w-9 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: 'hsl(var(--primary) / 0.12)', color: 'hsl(var(--primary))' }}
-                  >
-                    <MapPin className="h-5 w-5" />
+                <div className="mt-0.5 h-10 w-10 rounded-2xl bg-primary/12 flex items-center justify-center shrink-0 text-primary">
+                  <MapPin className="h-5 w-5" aria-hidden />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm leading-snug line-clamp-2">{m.title}</div>
+                  {m.subtitle && (
+                    <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{m.subtitle}</div>
+                  )}
+                  {m.startAt && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                      <Calendar className="h-3 w-3" aria-hidden />
+                      {fmtDate(m.startAt)}
+                    </div>
+                  )}
+                  <div className="mt-1.5 text-[11px] font-medium text-primary uppercase tracking-wide">
+                    {m.kind === 'event' && 'Evento'}
+                    {m.kind === 'sport' && 'Deporte'}
+                    {m.kind === 'venue' && 'Recinto'}
+                    {m.kind === 'pharmacy' && 'Farmacia'}
+                    {m.kind === 'demo' && 'Punto de interés'}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm leading-snug line-clamp-2">{m.title}</div>
-                    {m.subtitle && (
-                      <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{m.subtitle}</div>
-                    )}
-                    {m.startAt && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                        <Calendar className="h-3 w-3" />
-                        {fmtDate(m.startAt)}
-                      </div>
-                    )}
-                  </div>
-                </Card>
+                </div>
               </button>
             ))
           )}
@@ -357,3 +406,4 @@ const MapPage = () => {
 };
 
 export default MapPage;
+
