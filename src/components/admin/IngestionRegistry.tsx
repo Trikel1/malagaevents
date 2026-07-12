@@ -539,6 +539,20 @@ const IngestionRegistry = () => {
                           {preflightBusyId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
                           Preparar escritura
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 gap-1"
+                          onClick={() => openConfirmDialog(s)}
+                          disabled={busySourceId !== null || preflightBusyId !== null || confirmBusy}
+                          title={s.write_confirmed_at
+                            ? 'Revocar autorización de escritura futura'
+                            : 'Autorizar escritura futura (no ejecuta nada)'}
+                        >
+                          {s.write_confirmed_at
+                            ? <><ShieldOff className="h-3 w-3" /> Revocar autorización</>
+                            : <><KeyRound className="h-3 w-3" /> Autorizar escritura futura</>}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
