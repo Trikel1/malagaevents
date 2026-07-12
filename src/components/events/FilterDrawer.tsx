@@ -24,6 +24,7 @@ import CategoryChip from './CategoryChip';
 import { EVENT_CATEGORIES, type EventCategory } from '@/types';
 
 export type DatePreset = 'today' | 'tomorrow' | 'thisWeek' | 'weekend' | 'next30';
+export type AgeRange = '0-3' | '4-8' | '9-12';
 
 export interface EventFilters {
   dateFrom?: Date;
@@ -34,6 +35,8 @@ export interface EventFilters {
   datePreset?: DatePreset;
   withTickets?: boolean;
   familyKids?: boolean;
+  ageRange?: AgeRange;
+  isOutdoor?: boolean;
 }
 
 interface FilterDrawerProps {
