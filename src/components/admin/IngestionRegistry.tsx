@@ -173,6 +173,9 @@ const IngestionRegistry = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<DryRunResponse | null>(null);
   const [previewSourceName, setPreviewSourceName] = useState<string>('');
+  const [preflightOpen, setPreflightOpen] = useState(false);
+  const [preflightData, setPreflightData] = useState<PreflightResponse | null>(null);
+  const [preflightBusyId, setPreflightBusyId] = useState<string | null>(null);
 
   const invalidateAll = () => {
     qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
