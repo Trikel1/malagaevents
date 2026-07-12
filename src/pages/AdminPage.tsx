@@ -666,6 +666,10 @@ const AdminPage = () => {
               </Card>
             ))}
           </TabsContent>
+
+          <TabsContent value="ingesta" className="space-y-4">
+            <IngestionRegistry />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
