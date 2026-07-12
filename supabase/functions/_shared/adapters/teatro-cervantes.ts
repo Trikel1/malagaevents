@@ -534,7 +534,7 @@ export const teatroCervantesAdapter: SourceAdapter = {
     if (detailFollowEnabled) {
       const toFollow = prepared
         .filter((p) => isInternalCervantesUrl(p.cand.eventUrl))
-        .slice(0, MAX_DETAIL_FOLLOWS);
+        .slice(0, detailLimit);
       await runPool(toFollow, async (p) => {
         const detailUrl = p.cand.eventUrl;
         try {
