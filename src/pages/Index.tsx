@@ -108,12 +108,14 @@ const Index = () => {
           <div className="glass-button relative flex p-0.5 min-w-0 shrink text-white overflow-hidden">
             <span
               aria-hidden
-              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-white shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-white/90 backdrop-blur-md transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={{
                 width: 'calc(50% - 2px)',
                 transform: `translateX(${appMode === 'eventos' ? '0%' : '100%'})`,
+                boxShadow: '0 4px 14px -8px rgba(15,23,42,0.35)',
               }}
             />
+
             <button
               onClick={() => setAppMode('eventos')}
               aria-pressed={appMode === 'eventos'}
