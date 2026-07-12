@@ -7,12 +7,18 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen bg-background" data-mode={appMode}>
-      <main className="pb-24">
+      <main
+        style={{
+          paddingBottom:
+            'calc(env(safe-area-inset-bottom, 0px) + 96px)',
+        }}
+      >
         <Outlet />
       </main>
       <BottomNav />
     </div>
   );
 };
+
 
 export default MainLayout;
