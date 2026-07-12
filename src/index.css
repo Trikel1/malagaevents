@@ -567,22 +567,22 @@
 
 @media (min-width: 360px) {
   .bottom-nav-dock {
-    padding-left: 6px;
-    padding-right: 6px;
+    padding-left: 4px;
+    padding-right: 4px;
   }
 
   .bottom-nav-track {
-    gap: 3px;
+    gap: 2px;
   }
 
   .bottom-nav-item {
-    padding-left: 1px;
-    padding-right: 1px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .bottom-nav-active-surface {
-    left: 1px;
-    right: 1px;
+    left: 0;
+    right: 0;
   }
 }
 
