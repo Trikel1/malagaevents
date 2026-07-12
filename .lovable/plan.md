@@ -1,97 +1,86 @@
-## Fase 3B — Auditoría de filtros de Eventos (sin implementación)
+# Recomendación estratégica — Fase 3C-2
 
-### 1. Archivos revisados
-- `src/pages/EventsPage.tsx` (322 l) — orquesta filtros, lee `searchParams` (`category`, `filter=weekend`), estado local `filters`.
-- `src/hooks/useEventsOptimized.ts` (345 l) — hook principal de listado; construye query Supabase.
-- `src/hooks/useEvents.ts` (335 l) — versión legacy, aún importada.
-- `src/components/events/FilterDrawer.tsx` (217 l) — panel de filtros (categorías, gratis, weekend).
-- `src/components/events/CategoryChip.tsx` — chips visuales de categoría.
-- `src/components/events/LocationFilter.tsx` (286 l) — filtro por localidad.
-- `src/components/events/VenueGroupDropdown.tsx` / `VenueGroupFilter.tsx` / `VenueFilter.tsx` — filtro por recintos.
-- `src/components/events/EventCard.tsx`, `EventImage.tsx`.
+## Recomendación principal
 
-### 2. Campos reales disponibles en `events`
-Relevantes para filtros: `category` (texto), `event_type` (texto), `tags` (text[] — **vacío en 1.430/1.430**), `is_free` (bool, 909 free), `ticket_url` / `buy_url` (1.424 con ticket), `price_info`, `start_at`, `end_at`, `venue_id` (1.320), `location_id` (1.383), `venue_name*`, `location_name*`, `province`, `age_restriction` (texto libre), `accessibility_info`, `image_url`, `dedupe_key`, `source_id`, `status`.
+**Antes de escribir un solo adaptador más, ejecuta y observa el dry-run real de `teatro-cervantes`.** Es la primera vez que un adaptador real corre end-to-end contra web pública. Hasta que no veas el `preview` con ojos humanos, no sabes:
 
-Distribución `category`: other 744, theater 270, music 171, exhibitions 90, ticketing 87, venue 32, nightlife 26, festivals 3, **kids 3**, sports 2, conferences 1, workshops 1.
-Distribución `event_type`: other 1.116, music 137, theater 62, comedy 31, nightlife 30, festival 11, exhibitions 10, conferences 9+10, **kids 7**, workshops 3, sports 4.
+- si Firecrawl devuelve el markdown que el parser espera,
+- si las ~130–160 fechas se están infiriendo bien (año, hora 20:00 fallback, rangos),
+- si el venue inference (Cervantes / Echegaray / Bodegueros / Factoría) acierta,
+- si la dedupe key colisiona con eventos ya existentes en `events`,
+- si el mapeo de categorías tiene sentido para los filtros que acabas de añadir (kids, music, theater, festivals).
 
-Tablas complementarias: `event_occurrences`, `venues`, `locations`, `venue_aliases`, `locality_aliases`, `favorites`.
+Crear ahora Marenostrum / La Térmica / Soho multiplicaría los adaptadores sin haber validado ni una vez que la tubería produce datos limpios. Es el momento clásico donde se acumulan bugs sistémicos (todos los adaptadores replican el mismo error de fecha, por ejemplo).
 
-### 3. Filtros actuales (implementados)
-- **Fecha**: `todayOnly`, `weekendOnly` (lógica dinámica vie–dom), rango `dateFrom/dateTo`; por defecto `>= now`.
-- **Categoría** (multi) vía `in('category', …)`.
-- **Gratis** vía `eq('is_free', true)`.
-- **Localidad** (LocationFilter → `location_id` / `location_normalized`).
-- **Recinto** (VenueGroupDropdown → `venue_id` / grupos canónicos).
-- **Búsqueda texto** (título/descr, `title_normalized`).
-- Modo cultural vs deportes: aislado; deportes usa otras tablas.
+El segundo cuello de botella es de **observabilidad**: `admin-ingest-dry-run` devuelve `previewCount` pero no el preview en sí. Ejecutar dry-run "a ciegas" desde /admin no te sirve para decidir si activar la fuente. Antes de más adaptadores, el panel tiene que mostrar el preview.
 
-### 4. Filtros que existen pero pueden fallar
-- **Categoría "kids"**: solo 3 eventos → chip prácticamente vacío.
-- **Festivales**: solo 3 en `category` (11 en `event_type`) → discrepancia entre `category` y `event_type`.
-- **Exhibiciones / Museos**: 90 en `category`, sin distinguir museo permanente vs exposición temporal.
-- **`tags` está vacío en toda la tabla** → cualquier filtro que dependa de tags no funcionaría hoy.
-- **`age_restriction`** es texto libre no normalizado → no explotable como filtro.
-- Hay 744 eventos en `category=other` (52%) que quedan fuera de cualquier chip específico.
+---
 
-### 5. Filtros solicitados vs estado
-| Filtro | Estado | Cómo |
-|---|---|---|
-| Hoy | ✅ | `todayOnly` |
-| Mañana | ❌ falta | derivable de `start_at` |
-| Este finde | ✅ | `weekendOnly` |
-| Esta semana | ❌ falta | derivable |
-| Infantil / Familiar | ⚠️ parcial | `category=kids` (3 ev.), sin `is_family_friendly` |
-| Conciertos | ✅ | `category=music` |
-| Teatro | ✅ | `category=theater` |
-| Festivales | ⚠️ | mezcla `category` + `event_type` |
-| Museos / Exposiciones | ⚠️ | `category=exhibitions`, sin subtipo |
-| Gratis | ✅ | `is_free` |
-| Cerca de mí | ❌ falta | `lat/lng` existen; hace falta geoloc cliente + orden por distancia |
-| Por localidad | ✅ | LocationFilter |
-| Por recinto | ✅ | VenueGroupDropdown |
-| Con entradas | ⚠️ | `ticket_url`/`buy_url` existen, sin chip |
-| Al aire libre | ❌ falta | no hay campo `outdoor` |
+## Siguiente prompt sugerido (Fase 3C-2)
 
-### 6. Gaps para Infantil/Familiar
-- Solo 3–7 eventos etiquetados como kids sobre 1.430 → la sección quedaría casi vacía.
-- No hay campos `is_family_friendly`, `age_min`, `age_max`, `audience`.
-- `age_restriction` no está normalizado; no hay heurística activa que marque "familiar" a partir de título/venue (títeres, teatro infantil, planetario, museos participativos, cuentacuentos, talleres, parques).
-- `tags` no se está poblando durante la ingesta.
+> **FASE 3C-2 — Preview inspeccionable de dry-run en /admin → Ingesta.**
+>
+> Objetivo: poder ver, para una fuente, los primeros N eventos que un dry-run devolvería, sin insertarlos, para decidir si el adaptador está listo antes de activarlo.
+>
+> Alcance:
+> - `admin-ingest-dry-run`: además de contadores, devolver `preview` sanitizado (máx. 20 items) con `title`, `startAt`, `venueName`, `category`, `sourceUrl`, `ticketUrl`, `raw.timeAssumed`, `raw.dateLine`. Nada de headers, tokens ni HTML crudo. Truncar strings > 300 chars.
+> - `scrape-source`: confirmar que ya expone `preview` en respuesta dry-run; si no, añadirlo (solo en modo dryRun, cap 20).
+> - `IngestionRegistry.tsx`: al pulsar Dry-run, abrir un diálogo/drawer con contadores + tabla de preview + badges (`timeAssumed`, categoría, venue). Botón "Copiar JSON" para diagnóstico.
+> - No tocar BD, no activar fuentes, no cambiar `enabled`/`robots_ok`, no insertar eventos, WRITE_ENABLED sigue false.
+>
+> QA: TS limpio; dry-run de `teatro-cervantes` desde /admin muestra 15–20 eventos parseables con fechas, venues y URLs correctas; sin secretos en el bundle ni en la respuesta.
 
-### 7. Riesgos de implementar solo en frontend
-- Filtrar por reglas heurísticas en cliente sobre 1.430 filas es barato pero **inconsistente** (cada componente reinterpreta el título).
-- Muchos eventos "familiares" quedarían fuera al depender solo de `category=kids`.
-- `event_type` vs `category` divergen → resultados distintos según el chip.
-- Un chip "Al aire libre" sin datos daría **listas vacías** y romperá la percepción de calidad.
-- Cambiar filtros sin poblar `tags`/columnas derivadas obliga a re-tocar el frontend cuando lleguen los datos.
+Ejecutar ese prompt **ya es la prueba real** del adaptador Cervantes: no necesitas un prompt separado "probar dry-run" — el propio preview te lo enseña. Ahorra un ciclo.
 
-### 8. Propuesta de implementación en 3 fases pequeñas
+---
 
-**Fase 3B-1 — Filtros temporales + normalización de chips (solo frontend, sin BD)**
-- Añadir presets: Hoy, Mañana, Esta semana, Este finde (ya), Próximos 30 días.
-- Añadir chips: "Gratis" (ya) + "Con entradas" (usa `ticket_url`/`buy_url`).
-- Unificar Festivales/Exposiciones usando OR sobre `category` **y** `event_type` desde el hook.
-- Añadir "Cerca de mí" con `navigator.geolocation` + orden por distancia (no filtro binario) usando `lat/lng` ya presentes.
-- Sin cambios de esquema, sin ingesta.
+## Orden de 3 fases
 
-**Fase 3B-2 — Enriquecimiento Familiar/Infantil (BD + backfill controlado)**
-- Migración: añadir a `events` columnas `is_family_friendly boolean`, `audience text` (`kids|family|adults|all`), `age_min int`, `age_max int`, `is_outdoor boolean` (todas nullable, default null).
-- Función `backfill_family_flags()` con heurística por palabras clave en `title_normalized` + venue (títeres, infantil, familiar, cuentacuentos, taller, planetario, aula, museo interactivo, parque…) y edad extraída de `age_restriction`.
-- Índices parciales para `is_family_friendly=true` y `audience`.
-- No tocar ingesta aún; solo backfill idempotente.
+### Fase A — Observabilidad + validación Cervantes (siguiente prompt)
+Preview inspeccionable + primer dry-run real de Cervantes visible en /admin. Iterar el parser de Cervantes si el preview revela fallos (fechas 2027, venues mal inferidos, títulos truncados). No se activa nada.
 
-**Fase 3B-3 — Chips avanzados + integración en adaptadores**
-- Chips: Infantil, Familiar, Al aire libre, con edad (0-3 / 4-8 / 9-12).
-- Actualizar `_shared/ingestion/normalize.ts` para poblar los nuevos campos en dry-run.
-- Panel `/admin → Ingesta` muestra cobertura por columna.
-- Documentar en `mem://features/event-filters-ux-v4`.
+### Fase B — Segundo adaptador + endurecer normalización
+Segundo adaptador. Recomendación: **Teatro del Soho CaixaBank**. Razones:
+- Fuente monositio, estructura estable, pocas variantes de fecha.
+- Complementa Cervantes en la misma categoría (theater/music) → estresa la dedupe entre fuentes con solapes reales (una gala anunciada en ambos).
+- No requiere login ni JS pesado como MalagaEntradas.
+- La Térmica tiene mucho contenido no-evento (talleres largos, cursos) que ensucia; mejor más tarde.
+- Marenostrum es festival estacional → poco volumen ahora.
 
-### 9. Primer prompt recomendado para implementación segura
-> "Implementa la Fase 3B-1: añade en `EventsPage` y `FilterDrawer` los presets temporales Hoy/Mañana/Esta semana/Este finde y los chips 'Gratis' (ya existente) y 'Con entradas' (usando `ticket_url` o `buy_url`). Unifica Festivales y Museos/Exposiciones aplicando OR entre `category` y `event_type` en `useEventsOptimized`. Añade orden opcional 'Cerca de mí' usando `navigator.geolocation` y `lat/lng` sin filtrar. No modifiques base de datos, edge functions, ingesta, `sync-events`, deportes, farmacias, auth ni rutas. Verifica con `tsgo`."
+En paralelo, endurecer `dates.ts` / normalize con los edge cases que Cervantes haya revelado, y añadir tests unitarios ligeros del parser de fechas.
 
-### 10. Confirmaciones
-- No se ha modificado código, BD, edge functions ni ingesta.
-- `WRITE_ENABLED` sigue en false; `sync-events` intacto.
-- 56 fuentes siguen `enabled=false`, `robots_ok=false`.
+### Fase C — Primera activación controlada + UI pulida
+- Activar SOLO `teatro-cervantes` (enabled=true, robots_ok=true tras verificar `robots.txt` manualmente) con WRITE_ENABLED=false todavía.
+- Botón "Promote dry-run → write" en /admin que en un solo click flipa WRITE_ENABLED por-ejecución y hace un run real acotado (máx N inserts, con rollback fácil vía `event_sources_runs`).
+- QA de /events con datos reales de Cervantes mezclados con lo existente: verificar filtros infantil/outdoor/edades siguen coherentes, no aparecen títulos rotos, imágenes cargan, dedupe no duplica.
+- Solo entonces, replicar el patrón para Soho.
+
+---
+
+## Riesgos actuales (priorizados)
+
+1. **Fechas silenciosamente incorrectas.** El fallback 20:00 y la inferencia de año son razonables pero no verificados. Un evento en enero-2027 leído hoy podría caer en enero-2026 pasado. Impacto: eventos "fantasma" o "vencidos" en el feed. Mitigación: preview + spot-check humano.
+2. **Colisión de dedupe entre adaptadores futuros.** Cervantes usa venue "Teatro Cervantes"; si otra fuente lo escribe "T. Cervantes" o "Cervantes (Málaga)", `normalizeVenueName` puede no colapsarlas y duplicarás eventos. Impacto alto cuando entren 2ª y 3ª fuentes. Mitigación: catálogo canónico de venues antes de activar la 2ª fuente.
+3. **robots.txt no verificado por fuente.** `robots_ok=false` en las 56 fuentes es correcto como default, pero antes de activar Cervantes hay que leer su `robots.txt` a mano y documentar la decisión. No confiar en un flag booleano sin evidencia.
+4. **Firecrawl es coste variable.** Cada dry-run consume créditos. Sin caché de respuesta, iterar el parser 10 veces = 10 scrapes. Mitigación en Fase A: cachear el markdown en memoria/tmp durante desarrollo, o guardar un fixture en el repo para tests deterministas.
+5. **Datos pobres = filtros mienten.** Si Cervantes no marca `is_family_friendly` correctamente para "Teatro Infantil", el filtro Infantil se llena de heurística y ruido. El backfill actual mitiga, pero solo para lo ya insertado. Los nuevos eventos entran sin pasar por `backfill_event_family_flags`. Mitigación: llamar la función tras cada write real, o replicar sus reglas en el adaptador.
+6. **UI todavía asume dataset pequeño.** 196 family + resto ≈ pocos cientos. Si Cervantes suma 150, la fila de chips y `/events` deberían seguir bien, pero el mapa y el calendario mensual pueden empezar a saturarse. No es urgente pero conviene medir en Fase C.
+7. **`admin-ingest-dry-run` devuelve poca info.** Ya cubierto en la recomendación principal.
+
+---
+
+## Qué NO haría todavía
+
+- **No crear más adaptadores** (Marenostrum, La Térmica, MalagaEntradas) hasta validar Cervantes end-to-end. Riesgo de replicar bugs de fechas/venues en 4 sitios.
+- **No activar ninguna fuente** (`enabled=true`, `robots_ok=true`) sin ver el preview y sin verificar robots manualmente.
+- **No flipar WRITE_ENABLED** hasta Fase C, y solo por ejecución, nunca global permanente.
+- **No tocar el motor de ingesta ni la dedupe SQL** hasta que el preview real muestre un problema concreto — refactor prematuro.
+- **No añadir más filtros a /events** (por ejemplo distancia numérica, precio, franjas horarias). El filtro-set actual ya es amplio; primero llena de datos, luego decide qué filtro sobra o falta con evidencia.
+- **No integrar MalagaEntradas todavía**: es agregador con anti-bot y estructura JS-heavy. Coste Firecrawl alto, ROI bajo mientras haya fuentes primarias más limpias.
+- **No publicar/anunciar** la app "con eventos reales" hasta terminar Fase C con al menos una fuente activada y auditada.
+
+---
+
+## Resumen accionable
+
+Ejecuta el prompt de Fase 3C-2 (preview inspeccionable). Ese único paso te da: prueba real de Cervantes, decisión informada para el siguiente adaptador, y la herramienta de auditoría que vas a necesitar para todos los adaptadores posteriores. Es el mayor retorno por crédito gastado en este momento.
