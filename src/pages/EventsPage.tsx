@@ -304,11 +304,11 @@ const CultureEventsPage = () => {
       />
       {/* Header - Centered actions taking full width */}
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 shadow-soft">
-        <div className="p-4 space-y-3">
+        <div className="p-3 sm:p-4 space-y-3">
           {/* Row 1: 3 centered action buttons (no title) */}
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 sm:gap-2 min-w-0">
             {/* Localidades - icon + text, flex:1 */}
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 min-w-0 flex justify-center">
               <LocationFilter
                 selectedLocationIds={selectedLocationIds}
                 onSelectionChange={setSelectedLocationIds}
@@ -317,15 +317,15 @@ const CultureEventsPage = () => {
             </div>
 
             {/* Filtros - icon + text, flex:1 */}
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 min-w-0 flex justify-center">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => setIsFilterOpen(true)}
-                className="h-9 px-3 gap-1.5 relative whitespace-nowrap"
+                className="h-9 px-2 sm:px-3 gap-1 sm:gap-1.5 relative whitespace-nowrap min-w-0 max-w-full"
               >
                 <SlidersHorizontal className="h-4 w-4 shrink-0" />
-                <span className="text-sm">{t('events.filters', 'Filtros')}</span>
+                <span className="text-sm truncate">{t('events.filters', 'Filtros')}</span>
                 {activeFilterCount > 0 && (
                   <Badge 
                     variant="secondary" 
@@ -338,15 +338,15 @@ const CultureEventsPage = () => {
             </div>
 
             {/* Buscar - icon + text toggle, flex:1 */}
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 min-w-0 flex justify-center">
               <Button 
                 variant={showSearchInput ? 'default' : 'ghost'} 
                 size="sm"
                 onClick={() => setShowSearchInput(!showSearchInput)}
-                className="h-9 px-3 gap-1.5 whitespace-nowrap"
+                className="h-9 px-2 sm:px-3 gap-1 sm:gap-1.5 whitespace-nowrap min-w-0 max-w-full"
               >
                 <Search className="h-4 w-4 shrink-0" />
-                <span className="text-sm">{t('common.search', 'Buscar')}</span>
+                <span className="text-sm truncate">{t('common.search', 'Buscar')}</span>
               </Button>
             </div>
           </div>
@@ -412,7 +412,7 @@ const CultureEventsPage = () => {
 
           {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
           <div
-            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-2 overflow-x-auto pb-1 -mx-3 sm:-mx-4 px-3 sm:px-4 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             role="toolbar"
             aria-label={t('events.quickFilters', 'Filtros rápidos')}
           >
