@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -9,12 +10,17 @@ import {
   MapPin,
   ShieldCheck,
   Building2,
+  Play,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 // Real schema (Phase 2A) — do NOT reference columns that don't exist.
 type EventSource = {
@@ -84,6 +90,45 @@ const truncate = (v: unknown, max = 220) => {
 };
 
 const IngestionRegistry = () => {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [busySourceId, setBusySourceId] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ['admin', 'ingesta'] });
+  };
+
+  const runDry = async (sourceId?: string) => {
+    setBusySourceId(sourceId ?? '__dispatcher__');
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-ingest', {
+        body: sourceId
+          ? { action: 'scrape-source', sourceId, dryRun: true }
+          : { action: 'ingest-dispatcher', dryRun: true },
+      });
+      if (error) throw error;
+      const summary = data as { inserted?: number; skippedDupes?: number; errors?: number; preview?: unknown[]; processed?: number };
+      toast({
+        title: 'Dry-run completado',
+        description: summary?.preview
+          ? `${summary.preview.length} eventos normalizados · ${summary.errors ?? 0} errores`
+          : `Procesadas ${summary?.processed ?? 0} fuentes`,
+      });
+      setAutoRefresh(true);
+      setTimeout(() => setAutoRefresh(false), 8000);
+      invalidateAll();
+    } catch (e: any) {
+      toast({
+        title: 'Dry-run falló',
+        description: e?.message ?? 'Error desconocido',
+        variant: 'destructive',
+      });
+    } finally {
+      setBusySourceId(null);
+    }
+  };
+
   const sourcesQuery = useQuery({
     queryKey: ['admin', 'ingesta', 'event_sources'],
     queryFn: async () => {
@@ -100,6 +145,7 @@ const IngestionRegistry = () => {
   });
 
   const runsQuery = useQuery({
+    refetchInterval: autoRefresh ? 2000 : false,
     queryKey: ['admin', 'ingesta', 'event_source_runs'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -203,6 +249,24 @@ const IngestionRegistry = () => {
         <KpiCard icon={AlertCircle} label="Errores (50)" value={errors.length} loading={errorsQuery.isLoading} />
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          onClick={() => runDry()}
+          disabled={busySourceId !== null}
+          className="gap-1"
+        >
+          {busySourceId === '__dispatcher__' ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+          Dry-run dispatcher
+        </Button>
+        <Button size="sm" variant="outline" onClick={invalidateAll} className="gap-1">
+          <RefreshCw className="h-3.5 w-3.5" /> Refrescar
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          Escritura real deshabilitada (WRITE_ENABLED=false)
+        </span>
+      </div>
+
       <Tabs defaultValue="sources" className="w-full">
         <TabsList className="w-full">
           <TabsTrigger value="sources" className="flex-1">Fuentes</TabsTrigger>
@@ -247,12 +311,22 @@ const IngestionRegistry = () => {
                         <div className="text-xs text-muted-foreground mt-0.5 italic">{s.notes}</div>
                       )}
                     </div>
-                    <div className="text-xs text-muted-foreground text-right">
-                      <div className="flex items-center gap-1 justify-end">
+                    <div className="text-xs text-muted-foreground text-right flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {last ? fmt(last.started_at) : 'sin ejecuciones'}
                       </div>
                       {last && <div>{statusBadge(last.status)}</div>}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 gap-1"
+                        onClick={() => runDry(s.id)}
+                        disabled={busySourceId !== null}
+                      >
+                        {busySourceId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+                        Dry-run
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
