@@ -71,6 +71,8 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
   const venueCounts: Record<string, number> = {};
   const dedupe = new Set<string>();
   let duplicates = 0;
+  const venueChangeSamples: Array<{ title: string; venue: string; detailVenueRaw: unknown; url: string }> = [];
+  const detailVenueRawSamples: Array<{ title: string; detailVenueRaw: unknown }> = [];
 
   for (const ev of events) {
     if (!ev.title || !ev.sourceUrl || !ev.startAt || !ev.locality) missingReq++;
@@ -86,6 +88,12 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
     categories.add(ev.category);
     const v = ev.venueName ?? "null";
     venueCounts[v] = (venueCounts[v] ?? 0) + 1;
+    if (raw.detailFetched === true && ev.venueName && ev.venueName !== "Teatro Cervantes" && venueChangeSamples.length < 5) {
+      venueChangeSamples.push({ title: ev.title, venue: ev.venueName, detailVenueRaw: raw.detailVenueRaw, url: ev.sourceUrl });
+    }
+    if (raw.detailFetched === true && detailVenueRawSamples.length < 5) {
+      detailVenueRawSamples.push({ title: ev.title, detailVenueRaw: raw.detailVenueRaw });
+    }
     const k = ev.sourceUrl + "|" + ev.title + "|" + ev.startAt;
     if (dedupe.has(k)) duplicates++;
     dedupe.add(k);
@@ -104,6 +112,8 @@ Deno.test("teatro-cervantes: fetchEvents returns valid CanonicalEvent[]", async 
     categories: [...categories],
     venueCounts,
   });
+  console.log("[cervantes] venueChangeSamples:", JSON.stringify(venueChangeSamples, null, 2));
+  console.log("[cervantes] detailVenueRawSamples:", JSON.stringify(detailVenueRawSamples, null, 2));
 
   assertEquals(missingReq, 0, "no event should miss required fields");
   assertEquals(duplicates, 0, "no exact duplicates expected");
