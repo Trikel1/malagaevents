@@ -41,13 +41,20 @@ const CultureEventsPage = () => {
   const initialQuery = searchParams.get('q') || '';
   const initialCategory = searchParams.get('category') as EventCategory | null;
   const initialFilter = searchParams.get('filter');
-  
+  const initialPreset: DatePreset | undefined =
+    initialFilter === 'today'
+      ? 'today'
+      : initialFilter === 'weekend'
+        ? 'weekend'
+        : undefined;
+
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [debouncedSearch, setDebouncedSearch] = useState(initialQuery);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showSearchInput, setShowSearchInput] = useState(!!initialQuery);
   const [filters, setFilters] = useState<EventFilters>({
     categories: initialCategory ? [initialCategory] : [],
+    datePreset: initialPreset,
   });
 
   // Venue group filter state
@@ -55,10 +62,14 @@ const CultureEventsPage = () => {
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
 
+  // Near me — order-only, non-destructive
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+
   // Debounce search input
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  
+
   useEffect(() => {
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
@@ -66,7 +77,7 @@ const CultureEventsPage = () => {
     debounceTimeout.current = setTimeout(() => {
       setDebouncedSearch(searchQuery);
     }, 300);
-    
+
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
@@ -82,27 +93,60 @@ const CultureEventsPage = () => {
   }, [showSearchInput]);
 
   // Determine query options based on filters
-  const queryOptions = useMemo(() => ({
-    searchQuery: debouncedSearch || undefined,
-    filters: filters.onlyFavorites ? undefined : filters,
-    todayOnly: initialFilter === 'today',
-    weekendOnly: initialFilter === 'weekend',
-    venueIds: selectedVenueIds.length > 0 ? selectedVenueIds : undefined,
-    locationIds: selectedLocationIds.length > 0 ? selectedLocationIds : undefined,
-  }), [debouncedSearch, filters, initialFilter, selectedVenueIds, selectedLocationIds]);
+  const queryOptions = useMemo(
+    () => ({
+      searchQuery: debouncedSearch || undefined,
+      filters: filters.onlyFavorites ? undefined : filters,
+      venueIds: selectedVenueIds.length > 0 ? selectedVenueIds : undefined,
+      locationIds: selectedLocationIds.length > 0 ? selectedLocationIds : undefined,
+    }),
+    [debouncedSearch, filters, selectedVenueIds, selectedLocationIds],
+  );
 
   const { data: events, isLoading, isError, refetch } = useEventsOptimized(queryOptions);
-  
+
   // Fetch favorites
   const { data: favorites } = useFavorites();
   const { data: favoriteEvents, isLoading: loadingFavorites } = useFavoriteEvents();
   const toggleFavorite = useToggleFavorite();
 
   // Use favorite events if filter is set
-  const displayedEvents = filters.onlyFavorites ? favoriteEvents : events;
+  const baseDisplayed = filters.onlyFavorites ? favoriteEvents : events;
   const isLoadingEvents = filters.onlyFavorites ? loadingFavorites : isLoading;
 
-  const isFavorite = (eventId: string) => 
+  // Sort by distance when Near-me active. Events without coords go last.
+  const displayedEvents = useMemo(() => {
+    if (!userCoords || !baseDisplayed) return baseDisplayed;
+    const haversine = (aLat: number, aLng: number, bLat: number, bLng: number) => {
+      const toRad = (v: number) => (v * Math.PI) / 180;
+      const R = 6371;
+      const dLat = toRad(bLat - aLat);
+      const dLng = toRad(bLng - aLng);
+      const s =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(s));
+    };
+    const eventCoords = (ev: any): { lat: number; lng: number } | null => {
+      const lat = ev.lat ?? ev.venue?.lat ?? ev.location?.lat;
+      const lng = ev.lng ?? ev.venue?.lng ?? ev.location?.lng;
+      if (typeof lat === 'number' && typeof lng === 'number') return { lat, lng };
+      return null;
+    };
+    return [...baseDisplayed].sort((a, b) => {
+      const ca = eventCoords(a);
+      const cb = eventCoords(b);
+      if (!ca && !cb) return 0;
+      if (!ca) return 1;
+      if (!cb) return -1;
+      return (
+        haversine(userCoords.lat, userCoords.lng, ca.lat, ca.lng) -
+        haversine(userCoords.lat, userCoords.lng, cb.lat, cb.lng)
+      );
+    });
+  }, [baseDisplayed, userCoords]);
+
+  const isFavorite = (eventId: string) =>
     favorites?.some((f) => f.event_id === eventId) ?? false;
 
   const handleToggleFavorite = (eventId: string) => {
@@ -122,6 +166,63 @@ const CultureEventsPage = () => {
     }
   };
 
+  const togglePreset = useCallback((preset: DatePreset) => {
+    setFilters((prev) => ({
+      ...prev,
+      datePreset: prev.datePreset === preset ? undefined : preset,
+      // Presets and manual date range are mutually exclusive
+      dateFrom: undefined,
+      dateTo: undefined,
+    }));
+    // Keep URL in sync for today/weekend legacy links; drop it otherwise
+    setSearchParams((sp) => {
+      const next = new URLSearchParams(sp);
+      next.delete('filter');
+      return next;
+    });
+  }, [setSearchParams]);
+
+  const toggleBooleanFilter = useCallback(
+    (key: 'isFree' | 'withTickets' | 'familyKids') => {
+      setFilters((prev) => ({ ...prev, [key]: prev[key] ? undefined : true }));
+    },
+    [],
+  );
+
+  const handleNearMe = useCallback(() => {
+    if (userCoords) {
+      setUserCoords(null);
+      toast(t('events.clearDistanceSort', 'Orden por cercanía desactivado'));
+      return;
+    }
+    if (!('geolocation' in navigator)) {
+      toast.error(t('events.locationUnsupported', 'Tu navegador no soporta geolocalización'));
+      return;
+    }
+    setIsRequestingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setIsRequestingLocation(false);
+        toast.success(t('events.sortedByDistance', 'Ordenado por cercanía'));
+      },
+      (err) => {
+        setIsRequestingLocation(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          toast.error(
+            t(
+              'events.locationPermissionDenied',
+              'Permiso de ubicación denegado. Actívalo en los ajustes del navegador.',
+            ),
+          );
+        } else {
+          toast.error(t('events.locationError', 'No pudimos obtener tu ubicación'));
+        }
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
+    );
+  }, [userCoords, t]);
+
   const clearAllFilters = useCallback(() => {
     setFilters({ categories: [] });
     setSelectedVenueIds([]);
@@ -129,20 +230,34 @@ const CultureEventsPage = () => {
     setSelectedLocationIds([]);
     setSearchQuery('');
     setShowSearchInput(false);
+    setUserCoords(null);
     setSearchParams({});
   }, [setSearchParams]);
 
-  const activeFilterCount = 
-    filters.categories.length + 
-    (filters.isFree ? 1 : 0) + 
-    (filters.dateFrom ? 1 : 0) + 
+  const activeFilterCount =
+    filters.categories.length +
+    (filters.isFree ? 1 : 0) +
+    (filters.withTickets ? 1 : 0) +
+    (filters.familyKids ? 1 : 0) +
+    (filters.datePreset ? 1 : 0) +
+    (filters.dateFrom ? 1 : 0) +
     (filters.dateTo ? 1 : 0) +
     (filters.onlyFavorites ? 1 : 0);
 
-  const totalActiveFilters = activeFilterCount + 
-    (selectedVenueGroup !== 'all' ? 1 : 0) + 
+  const totalActiveFilters =
+    activeFilterCount +
+    (selectedVenueGroup !== 'all' ? 1 : 0) +
     selectedLocationIds.length +
-    (debouncedSearch ? 1 : 0);
+    (debouncedSearch ? 1 : 0) +
+    (userCoords ? 1 : 0);
+
+  const quickPresets: { key: DatePreset; label: string }[] = [
+    { key: 'today', label: t('events.today', 'Hoy') },
+    { key: 'tomorrow', label: t('events.tomorrow', 'Mañana') },
+    { key: 'thisWeek', label: t('events.thisWeek', 'Esta semana') },
+    { key: 'weekend', label: t('events.thisWeekend', 'Este finde') },
+    { key: 'next30', label: t('events.next30Days', 'Próximos 30 días') },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
