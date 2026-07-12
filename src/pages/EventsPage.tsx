@@ -183,11 +183,18 @@ const CultureEventsPage = () => {
   }, [setSearchParams]);
 
   const toggleBooleanFilter = useCallback(
-    (key: 'isFree' | 'withTickets' | 'familyKids') => {
+    (key: 'isFree' | 'withTickets' | 'familyKids' | 'isOutdoor') => {
       setFilters((prev) => ({ ...prev, [key]: prev[key] ? undefined : true }));
     },
     [],
   );
+
+  const toggleAgeRange = useCallback((range: AgeRange) => {
+    setFilters((prev) => ({
+      ...prev,
+      ageRange: prev.ageRange === range ? undefined : range,
+    }));
+  }, []);
 
   const handleNearMe = useCallback(() => {
     if (userCoords) {
