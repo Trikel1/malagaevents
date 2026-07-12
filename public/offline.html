@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f97316" />
+    <title>Sin conexión — MalagaEvents</title>
+    <style>
+      :root { color-scheme: light dark; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+        background: #0f172a;
+        color: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+      }
+      .card { max-width: 360px; }
+      h1 { font-size: 22px; margin: 0 0 12px; letter-spacing: -0.01em; }
+      p { font-size: 15px; line-height: 1.5; color: #cbd5e1; margin: 0 0 20px; }
+      button {
+        background: #f97316;
+        color: #0f172a;
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 22px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .dot { font-size: 44px; margin-bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="dot" aria-hidden="true">📡</div>
+      <h1>Sin conexión</h1>
+      <p>Vuelve a intentarlo cuando tengas internet.</p>
+      <button onclick="location.reload()">Reintentar</button>
+    </div>
+  </body>
+</html>
