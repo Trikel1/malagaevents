@@ -14,5 +14,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /auth
+Disallow: /profile
+Disallow: /tickets
 
 Sitemap: https://malagaevents.lovable.app/sitemap.xml
