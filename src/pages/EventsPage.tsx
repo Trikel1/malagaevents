@@ -41,6 +41,7 @@ const CultureEventsPage = () => {
   const initialQuery = searchParams.get('q') || '';
   const initialCategory = searchParams.get('category') as EventCategory | null;
   const initialFilter = searchParams.get('filter');
+  const initialAge = searchParams.get('age') as AgeRange | null;
   const initialPreset: DatePreset | undefined =
     initialFilter === 'today'
       ? 'today'
@@ -55,7 +56,12 @@ const CultureEventsPage = () => {
   const [filters, setFilters] = useState<EventFilters>({
     categories: initialCategory ? [initialCategory] : [],
     datePreset: initialPreset,
+    familyKids: initialFilter === 'family' ? true : undefined,
+    isFree: initialFilter === 'free' ? true : undefined,
+    isOutdoor: initialFilter === 'outdoor' ? true : undefined,
+    ageRange: initialAge && ['0-3','4-8','9-12'].includes(initialAge) ? initialAge : undefined,
   });
+
 
   // Venue group filter state
   const [selectedVenueGroup, setSelectedVenueGroup] = useState<VenueGroup>('all');
