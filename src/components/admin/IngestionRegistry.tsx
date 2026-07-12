@@ -495,6 +495,9 @@ const IngestionRegistry = () => {
                         {typeof s.priority === 'number' && (
                           <Badge variant="outline" className="text-xs">p{s.priority}</Badge>
                         )}
+                        {s.write_confirmed_at
+                          ? <Badge className="bg-indigo-600 hover:bg-indigo-600 text-xs gap-1"><KeyRound className="h-3 w-3" /> escritura autorizada</Badge>
+                          : <Badge variant="outline" className="text-xs">escritura no autorizada</Badge>}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5 space-x-2">
                         <span className="font-mono">{s.slug}</span>
