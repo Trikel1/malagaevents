@@ -412,7 +412,7 @@ const CultureEventsPage = () => {
 
           {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
           <div
-            className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-2 overflow-x-auto pb-1 -mx-3 sm:-mx-4 px-3 sm:px-4 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             role="toolbar"
             aria-label={t('events.quickFilters', 'Filtros rápidos')}
           >
