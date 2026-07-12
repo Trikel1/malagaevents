@@ -15,6 +15,8 @@ import {
   RefreshCw,
   ExternalLink,
   Copy,
+  KeyRound,
+  ShieldOff,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
