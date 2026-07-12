@@ -104,6 +104,43 @@ type DryRunResponse = {
   error?: string;
 };
 
+type PreflightAction = 'insert' | 'update' | 'skip' | 'conflict';
+
+type PreflightItem = {
+  action: PreflightAction;
+  title: string | null;
+  startAt: string | null;
+  venueName: string | null;
+  canonicalVenue: string | null;
+  locality: string | null;
+  category: string | null;
+  sourceUrl: string | null;
+  ticketUrl: string | null;
+  imageUrl: string | null;
+  existingEventId: string | null;
+  existingDedupeKey: string | null;
+  newDedupeKey: string;
+  reason: string;
+  raw: { timeAssumed: boolean; dateLine: string | null; cycleText: string | null };
+};
+
+type PreflightResponse = {
+  ok?: boolean;
+  dryRun?: boolean;
+  sourceId?: string;
+  sourceName?: string;
+  adapter?: string;
+  totalFetched?: number;
+  wouldInsert?: number;
+  wouldUpdate?: number;
+  wouldSkip?: number;
+  conflicts?: number;
+  warnings?: string[];
+  generatedAt?: string;
+  preview?: PreflightItem[];
+  error?: string;
+};
+
 const fmt = (d: string | null | undefined) =>
   d ? format(new Date(d), "d MMM yyyy, HH:mm", { locale: es }) : '—';
 
