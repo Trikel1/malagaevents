@@ -19,6 +19,13 @@ export type CanonicalEvent = {
   externalId?: string | null;
   /** Free-form organizer/promoter name. */
   organizer?: string | null;
+  /**
+   * True when `startAt` does NOT reflect an explicit clock time from the
+   * source (e.g. the CSV only carried a date). Consumers should render
+   * "Hora por confirmar" instead of an HH:mm value. Additive/optional: the
+   * UI already treats midnight-UTC as the same sentinel.
+   */
+  timeAssumed?: boolean;
   raw?: unknown;
 };
 
