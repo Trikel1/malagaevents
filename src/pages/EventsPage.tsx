@@ -552,6 +552,13 @@ const CultureEventsPage = () => {
 
       {/* ── BODY ───────────────────────────────────────────────────────── */}
       <main className="px-4 py-4 sm:px-6">
+        <div className="mb-4">
+          <VenueKindFilter
+            selectedVenueIds={selectedVenueIds}
+            onVenueIdsChange={setSelectedVenueIds}
+            priorityCities={priorityCities}
+          />
+        </div>
         {isLoadingEvents ? (
           <EventListSkeleton count={4} />
         ) : isError ? (
