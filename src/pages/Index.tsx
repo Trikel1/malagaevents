@@ -88,8 +88,8 @@ const Index = () => {
   return (
     <div className="min-h-screen">
       <SEO
-        title="Málaga Connect — Qué hacer hoy en Málaga"
-        description="La guía ciudadana de Málaga: eventos, planes familiares, farmacias de guardia, cultura y deporte en Málaga ciudad y provincia."
+        title={t('home.seo.title')}
+        description={t('home.seo.description')}
         path="/"
       />
 
