@@ -8,20 +8,131 @@ import { Button } from '@/components/ui/button';
 // Extended event types for category-specific fallbacks
 export type EventType = 'dance' | 'music' | 'theater' | 'comedy' | 'festival' | 'nightlife' | 'exhibitions' | 'kids' | 'sports' | 'workshops' | 'conferences' | 'other';
 
-// High-quality Unsplash images for each category (optimized URLs with parameters)
-const CATEGORY_FALLBACK_IMAGES: Record<EventType, string> = {
-  dance: 'https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?w=640&q=80&fit=crop&auto=format',
-  music: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=640&q=80&fit=crop&auto=format',
-  theater: 'https://images.unsplash.com/photo-1503095396549-807759245b35?w=640&q=80&fit=crop&auto=format',
-  comedy: 'https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=640&q=80&fit=crop&auto=format',
-  festival: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=640&q=80&fit=crop&auto=format',
-  nightlife: 'https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=640&q=80&fit=crop&auto=format',
-  exhibitions: 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=640&q=80&fit=crop&auto=format',
-  kids: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=640&q=80&fit=crop&auto=format',
-  sports: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=640&q=80&fit=crop&auto=format',
-  workshops: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=640&q=80&fit=crop&auto=format',
-  conferences: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=640&q=80&fit=crop&auto=format',
-  other: 'https://images.unsplash.com/photo-1523301343968-6a6ebf63c672?w=640&q=80&fit=crop&auto=format',
+// Pool of high-quality Unsplash images per category. A deterministic hash of the
+// event's alt/title picks one from the pool so each event gets a stable but varied
+// illustrative image (avoids the "same photo everywhere" effect).
+const CATEGORY_FALLBACK_POOL: Record<EventType, string[]> = {
+  dance: [
+    'photo-1508700929628-666bc8bd84ea', // ballet dancer
+    'photo-1547153760-18fc86324498', // flamenco red dress
+    'photo-1519638831568-d9897f54ed69', // contemporary dance
+    'photo-1524594152303-9fd13543fe6e', // dance studio
+    'photo-1535525153412-5a42439a210d', // couple dancing
+    'photo-1546427660-eb346c344ba5', // stage dance
+    'photo-1504609773096-104ff2c73ba4', // ballerina silhouette
+    'photo-1517245386807-bb43f82c33c4', // tango
+  ],
+  music: [
+    'photo-1470229722913-7c0e2dbbafd3', // concert crowd
+    'photo-1501386761578-eac5c94b800a', // live band
+    'photo-1459749411175-04bf5292ceea', // guitar player
+    'photo-1514320291840-2e0a9bf2a9ae', // dj lights
+    'photo-1526478806334-5fd488fcaabc', // orchestra
+    'photo-1493225457124-a3eb161ffa5f', // piano
+    'photo-1524368535928-5b5e00ddc76b', // saxophone
+    'photo-1516280440614-37939bbacd81', // singer stage
+    'photo-1471478331149-c72f17e33c73', // acoustic concert
+  ],
+  theater: [
+    'photo-1503095396549-807759245b35', // theater seats
+    'photo-1507676184212-d03ab07a01bf', // stage curtain
+    'photo-1514306191717-452ec28c7814', // spotlight stage
+    'photo-1465847899084-d164df4dedc6', // theater masks
+    'photo-1503428593586-e225b39bddfe', // stage lights
+    'photo-1499364615650-ec38552f4f34', // circus tent
+    'photo-1516307365426-bea591f05011', // opera house
+  ],
+  comedy: [
+    'photo-1527224857830-43a7acc85260', // microphone stand-up
+    'photo-1585699324551-f6c309eedeca', // comedy club
+    'photo-1524429656589-6633a470097c', // audience laughing
+    'photo-1470019693664-1d202d2c0907', // mic close-up
+    'photo-1522776851755-3914e4b96f26', // stand-up stage
+  ],
+  festival: [
+    'photo-1533174072545-7a4b6ad7a6c3', // festival crowd
+    'photo-1506157786151-b8491531f063', // outdoor stage
+    'photo-1459749411175-04bf5292ceea', // festival lights
+    'photo-1470229538611-16ba8c7ffbd7', // people festival
+    'photo-1516450360452-9312f5e86fc7', // festival flags
+    'photo-1524368535928-5b5e00ddc76b', // horns festival
+    'photo-1470753937643-efeb931202a9', // fireworks
+  ],
+  nightlife: [
+    'photo-1571266028243-3716f02d2d2e', // club neon
+    'photo-1566417713940-fe7c737a9ef2', // bar lights
+    'photo-1543007630-9710e4a00a20', // cocktail bar
+    'photo-1514933651103-005eec06c04b', // dj crowd
+    'photo-1470229538611-16ba8c7ffbd7', // night party
+    'photo-1533174072545-7a4b6ad7a6c3', // neon night
+  ],
+  exhibitions: [
+    'photo-1518998053901-5348d3961a04', // gallery wall
+    'photo-1544967082-d9d25d867d66', // art gallery
+    'photo-1531058020387-3be344556be6', // museum interior
+    'photo-1577720580479-7d839d829c73', // sculpture
+    'photo-1554907984-15263bfd63bd', // painting close
+    'photo-1541961017774-22349e4a1262', // modern art
+    'photo-1580136579312-94651dfd596d', // photography exhibit
+  ],
+  kids: [
+    'photo-1587654780291-39c9404d746b', // kids playing
+    'photo-1503919545889-aef636e10ad4', // storytelling
+    'photo-1519340241574-2cec6aef0c01', // kids workshop
+    'photo-1517457373958-b7bdd4587205', // puppet show
+    'photo-1509062522246-3755977927d7', // kids painting
+    'photo-1602052793312-eff0f52d12de', // family theater
+  ],
+  sports: [
+    'photo-1461896836934-ffe607ba8211', // stadium
+    'photo-1517649763962-0c623066013b', // running race
+    'photo-1526676037777-05a232554d77', // basketball
+    'photo-1543351611-58f69d7c1781', // football pitch
+    'photo-1552674605-db6ffd4facb5', // cycling
+    'photo-1521412644187-c49fa049e84d', // tennis
+  ],
+  workshops: [
+    'photo-1552664730-d307ca884978', // people workshop
+    'photo-1524178232363-1fb2b075b655', // hands craft
+    'photo-1517245386807-bb43f82c33c4', // classroom
+    'photo-1556761175-5973dc0f32e7', // group learning
+    'photo-1587560699334-cc4ff634909a', // pottery
+    'photo-1531538606174-0f90ff5dce83', // cooking class
+  ],
+  conferences: [
+    'photo-1540575467063-178a50c2df87', // conference stage
+    'photo-1475721027785-f74eccf877e2', // audience talk
+    'photo-1515169067868-5387ec356754', // speaker mic
+    'photo-1517048676732-d65bc937f952', // panel discussion
+    'photo-1560523159-4a9692d222f9', // convention hall
+  ],
+  other: [
+    'photo-1523301343968-6a6ebf63c672', // event bokeh
+    'photo-1533174072545-7a4b6ad7a6c3', // crowd
+    'photo-1492684223066-81342ee5ff30', // event lights
+    'photo-1470229722913-7c0e2dbbafd3', // stage lights
+    'photo-1519671482749-fd09be7ccebf', // celebration
+  ],
+};
+
+// Stable string hash → non-negative int (djb2-ish).
+const hashString = (input: string): number => {
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) + hash) + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+};
+
+const buildUnsplashUrl = (photoId: string): string =>
+  `https://images.unsplash.com/${photoId}?w=640&q=80&fit=crop&auto=format`;
+
+// Pick a stable, varied image for an event based on its identity (alt/title).
+const pickFallbackImage = (type: EventType, seed: string): string => {
+  const pool = CATEGORY_FALLBACK_POOL[type];
+  const idx = hashString(seed || type) % pool.length;
+  return buildUnsplashUrl(pool[idx]);
 };
 
 // Category-specific fallback configurations (icons + gradients for final fallback)
@@ -276,8 +387,11 @@ const EventImage = ({
   const finalAspectRatio = aspectRatio || ASPECT_RATIOS[variant];
   const isCompact = variant === 'compact';
 
-  // Get the category-specific Unsplash fallback image
-  const unsplashFallbackUrl = CATEGORY_FALLBACK_IMAGES[resolvedEventType];
+  // Get a stable, varied category-specific Unsplash fallback image
+  const unsplashFallbackUrl = useMemo(
+    () => pickFallbackImage(resolvedEventType, alt || src || ''),
+    [resolvedEventType, alt, src]
+  );
 
   // Cascade logic:
   // 1. If we have a valid src and no error → show real image
