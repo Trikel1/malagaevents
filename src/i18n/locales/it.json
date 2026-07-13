@@ -134,26 +134,154 @@
     "continue": "Continua"
   },
   "home": {
-    "searchPlaceholder": "Cerca eventi, luoghi...",
-    "todayEvents": "Oggi a Málaga",
-    "weekendEvents": "Questo weekend",
-    "nearbyEvents": "Vicino a te",
-    "pharmaciesGuard": "Farmacie di turno",
-    "categories": "Categorie",
-    "enableLocation": "Attiva posizione",
-    "enableLocationDesc": "Consente di vedere eventi vicini",
-    "kicker": "AGENDA DELLA CITTÀ",
-    "heroTitle": "Cosa facciamo oggi a Málaga?",
-    "heroSubtitle": "Eventi, programmi ed esperienze vicino a te.",
-    "quickToday": "Oggi",
-    "quickWeekend": "Questo weekend",
-    "quickNearby": "Vicino a te",
-    "quickPharmacy": "Farmacia",
-    "todayInMalaga": "Oggi a Málaga",
-    "thisWeekend": "Questo weekend",
-    "nearby": "Vicino a te",
-    "popularNow": "Popolari ora",
-    "viewAll": "Vedi tutto"
+    "seo": {
+      "title": "Málaga Connect — Cosa fare oggi a Málaga",
+      "description": "La guida cittadina di Málaga: eventi, piani per famiglie, farmacie di turno, cultura e sport in città e provincia."
+    },
+    "hero": {
+      "title": "Cosa fare oggi a Málaga",
+      "subtitle": "Eventi, piani famiglia, farmacie, sport e cultura in un'unica guida.",
+      "searchAria": "Cerca",
+      "searchPlaceholder": "Concerto, teatro, bambini, museo…"
+    },
+    "quickActions": {
+      "aria": "Accessi rapidi",
+      "today": "Oggi",
+      "weekend": "Questo weekend",
+      "family": "Bambini",
+      "pharmacies": "Farmacie",
+      "map": "Mappa",
+      "free": "Gratis"
+    },
+    "family": {
+      "title": "Piani per famiglie",
+      "subtitle": "Attività per bambini, laboratori, teatro familiare e piani gratuiti.",
+      "chips": {
+        "kids": "Bambini",
+        "age0_3": "0–3 anni",
+        "age4_8": "4–8 anni",
+        "age9_12": "9–12 anni",
+        "free": "Gratis",
+        "weekend": "Questo weekend"
+      },
+      "cta": "Vedi piani per bambini"
+    },
+    "sections": {
+      "nowInMalaga": "Ora a Málaga",
+      "viewAll": "Vedi tutto",
+      "whatYouFind": "Cosa puoi trovare",
+      "thisWeekend": "Questo weekend"
+    },
+    "discover": {
+      "music": {
+        "label": "Concerti",
+        "copy": "Sale, festival e musica dal vivo."
+      },
+      "theater": {
+        "label": "Teatro",
+        "copy": "Cervantes, Soho, Echegaray e altri."
+      },
+      "festivals": {
+        "label": "Festival",
+        "copy": "Grandi appuntamenti culturali."
+      },
+      "museums": {
+        "label": "Musei",
+        "copy": "Arte, storia e mostre."
+      },
+      "markets": {
+        "label": "Fiere",
+        "copy": "Mercatini e artigianato."
+      },
+      "outdoor": {
+        "label": "All'aperto",
+        "copy": "Parchi, spiagge e attività outdoor."
+      }
+    },
+    "cityProvince": {
+      "title": "Málaga città e provincia",
+      "subtitle": "Scopri la capitale, la Costa del Sol, l'Axarquía e l'entroterra."
+    },
+    "culture": {
+      "title": "Cultura viva",
+      "subtitle": "Teatri, sale, musei, festival e programmazione familiare della città.",
+      "theaters": {
+        "label": "Teatri",
+        "copy": "Cervantes, Echegaray, Soho, Cánovas."
+      },
+      "festivals": {
+        "label": "Festival",
+        "copy": "Festival de Málaga, Fancine, Brisa, Canela."
+      },
+      "halls": {
+        "label": "Sale",
+        "copy": "Trinchera, París 15, La Cochera Cabaret."
+      },
+      "museums": {
+        "label": "Musei",
+        "copy": "Picasso, Thyssen, Pompidou, Museo de Málaga."
+      },
+      "family": {
+        "label": "Famiglia",
+        "copy": "Laboratori e spettacoli per tutte le età."
+      },
+      "province": {
+        "label": "Provincia",
+        "copy": "Programmazione oltre la capitale."
+      }
+    },
+    "sports": {
+      "title": "Málaga in chiave sport",
+      "subtitle": "Calcio, basket, corse popolari e club della provincia — un livello sportivo completo.",
+      "cta": "Vedi sport"
+    },
+    "institutional": {
+      "eyebrow": "Piattaforma cittadina",
+      "title": "Una piattaforma viva per Málaga",
+      "subtitle": "Per collegare i cittadini con la vita culturale, familiare e sportiva della città e della provincia.",
+      "agenda": {
+        "label": "Agenda culturale",
+        "copy": "Programmazione quotidiana di teatri, sale e musei."
+      },
+      "family": {
+        "label": "Piani famiglia",
+        "copy": "Attività per bambini e famiglie."
+      },
+      "pharmacies": {
+        "label": "Farmacie di turno",
+        "copy": "Farmacia aperta più vicina in tempo reale."
+      },
+      "map": {
+        "label": "Mappa cittadina",
+        "copy": "Esplora la città e scopri cosa c'è vicino a te."
+      },
+      "province": {
+        "label": "Città e provincia",
+        "copy": "Málaga capitale e comuni della Costa e dell'interno."
+      },
+      "sportsLayer": {
+        "label": "Livello sportivo",
+        "copy": "Málaga sport: club, leghe ed eventi."
+      }
+    },
+    "stats": {
+      "venues": "Sale e spazi",
+      "municipalities": "Comuni prioritari",
+      "sources": "Fonti culturali",
+      "pharmaciesDaily": "Farmacie di turno",
+      "familyByAge": "Piani per età",
+      "sportsGrowing": "Livello in crescita",
+      "dailyValue": "Giornaliero",
+      "familyValue": "Famiglia",
+      "sportsValue": "Sport",
+      "footer": "Copertura in espansione — nuove fonti e comuni si aggiungono gradualmente."
+    },
+    "finalCta": {
+      "title": "Esplora l'agenda di Málaga",
+      "subtitle": "Un modo chiaro, veloce e bello per scoprire cosa succede vicino a te.",
+      "exploreEvents": "Esplora eventi",
+      "pharmacies": "Farmacie di turno"
+    }
   },
   "events": {
     "title": "Eventi",
@@ -362,7 +490,18 @@
     "openDirections": "Indicazioni",
     "viewVenueEvents": "Vedi eventi",
     "onDuty": "Di turno",
-    "nearYou": "Vicino a te"
+    "nearYou": "Vicino a te",
+    "title": "Mappa",
+    "approximateLocation": "Posizione approssimativa",
+    "areaUpdated": "Area aggiornata",
+    "geolocationDenied": "Geolocalizzazione negata",
+    "geolocationUnavailable": "Geolocalizzazione non disponibile",
+    "noEventsHere": "Nessun evento qui",
+    "searchThisArea": "Cerca in questa area",
+    "useMyLocation": "Usa la mia posizione",
+    "viewEvent": "Vedi evento",
+    "viewList": "Vedi elenco",
+    "viewMap": "Vedi mappa"
   },
   "sports": {
     "title": "Sport",

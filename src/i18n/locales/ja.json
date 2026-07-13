@@ -134,26 +134,154 @@
     "continue": "続行"
   },
   "home": {
-    "searchPlaceholder": "イベントや会場を検索...",
-    "todayEvents": "今日のマラガ",
-    "weekendEvents": "今週末",
-    "nearbyEvents": "近くのイベント",
-    "pharmaciesGuard": "当番薬局",
-    "categories": "カテゴリ",
-    "enableLocation": "位置情報を有効にする",
-    "enableLocationDesc": "近くのイベントを見るには許可してください",
-    "kicker": "シティアジェンダ",
-    "heroTitle": "今日はMálagaで何をする？",
-    "heroSubtitle": "近くのイベント、予定、体験を見つけよう。",
-    "quickToday": "今日",
-    "quickWeekend": "今週末",
-    "quickNearby": "近く",
-    "quickPharmacy": "薬局",
-    "todayInMalaga": "今日のMálaga",
-    "thisWeekend": "今週末",
-    "nearby": "近く",
-    "popularNow": "人気",
-    "viewAll": "すべて見る"
+    "seo": {
+      "title": "Málaga Connect — 今日のマラガで何をする",
+      "description": "マラガの市民ガイド:市と県のイベント、家族向けプラン、当番薬局、文化とスポーツ。"
+    },
+    "hero": {
+      "title": "今日のマラガで何をする",
+      "subtitle": "イベント、家族向けプラン、薬局、スポーツと文化を一つのガイドで。",
+      "searchAria": "検索",
+      "searchPlaceholder": "コンサート、劇場、子ども、美術館…"
+    },
+    "quickActions": {
+      "aria": "クイックアクセス",
+      "today": "今日",
+      "weekend": "今週末",
+      "family": "こども",
+      "pharmacies": "薬局",
+      "map": "マップ",
+      "free": "無料"
+    },
+    "family": {
+      "title": "家族向けプラン",
+      "subtitle": "子ども向けアクティビティ、ワークショップ、ファミリー劇場、無料プラン。",
+      "chips": {
+        "kids": "こども",
+        "age0_3": "0–3歳",
+        "age4_8": "4–8歳",
+        "age9_12": "9–12歳",
+        "free": "無料",
+        "weekend": "今週末"
+      },
+      "cta": "子ども向けを見る"
+    },
+    "sections": {
+      "nowInMalaga": "今のマラガ",
+      "viewAll": "すべて見る",
+      "whatYouFind": "見つかるもの",
+      "thisWeekend": "今週末"
+    },
+    "discover": {
+      "music": {
+        "label": "コンサート",
+        "copy": "ライブハウス、フェス、生演奏。"
+      },
+      "theater": {
+        "label": "演劇",
+        "copy": "Cervantes、Soho、Echegaray など。"
+      },
+      "festivals": {
+        "label": "フェスティバル",
+        "copy": "大きな文化イベント。"
+      },
+      "museums": {
+        "label": "美術館",
+        "copy": "アート、歴史、展覧会。"
+      },
+      "markets": {
+        "label": "市",
+        "copy": "マーケットと工芸。"
+      },
+      "outdoor": {
+        "label": "アウトドア",
+        "copy": "公園、ビーチ、屋外活動。"
+      }
+    },
+    "cityProvince": {
+      "title": "マラガの市と県",
+      "subtitle": "首都、コスタ・デル・ソル、アハルキア、内陸のプラン。"
+    },
+    "culture": {
+      "title": "生きた文化",
+      "subtitle": "市内の劇場、ホール、美術館、フェスティバル、家族向けプログラム。",
+      "theaters": {
+        "label": "劇場",
+        "copy": "Cervantes、Echegaray、Soho、Cánovas。"
+      },
+      "festivals": {
+        "label": "フェスティバル",
+        "copy": "Festival de Málaga、Fancine、Brisa、Canela。"
+      },
+      "halls": {
+        "label": "ホール",
+        "copy": "Trinchera、París 15、La Cochera Cabaret。"
+      },
+      "museums": {
+        "label": "美術館",
+        "copy": "Picasso、Thyssen、Pompidou、Museo de Málaga。"
+      },
+      "family": {
+        "label": "ファミリー",
+        "copy": "年齢を問わないワークショップと公演。"
+      },
+      "province": {
+        "label": "県内",
+        "copy": "首都以外の地域プログラム。"
+      }
+    },
+    "sports": {
+      "title": "スポーツで見るマラガ",
+      "subtitle": "サッカー、バスケ、ロードレース、県内クラブ — 完全なスポーツレイヤー。",
+      "cta": "スポーツを見る"
+    },
+    "institutional": {
+      "eyebrow": "市民プラットフォーム",
+      "title": "マラガのための生きたプラットフォーム",
+      "subtitle": "市と県の文化・家族・スポーツの暮らしと市民をつなぎます。",
+      "agenda": {
+        "label": "文化アジェンダ",
+        "copy": "劇場、ホール、美術館の日々のプログラム。"
+      },
+      "family": {
+        "label": "家族向けプラン",
+        "copy": "子どもと家族のためのアクティビティ。"
+      },
+      "pharmacies": {
+        "label": "当番薬局",
+        "copy": "最寄りの開いている薬局をリアルタイムで。"
+      },
+      "map": {
+        "label": "市民マップ",
+        "copy": "街を巡り、近くの出来事を見つけましょう。"
+      },
+      "province": {
+        "label": "市と県",
+        "copy": "首都マラガと海岸・内陸の市町村。"
+      },
+      "sportsLayer": {
+        "label": "スポーツレイヤー",
+        "copy": "マラガのスポーツ:クラブ、リーグ、イベント。"
+      }
+    },
+    "stats": {
+      "venues": "会場・ホール",
+      "municipalities": "重点自治体",
+      "sources": "文化情報源",
+      "pharmaciesDaily": "当番薬局",
+      "familyByAge": "年齢別プラン",
+      "sportsGrowing": "拡張中のレイヤー",
+      "dailyValue": "毎日",
+      "familyValue": "家族",
+      "sportsValue": "スポーツ",
+      "footer": "カバー範囲は拡大中 — 新しい情報源と自治体を順次追加。"
+    },
+    "finalCta": {
+      "title": "マラガのアジェンダを見る",
+      "subtitle": "近くで起きていることを、明快に、素早く、美しく。",
+      "exploreEvents": "イベントを探す",
+      "pharmacies": "当番薬局"
+    }
   },
   "events": {
     "title": "イベント",
@@ -362,7 +490,18 @@
     "openDirections": "経路",
     "viewVenueEvents": "イベントを見る",
     "onDuty": "当番",
-    "nearYou": "近く"
+    "nearYou": "近く",
+    "title": "マップ",
+    "approximateLocation": "おおよその位置",
+    "areaUpdated": "エリアを更新",
+    "geolocationDenied": "位置情報が拒否されました",
+    "geolocationUnavailable": "位置情報を取得できません",
+    "noEventsHere": "ここにイベントはありません",
+    "searchThisArea": "このエリアで検索",
+    "useMyLocation": "現在地を使用",
+    "viewEvent": "イベントを見る",
+    "viewList": "リスト表示",
+    "viewMap": "マップ表示"
   },
   "sports": {
     "title": "スポーツ",

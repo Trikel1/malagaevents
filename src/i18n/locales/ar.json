@@ -134,26 +134,154 @@
     "continue": "متابعة"
   },
   "home": {
-    "searchPlaceholder": "ابحث عن فعاليات أو أماكن...",
-    "todayEvents": "اليوم في Málaga",
-    "weekendEvents": "نهاية هذا الأسبوع",
-    "nearbyEvents": "بالقرب منك",
-    "pharmaciesGuard": "صيدليات المناوبة",
-    "categories": "الفئات",
-    "enableLocation": "تفعيل الموقع",
-    "enableLocationDesc": "يسمح برؤية الفعاليات القريبة",
-    "kicker": "أجندة المدينة",
-    "heroTitle": "ماذا نفعل اليوم في Málaga؟",
-    "heroSubtitle": "فعاليات وخطط وتجارب بالقرب منك.",
-    "quickToday": "اليوم",
-    "quickWeekend": "نهاية هذا الأسبوع",
-    "quickNearby": "بالقرب منك",
-    "quickPharmacy": "الصيدلية",
-    "todayInMalaga": "اليوم في Málaga",
-    "thisWeekend": "نهاية هذا الأسبوع",
-    "nearby": "بالقرب منك",
-    "popularNow": "الأكثر رواجًا الآن",
-    "viewAll": "عرض الكل"
+    "seo": {
+      "title": "Málaga Connect — ماذا تفعل اليوم في مالقة",
+      "description": "دليل المواطن لمالقة: فعاليات، خطط عائلية، صيدليات مناوبة، ثقافة ورياضة في المدينة والمقاطعة."
+    },
+    "hero": {
+      "title": "ماذا تفعل اليوم في مالقة",
+      "subtitle": "فعاليات، خطط عائلية، صيدليات، رياضة وثقافة في دليل واحد.",
+      "searchAria": "بحث",
+      "searchPlaceholder": "حفل، مسرح، أطفال، متحف…"
+    },
+    "quickActions": {
+      "aria": "وصول سريع",
+      "today": "اليوم",
+      "weekend": "هذه العطلة",
+      "family": "أطفال",
+      "pharmacies": "صيدليات",
+      "map": "خريطة",
+      "free": "مجاني"
+    },
+    "family": {
+      "title": "خطط عائلية",
+      "subtitle": "أنشطة للأطفال وورش ومسرح عائلي وخطط مجانية.",
+      "chips": {
+        "kids": "أطفال",
+        "age0_3": "0–3 سنوات",
+        "age4_8": "4–8 سنوات",
+        "age9_12": "9–12 سنة",
+        "free": "مجاني",
+        "weekend": "هذه العطلة"
+      },
+      "cta": "عرض خطط الأطفال"
+    },
+    "sections": {
+      "nowInMalaga": "الآن في مالقة",
+      "viewAll": "عرض الكل",
+      "whatYouFind": "ماذا ستجد",
+      "thisWeekend": "هذه العطلة"
+    },
+    "discover": {
+      "music": {
+        "label": "حفلات",
+        "copy": "قاعات ومهرجانات وموسيقى حية."
+      },
+      "theater": {
+        "label": "مسرح",
+        "copy": "Cervantes وSoho وEchegaray وغيرها."
+      },
+      "festivals": {
+        "label": "مهرجانات",
+        "copy": "أحداث ثقافية كبرى."
+      },
+      "museums": {
+        "label": "متاحف",
+        "copy": "فن وتاريخ ومعارض."
+      },
+      "markets": {
+        "label": "أسواق",
+        "copy": "أسواق ومنتجات حرفية."
+      },
+      "outdoor": {
+        "label": "في الهواء الطلق",
+        "copy": "حدائق وشواطئ وأنشطة خارجية."
+      }
+    },
+    "cityProvince": {
+      "title": "مالقة المدينة والمقاطعة",
+      "subtitle": "اكتشف خططاً في العاصمة وكوستا ديل سول والأخارقية والداخل."
+    },
+    "culture": {
+      "title": "ثقافة حية",
+      "subtitle": "مسارح وقاعات ومتاحف ومهرجانات وبرامج عائلية في المدينة.",
+      "theaters": {
+        "label": "مسارح",
+        "copy": "Cervantes وEchegaray وSoho وCánovas."
+      },
+      "festivals": {
+        "label": "مهرجانات",
+        "copy": "Festival de Málaga وFancine وBrisa وCanela."
+      },
+      "halls": {
+        "label": "قاعات",
+        "copy": "Trinchera وParís 15 وLa Cochera Cabaret."
+      },
+      "museums": {
+        "label": "متاحف",
+        "copy": "Picasso وThyssen وPompidou وMuseo de Málaga."
+      },
+      "family": {
+        "label": "عائلي",
+        "copy": "ورش وعروض لجميع الأعمار."
+      },
+      "province": {
+        "label": "المقاطعة",
+        "copy": "برامج خارج العاصمة."
+      }
+    },
+    "sports": {
+      "title": "مالقة بوجهها الرياضي",
+      "subtitle": "كرة قدم وسلة وسباقات ونوادي المقاطعة — طبقة رياضية كاملة.",
+      "cta": "عرض الرياضة"
+    },
+    "institutional": {
+      "eyebrow": "منصة المواطن",
+      "title": "منصة حية لمالقة",
+      "subtitle": "لربط المواطنين بالحياة الثقافية والعائلية والرياضية للمدينة ومقاطعتها.",
+      "agenda": {
+        "label": "الأجندة الثقافية",
+        "copy": "برامج يومية للمسارح والقاعات والمتاحف."
+      },
+      "family": {
+        "label": "خطط عائلية",
+        "copy": "أنشطة مصممة للأطفال والعائلات."
+      },
+      "pharmacies": {
+        "label": "صيدليات مناوبة",
+        "copy": "أقرب صيدلية مفتوحة في الوقت الفعلي."
+      },
+      "map": {
+        "label": "خريطة المدينة",
+        "copy": "استكشف المدينة وما يحيط بك."
+      },
+      "province": {
+        "label": "المدينة والمقاطعة",
+        "copy": "عاصمة مالقة وبلديات الساحل والداخل."
+      },
+      "sportsLayer": {
+        "label": "الطبقة الرياضية",
+        "copy": "مالقة الرياضية: أندية ودوريات وفعاليات."
+      }
+    },
+    "stats": {
+      "venues": "قاعات ومسارح",
+      "municipalities": "بلديات ذات أولوية",
+      "sources": "مصادر ثقافية",
+      "pharmaciesDaily": "صيدليات مناوبة",
+      "familyByAge": "خطط بحسب العمر",
+      "sportsGrowing": "طبقة متنامية",
+      "dailyValue": "يومي",
+      "familyValue": "عائلة",
+      "sportsValue": "رياضة",
+      "footer": "التغطية في توسع — مصادر وبلديات جديدة تنضم تدريجياً."
+    },
+    "finalCta": {
+      "title": "استكشف أجندة مالقة",
+      "subtitle": "طريقة واضحة وسريعة وجميلة لاكتشاف ما يحدث بالقرب منك.",
+      "exploreEvents": "استكشف الفعاليات",
+      "pharmacies": "صيدليات مناوبة"
+    }
   },
   "events": {
     "title": "الفعاليات",
@@ -362,7 +490,18 @@
     "openDirections": "الاتجاهات",
     "viewVenueEvents": "عرض الفعاليات",
     "onDuty": "مناوبة",
-    "nearYou": "بالقرب منك"
+    "nearYou": "بالقرب منك",
+    "title": "خريطة",
+    "approximateLocation": "موقع تقريبي",
+    "areaUpdated": "تم تحديث المنطقة",
+    "geolocationDenied": "تم رفض تحديد الموقع",
+    "geolocationUnavailable": "تحديد الموقع غير متاح",
+    "noEventsHere": "لا فعاليات هنا",
+    "searchThisArea": "ابحث في هذه المنطقة",
+    "useMyLocation": "استخدم موقعي",
+    "viewEvent": "عرض الفعالية",
+    "viewList": "عرض القائمة",
+    "viewMap": "عرض الخريطة"
   },
   "sports": {
     "title": "الرياضات",

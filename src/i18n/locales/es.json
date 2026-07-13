@@ -134,26 +134,154 @@
     "continue": "Continuar"
   },
   "home": {
-    "searchPlaceholder": "Buscar eventos, recintos...",
-    "todayEvents": "Hoy en Málaga",
-    "weekendEvents": "Este fin de semana",
-    "nearbyEvents": "Cerca de ti",
-    "pharmaciesGuard": "Farmacias de guardia",
-    "categories": "Categorías",
-    "enableLocation": "Activar ubicación",
-    "enableLocationDesc": "Permite ver eventos cercanos",
-    "kicker": "AGENDA DE LA CIUDAD",
-    "heroTitle": "¿Qué hacemos hoy en Málaga?",
-    "heroSubtitle": "Eventos, planes y experiencias cerca de ti.",
-    "quickToday": "Hoy",
-    "quickWeekend": "Este fin de semana",
-    "quickNearby": "Cerca",
-    "quickPharmacy": "Farmacia",
-    "todayInMalaga": "Hoy en Málaga",
-    "thisWeekend": "Este fin de semana",
-    "nearby": "Cerca de ti",
-    "popularNow": "Populares ahora",
-    "viewAll": "Ver todo"
+    "seo": {
+      "title": "Málaga Connect — Qué hacer hoy en Málaga",
+      "description": "La guía ciudadana de Málaga: eventos, planes familiares, farmacias de guardia, cultura y deporte en Málaga ciudad y provincia."
+    },
+    "hero": {
+      "title": "Qué hacer hoy en Málaga",
+      "subtitle": "Eventos, planes familiares, farmacias, deporte y cultura en una sola guía.",
+      "searchAria": "Buscar",
+      "searchPlaceholder": "Buscar concierto, teatro, niños, museo…"
+    },
+    "quickActions": {
+      "aria": "Accesos rápidos",
+      "today": "Hoy",
+      "weekend": "Este finde",
+      "family": "Infantil",
+      "pharmacies": "Farmacias",
+      "map": "Mapa",
+      "free": "Gratis"
+    },
+    "family": {
+      "title": "Planes para familias",
+      "subtitle": "Actividades para niñas y niños, talleres, teatro familiar y planes gratuitos.",
+      "chips": {
+        "kids": "Infantil",
+        "age0_3": "0–3 años",
+        "age4_8": "4–8 años",
+        "age9_12": "9–12 años",
+        "free": "Gratis",
+        "weekend": "Este finde"
+      },
+      "cta": "Ver planes para niños"
+    },
+    "sections": {
+      "nowInMalaga": "Ahora en Málaga",
+      "viewAll": "Ver todo",
+      "whatYouFind": "Qué puedes encontrar",
+      "thisWeekend": "Este finde"
+    },
+    "discover": {
+      "music": {
+        "label": "Conciertos",
+        "copy": "Salas, festivales y música en vivo."
+      },
+      "theater": {
+        "label": "Teatro",
+        "copy": "Cervantes, Soho, Echegaray y más."
+      },
+      "festivals": {
+        "label": "Festivales",
+        "copy": "Grandes citas culturales."
+      },
+      "museums": {
+        "label": "Museos",
+        "copy": "Arte, historia y exposiciones."
+      },
+      "markets": {
+        "label": "Ferias",
+        "copy": "Mercadillos y artesanía."
+      },
+      "outdoor": {
+        "label": "Aire libre",
+        "copy": "Parques, playas y outdoor."
+      }
+    },
+    "cityProvince": {
+      "title": "Málaga ciudad y provincia",
+      "subtitle": "Descubre planes en la capital, la Costa del Sol, la Axarquía y el interior."
+    },
+    "culture": {
+      "title": "Cultura viva",
+      "subtitle": "Teatros, salas, museos, festivales y programación familiar de referencia en la ciudad.",
+      "theaters": {
+        "label": "Teatros",
+        "copy": "Cervantes, Echegaray, Soho, Cánovas."
+      },
+      "festivals": {
+        "label": "Festivales",
+        "copy": "Festival de Málaga, Fancine, Brisa, Canela."
+      },
+      "halls": {
+        "label": "Salas",
+        "copy": "Trinchera, París 15, La Cochera Cabaret."
+      },
+      "museums": {
+        "label": "Museos",
+        "copy": "Picasso, Thyssen, Pompidou, Museo de Málaga."
+      },
+      "family": {
+        "label": "Familiar",
+        "copy": "Talleres y espectáculos para todas las edades."
+      },
+      "province": {
+        "label": "Provincia",
+        "copy": "Programación municipal más allá de la capital."
+      }
+    },
+    "sports": {
+      "title": "Málaga en clave deporte",
+      "subtitle": "Fútbol, baloncesto, carreras populares y clubes de la provincia — una capa deportiva completa.",
+      "cta": "Ver deportes"
+    },
+    "institutional": {
+      "eyebrow": "Plataforma ciudadana",
+      "title": "Una plataforma viva para Málaga",
+      "subtitle": "Diseñada para conectar a la ciudadanía con la vida cultural, familiar y deportiva de la ciudad y su provincia.",
+      "agenda": {
+        "label": "Agenda cultural",
+        "copy": "Programación diaria de teatros, salas y museos."
+      },
+      "family": {
+        "label": "Planes familiares",
+        "copy": "Actividades pensadas para niñas, niños y familia."
+      },
+      "pharmacies": {
+        "label": "Farmacias de guardia",
+        "copy": "Farmacia abierta más cercana en tiempo real."
+      },
+      "map": {
+        "label": "Mapa ciudadano",
+        "copy": "Explora la ciudad y descubre qué hay cerca de ti."
+      },
+      "province": {
+        "label": "Ciudad y provincia",
+        "copy": "Málaga capital y municipios de la Costa e Interior."
+      },
+      "sportsLayer": {
+        "label": "Capa deportiva",
+        "copy": "Málaga en clave deporte: clubes, ligas y eventos."
+      }
+    },
+    "stats": {
+      "venues": "Recintos y salas",
+      "municipalities": "Municipios prioritarios",
+      "sources": "Fuentes culturales",
+      "pharmaciesDaily": "Farmacias de guardia",
+      "familyByAge": "Planes por edad",
+      "sportsGrowing": "Capa en expansión",
+      "dailyValue": "Diaria",
+      "familyValue": "Familia",
+      "sportsValue": "Deporte",
+      "footer": "Cobertura en expansión — nuevas fuentes y municipios se incorporan progresivamente."
+    },
+    "finalCta": {
+      "title": "Explora la agenda de Málaga",
+      "subtitle": "Una forma clara, rápida y bonita de descubrir qué ocurre cerca de ti.",
+      "exploreEvents": "Explorar eventos",
+      "pharmacies": "Farmacias de guardia"
+    }
   },
   "events": {
     "title": "Eventos",

@@ -134,26 +134,154 @@
     "continue": "继续"
   },
   "home": {
-    "searchPlaceholder": "搜索活动、场馆...",
-    "todayEvents": "今天在马拉加",
-    "weekendEvents": "本周末",
-    "nearbyEvents": "您附近",
-    "pharmaciesGuard": "值班药店",
-    "categories": "类别",
-    "enableLocation": "启用定位",
-    "enableLocationDesc": "允许查看附近的活动",
-    "kicker": "城市日程",
-    "heroTitle": "今天在Málaga做什么？",
-    "heroSubtitle": "发现你附近的活动、计划和体验。",
-    "quickToday": "今天",
-    "quickWeekend": "本周末",
-    "quickNearby": "附近",
-    "quickPharmacy": "药房",
-    "todayInMalaga": "今天在Málaga",
-    "thisWeekend": "本周末",
-    "nearby": "附近",
-    "popularNow": "当前热门",
-    "viewAll": "查看全部"
+    "seo": {
+      "title": "Málaga Connect — 今日马拉加做什么",
+      "description": "马拉加市民指南:马拉加市及全省的活动、家庭计划、值班药房、文化与体育。"
+    },
+    "hero": {
+      "title": "今日马拉加做什么",
+      "subtitle": "活动、家庭计划、药房、体育与文化,一站汇总。",
+      "searchAria": "搜索",
+      "searchPlaceholder": "音乐会、剧场、儿童、博物馆…"
+    },
+    "quickActions": {
+      "aria": "快速入口",
+      "today": "今天",
+      "weekend": "本周末",
+      "family": "亲子",
+      "pharmacies": "药房",
+      "map": "地图",
+      "free": "免费"
+    },
+    "family": {
+      "title": "家庭计划",
+      "subtitle": "儿童活动、工作坊、家庭剧场和免费方案。",
+      "chips": {
+        "kids": "亲子",
+        "age0_3": "0–3 岁",
+        "age4_8": "4–8 岁",
+        "age9_12": "9–12 岁",
+        "free": "免费",
+        "weekend": "本周末"
+      },
+      "cta": "查看亲子计划"
+    },
+    "sections": {
+      "nowInMalaga": "此刻的马拉加",
+      "viewAll": "查看全部",
+      "whatYouFind": "你能找到什么",
+      "thisWeekend": "本周末"
+    },
+    "discover": {
+      "music": {
+        "label": "音乐会",
+        "copy": "场馆、音乐节与现场演出。"
+      },
+      "theater": {
+        "label": "剧场",
+        "copy": "Cervantes、Soho、Echegaray 等。"
+      },
+      "festivals": {
+        "label": "节庆",
+        "copy": "重要文化盛事。"
+      },
+      "museums": {
+        "label": "博物馆",
+        "copy": "艺术、历史与展览。"
+      },
+      "markets": {
+        "label": "集市",
+        "copy": "市集与手工艺。"
+      },
+      "outdoor": {
+        "label": "户外",
+        "copy": "公园、海滩与户外活动。"
+      }
+    },
+    "cityProvince": {
+      "title": "马拉加市与省份",
+      "subtitle": "探索首府、太阳海岸、阿哈基亚与内陆的活动。"
+    },
+    "culture": {
+      "title": "活力文化",
+      "subtitle": "城市的剧院、场馆、博物馆、节庆与家庭项目。",
+      "theaters": {
+        "label": "剧院",
+        "copy": "Cervantes、Echegaray、Soho、Cánovas。"
+      },
+      "festivals": {
+        "label": "节庆",
+        "copy": "Festival de Málaga、Fancine、Brisa、Canela。"
+      },
+      "halls": {
+        "label": "场馆",
+        "copy": "Trinchera、París 15、La Cochera Cabaret。"
+      },
+      "museums": {
+        "label": "博物馆",
+        "copy": "Picasso、Thyssen、Pompidou、Museo de Málaga。"
+      },
+      "family": {
+        "label": "家庭",
+        "copy": "面向各年龄的工作坊与演出。"
+      },
+      "province": {
+        "label": "省份",
+        "copy": "首府之外的地方节目。"
+      }
+    },
+    "sports": {
+      "title": "马拉加运动版块",
+      "subtitle": "足球、篮球、路跑与全省俱乐部——完整的体育层。",
+      "cta": "查看体育"
+    },
+    "institutional": {
+      "eyebrow": "市民平台",
+      "title": "为马拉加而生的活力平台",
+      "subtitle": "连接市民与全市及全省的文化、家庭和体育生活。",
+      "agenda": {
+        "label": "文化日程",
+        "copy": "剧院、场馆和博物馆的每日节目。"
+      },
+      "family": {
+        "label": "家庭计划",
+        "copy": "为儿童和家庭设计的活动。"
+      },
+      "pharmacies": {
+        "label": "值班药房",
+        "copy": "实时显示最近的开门药房。"
+      },
+      "map": {
+        "label": "城市地图",
+        "copy": "探索城市与身边正在发生的事。"
+      },
+      "province": {
+        "label": "城市与省份",
+        "copy": "马拉加首府与沿海及内陆市镇。"
+      },
+      "sportsLayer": {
+        "label": "体育层",
+        "copy": "马拉加体育:俱乐部、联赛与赛事。"
+      }
+    },
+    "stats": {
+      "venues": "场馆与剧场",
+      "municipalities": "优先市镇",
+      "sources": "文化来源",
+      "pharmaciesDaily": "值班药房",
+      "familyByAge": "按年龄计划",
+      "sportsGrowing": "不断扩展",
+      "dailyValue": "每日",
+      "familyValue": "家庭",
+      "sportsValue": "体育",
+      "footer": "覆盖范围持续扩展——新来源与市镇逐步加入。"
+    },
+    "finalCta": {
+      "title": "探索马拉加日程",
+      "subtitle": "清晰、快速、优美地了解身边正在发生的事。",
+      "exploreEvents": "浏览活动",
+      "pharmacies": "值班药房"
+    }
   },
   "events": {
     "title": "活动",
@@ -362,7 +490,18 @@
     "openDirections": "路线",
     "viewVenueEvents": "查看活动",
     "onDuty": "值班",
-    "nearYou": "在您附近"
+    "nearYou": "在您附近",
+    "title": "地图",
+    "approximateLocation": "大致位置",
+    "areaUpdated": "区域已更新",
+    "geolocationDenied": "已拒绝定位",
+    "geolocationUnavailable": "定位不可用",
+    "noEventsHere": "此处没有活动",
+    "searchThisArea": "在此区域搜索",
+    "useMyLocation": "使用我的位置",
+    "viewEvent": "查看活动",
+    "viewList": "列表",
+    "viewMap": "地图"
   },
   "sports": {
     "title": "体育",
