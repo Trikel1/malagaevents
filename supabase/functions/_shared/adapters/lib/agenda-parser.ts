@@ -336,7 +336,7 @@ export function extractAgendaCandidates(
       title = lm[1].trim();
       eventUrl = absolutize(base, lm[2]);
     } else {
-      // Look forward up to 6 lines for an internal link.
+      // Look forward up to 6 lines for an internal link (markdown OR HTML).
       for (let j = i + 1, k = 0; j < lines.length && k < 6; j++, k++) {
         const next = lines[j];
         if (!next) continue;
@@ -345,9 +345,15 @@ export function extractAgendaCandidates(
           eventUrl = absolutize(base, nm[2]);
           break;
         }
+        const hm2 = next.match(HTML_ANCHOR_RE);
+        if (hm2) {
+          eventUrl = absolutize(base, hm2[1]);
+          break;
+        }
       }
     }
     if (!eventUrl) continue;
+    if (REJECT_URL_RE.test(eventUrl)) continue;
     if (opts.hrefFilter && !opts.hrefFilter.test(eventUrl)) continue;
     if (opts.excludeFilter && opts.excludeFilter.test(eventUrl)) continue;
     if (!title || title.length < 2 || title.length > 300) continue;
