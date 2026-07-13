@@ -33,6 +33,7 @@ function register(adapter: SourceAdapter) {
 
 register(aytoMalagaAdapter);
 register(aytoMalagaCsvAdapter);
+register(malagaOpenDataCsvAdapter);
 register(teatroCervantesAdapter);
 register(teatroSohoAdapter);
 register(teatroCanovasAdapter);
