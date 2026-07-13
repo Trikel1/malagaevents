@@ -15,6 +15,10 @@ export type CanonicalEvent = {
   sourceUrl: string;
   ticketUrl?: string | null;
   priceText?: string | null;
+  /** Stable identifier issued by the source (e.g. ID_EVENTO in the Málaga CSV). */
+  externalId?: string | null;
+  /** Free-form organizer/promoter name. */
+  organizer?: string | null;
   raw?: unknown;
 };
 
