@@ -21,6 +21,7 @@ import SportsContent from '@/components/sports/SportsContent';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SEO from '@/components/common/SEO';
 import { MUNICIPALITIES, VENUE_ZONES } from '@/lib/venuesCatalog';
+import malagaEmblem from '@/assets/malaga-emblem.png';
 
 const DISCOVER_CARDS = [
   { icon: Music, key: 'music', label: 'Conciertos', copy: 'Salas, festivales y música en vivo.', to: '/events?category=music' },
