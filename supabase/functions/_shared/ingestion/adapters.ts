@@ -40,6 +40,8 @@ register(salaParis15Adapter);
 register(laCocheraCabaretAdapter);
 register(contenedorCulturalUmaAdapter);
 register(cineAlbenizAdapter);
+register(diputacionMalagaAdapter);
+register(culturamaAdapter);
 
 export function getAdapter(key: string | null | undefined): SourceAdapter | null {
   if (!key) return null;
