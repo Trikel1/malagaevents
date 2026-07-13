@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
 import FilterDrawer, { type EventFilters, type DatePreset, type AgeRange } from '@/components/events/FilterDrawer';
-import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
+import { VenueKindFilter } from '@/components/events/VenueKindFilter';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
