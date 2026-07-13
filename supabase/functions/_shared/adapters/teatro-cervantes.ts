@@ -559,7 +559,11 @@ export const teatroCervantesAdapter: SourceAdapter = {
           const improvedVenue = newVenue !== p.venueName;
           if (improvedVenue) {
             p.venueName = newVenue;
+            p.venueSource = "detail";
             venueImproved++;
+          } else if (p.venueSource !== "listing") {
+            // Detail confirms the fallback — mark as detail-anchored.
+            p.venueSource = "detail";
           }
           const improvedDate = !!newDate && !p.parsed.timeExplicit;
           if (improvedDate && newDate) {
