@@ -272,8 +272,8 @@ const CultureEventsPage = () => {
 
   const totalActiveFilters =
     activeFilterCount +
-    (selectedKind !== 'all' ? 1 : 0) +
-    (selectedVenue ? 1 : 0) +
+    (selectedVenueGroup !== 'all' ? 1 : 0) +
+    (selectedVenueIds.length > 0 ? 1 : 0) +
     selectedLocationIds.length +
     (debouncedSearch ? 1 : 0) +
     (userCoords ? 1 : 0);
