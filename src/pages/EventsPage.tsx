@@ -409,13 +409,15 @@ const CultureEventsPage = () => {
             </form>
           )}
 
-          {/* Row 2: Venue segmented control [Todos] [Salas] [Teatros] - 100% width */}
+          {/* Row 2: Premium venue selector (halls, theaters, museums, venues) */}
           <VenueGroupDropdown
             selectedGroup={selectedVenueGroup}
             selectedVenueIds={selectedVenueIds}
             onGroupChange={setSelectedVenueGroup}
             onVenueIdsChange={setSelectedVenueIds}
+            priorityCities={priorityCities}
           />
+
 
           {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
           <div
