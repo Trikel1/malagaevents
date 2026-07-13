@@ -40,7 +40,11 @@ export function serraniaDetailToCanonical(
 ): CanonicalEvent | null {
   const start = madridWallTimeToDate(ev.year, ev.month, ev.day, 20, 0);
   if (!start) return null;
-  const end = madridWallTimeToDate(ev.endYear, ev.endMonth, ev.endDay, 23, 59);
+  const isMultiDay =
+    ev.endYear !== ev.year || ev.endMonth !== ev.month || ev.endDay !== ev.day;
+  const end = isMultiDay
+    ? madridWallTimeToDate(ev.endYear, ev.endMonth, ev.endDay, 23, 59)
+    : null;
 
   return {
     title: ev.title,
