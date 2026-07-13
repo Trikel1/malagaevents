@@ -439,11 +439,19 @@
 }
 
 .bottom-nav-dock {
-  border-radius: 28px;
-  padding-left: 4px;
-  padding-right: 4px;
-  padding-top: 8px;
+  width: min(calc(100vw - 32px), 360px);
+  border-radius: 999px;
+  padding: 6px;
   overflow: hidden;
+  box-shadow:
+    0 12px 32px -12px hsl(var(--foreground) / 0.25),
+    0 2px 6px -2px hsl(var(--foreground) / 0.08);
+}
+
+@media (min-width: 640px) {
+  .bottom-nav-dock {
+    width: min(calc(100vw - 48px), 400px);
+  }
 }
 
 .bottom-nav-track {
@@ -458,13 +466,12 @@
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 56px;
-  flex-direction: column;
+  min-height: 52px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 18px;
-  padding: 6px 0 5px;
+  border-radius: 999px;
+  padding: 8px 0;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   transition: color 260ms var(--liquid-ease), transform 260ms var(--liquid-ease), background-color 320ms var(--liquid-ease);
@@ -472,27 +479,14 @@
 
 .bottom-nav-active-surface {
   position: absolute;
-  inset: 3px 0 3px;
+  inset: 4px 6px;
   z-index: 0;
-  border-radius: 20px;
+  border-radius: 999px;
   pointer-events: none;
   background:
-    radial-gradient(92% 86% at 50% 26%, hsl(var(--primary) / 0.14) 0%, hsl(var(--primary) / 0.085) 62%, transparent 100%),
-    hsl(var(--primary) / 0.06);
-  opacity: 1;
-  transition: opacity 300ms var(--liquid-ease), transform 360ms var(--liquid-ease);
-}
-
-.bottom-nav-content {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
+    radial-gradient(80% 80% at 50% 50%, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.09) 60%, transparent 100%),
+    hsl(var(--primary) / 0.07);
+  transition: opacity 300ms var(--liquid-ease);
 }
 
 .bottom-nav-item:focus-visible {
@@ -501,7 +495,7 @@
 }
 
 .bottom-nav-item:active {
-  transform: scale(0.97);
+  transform: scale(0.94);
 }
 
 .bottom-nav-item-active {
@@ -514,56 +508,22 @@
 
 .bottom-nav-item-idle:hover {
   color: hsl(var(--foreground));
-  background: hsl(var(--glass-surface) / 0.35);
 }
 
 .bottom-nav-icon-shell {
+  position: relative;
+  z-index: 10;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 27px;
+  width: 28px;
+  height: 28px;
   color: currentColor;
-}
-
-.bottom-nav-label {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: center;
-  font-size: clamp(9px, 2.75vw, 10.5px);
-  line-height: 1.1;
-  font-weight: 650;
-  letter-spacing: 0;
 }
 
 .dark .bottom-nav-active-surface {
   background:
-    radial-gradient(92% 86% at 50% 26%, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.12) 62%, transparent 100%),
-    hsl(var(--primary) / 0.08);
-}
-
-@media (min-width: 360px) {
-  .bottom-nav-dock {
-    padding-left: 4px;
-    padding-right: 4px;
-  }
-
-  .bottom-nav-track {
-    gap: 2px;
-  }
-
-  .bottom-nav-item {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .bottom-nav-active-surface {
-    left: 0;
-    right: 0;
-  }
+    radial-gradient(80% 80% at 50% 50%, hsl(var(--primary) / 0.24) 0%, hsl(var(--primary) / 0.14) 60%, transparent 100%),
+    hsl(var(--primary) / 0.1);
 }
 
 
