@@ -177,7 +177,6 @@ export function VenueKindFilter({
 
   const [openKind, setOpenKind] = useState<Kind | null>(null);
   const [search, setSearch] = useState('');
-  const [showCatalog, setShowCatalog] = useState(false);
   const [draft, setDraft] = useState<string[]>([]);
 
   const merged = useMemo(() => mergeVenues(venues), [venues]);
@@ -194,58 +193,60 @@ export function VenueKindFilter({
   useEffect(() => {
     if (openKind) {
       setSearch('');
-      setShowCatalog(false);
       setDraft(selectedVenueIds);
     }
   }, [openKind]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Filter by kind button — considers extraKinds so Teatro Romano appears in Teatros.
   const kindPreFiltered = useMemo(() => {
     if (!openKind) return [];
     const kinds = KIND_TO_KINDS[openKind];
-    return kinds === 'all' ? merged : merged.filter((v) => kinds.includes(v.kind));
+    return kinds === 'all' ? merged : merged.filter((v) => venueMatchesKinds(v, kinds));
   }, [merged, openKind]);
 
+  // Search filter (accent-insensitive) — applied on top of kind pre-filter.
   const filtered = useMemo(
     () => filterMerged(kindPreFiltered, { category: 'all', search, priorityCities }),
     [kindPreFiltered, search, priorityCities],
   );
 
-  const activeItems = useMemo(() => filtered.filter((v) => v.hasEvents), [filtered]);
-  const catalogItems = useMemo(() => filtered.filter((v) => !v.hasEvents), [filtered]);
+  // Split capital / provincia. Both include catalog-only rows.
+  const capitalItems = useMemo(
+    () => filtered.filter((v) => v.zone === 'malaga-ciudad'),
+    [filtered],
+  );
+  const provinciaItems = useMemo(
+    () => filtered.filter((v) => v.zone !== 'malaga-ciudad'),
+    [filtered],
+  );
 
-  // Group active items by "priority locality → Málaga capital → other cities".
-  const sections = useMemo(() => {
+  // Group capital by category (Teatros y auditorios, Salas, etc.)
+  const capitalGroups = useMemo(() => groupCapital(capitalItems), [capitalItems]);
+
+  // Group provincia by city (Málaga capital always first is a no-op here).
+  const provinciaByCity = useMemo(() => {
     const priority = (priorityCities ?? []).map(normalize).filter(Boolean);
     const buckets = new Map<string, MergedVenue[]>();
-    const push = (key: string, v: MergedVenue) => {
-      const arr = buckets.get(key) ?? [];
+    for (const v of provinciaItems) {
+      const arr = buckets.get(v.city) ?? [];
       arr.push(v);
-      buckets.set(key, arr);
-    };
-    for (const v of activeItems) {
-      const cityNorm = normalize(v.city);
-      const isPriority = priority.some((p) => cityNorm.includes(p));
-      if (isPriority) push(`p:${v.city}`, v);
-      else if (v.zone === 'malaga-ciudad') push('capital', v);
-      else push(`c:${v.city}`, v);
+      buckets.set(v.city, arr);
     }
-    const keys = Array.from(buckets.keys());
-    const order = (k: string) => (k.startsWith('p:') ? 0 : k === 'capital' ? 1 : 2);
-    keys.sort((a, b) => {
-      const oa = order(a);
-      const ob = order(b);
-      if (oa !== ob) return oa - ob;
+    const cities = Array.from(buckets.keys()).sort((a, b) => {
+      const ap = priority.some((p) => normalize(a).includes(p)) ? 0 : 1;
+      const bp = priority.some((p) => normalize(b).includes(p)) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
       return a.localeCompare(b, 'es');
     });
-    return keys.map((k) => ({
-      key: k,
-      label:
-        k === 'capital'
-          ? t('events.sectionCapital', 'Málaga capital')
-          : k.slice(2),
-      items: buckets.get(k)!,
+    return cities.map((c) => ({
+      key: c,
+      label: c,
+      items: (buckets.get(c) ?? []).sort((a, b) => a.name.localeCompare(b.name, 'es')),
     }));
-  }, [activeItems, priorityCities, t]);
+  }, [provinciaItems, priorityCities]);
+
+  const totalCount = filtered.length;
+  const capitalCount = capitalItems.length;
 
   const toggleDraft = useCallback((id: string | null) => {
     if (!id) return;
@@ -254,11 +255,10 @@ export function VenueKindFilter({
 
   const handleApply = useCallback(() => {
     if (draft.length === 0 && openKind && openKind !== 'all') {
-      // "Mostrar todas las salas / todos los teatros" → select every DB-backed
-      // venue of that kind (respects current locality priority filter? No — use ALL kinds).
+      // Empty draft → select every DB-backed venue matching this kind button.
       const kinds = KIND_TO_KINDS[openKind];
       const all = merged.filter(
-        (v) => v.hasEvents && v.id && kinds !== 'all' && kinds.includes(v.kind),
+        (v) => v.hasEvents && v.id && kinds !== 'all' && venueMatchesKinds(v, kinds),
       );
       onVenueIdsChange(all.map((v) => v.id!) as string[]);
     } else {
@@ -290,12 +290,16 @@ export function VenueKindFilter({
   const applyLabel = (() => {
     if (draft.length === 1) return t('events.showOneVenue', 'Mostrar 1 recinto');
     if (draft.length > 1)
-      return t('events.showNVenues', { count: draft.length, defaultValue: `Mostrar ${draft.length} recintos` });
+      return t('events.showNVenues', {
+        count: draft.length,
+        defaultValue: `Mostrar ${draft.length} recintos`,
+      });
     // Empty draft → contextual "Mostrar all X"
     if (openKind === 'salas') return t('events.showAllHalls', 'Mostrar todas las salas');
     if (openKind === 'teatros') return t('events.showAllTheaters', 'Mostrar todos los teatros');
     return t('events.showAll', 'Mostrar todo');
   })();
+
 
   const body = (
     <div className="flex flex-col h-full min-h-0">
