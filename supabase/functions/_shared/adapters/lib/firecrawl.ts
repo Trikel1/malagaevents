@@ -24,6 +24,10 @@ export interface FirecrawlDeps {
   apiKey: string;
   fetchImpl?: typeof fetch;
   timeoutMs?: number;
+  /** Milliseconds to wait for JS-rendered content before scraping. */
+  waitFor?: number;
+  /** Firecrawl `onlyMainContent` toggle (default: true). */
+  onlyMainContent?: boolean;
 }
 
 export async function firecrawlScrapePage(
@@ -44,7 +48,8 @@ export async function firecrawlScrapePage(
       body: JSON.stringify({
         url,
         formats: ["markdown", "links"],
-        onlyMainContent: true,
+        onlyMainContent: deps.onlyMainContent ?? true,
+        ...(deps.waitFor ? { waitFor: deps.waitFor } : {}),
       }),
     });
     if (!res.ok) {
