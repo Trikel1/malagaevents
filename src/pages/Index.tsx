@@ -147,21 +147,21 @@ const Index = () => {
         {/* Título editorial — corto */}
         <div className="relative">
           <h1 className="text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-xl">
-            Qué hacer hoy en Málaga
+            {t('home.hero.title')}
           </h1>
           <p className="text-[15px] sm:text-base text-white/90 mt-3 max-w-md leading-relaxed">
-            Eventos, planes familiares, farmacias, deporte y cultura en una sola guía.
+            {t('home.hero.subtitle')}
           </p>
         </div>
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="relative mt-5" role="search">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" aria-hidden="true" />
-          <label htmlFor="home-search" className="sr-only">Buscar</label>
+          <label htmlFor="home-search" className="sr-only">{t('home.hero.searchAria')}</label>
           <Input
             id="home-search"
             type="search"
-            placeholder="Buscar concierto, teatro, niños, museo…"
+            placeholder={t('home.hero.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="glass-input pl-12 h-14 text-foreground border-0 focus-visible:ring-2 focus-visible:ring-white/60 placeholder:text-muted-foreground"
