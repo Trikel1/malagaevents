@@ -1,0 +1,578 @@
+
+<meta charset="utf-8">
+<meta name="author" content="Servicios de Internet Arundanet S.L.">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="../apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="../apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="../apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="../apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="../apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="../apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="../apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="../apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href=".../apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="../android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+<link rel="manifest" href="../manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="../ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+
+
+<link rel="alternate" type="application/rss+xml" title="Eventos Serranía Viva" href="https://feeds.feedburner.com/serrania-eventos">
+<link rel="stylesheet" href="../estilos.css">
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-3866433-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-3866433-1');
+</script>
+
+
+
+
+<!--
+           _____  _    _ _   _ _____          _   _ ______ _______ 
+     /\   |  __ \| |  | | \ | |  __ \   /\   | \ | |  ____|__   __|
+    /  \  | |__) | |  | |  \| | |  | | /  \  |  \| | |__     | |   
+   / /\ \ |  _  /| |  | | . ` | |  | |/ /\ \ | . ` |  __|    | |   
+  / ____ \| | \ \| |__| | |\  | |__| / ____ \| |\  | |____   | |   
+ /_/    \_\_|  \_\\____/|_| \_|_____/_/    \_\_| \_|______|  |_|   
+
+-->  
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<base href="https://www.serraniaderonda.com/portal/es/eventos.php">
+
+
+<meta name='title' content='Eventos en la Serranía - Portal Temático Serranía de Ronda'>
+<meta name='description' content='Evento - Eventos en la Serranía - Portal temático de la Serranía de Ronda www.serraniaderonda.com'>
+<title>Eventos en la Serranía - Portal Temático Serranía de Ronda</title>
+
+
+<script src="../componentes/lightbox/lytebox.js"></script>
+<link rel="stylesheet" href="../componentes/lightbox/lytebox.css" media="screen">
+
+
+<link rel="alternate" type="application/rss+xml" title="Eventos Serranía Viva" href="http://feeds.feedburner.com/serrania-eventos">
+
+
+<link rel="stylesheet" href="../estilos.css">
+
+
+<style>
+	#texto p{
+		margin: 12px 0;
+		line-height: 140%;
+		font-size: 1.2em;
+	}
+	#texto img{
+		display: block;
+		position: relative;
+		margin: 40px auto 30px auto;
+		max-width: 100%;
+		height: auto;
+	}
+	#empresaspueblo{
+		text-align: center;
+		margin: 20px 0;
+	}
+	#empresaspueblo a img{
+		display: inline-block;
+		width: 45%;
+		max-width: 220px;
+		padding: 2px 1px;
+		border-radius: 3px;
+	}
+	#empresaspueblo a:hover img{
+		opacity: 0.7;
+	}
+	.vevent{
+		display:block;
+		margin: 10px 2% !important;
+		padding: 5px 3%;
+		background-color:#EEE;
+		font-size: 12px;
+		border-bottom:#FD8902 1px solid;
+	}
+	.vevent:hover{
+		background-color:#FFE9CF;
+	}
+	.vevent img{
+		float:right;
+		margin:5px 3%;
+		width: 70px;
+		border-radius: 4px;
+	}
+	.summary{
+		display:block;
+		font-size: 16px;
+		font-weight:bold;
+		margin: 3px 0;
+		color:#000;
+	}
+	.detalles{
+		display:block;
+		font-size: 11px;
+		margin: 15px 0;
+		color:#070584;
+	}
+	.description{
+		display:block;
+		color:#6E6E6E;
+	}
+
+
+	#paginacion{
+		display:block;
+		clear:both;
+		margin:50px;
+		padding-top:8px;
+		font-size:12px;
+	}
+	#paginacion a{
+		display: inline-block;
+		padding:8px;
+		background-color:#fff;
+		margin:2px;
+		border:#FE6D00 1px solid;
+		color:#FE6D00;
+	}
+	#actual{
+		background-color:#FE6D00 !important;
+		color:#fff !important;
+	}
+	#paginacion a:hover{
+		background-color:#070584;
+		border:#070584 1px solid;
+		color:#fff;
+	}
+
+	#detallesevento{
+		font-size: 15px;
+		padding: 5px 3%;
+		background-color:#FDD8AD;
+		line-height: 180%;
+		border-radius: 5px;
+	}
+
+	#fotoprincipal{
+		float:left;
+		margin: 0 5% 15px 0;
+		max-width: 30%;
+		height: auto;
+		border-bottom-right-radius: 15px;
+	}
+
+	#etiquetas{
+		margin: 10px 0 !important;
+		background-color:#FFF0DF;
+		padding: 3px 10px;
+		font-size: 10px;
+		color:#FB8A00 !important;
+	}
+	#encontrarevento{
+		margin-top: 40px !important;
+		padding-top: 5px !important;
+		border-top:#FD8902 1px solid;
+	}
+	#infofechas{
+		font-size: 14px;
+		font-weight:normal;
+		color:#FB8A00;
+		font-weight:bold;
+		background: #332;
+		padding: 3px 12px;
+		border-radius: 3px;
+	}
+
+
+	.finalizado{
+		display:block;
+		padding: 0 30px;
+		background: url("../img/cerrar.png") no-repeat left;
+		color:#766;
+	}
+
+	@media screen and (min-width: 1100px) {
+
+		.vevent img{
+			width: 180px;
+		}
+
+	}
+
+</style>
+
+<script>
+	function calcularDias(fechainicio, fechafin) {
+
+	  const hoy = new Date();
+
+	  const inicio = new Date(fechainicio);
+	  const fin = new Date(fechafin);
+
+	  const diasInicio = Math.ceil((inicio - hoy) / (1000 * 60 * 60 * 24));
+	  const diasFin = Math.ceil((fin - hoy) / (1000 * 60 * 60 * 24));
+
+	  if (diasFin < 0) {
+	    
+	    if (diasFin === -1) {
+	    	return "FINALIZADO - Ayer";
+	    } else if (diasFin >= -10000) {
+	    	return `FINALIZADO hace ${-diasFin} días`; 
+	    } else {
+	    	return "FINALIZADO";
+	    }
+
+	  } else {
+
+	    if (diasInicio <= 0) {
+	    	return "HOY";
+	    } else if (diasInicio === 1) {
+	    	return "Falta un día";
+	    } else {
+	    	return `Faltan ${diasInicio} días`;
+	    }
+
+	  }
+
+	}
+
+</script>
+
+</head>
+<body>
+
+
+
+
+<div id="todo">
+	
+
+
+	<script>
+
+		var clic = 1;
+		function mostrarMenu(){ 
+		   if(clic==1){
+		   document.getElementById("menu").style.display = "block";
+		   clic = clic + 1;
+		   } else{
+		       document.getElementById("menu").style.display = "none";      
+		    clic = 1;
+		   }   
+		}
+
+	</script>
+
+	<script>
+		function cerrarcookies() {
+			document.getElementById("cookieinfo").style.bottom="-250px";
+			document.getElementById("cookieinfo").style.transition="bottom 2s";
+			document.cookie="leydecookies=cerrado";
+		}
+	</script>
+
+	<header id="encabezado">
+
+		<a id="logo" href="index.php"><img src="../img/logo.png" alt="Portal Temático de la Serranía de Ronda" title=" "></a>
+
+		<form action="eventos.php" method="get"><input type="text" name="buscar" id="buscarsuperior" maxlength="50" placeholder="buscar"></form>
+
+
+	    <nav id="menuhorizontal">
+			<span id="btnmenu" onclick="mostrarMenu()">☰&darr;</span>
+			<a href="index.php">Inicio</a>
+			<a href="pueblos.php">Pueblos</a>
+			<a href="eventos.php">Eventos</a>
+			<a target="_blank" href="https://webmail.ronda.net/">Web-Mail</a>
+			<a target="_blank" href="https://www.ronda.net">Ronda.net</a>
+	    </nav>
+
+
+	   	<div id="social">
+			<a id="twitter" target="_blank" href="https://twitter.com/arundanet"><img src="../img/twitter.png" alt="Sígenos en twitter"></a>
+		</div>
+
+		<script>
+			var encabezado = document.getElementById('encabezado');
+			encabezado.style.background = "url('../img/overlay.png') repeat-x bottom left, url('../img/encabezados/0" + String(Math.floor(Math.random() * 9) + 1) + ".webp') no-repeat bottom center";
+		</script>
+
+	</header>
+
+	
+	<main>
+
+		
+	<nav id="menu">
+
+	<!--
+		<img src="../img/lazo.png" alt="Por el accidente de tráfico">
+		<br>
+		<br>
+	-->
+
+		<h2>Empresas de la Serranía</h2>
+
+
+		<a href="empresas.php?categoria=1"><strong>Hoteles</strong></a>
+		<a href="empresas.php?categoria=2">Apartamentos</a>
+		<a href="empresas.php?categoria=3">Servicios turísticos</a>
+		<a href="empresas.php?categoria=4"><strong>Turismo Rural</strong></a>
+		<a href="empresas.php?categoria=24">Campings y Áreas</a>
+		<a href="empresas.php?categoria=5"><strong>Restaurantes</strong></a>
+		<a href="empresas.php?categoria=25"><strong>De tapas</strong></a>
+		<a href="empresas.php?categoria=26"><strong>Cafeterías</strong></a>
+		<a href="empresas.php?categoria=6">Alimentación</a>
+		<a href="empresas.php?categoria=7">Comercio</a>
+		<a href="empresas.php?categoria=8">Arte y Cultura</a>
+		<a href='empresas.php?categoria=10'>Vehículos y seguros</a><a href='empresas.php?categoria=11'>Hogar y decoración</a><a href='empresas.php?categoria=12'>Jardinería</a><a href='empresas.php?categoria=13'>Asesores y gestores</a><a href='empresas.php?categoria=14'>Animales</a><a href='empresas.php?categoria=15'>Educación</a><a href='empresas.php?categoria=16'>Publicidad</a><a href='empresas.php?categoria=17'>Salud y belleza</a><a href='empresas.php?categoria=18'>Deportes</a>		<a href="empresas.php?categoria=27">Moda y Complementos</a>
+		<a href="empresas.php?categoria=9">Reparaciones</a>
+		<a href="empresas.php?categoria=23">Construcción</a>
+
+		<br>
+
+		<h2>Serranía de Ronda</h2>
+		<a href="empresas.php?categoria=22">Secciones y Pueblos</a>
+		<a href="eventos.php">Eventos</a>
+		<a target="_blank" href="http://www.aemet.es/es/eltiempo/prediccion/comunidades?w=12&amp;k=and">El Tiempo</a>
+		<a href="empresas.php?categoria=20">Asociaciones</a>
+		<a href="empresas.php?categoria=21">Hermandades</a>
+		<a href="empresas.php?categoria=19">Enlaces</a>
+
+	</nav>
+
+		<div id="contenido">
+
+		<h1>Eventos en la Serranía</h1><form class='buscadores' action='eventos.php' method='get'><strong>Búsqueda de eventos entre fechas:</strong> <span>de <input type='date' name='fecha1' size='15' value=''></span><span>a <input type='date' name='fecha2' size='15' value=''></span><span><input type='submit' value='Buscar' class='botonbuscar'></span></form><form class='buscadores' action='eventos.php' method='get'><strong>Búsqueda de eventos por palabras clave: </strong> <span><input name='buscar' maxlength='50'></span> <span><input type='submit' value='Buscar' class='botonbuscar'></span> <a href='fiestaslocales.php'>Calendario de Fiestas Locales</a></form><a class='vevent' href='../eventos/backyard-mgi-ronda'><span class='summary'>Backyard MGI Ronda</span><abbr class='dtstart' title='2026-10-03'></abbr><abbr class='dtend' title='2026-10-03'></abbr><span class='detalles'><strong class='location'>Ronda, </strong> 3 de octubre de 2026</span><span class='description'>Segunda edici&oacute;n de la Backyard MGI Ronda 2026
+Circuito de 6,7 km - Modalidad Backyard Ultra
+Premios y novedades:
+
+500 &euro; para los ganadores femenino y masculino (Patrocinado por MGI).
+150 &euro; en material deportivo (Patrocinado por Harman Bikes y Bar Copas Terraza El Castillo) para los 3 primeros/as en completar 10 vueltas (67 km) ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/cnt-cross-trail'><img class='cartel' src='https://i.postimg.cc/jSM8wtcp/cnt-cross-trail.jpg' alt='CÑT Cross Trail'><span class='summary'>CÑT Cross Trail</span><abbr class='dtstart' title='2026-09-26'></abbr><abbr class='dtend' title='2026-09-26'></abbr><span class='detalles'><strong class='location'>Cañete la Real, </strong> 26 de septiembre de 2026</span><span class='description'>IX C&Ntilde;T Cross Trail de Ca&ntilde;ete La Real 2026
+Modalidades 12 y 26 Km
+Inscripci&oacute;n en dorsalchip.es
+&nbsp;
+</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/media-maraton-mtb-batalla-de-la-estrella-teba'><img class='cartel' src='https://i.postimg.cc/HLMwVpK8/mtb-estrella.jpg' alt='Media Maratón MTB Batalla de la Estrella'><span class='summary'>Media Maratón MTB Batalla de la Estrella</span><abbr class='dtstart' title='2026-09-13'></abbr><abbr class='dtend' title='2026-09-13'></abbr><span class='detalles'><strong class='location'>Teba, </strong> 13 de septiembre de 2026</span><span class='description'>I Media Marat&oacute;n MTB Batalla de la Estrella en la Villa Condal de TebaSi te apasiona el MTB, la aventura y los retos que ponen a prueba tus l&iacute;mites&hellip; &iexcl;esta es tu cita!Prep&aacute;rate para vivir una experiencia &uacute;nica en un entorno espectacular, rodeado de naturaleza y con un recorrido dise&ntilde;ado para disfrutar y ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/vuelta-ciclista-espana-2026-etapa-19'><img class='cartel' src='https://i.postimg.cc/XJY4phps/la-vuelta-ronda.jpg' alt='Vuelta Ciclista a España 2026. Etapa 19'><span class='summary'>Vuelta Ciclista a España 2026. Etapa 19</span><abbr class='dtstart' title='2026-09-11'></abbr><abbr class='dtend' title='2026-09-11'></abbr><span class='detalles'><strong class='location'>Alozáina, Yunquera, El Burgo, Ronda, </strong> 11 de septiembre de 2026</span><span class='description'>La Vuelta 2026. Etapa 19
+Desde Velez-M&aacute;laga a Estepona, pasando por Parque Nacional Sierra de las Nieves, Ronda y la Serran&iacute;a
+Puntos de inter&eacute;s
+
+Aloz&aacute;ina
+Puerto de las Abejas (Cat. 2)
+Yunquera
+El Burgo
+Puerto de los Empedrados&nbsp;(Cat. 3)
+Puerto del Viento
+Ronda
+Puerto Cerro Moj&oacute;n&nbsp;(Cat. 3)
+Puert ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/jornadas-montana-barranquismo-espeleologia-ronda'><img class='cartel' src='https://i.postimg.cc/W4JSPT0h/jornadas.jpg' alt='IV Jornadas de Montaña, Barranquismo y Espeleología de Ronda'><span class='summary'>IV Jornadas de Montaña, Barranquismo y Espeleología de Ronda</span><abbr class='dtstart' title='2026-09-11'></abbr><abbr class='dtend' title='2026-09-13'></abbr><span class='detalles'><strong class='location'>Ronda, </strong> del 11 al 13 de septiembre de 2026</span><span class='description'>Cuartas Jornadas de Monta&ntilde;a, Barranquismo y Espeleolog&iacute;a de Ronda 2026
+La ciudad de Ronda acoger&aacute; del 11 al 13 de septiembre de 2026 las Cuartas Jornadas de Monta&ntilde;a, Barranquismo y Espeleolog&iacute;a, un evento que convertir&aacute; a la Serran&iacute;a en epicentro del deporte y la aventura. El programa incluye exhibi ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/concurso-de-indumentaria-y-atalaje-ecuestre'><img class='cartel' src='https://i.postimg.cc/xdQtvBWg/concurso-ecuestre.jpg' alt='XVII Concurso de Indumentaria y Atalaje Ecuestre'><span class='summary'>XVII Concurso de Indumentaria y Atalaje Ecuestre</span><abbr class='dtstart' title='2026-09-03'></abbr><abbr class='dtend' title='2026-09-03'></abbr><span class='detalles'><strong class='location'>Ronda, </strong> 3 de septiembre de 2026</span><span class='description'>Edici&oacute;n 2026 del Concurso de Indumentaria y Atalaje Ecuestre de la Feria de Ronda.
+Se organiza para potenciar el buen vestir y las buenas formas en un paseo a caballo durante un evento como la feria
+Categor&iacute;as:
+
+Jinete y amazona
+Infantil
+Jinete con grupa
+Enganche
+Atalaje ronde&ntilde;o
+entre otros
+
+
+
+
+</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/feria-de-pedro-romero-ronda-2026'><img class='cartel' src='https://i.postimg.cc/nL3MdJ9R/Feria-de-Pedro-Romero-Ronda-2026.jpg' alt='Feria y Fiestas de Pedro Romero - Ronda 2026'><span class='summary'>Feria y Fiestas de Pedro Romero - Ronda 2026</span><abbr class='dtstart' title='2026-09-01'></abbr><abbr class='dtend' title='2026-09-06'></abbr><span class='detalles'><strong class='location'>Ronda, </strong> del 1 al 6 de septiembre de 2026</span><span class='description'>Feria y fiestas de Pedro Romero 2026Feria de Septiembre de Ronda
+&nbsp;
+
+
+Cartel
+
+
+
+Obra de Pilar Serratosa
+
+
+
+
+Historia
+
+La Feria de Pedro Romero de Ronda es una de las celebraciones m&aacute;s  emblem&aacute;ticas de la Serran&iacute;a, con ra&iacute;ces que se remontan al siglo XIX.  Originalmente, la feria se celebraba en el barr ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/carrera-nocturna-benefica-entre-castanos-y-rios-igualeja'><img class='cartel' src='https://i.postimg.cc/RFz7G1jx/carrera-nocturna-benefica-igualeja.jpg' alt='Carrera Nocturna Benéfica entre Castaños y Ríos'><span class='summary'>Carrera Nocturna Benéfica entre Castaños y Ríos</span><abbr class='dtstart' title='2026-08-29'></abbr><abbr class='dtend' title='2026-08-29'></abbr><span class='detalles'><strong class='location'>Igualeja, </strong> 29 de agosto de 2026</span><span class='description'>Carrera Nocturna Ben&eacute;fica de Igualeja 2026 - Entre Casta&ntilde;os y R&iacute;os
+Corre bajo la Luna, corre por una buena causa
+12 Km
+Inscripci&oacute;n 12 euros. a beneficio de Fundaci&oacute;n CUDECA
+&nbsp;
+</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/galas-folkloricas-internacionales-ronda'><img class='cartel' src='https://i.postimg.cc/jdkphqX7/galas-folkloricas.jpg' alt='Galas Folklóricas Internacionales de Ronda'><span class='summary'>Galas Folklóricas Internacionales de Ronda</span><abbr class='dtstart' title='2026-08-28'></abbr><abbr class='dtend' title='2026-08-30'></abbr><span class='detalles'><strong class='location'>Ronda, </strong> del 28 al 30 de agosto de 2026</span><span class='description'>Galas Folkl&oacute;ricas Internacionales. 52&ordf; Edici&oacute;n. Feria de Ronda 2026
+Grupos Participantes
+
+Turqu&iacute;a
+India
+M&eacute;xico
+Francia
+Isla de Pascua
+Ciudad Real (Espa&ntilde;a)
+Ronda (Espa&ntilde;a)
+
+&nbsp;
+Venta de entradas: Hispania Flamenco. Calle Lorenzo Borrego, 12 local. Ronda y los d&iacute;as de espect&aacute;c ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/feria-de-el-burgo'><img class='cartel' src='https://i.postimg.cc/8CC7KRbW/feria-de-el-burgo.jpg' alt='Feria de El Burgo'><span class='summary'>Feria de El Burgo</span><abbr class='dtstart' title='2026-08-27'></abbr><abbr class='dtend' title='2026-08-30'></abbr><span class='detalles'><strong class='location'>El Burgo, </strong> del 27 al 30 de agosto de 2026</span><span class='description'>Feria y Fiestas patronales de El Burgo 2026
+Feria de San Agust&iacute;n
+&nbsp;
+M&aacute;s informaci&oacute;n en www.elburgo.es
+&nbsp;
+&nbsp;
+
+Cartel ganador del Concurso, por Agust&iacute;n Narv&aacute;ez Berlanga</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/festival-de-cante-grande-de-ronda'><img class='cartel' src='https://i.postimg.cc/ry4RTzdN/festival-de-cante-grande-de-Ronda-2026.jpg' alt='Festival de Cante Grande de Ronda 2026'><span class='summary'>Festival de Cante Grande de Ronda 2026</span><abbr class='dtstart' title='2026-08-22'></abbr><abbr class='dtend' title='2026-08-22'></abbr><span class='detalles'><strong class='location'>Ronda, </strong> 22 de agosto de 2026</span><span class='description'>El flamenco toma las Murallas del Carmen: Llega el LVI Festival de Cante Grande de Ronda
+Ronda se prepara para vivir una de las noches m&aacute;s m&aacute;gicas y profundas de su calendario cultural. En el marco de la emblem&aacute;tica Feria de Ronda, el pr&oacute;ximo s&aacute;bado 22 de agosto de 2026 se celebrar&aacute; la quincuag&eacute;sima ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/tagarnina-fest-danzar-flamenco-algodonales'><img class='cartel' src='https://i.postimg.cc/J0nX0pf4/tagarnina-fest.jpg' alt='Tagarnina Fest. Danzar entorno al Flamenco'><span class='summary'>Tagarnina Fest. Danzar entorno al Flamenco</span><abbr class='dtstart' title='2026-08-20'></abbr><abbr class='dtend' title='2026-08-22'></abbr><span class='detalles'><strong class='location'>Algodonales, </strong> del 20 al 22 de agosto de 2026</span><span class='description'>Tagarnina Fest 2026. Danzar entorno al Flamenco
+Talleres comarcales de flamenco. 2&ordf; Edici&oacute;n
+&nbsp;
+Alejandro Rodr&iacute;guez"Tor pueblo a la plaza a bailar por tangos" -Master Class Familiar-
+M. &Aacute;ngeles Gabald&oacute;nRafael CampalloJos&eacute; AnilloManuel GagoJ. Antonio G&oacute;mezGala Flamenca -De Tablao-
+DDCdanza / Dan ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/nombramiento-diego-del-gastor-hijo-predilecto-de-arriate'><img class='cartel' src='https://i.postimg.cc/1RgMcv9S/dorantes.jpg' alt='Nombramiento de Diego del Gastor como Hijo Predilecto de Arriate'><span class='summary'>Nombramiento de Diego del Gastor como Hijo Predilecto de Arriate</span><abbr class='dtstart' title='2026-08-20'></abbr><abbr class='dtend' title='2026-08-20'></abbr><span class='detalles'><strong class='location'>Arriate, Ronda, </strong> 20 de agosto de 2026</span><span class='description'>Asociaci&oacute;n Cultural Rinc&oacute;n Flamenco de Arriate
+Programaci&oacute;n especial por la conmemoraci&oacute;n del Nombramiento de Diego del Gastor como Hijo Predilecto de Arriate
+Dorantes artista invitado Rafael de Utrera
+Donativo socios 30 Euros - No socios 38 euros
+&nbsp;
+</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/pinsapo-sound'><img class='cartel' src='https://i.postimg.cc/GpRVn813/pinsapo-sound.jpg' alt='Pinsapo Sound'><span class='summary'>Pinsapo Sound</span><abbr class='dtstart' title='2026-08-14'></abbr><abbr class='dtend' title='2026-08-16'></abbr><span class='detalles'><strong class='location'>Ronda, </strong> del 14 al 16 de agosto de 2026</span><span class='description'>Pinsapo Sound Ronda 2026
+Ronda se prepara para una nueva edici&oacute;n del festival que llena de m&uacute;sica y vida las noches de agosto.
+Conciertos:
+
+14 agosto:&nbsp;Tributo al Canto del Loco (Llanito del Loco)
+15 agosto:&nbsp;Javi Medina
+16 agosto:&nbsp;L&iacute;der J
+
+Entrada libre
+&nbsp;
+
+&nbsp;</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/ntc-no-te-cortxs'><img class='cartel' src='https://i.postimg.cc/FHkXxTdp/no-te-cortes.jpg' alt='NTC No te Cortxs'><span class='summary'>NTC No te Cortxs</span><abbr class='dtstart' title='2026-08-14'></abbr><abbr class='dtend' title='2026-08-15'></abbr><span class='detalles'><strong class='location'>Cortes de la Frontera, </strong> del 14 al 15 de agosto de 2026</span><span class='description'>NTC No te Cortxs Festival en Cortes de la Frontera 2026Los pr&oacute;ximos 14 y 15 de agosto, nuestro municipio se convertir&aacute; en un gran espacio de encuentro para la cultura, la creatividad y la participaci&oacute;n ciudadana.
+
+Conciertos
+Cinef&oacute;rums
+Rutas guiadas
+Talleres
+Y muchas m&aacute;s actividades
+
+Actuaciones
+
+Miguel  ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/festival-poesia-musica-jubrique-abolongo'><img class='cartel' src='https://i.postimg.cc/DyB9mpt0/abolongo-jubrique.jpg' alt='III Festival de Poesía y Música de Jubrique. Abolongo'><span class='summary'>III Festival de Poesía y Música de Jubrique. Abolongo</span><abbr class='dtstart' title='2026-08-06'></abbr><abbr class='dtend' title='2026-08-08'></abbr><span class='detalles'><strong class='location'>Jubrique, </strong> del 6 al 8 de agosto de 2026</span><span class='description'>ABOLONGO. III Festival de Poes&iacute;a y M&uacute;sica de Jubrique 2026
+&nbsp;
+</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/carrera-urbana-nocturna-de-setenil'><img class='cartel' src='https://i.postimg.cc/NGmvJtYj/nocturna-setenil.jpg' alt='III Carrera Nocturna de Setenil'><span class='summary'>III Carrera Nocturna de Setenil</span><abbr class='dtstart' title='2026-08-01'></abbr><abbr class='dtend' title='2026-08-01'></abbr><span class='detalles'><strong class='location'>Setenil, </strong> 1 de agosto de 2026</span><span class='description'>III Carrera Urbana Nocturna de Setenil 2026
+&iexcl;Qu&eacute; planazo para el verano! Correr por Setenil de las Bodegas de noche debe ser una experiencia incre&iacute;ble, sobre todo con ese recorrido bajo las rocas que hace al pueblo tan especial.
+
+&nbsp; &nbsp; Distancia: 5 KM (ideal tanto para corredores habituales como para quienes quieran d ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/verbena-del-tren-estacion-benaojan'><img src='../archivos//miniaturas/tren.jpg' alt='XXXVIII Verbena del tren' title=''><span class='summary'>XXXVIII Verbena del tren</span><abbr class='dtstart' title='2026-07-31'></abbr><abbr class='dtend' title='2026-08-01'></abbr><span class='detalles'><strong class='location'>Benaoján, </strong> del 31 de julio al 1 de agosto de 2026</span><span class='description'>Fiestas de la estaci&oacute;n de Benaojan
+Edici&oacute;n 2026
+&nbsp;
+&nbsp;</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/pueblos-blancos-music-festival'><img class='cartel' src='https://i.postimg.cc/ZYQYh2TL/pueblos-blancos-music-festival.jpg' alt='Pueblos Blancos Music Festival'><span class='summary'>Pueblos Blancos Music Festival</span><abbr class='dtstart' title='2026-07-30'></abbr><abbr class='dtend' title='2026-08-02'></abbr><span class='detalles'><strong class='location'>Montejaque, Ronda, Cortes de la Frontera, </strong> del 30 de julio al 2 de agosto de 2026</span><span class='description'>Pueblos Blancos Music Festival 2026
+Estas son las Bandas que actuar&aacute;n en la novena edici&oacute;n de la Fiesta (del 30 de julio al 2 de agosto de 2026) en Montejaque, Ronda y Cortes de la Frontera.
+
+Joe King Carrasco (El Mundo)
+Los Widow Makers (Madrid, ES)
+Blueroomess (Barcelona, ES)
+Brian Ashley Jones &amp; Melanie Jean (Nashville, T ...</span><br style='clear:right'></a>
+<a class='vevent' href='../eventos/concierto-azucar-moreno'><img class='cartel' src='https://i.postimg.cc/B6v0t854/azucar-moreno-parauta.jpg' alt='Concierto de Azúcar Moreno en Paráuta'><span class='summary'>Concierto de Azúcar Moreno en Paráuta</span><abbr class='dtstart' title='2026-07-30'></abbr><abbr class='dtend' title='2026-07-30'></abbr><span class='detalles'><strong class='location'>Paráuta, </strong> 30 de julio de 2026</span><span class='description'>Concierto de Az&uacute;car Moreno en Par&aacute;uta 2026
+Con sus grandes &eacute;xitos
+
+Bandido
+S&oacute;lo se vive una vez
+Desde que t&uacute; te has ido
+H&aacute;blame de &eacute;l
+
+y mucho m&aacute;s...
+&nbsp;
+&nbsp;
+</span><br style='clear:right'></a>
+<div id='paginacion'>Página <a id='actual' href='eventos.php?pagina=1'>1</a><a  href='eventos.php?pagina=2'>2</a><a  href='eventos.php?pagina=3'>3</a><a  href='eventos.php?pagina=4'>4</a><a  href='eventos.php?pagina=5'>5</a><a  href='eventos.php?pagina=6'>6</a><a  href='eventos.php?pagina=7'>7</a><a  href='eventos.php?pagina=8'>8</a><a  href='eventos.php?pagina=9'>9</a><a  href='eventos.php?pagina=10'>10</a><a  href='eventos.php?pagina=11'>11</a><a  href='eventos.php?pagina=12'>12</a><a  href='eventos.php?pagina=13'>13</a><a  href='eventos.php?pagina=14'>14</a><a  href='eventos.php?pagina=15'>15</a><a  href='eventos.php?pagina=16'>16</a><a  href='eventos.php?pagina=17'>17</a><a  href='eventos.php?pagina=18'>18</a><a  href='eventos.php?pagina=19'>19</a><a  href='eventos.php?pagina=20'>20</a></div><p>Para encontrar más eventos, puedes usar nuestro buscador especializado</p><br><form action='eventos.php' method='get'><input name='buscar' id='buscar' maxlength='50'></form><br><br><a href='fiestaslocales.php'>Calendario de Fiestas Locales</a>
+<div id="clientes2">
+	<p>Publicidad</p>
+
+	<a target="_blank" href="https://www.rpedroromero.com/">		<img src="../logos/pedroromero.jpg" alt="Restaurante Pedro Romero">Ronda</a>
+	<a target="_blank" href="https://www.restaurantejerez.com/">	<img src="../logos/jerez.jpg" alt="Restaurante Jerez">Ronda</a>
+	<a target="_blank" href="https://www.campingelsur.com/">		<img src="../logos/camping-el-sur.jpg" alt="Camping El Sur">Camping</a>
+
+	<br style="clear:both;">
+</div>
+
+
+
+		</div>
+
+
+	</main>
+	
+
+	<footer>
+
+		<a target="_blank" href="https://www.arundanet.com" id="logoinferior"><img src="../img/arundanet.png" alt="Servicios de Internet Arundanet"></a>
+
+
+
+
+
+		<p class="adr">
+			<strong>Desde 1999 ofrecido por <span class="fn n">Servicios de Internet Arundanet S.L.</span></strong>
+			<br>
+			<span class="street-address">Calle Juan José de Puya, 12</span> -
+			<span class="postal-code">29400</span> 
+			<span class="locality">RONDA</span> 
+			(<span class="region">Málaga</span>)
+			<br> 
+			Tel: <span class="tel">952 16 11 48</span>
+			<a class="email" href="mailto:arundanet@arundanet.com">arundanet@arundanet.com</a>
+		</p>
+
+		<abbr class="geo" title="36.743258; -5.162147"></abbr>
+
+		<p>
+		<a href="legal.php">Aviso Legal</a>
+		<a href="legal.php#prd">Privacidad</a>
+		<a target="_blank" href="https://www.microfuturo.com/es/contactar.php">Contactar</a>
+		</p>
+
+		<p>
+			<a target="_blank" href="https://validator.w3.org/check?uri=referer"><img src="../img/icohtml.png" alt="XHTML" title="HTML5 Válido"></a>
+			<a target="_blank" href="https://jigsaw.w3.org/css-validator/check/referer?profile=css3"><img src="../img/icocss.png" alt="CSS" title="CSS Válido"></a>
+			<a target="_blank" href="https://www.w3.org/WAI/WCAG1A-Conformance"><img src="../img/icowai.png" alt="WAI A" title="Web Accesible"></a>
+		</p>
+
+	</footer>
+
+	
+<div id='cookieinfo'>Este sitio web usa cookies de Google para hacer estadísticas. Si continúa navegando entendemos que las acepta. <a class='boton' href='#' onclick='cerrarcookies();'>Aceptar</a> <a href='legal.php#cookies'>Más información</a> <a href='#' onclick='cerrarcookies();'><img src='../img/cerrar.png' alt='Cerrar'></a></div>
+
+
+</div>
+
+</body>
+</html>
