@@ -31,10 +31,16 @@ export interface CatalogVenue {
   city: string;
   zone: VenueZone;
   kind: VenueKind;
+  /**
+   * Secondary kinds this venue also belongs to, for filter buttons.
+   * Ex: Teatro Romano is `exterior` but also surfaces under Teatros.
+   */
+  extraKinds?: VenueKind[];
   status?: VenueStatus;
   tags?: string[];
   searchAliases?: string[];
 }
+
 
 export const VENUE_ZONES: Array<{ id: VenueZone; label: string }> = [
   { id: 'malaga-ciudad', label: 'Málaga capital' },
@@ -67,7 +73,7 @@ export const VENUES_CATALOG: CatalogVenue[] = [
   M({ slug: 'teatro-echegaray', name: 'Teatro Echegaray', kind: 'teatro', searchAliases: ['echegaray', 'factoria echegaray'] }),
   M({ slug: 'teatro-soho-caixabank', name: 'Teatro del Soho CaixaBank', kind: 'teatro', searchAliases: ['soho', 'antonio banderas'] }),
   M({ slug: 'teatro-canovas', name: 'Teatro Cánovas', kind: 'teatro', searchAliases: ['canovas'] }),
-  M({ slug: 'teatro-romano', name: 'Teatro Romano', kind: 'exterior', tags: ['patrimonio'], searchAliases: ['romano'] }),
+  M({ slug: 'teatro-romano', name: 'Teatro Romano', kind: 'exterior', extraKinds: ['teatro'], tags: ['patrimonio'], searchAliases: ['romano'] }),
 
   // ═══════ Málaga capital — Auditorios ═══════
   M({ slug: 'auditorio-edgar-neville', name: 'Auditorio Edgar Neville', kind: 'auditorio', searchAliases: ['edgar neville', 'neville'] }),

@@ -11,11 +11,14 @@ import { useVenues } from '@/hooks/useVenues';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   filterMerged,
+  groupCapital,
   mergeVenues,
   normalize,
+  venueMatchesKinds,
   type MergedVenue,
 } from '@/lib/venueFilters';
 import type { VenueKind } from '@/lib/venuesCatalog';
+
 
 /**
  * Premium venue navigation.
@@ -174,7 +177,6 @@ export function VenueKindFilter({
 
   const [openKind, setOpenKind] = useState<Kind | null>(null);
   const [search, setSearch] = useState('');
-  const [showCatalog, setShowCatalog] = useState(false);
   const [draft, setDraft] = useState<string[]>([]);
 
   const merged = useMemo(() => mergeVenues(venues), [venues]);
@@ -191,58 +193,60 @@ export function VenueKindFilter({
   useEffect(() => {
     if (openKind) {
       setSearch('');
-      setShowCatalog(false);
       setDraft(selectedVenueIds);
     }
   }, [openKind]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Filter by kind button — considers extraKinds so Teatro Romano appears in Teatros.
   const kindPreFiltered = useMemo(() => {
     if (!openKind) return [];
     const kinds = KIND_TO_KINDS[openKind];
-    return kinds === 'all' ? merged : merged.filter((v) => kinds.includes(v.kind));
+    return kinds === 'all' ? merged : merged.filter((v) => venueMatchesKinds(v, kinds));
   }, [merged, openKind]);
 
+  // Search filter (accent-insensitive) — applied on top of kind pre-filter.
   const filtered = useMemo(
     () => filterMerged(kindPreFiltered, { category: 'all', search, priorityCities }),
     [kindPreFiltered, search, priorityCities],
   );
 
-  const activeItems = useMemo(() => filtered.filter((v) => v.hasEvents), [filtered]);
-  const catalogItems = useMemo(() => filtered.filter((v) => !v.hasEvents), [filtered]);
+  // Split capital / provincia. Both include catalog-only rows.
+  const capitalItems = useMemo(
+    () => filtered.filter((v) => v.zone === 'malaga-ciudad'),
+    [filtered],
+  );
+  const provinciaItems = useMemo(
+    () => filtered.filter((v) => v.zone !== 'malaga-ciudad'),
+    [filtered],
+  );
 
-  // Group active items by "priority locality → Málaga capital → other cities".
-  const sections = useMemo(() => {
+  // Group capital by category (Teatros y auditorios, Salas, etc.)
+  const capitalGroups = useMemo(() => groupCapital(capitalItems), [capitalItems]);
+
+  // Group provincia by city (Málaga capital always first is a no-op here).
+  const provinciaByCity = useMemo(() => {
     const priority = (priorityCities ?? []).map(normalize).filter(Boolean);
     const buckets = new Map<string, MergedVenue[]>();
-    const push = (key: string, v: MergedVenue) => {
-      const arr = buckets.get(key) ?? [];
+    for (const v of provinciaItems) {
+      const arr = buckets.get(v.city) ?? [];
       arr.push(v);
-      buckets.set(key, arr);
-    };
-    for (const v of activeItems) {
-      const cityNorm = normalize(v.city);
-      const isPriority = priority.some((p) => cityNorm.includes(p));
-      if (isPriority) push(`p:${v.city}`, v);
-      else if (v.zone === 'malaga-ciudad') push('capital', v);
-      else push(`c:${v.city}`, v);
+      buckets.set(v.city, arr);
     }
-    const keys = Array.from(buckets.keys());
-    const order = (k: string) => (k.startsWith('p:') ? 0 : k === 'capital' ? 1 : 2);
-    keys.sort((a, b) => {
-      const oa = order(a);
-      const ob = order(b);
-      if (oa !== ob) return oa - ob;
+    const cities = Array.from(buckets.keys()).sort((a, b) => {
+      const ap = priority.some((p) => normalize(a).includes(p)) ? 0 : 1;
+      const bp = priority.some((p) => normalize(b).includes(p)) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
       return a.localeCompare(b, 'es');
     });
-    return keys.map((k) => ({
-      key: k,
-      label:
-        k === 'capital'
-          ? t('events.sectionCapital', 'Málaga capital')
-          : k.slice(2),
-      items: buckets.get(k)!,
+    return cities.map((c) => ({
+      key: c,
+      label: c,
+      items: (buckets.get(c) ?? []).sort((a, b) => a.name.localeCompare(b.name, 'es')),
     }));
-  }, [activeItems, priorityCities, t]);
+  }, [provinciaItems, priorityCities]);
+
+  const totalCount = filtered.length;
+  const capitalCount = capitalItems.length;
 
   const toggleDraft = useCallback((id: string | null) => {
     if (!id) return;
@@ -251,11 +255,10 @@ export function VenueKindFilter({
 
   const handleApply = useCallback(() => {
     if (draft.length === 0 && openKind && openKind !== 'all') {
-      // "Mostrar todas las salas / todos los teatros" → select every DB-backed
-      // venue of that kind (respects current locality priority filter? No — use ALL kinds).
+      // Empty draft → select every DB-backed venue matching this kind button.
       const kinds = KIND_TO_KINDS[openKind];
       const all = merged.filter(
-        (v) => v.hasEvents && v.id && kinds !== 'all' && kinds.includes(v.kind),
+        (v) => v.hasEvents && v.id && kinds !== 'all' && venueMatchesKinds(v, kinds),
       );
       onVenueIdsChange(all.map((v) => v.id!) as string[]);
     } else {
@@ -287,12 +290,16 @@ export function VenueKindFilter({
   const applyLabel = (() => {
     if (draft.length === 1) return t('events.showOneVenue', 'Mostrar 1 recinto');
     if (draft.length > 1)
-      return t('events.showNVenues', { count: draft.length, defaultValue: `Mostrar ${draft.length} recintos` });
+      return t('events.showNVenues', {
+        count: draft.length,
+        defaultValue: `Mostrar ${draft.length} recintos`,
+      });
     // Empty draft → contextual "Mostrar all X"
     if (openKind === 'salas') return t('events.showAllHalls', 'Mostrar todas las salas');
     if (openKind === 'teatros') return t('events.showAllTheaters', 'Mostrar todos los teatros');
     return t('events.showAll', 'Mostrar todo');
   })();
+
 
   const body = (
     <div className="flex flex-col h-full min-h-0">
@@ -331,7 +338,7 @@ export function VenueKindFilter({
             <div className="py-8 text-center text-sm text-destructive">
               {t('errors.generic', 'Error al cargar')}
             </div>
-          ) : sections.length === 0 && catalogItems.length === 0 ? (
+          ) : totalCount === 0 ? (
             <div className="py-10 px-4 text-center">
               <p className="text-sm font-medium text-foreground">
                 {t('events.venuesEmptyTitle', 'Sin recintos que coincidan')}
@@ -342,47 +349,57 @@ export function VenueKindFilter({
             </div>
           ) : (
             <>
-              {sections.map((section, idx) => (
-                <SectionBlock
-                  key={'a-' + section.key}
-                  label={section.label}
-                  items={section.items}
-                  selectedIds={draft}
-                  onToggle={toggleDraft}
-                  highlight={highlight}
-                  className={idx > 0 ? 'mt-3' : ''}
-                />
-              ))}
-
-              {catalogItems.length > 0 && (
-                <div className="mt-3 border-t pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowCatalog((s) => !s)}
-                    className="w-full text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1.5 hover:text-foreground transition-colors"
-                  >
-                    {showCatalog
-                      ? t('events.venuesHideCatalog', 'Ocultar catálogo completo')
-                      : t('events.venuesShowCatalog', 'Ver catálogo completo')}
-                    <span className="ml-1.5 text-muted-foreground/60 font-normal normal-case">
-                      · {catalogItems.length}
-                    </span>
-                  </button>
-                  {showCatalog && (
+              {/* Málaga capital — full catalog visible, grouped by category */}
+              {capitalCount > 0 && (
+                <div>
+                  <div className="sticky top-0 z-20 bg-popover/95 backdrop-blur-sm px-2 pt-1 pb-2 border-b mb-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground">
+                      <MapPin className="h-3 w-3 text-primary" />
+                      {t('events.sectionCapital', 'Málaga capital')}
+                      <span className="text-muted-foreground/70 font-normal normal-case">
+                        · {capitalCount}
+                      </span>
+                    </div>
+                  </div>
+                  {capitalGroups.map((group, idx) => (
                     <SectionBlock
-                      label={t('events.catalogSectionLabel', 'Sin agenda activa')}
-                      items={catalogItems}
+                      key={'cap-' + group.key}
+                      label={group.label}
+                      items={group.items}
                       selectedIds={draft}
                       onToggle={toggleDraft}
                       highlight={highlight}
-                      className="mt-1"
-                      subdued
+                      className={idx > 0 ? 'mt-2.5' : ''}
                     />
-                  )}
+                  ))}
+                </div>
+              )}
+
+              {/* Provincia — secondary section, cities alphabetical */}
+              {provinciaByCity.length > 0 && (
+                <div className="mt-4 border-t pt-2.5">
+                  <div className="px-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {t('events.sectionProvincia', 'Provincia de Málaga')}
+                    <span className="ml-1.5 text-muted-foreground/60 font-normal normal-case">
+                      · {provinciaItems.length}
+                    </span>
+                  </div>
+                  {provinciaByCity.map((section, idx) => (
+                    <SectionBlock
+                      key={'prov-' + section.key}
+                      label={section.label}
+                      items={section.items}
+                      selectedIds={draft}
+                      onToggle={toggleDraft}
+                      highlight={highlight}
+                      className={idx > 0 ? 'mt-2' : ''}
+                    />
+                  ))}
                 </div>
               )}
             </>
           )}
+
         </div>
       </ScrollArea>
 
@@ -630,13 +647,19 @@ function VenueRow({ venue, selected, onToggle, subdued }: VenueRowProps) {
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={disabled ? undefined : onToggle}
       disabled={disabled}
       aria-pressed={selected}
+      aria-disabled={disabled}
+      title={
+        disabled
+          ? `${venue.name} — ${t('events.venueNoAgendaLong', 'Sin agenda disponible')}`
+          : venue.name
+      }
       className={cn(
         'w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-left transition-colors min-h-[42px]',
         !disabled && 'hover:bg-accent cursor-pointer',
-        disabled && 'opacity-60 cursor-not-allowed',
+        disabled && 'cursor-default',
         selected && 'bg-primary/10',
         subdued && 'opacity-70',
       )}
@@ -646,19 +669,33 @@ function VenueRow({ venue, selected, onToggle, subdued }: VenueRowProps) {
           'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all',
           selected
             ? 'bg-primary border-primary text-primary-foreground'
-            : 'border-border/70 bg-background',
+            : disabled
+              ? 'border-dashed border-border/50 bg-transparent'
+              : 'border-border/70 bg-background',
         )}
         aria-hidden
       >
         {selected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
       </span>
       <div className="flex-1 min-w-0">
-        <div className={cn('text-sm truncate', selected && 'font-medium')}>{venue.name}</div>
-        <div className="text-[11px] text-muted-foreground truncate">
-          {venue.city}
-          {disabled && (
-            <span className="ml-1.5 text-muted-foreground/70">
-              · {t('events.venueNoAgenda', 'sin agenda aún')}
+        <div
+          className={cn(
+            'text-sm truncate',
+            selected && 'font-medium',
+            disabled && 'text-muted-foreground',
+          )}
+        >
+          {venue.name}
+        </div>
+        <div className="text-[11px] text-muted-foreground/80 truncate flex items-center gap-1.5">
+          <span className="truncate">{venue.city}</span>
+          {disabled ? (
+            <span className="shrink-0 inline-flex items-center rounded-full border border-border/50 px-1.5 py-px text-[10px] text-muted-foreground/70">
+              {t('events.venueNoAgendaLong', 'Sin agenda disponible')}
+            </span>
+          ) : (
+            <span className="shrink-0 inline-flex items-center rounded-full bg-primary/10 text-primary px-1.5 py-px text-[10px] font-medium">
+              {t('events.venueHasAgenda', 'Con agenda')}
             </span>
           )}
         </div>
@@ -666,5 +703,6 @@ function VenueRow({ venue, selected, onToggle, subdued }: VenueRowProps) {
     </button>
   );
 }
+
 
 export default VenueKindFilter;
