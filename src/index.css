@@ -438,6 +438,24 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* Auto-scrolling marquee for upcoming highlights */
+@keyframes highlights-marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.highlights-marquee-track {
+  animation: highlights-marquee var(--marquee-duration, 60s) linear infinite;
+  will-change: transform;
+}
+.highlights-marquee:hover .highlights-marquee-track,
+.highlights-marquee:focus-within .highlights-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .highlights-marquee-track { animation: none; }
+}
+
+
 .bottom-nav-dock {
   width: min(calc(100vw - 32px), 360px);
   border-radius: 999px;
