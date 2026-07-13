@@ -75,6 +75,7 @@ import {
 import { EVENT_CATEGORIES } from '@/types';
 import CategoryChip from '@/components/events/CategoryChip';
 import IngestionRegistry from '@/components/admin/IngestionRegistry';
+import SourceHealth from '@/components/admin/SourceHealth';
 
 // Small inline component to show sports_events count
 const SportsEventCount = () => {
@@ -323,6 +324,10 @@ const AdminPage = () => {
             <TabsTrigger value="ingesta" className="flex-1">
               <Database className="h-4 w-4 mr-1" />
               Ingesta
+            </TabsTrigger>
+            <TabsTrigger value="salud" className="flex-1">
+              <BarChart3 className="h-4 w-4 mr-1" />
+              Salud
             </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
@@ -670,6 +675,10 @@ const AdminPage = () => {
 
           <TabsContent value="ingesta" className="space-y-4">
             <IngestionRegistry />
+          </TabsContent>
+
+          <TabsContent value="salud" className="space-y-4">
+            <SourceHealth />
           </TabsContent>
         </Tabs>
       </main>

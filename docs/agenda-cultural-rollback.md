@@ -66,3 +66,19 @@ DROP TABLE IF EXISTS public.municipalities;
 - Las tablas de `sports_*`, `pharmacies_*`, `auth`, y `user_roles` NO se tocan.
 - La ruta frontend `/agenda/:municipalitySlug` es puramente aditiva. Para
   desactivarla, retirar la línea correspondiente en `src/App.tsx`.
+
+## Fase 4-5 · Seed de fuentes prioritarias
+
+Todas las fuentes P0/P1 seedadas en la Fase 4 tienen slug con prefijo `src-` y
+quedan registradas como `enabled=false`, `paused_reason='pending_review'`,
+`adapter_key='pending'`. Para revertir el seed sin tocar fuentes preexistentes:
+
+```sql
+DELETE FROM public.event_sources
+WHERE adapter_key = 'pending'
+  AND slug LIKE 'src-%';
+```
+
+El componente `SourceHealth` (`src/components/admin/SourceHealth.tsx`) es
+puramente presentacional; eliminar el archivo y su import en
+`src/pages/AdminPage.tsx` deshace la Fase 5 sin efectos colaterales.
