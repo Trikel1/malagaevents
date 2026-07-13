@@ -290,7 +290,7 @@ function sectionLabel(
   key: string,
   fallback: string,
   priorityCities: string[] | undefined,
-  t: (k: string, d?: string) => string,
+  t: (k: string, d: string) => string,
 ): string {
   const priority = (priorityCities ?? []).map((c) => c.toLowerCase());
   if (priority.includes(key.toLowerCase())) return fallback; // keep locality name
