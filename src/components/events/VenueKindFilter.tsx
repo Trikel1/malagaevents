@@ -241,7 +241,11 @@ export function VenueKindFilter({
     return cities.map((c) => ({
       key: c,
       label: c,
-      items: (buckets.get(c) ?? []).sort((a, b) => a.name.localeCompare(b.name, 'es')),
+      items: (buckets.get(c) ?? []).sort((a, b) => {
+        if (a.hasEvents !== b.hasEvents) return a.hasEvents ? -1 : 1;
+        return a.name.localeCompare(b.name, 'es');
+      }),
+
     }));
   }, [provinciaItems, priorityCities]);
 
