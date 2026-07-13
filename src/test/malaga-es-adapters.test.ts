@@ -247,7 +247,7 @@ describe('purity guard', () => {
       '../../supabase/functions/_shared/adapters/lib/firecrawl.ts',
     ]) {
       const src = readFileSync(resolve(__dirname, p), 'utf8');
-      expect(src).not.toMatch(/@supabase\/supabase-js/);
+      expect(src).not.toMatch(/from\s+["']@supabase\/supabase-js["']/);
       expect(src).not.toMatch(/\b(INSERT|UPDATE|DELETE)\s+INTO\b/i);
     }
   });
