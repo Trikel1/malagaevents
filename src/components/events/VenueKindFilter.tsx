@@ -338,7 +338,7 @@ export function VenueKindFilter({
             <div className="py-8 text-center text-sm text-destructive">
               {t('errors.generic', 'Error al cargar')}
             </div>
-          ) : sections.length === 0 && catalogItems.length === 0 ? (
+          ) : totalCount === 0 ? (
             <div className="py-10 px-4 text-center">
               <p className="text-sm font-medium text-foreground">
                 {t('events.venuesEmptyTitle', 'Sin recintos que coincidan')}
@@ -349,47 +349,57 @@ export function VenueKindFilter({
             </div>
           ) : (
             <>
-              {sections.map((section, idx) => (
-                <SectionBlock
-                  key={'a-' + section.key}
-                  label={section.label}
-                  items={section.items}
-                  selectedIds={draft}
-                  onToggle={toggleDraft}
-                  highlight={highlight}
-                  className={idx > 0 ? 'mt-3' : ''}
-                />
-              ))}
-
-              {catalogItems.length > 0 && (
-                <div className="mt-3 border-t pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowCatalog((s) => !s)}
-                    className="w-full text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-2 py-1.5 hover:text-foreground transition-colors"
-                  >
-                    {showCatalog
-                      ? t('events.venuesHideCatalog', 'Ocultar catálogo completo')
-                      : t('events.venuesShowCatalog', 'Ver catálogo completo')}
-                    <span className="ml-1.5 text-muted-foreground/60 font-normal normal-case">
-                      · {catalogItems.length}
-                    </span>
-                  </button>
-                  {showCatalog && (
+              {/* Málaga capital — full catalog visible, grouped by category */}
+              {capitalCount > 0 && (
+                <div>
+                  <div className="sticky top-0 z-20 bg-popover/95 backdrop-blur-sm px-2 pt-1 pb-2 border-b mb-1.5">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-foreground">
+                      <MapPin className="h-3 w-3 text-primary" />
+                      {t('events.sectionCapital', 'Málaga capital')}
+                      <span className="text-muted-foreground/70 font-normal normal-case">
+                        · {capitalCount}
+                      </span>
+                    </div>
+                  </div>
+                  {capitalGroups.map((group, idx) => (
                     <SectionBlock
-                      label={t('events.catalogSectionLabel', 'Sin agenda activa')}
-                      items={catalogItems}
+                      key={'cap-' + group.key}
+                      label={group.label}
+                      items={group.items}
                       selectedIds={draft}
                       onToggle={toggleDraft}
                       highlight={highlight}
-                      className="mt-1"
-                      subdued
+                      className={idx > 0 ? 'mt-2.5' : ''}
                     />
-                  )}
+                  ))}
+                </div>
+              )}
+
+              {/* Provincia — secondary section, cities alphabetical */}
+              {provinciaByCity.length > 0 && (
+                <div className="mt-4 border-t pt-2.5">
+                  <div className="px-2 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    {t('events.sectionProvincia', 'Provincia de Málaga')}
+                    <span className="ml-1.5 text-muted-foreground/60 font-normal normal-case">
+                      · {provinciaItems.length}
+                    </span>
+                  </div>
+                  {provinciaByCity.map((section, idx) => (
+                    <SectionBlock
+                      key={'prov-' + section.key}
+                      label={section.label}
+                      items={section.items}
+                      selectedIds={draft}
+                      onToggle={toggleDraft}
+                      highlight={highlight}
+                      className={idx > 0 ? 'mt-2' : ''}
+                    />
+                  ))}
                 </div>
               )}
             </>
           )}
+
         </div>
       </ScrollArea>
 
