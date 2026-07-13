@@ -417,14 +417,13 @@ const CultureEventsPage = () => {
             </form>
           )}
 
-          {/* Row 2: Venue selector with search and multi-select */}
-          <VenueGroupDropdown
-            selectedGroup={selectedVenueGroup}
+          {/* Row 2: Venue kind buttons opening pre-filtered picker */}
+          <VenueKindFilter
             selectedVenueIds={selectedVenueIds}
-            onGroupChange={setSelectedVenueGroup}
             onVenueIdsChange={setSelectedVenueIds}
             priorityCities={priorityCities}
           />
+
 
 
           {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
