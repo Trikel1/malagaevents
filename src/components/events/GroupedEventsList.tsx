@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format, isToday, isTomorrow, isSameDay } from 'date-fns';
+import type { TFunction } from 'i18next';
+import { format, isToday, isTomorrow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import EventCard from '@/components/events/EventCard';
+import type { Event } from '@/types';
 import EventCard from '@/components/events/EventCard';
 import type { Event } from '@/types';
 
