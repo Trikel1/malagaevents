@@ -53,11 +53,15 @@ type Row = {
   fatalError?: string;
 };
 
-// Adapters explicitly SKIPPED here (opt-out list): placeholder or
-// non-parsing adapters we don't want to hit live in the harness.
+// Adapters explicitly SKIPPED from the global coverage harness. They
+// still have their own dedicated `*.test.ts` harnesses; skipping here
+// avoids Firecrawl rate-limit collisions that would mask real signal
+// from newer adapters.
 const SKIP_KEYS = new Set<string>([
-  // ayto-malaga is the Phase 2A placeholder that returns []; leave it in
-  // to prove infrastructure integrity, but keep it here for future opt-out.
+  // teatro-soho fetches up to 50 detail pages via Firecrawl; running it
+  // inside the global sweep floods the 100 req/min ceiling and forces
+  // subsequent adapters to fetch_failed. Use `teatro-soho.test.ts`.
+  "teatro-soho",
 ]);
 
 // Best-known source metadata (kept local to avoid hitting the DB).
