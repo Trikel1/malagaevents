@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
-import { CalendarIcon, X } from 'lucide-react';
+import { CalendarIcon, X, Baby, Users, Heart, Trees, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+
 import {
   Drawer,
   DrawerClose,
@@ -99,7 +100,37 @@ const FilterDrawer = ({
         </DrawerHeader>
 
         <div className="px-4 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
-          {/* Date Range */}
+          {/* Quick presets — infantil/familiar priorizados arriba */}
+          <div className="space-y-2">
+            <Label>{t('events.quickPresets', 'Accesos rápidos')}</Label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: 'family', label: t('events.family', 'Infantil'), icon: Baby, on: localFilters.familyKids === true, toggle: () => setLocalFilters((p) => ({ ...p, familyKids: p.familyKids ? undefined : true })) },
+                { key: 'free', label: t('common.free', 'Gratis'), icon: Heart, on: localFilters.isFree === true, toggle: () => setLocalFilters((p) => ({ ...p, isFree: p.isFree ? undefined : true })) },
+                { key: 'outdoor', label: t('events.outdoor', 'Al aire libre'), icon: Trees, on: localFilters.isOutdoor === true, toggle: () => setLocalFilters((p) => ({ ...p, isOutdoor: p.isOutdoor ? undefined : true })) },
+                { key: 'tickets', label: t('events.withTickets', 'Con entradas'), icon: Ticket, on: localFilters.withTickets === true, toggle: () => setLocalFilters((p) => ({ ...p, withTickets: p.withTickets ? undefined : true })) },
+                { key: 'weekend', label: t('common.thisWeekend', 'Este finde'), icon: Users, on: localFilters.datePreset === 'weekend', toggle: () => setLocalFilters((p) => ({ ...p, datePreset: p.datePreset === 'weekend' ? undefined : 'weekend' })) },
+              ].map((preset) => (
+                <button
+                  key={preset.key}
+                  type="button"
+                  onClick={preset.toggle}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors min-h-[36px]',
+                    preset.on
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-card hover:bg-accent border-border/60 text-foreground'
+                  )}
+                  aria-pressed={preset.on}
+                >
+                  <preset.icon className="h-3.5 w-3.5" aria-hidden />
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+
           <div className="space-y-3">
             <Label>{t('events.date')}</Label>
             <div className="flex gap-2">
