@@ -460,8 +460,8 @@
 
 .bottom-nav-dock {
   border-radius: 28px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: 4px;
+  padding-right: 4px;
   padding-top: 8px;
   overflow: hidden;
 }
@@ -471,7 +471,7 @@
   display: grid;
   grid-template-columns: repeat(var(--item-count, 5), minmax(0, 1fr));
   align-items: stretch;
-  gap: 4px;
+  gap: 2px;
 }
 
 .bottom-nav-item {
@@ -484,7 +484,7 @@
   justify-content: center;
   overflow: hidden;
   border-radius: 18px;
-  padding: 6px 2px 5px;
+  padding: 6px 0 5px;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   transition: color 260ms var(--liquid-ease), transform 260ms var(--liquid-ease), background-color 320ms var(--liquid-ease);
@@ -492,13 +492,13 @@
 
 .bottom-nav-active-surface {
   position: absolute;
-  inset: 5px 3px 4px;
+  inset: 3px 0 3px;
   z-index: 0;
-  border-radius: 18px;
+  border-radius: 20px;
   pointer-events: none;
   background:
-    radial-gradient(82% 76% at 50% 30%, hsl(var(--primary) / 0.14) 0%, hsl(var(--primary) / 0.08) 56%, transparent 100%),
-    hsl(var(--primary) / 0.055);
+    radial-gradient(92% 86% at 50% 26%, hsl(var(--primary) / 0.14) 0%, hsl(var(--primary) / 0.085) 62%, transparent 100%),
+    hsl(var(--primary) / 0.06);
   opacity: 1;
   transition: opacity 300ms var(--liquid-ease), transform 360ms var(--liquid-ease);
 }
@@ -547,13 +547,13 @@
 
 .bottom-nav-label {
   display: block;
-  width: calc(100% - 2px);
+  width: 100%;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  font-size: 10px;
+  font-size: clamp(9px, 2.75vw, 10.5px);
   line-height: 1.1;
   font-weight: 650;
   letter-spacing: 0;
@@ -561,8 +561,29 @@
 
 .dark .bottom-nav-active-surface {
   background:
-    radial-gradient(82% 76% at 50% 30%, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.11) 56%, transparent 100%),
-    hsl(var(--primary) / 0.075);
+    radial-gradient(92% 86% at 50% 26%, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.12) 62%, transparent 100%),
+    hsl(var(--primary) / 0.08);
+}
+
+@media (min-width: 360px) {
+  .bottom-nav-dock {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .bottom-nav-track {
+    gap: 2px;
+  }
+
+  .bottom-nav-item {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .bottom-nav-active-surface {
+    left: 0;
+    right: 0;
+  }
 }
 
 
