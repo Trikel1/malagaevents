@@ -676,6 +676,10 @@ const AdminPage = () => {
           <TabsContent value="ingesta" className="space-y-4">
             <IngestionRegistry />
           </TabsContent>
+
+          <TabsContent value="salud" className="space-y-4">
+            <SourceHealth />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
