@@ -353,89 +353,61 @@
   --liquid-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Aurora mesh backdrop — soft, non-invasive layered radial gradients.
+   Replaces the previous large animated blobs with a calm, premium mesh. */
 .liquid-backdrop {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: linear-gradient(180deg, hsl(24 90% 97%) 0%, hsl(45 33% 98%) 55%, hsl(200 60% 96%) 100%);
+  background:
+    radial-gradient(60% 45% at 15% 8%, hsl(24 90% 88% / 0.55) 0%, transparent 60%),
+    radial-gradient(55% 45% at 90% 18%, hsl(340 75% 90% / 0.45) 0%, transparent 62%),
+    radial-gradient(70% 55% at 50% 100%, hsl(200 75% 90% / 0.5) 0%, transparent 65%),
+    linear-gradient(180deg, hsl(45 40% 99%) 0%, hsl(40 30% 98%) 100%);
   transition: background var(--liquid-motion-slow) var(--liquid-ease);
 }
 .dark .liquid-backdrop {
-  background: linear-gradient(180deg, hsl(220 25% 10%) 0%, hsl(220 30% 8%) 60%, hsl(210 40% 10%) 100%);
-}
-.liquid-backdrop::before,
-.liquid-backdrop::after {
-  content: '';
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(110px);
-  opacity: 0.28;
-  transition: transform var(--liquid-motion-slow) var(--liquid-ease),
-              background-color var(--liquid-motion-slow) var(--liquid-ease),
-              opacity var(--liquid-motion-slow) var(--liquid-ease);
-  will-change: transform;
-}
-.liquid-backdrop::before {
-  width: 70vw; height: 70vw; top: -22vw; left: -18vw;
-  background: hsl(24 90% 72% / 0.55);
-  animation: liquid-float 36s var(--liquid-ease) infinite alternate;
-}
-.liquid-backdrop::after {
-  width: 72vw; height: 72vw; bottom: -26vw; right: -22vw;
-  background: hsl(200 75% 72% / 0.5);
-  animation: liquid-breathe 42s var(--liquid-ease) infinite alternate;
+  background:
+    radial-gradient(60% 45% at 15% 8%, hsl(24 60% 30% / 0.35) 0%, transparent 60%),
+    radial-gradient(55% 45% at 90% 18%, hsl(340 55% 30% / 0.30) 0%, transparent 62%),
+    radial-gradient(70% 55% at 50% 100%, hsl(200 55% 25% / 0.35) 0%, transparent 65%),
+    linear-gradient(180deg, hsl(220 28% 10%) 0%, hsl(220 30% 7%) 100%);
 }
 
+/* Legacy blob elements kept for compatibility but rendered as extremely subtle
+   accent layers — no motion, no dominance. */
 .liquid-blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(100px);
-  opacity: 0.2;
-  transition: transform var(--liquid-motion-slow) var(--liquid-ease),
-              background-color var(--liquid-motion-slow) var(--liquid-ease),
-              opacity var(--liquid-motion-slow) var(--liquid-ease);
-  will-change: transform;
+  filter: blur(120px);
+  opacity: 0.12;
+  pointer-events: none;
+  will-change: opacity;
+  transition: opacity var(--liquid-motion-slow) var(--liquid-ease),
+              background-color var(--liquid-motion-slow) var(--liquid-ease);
 }
 .liquid-blob-1 {
-  width: 48vw; height: 48vw; top: 22%; left: 42%;
-  background: hsl(340 75% 78% / 0.5);
-  animation: liquid-float 34s var(--liquid-ease) infinite alternate;
+  width: 60vw; height: 60vw; top: 10%; left: 55%;
+  background: hsl(24 90% 72% / 0.55);
 }
 .liquid-blob-2 {
-  width: 44vw; height: 44vw; top: 58%; left: -10%;
-  background: hsl(160 55% 70% / 0.45);
-  animation: liquid-breathe 40s var(--liquid-ease) infinite alternate;
+  width: 55vw; height: 55vw; bottom: 5%; left: -15%;
+  background: hsl(200 75% 72% / 0.5);
 }
-
-.dark .liquid-backdrop::before,
-.dark .liquid-backdrop::after { opacity: 0.18; }
-.dark .liquid-blob { opacity: 0.14; }
-
+.dark .liquid-blob { opacity: 0.08; }
 
 [data-mode="deportes"] .liquid-backdrop {
-  background: linear-gradient(180deg, hsl(160 45% 96%) 0%, hsl(200 55% 97%) 55%, hsl(215 60% 96%) 100%);
+  background:
+    radial-gradient(60% 45% at 15% 8%, hsl(160 55% 90% / 0.45) 0%, transparent 60%),
+    radial-gradient(55% 45% at 90% 18%, hsl(200 65% 90% / 0.45) 0%, transparent 62%),
+    radial-gradient(70% 55% at 50% 100%, hsl(210 65% 92% / 0.5) 0%, transparent 65%),
+    linear-gradient(180deg, hsl(160 30% 98%) 0%, hsl(200 30% 98%) 100%);
 }
-[data-mode="deportes"] .liquid-backdrop::before { background: hsl(160 70% 65% / 0.4); }
-[data-mode="deportes"] .liquid-backdrop::after { background: hsl(210 85% 65% / 0.4); }
 [data-mode="deportes"] .liquid-blob-1 { background: hsl(190 80% 65% / 0.35); }
 [data-mode="deportes"] .liquid-blob-2 { background: hsl(150 60% 60% / 0.32); }
 
-[data-route="events"] .liquid-blob-1 { transform: translate(-6%, -4%); }
-[data-route="events"] .liquid-blob-2 { transform: translate(4%, 2%); }
-[data-route="map"] .liquid-backdrop::before { transform: translate(10%, 4%); opacity: 0.5; }
-[data-route="map"] .liquid-backdrop::after { transform: translate(-6%, -6%); }
-[data-route="map"] .liquid-blob-1 { background: hsl(210 85% 70% / 0.4); transform: translate(8%, -6%); }
-[data-route="calendar"] .liquid-blob-1 { transform: translate(-4%, 8%); }
-[data-route="calendar"] .liquid-blob-2 { transform: translate(6%, -4%); }
-[data-route="pharmacies"] .liquid-backdrop::before { background: hsl(140 70% 70% / 0.4); }
-[data-route="pharmacies"] .liquid-blob-1 { background: hsl(150 75% 65% / 0.35); }
-[data-route="tickets"] .liquid-blob-1 { background: hsl(280 75% 72% / 0.35); }
-[data-route="tickets"] .liquid-blob-2 { background: hsl(320 70% 70% / 0.3); }
-[data-route="profile"] .liquid-blob-1 { transform: translate(6%, 10%); }
-[data-route="admin"] .liquid-backdrop::before { opacity: 0.35; }
-[data-route="admin"] .liquid-blob-1 { opacity: 0.2; }
 
 .liquid-page-shell {
   position: relative;
