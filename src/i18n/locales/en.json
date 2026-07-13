@@ -134,26 +134,154 @@
     "continue": "Continue"
   },
   "home": {
-    "searchPlaceholder": "Search events, venues...",
-    "todayEvents": "Today in Málaga",
-    "weekendEvents": "This weekend",
-    "nearbyEvents": "Near you",
-    "pharmaciesGuard": "Pharmacies on duty",
-    "categories": "Categories",
-    "enableLocation": "Enable location",
-    "enableLocationDesc": "See nearby events",
-    "kicker": "CITY AGENDA",
-    "heroTitle": "What are we doing today in Málaga?",
-    "heroSubtitle": "Events, plans and experiences near you.",
-    "quickToday": "Today",
-    "quickWeekend": "This weekend",
-    "quickNearby": "Nearby",
-    "quickPharmacy": "Pharmacy",
-    "todayInMalaga": "Today in Málaga",
-    "thisWeekend": "This weekend",
-    "nearby": "Near you",
-    "popularNow": "Popular now",
-    "viewAll": "View all"
+    "seo": {
+      "title": "Málaga Connect — What's on in Málaga today",
+      "description": "The citizen guide to Málaga: events, family plans, on-duty pharmacies, culture and sport across Málaga city and province."
+    },
+    "hero": {
+      "title": "What's on in Málaga today",
+      "subtitle": "Events, family plans, pharmacies, sport and culture in one guide.",
+      "searchAria": "Search",
+      "searchPlaceholder": "Search concerts, theatre, kids, museums…"
+    },
+    "quickActions": {
+      "aria": "Quick actions",
+      "today": "Today",
+      "weekend": "This weekend",
+      "family": "Kids",
+      "pharmacies": "Pharmacies",
+      "map": "Map",
+      "free": "Free"
+    },
+    "family": {
+      "title": "Family plans",
+      "subtitle": "Activities for kids, workshops, family theatre and free plans.",
+      "chips": {
+        "kids": "Kids",
+        "age0_3": "0–3 years",
+        "age4_8": "4–8 years",
+        "age9_12": "9–12 years",
+        "free": "Free",
+        "weekend": "This weekend"
+      },
+      "cta": "See plans for kids"
+    },
+    "sections": {
+      "nowInMalaga": "Now in Málaga",
+      "viewAll": "View all",
+      "whatYouFind": "What you'll find",
+      "thisWeekend": "This weekend"
+    },
+    "discover": {
+      "music": {
+        "label": "Concerts",
+        "copy": "Venues, festivals and live music."
+      },
+      "theater": {
+        "label": "Theatre",
+        "copy": "Cervantes, Soho, Echegaray and more."
+      },
+      "festivals": {
+        "label": "Festivals",
+        "copy": "Major cultural events."
+      },
+      "museums": {
+        "label": "Museums",
+        "copy": "Art, history and exhibitions."
+      },
+      "markets": {
+        "label": "Fairs",
+        "copy": "Markets and crafts."
+      },
+      "outdoor": {
+        "label": "Outdoors",
+        "copy": "Parks, beaches and outdoor plans."
+      }
+    },
+    "cityProvince": {
+      "title": "Málaga city and province",
+      "subtitle": "Discover plans in the capital, Costa del Sol, Axarquía and the interior."
+    },
+    "culture": {
+      "title": "Living culture",
+      "subtitle": "Theatres, halls, museums, festivals and flagship family programming across the city.",
+      "theaters": {
+        "label": "Theatres",
+        "copy": "Cervantes, Echegaray, Soho, Cánovas."
+      },
+      "festivals": {
+        "label": "Festivals",
+        "copy": "Festival de Málaga, Fancine, Brisa, Canela."
+      },
+      "halls": {
+        "label": "Venues",
+        "copy": "Trinchera, París 15, La Cochera Cabaret."
+      },
+      "museums": {
+        "label": "Museums",
+        "copy": "Picasso, Thyssen, Pompidou, Museo de Málaga."
+      },
+      "family": {
+        "label": "Family",
+        "copy": "Workshops and shows for all ages."
+      },
+      "province": {
+        "label": "Province",
+        "copy": "Local programming beyond the capital."
+      }
+    },
+    "sports": {
+      "title": "Málaga in sport mode",
+      "subtitle": "Football, basketball, road races and clubs across the province — a full sports layer.",
+      "cta": "See sport"
+    },
+    "institutional": {
+      "eyebrow": "Citizen platform",
+      "title": "A living platform for Málaga",
+      "subtitle": "Designed to connect citizens with the cultural, family and sporting life of the city and its province.",
+      "agenda": {
+        "label": "Cultural agenda",
+        "copy": "Daily programming of theatres, halls and museums."
+      },
+      "family": {
+        "label": "Family plans",
+        "copy": "Activities designed for kids and families."
+      },
+      "pharmacies": {
+        "label": "On-duty pharmacies",
+        "copy": "Nearest open pharmacy in real time."
+      },
+      "map": {
+        "label": "City map",
+        "copy": "Explore the city and see what's nearby."
+      },
+      "province": {
+        "label": "City and province",
+        "copy": "Málaga capital and towns along the Coast and Interior."
+      },
+      "sportsLayer": {
+        "label": "Sports layer",
+        "copy": "Málaga in sport mode: clubs, leagues and events."
+      }
+    },
+    "stats": {
+      "venues": "Venues and halls",
+      "municipalities": "Priority municipalities",
+      "sources": "Cultural sources",
+      "pharmaciesDaily": "On-duty pharmacies",
+      "familyByAge": "Plans by age",
+      "sportsGrowing": "Growing layer",
+      "dailyValue": "Daily",
+      "familyValue": "Family",
+      "sportsValue": "Sport",
+      "footer": "Coverage expanding — new sources and municipalities join gradually."
+    },
+    "finalCta": {
+      "title": "Explore the Málaga agenda",
+      "subtitle": "A clear, fast and beautiful way to discover what's happening near you.",
+      "exploreEvents": "Explore events",
+      "pharmacies": "On-duty pharmacies"
+    }
   },
   "events": {
     "title": "Events",

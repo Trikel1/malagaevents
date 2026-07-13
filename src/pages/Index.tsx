@@ -24,22 +24,24 @@ import { MUNICIPALITIES, VENUE_ZONES } from '@/lib/venuesCatalog';
 
 
 const DISCOVER_CARDS = [
-  { icon: Music, key: 'music', label: 'Conciertos', copy: 'Salas, festivales y música en vivo.', to: '/events?category=music' },
-  { icon: Drama, key: 'theater', label: 'Teatro', copy: 'Cervantes, Soho, Echegaray y más.', to: '/events?category=theater' },
-  { icon: PartyPopper, key: 'festivals', label: 'Festivales', copy: 'Grandes citas culturales.', to: '/events?category=festivals' },
-  { icon: Building2, key: 'museums', label: 'Museos', copy: 'Arte, historia y exposiciones.', to: '/events?category=exhibitions' },
-  { icon: Ticket, key: 'markets', label: 'Ferias', copy: 'Mercadillos y artesanía.', to: '/events?category=markets' },
-  { icon: Trees, key: 'outdoor', label: 'Aire libre', copy: 'Parques, playas y outdoor.', to: '/events?filter=outdoor' },
-];
+  { icon: Music, key: 'music', to: '/events?category=music' },
+  { icon: Drama, key: 'theater', to: '/events?category=theater' },
+  { icon: PartyPopper, key: 'festivals', to: '/events?category=festivals' },
+  { icon: Building2, key: 'museums', to: '/events?category=exhibitions' },
+  { icon: Ticket, key: 'markets', to: '/events?category=markets' },
+  { icon: Trees, key: 'outdoor', to: '/events?filter=outdoor' },
+] as const;
 
 const INSTITUTIONAL_CARDS = [
-  { icon: Calendar, label: 'Agenda cultural', copy: 'Programación diaria de teatros, salas y museos.' },
-  { icon: Baby, label: 'Planes familiares', copy: 'Actividades pensadas para niñas, niños y familia.' },
-  { icon: Pill, label: 'Farmacias de guardia', copy: 'Farmacia abierta más cercana en tiempo real.' },
-  { icon: MapIcon, label: 'Mapa ciudadano', copy: 'Explora la ciudad y descubre qué hay cerca de ti.' },
-  { icon: Landmark, label: 'Ciudad y provincia', copy: 'Málaga capital y municipios de la Costa e Interior.' },
-  { icon: Trophy, label: 'Capa deportiva', copy: 'Málaga en clave deporte: clubes, ligas y eventos.' },
-];
+  { icon: Calendar, key: 'agenda' },
+  { icon: Baby, key: 'family' },
+  { icon: Pill, key: 'pharmacies' },
+  { icon: MapIcon, key: 'map' },
+  { icon: Landmark, key: 'province' },
+  { icon: Trophy, key: 'sportsLayer' },
+] as const;
+
+const CULTURE_CARDS = ['theaters', 'festivals', 'halls', 'museums', 'family', 'province'] as const;
 
 const Index = () => {
   const { t } = useTranslation();
@@ -75,19 +77,19 @@ const Index = () => {
   const goLocality = (name: string) => navigate(`/events?q=${encodeURIComponent(name)}`);
 
   const QUICK_ACTIONS = [
-    { label: 'Hoy', icon: Sparkles, to: '/events?filter=today' },
-    { label: 'Este finde', icon: Calendar, to: '/events?filter=weekend' },
-    { label: 'Infantil', icon: Baby, to: '/events?filter=family' },
-    { label: 'Farmacias', icon: Pill, to: '/pharmacies' },
-    { label: 'Mapa', icon: MapIcon, to: '/map' },
-    { label: 'Gratis', icon: Heart, to: '/events?filter=free' },
-  ];
+    { k: 'today', icon: Sparkles, to: '/events?filter=today' },
+    { k: 'weekend', icon: Calendar, to: '/events?filter=weekend' },
+    { k: 'family', icon: Baby, to: '/events?filter=family' },
+    { k: 'pharmacies', icon: Pill, to: '/pharmacies' },
+    { k: 'map', icon: MapIcon, to: '/map' },
+    { k: 'free', icon: Heart, to: '/events?filter=free' },
+  ] as const;
 
   return (
     <div className="min-h-screen">
       <SEO
-        title="Málaga Connect — Qué hacer hoy en Málaga"
-        description="La guía ciudadana de Málaga: eventos, planes familiares, farmacias de guardia, cultura y deporte en Málaga ciudad y provincia."
+        title={t('home.seo.title')}
+        description={t('home.seo.description')}
         path="/"
       />
 
@@ -145,21 +147,21 @@ const Index = () => {
         {/* Título editorial — corto */}
         <div className="relative">
           <h1 className="text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-xl">
-            Qué hacer hoy en Málaga
+            {t('home.hero.title')}
           </h1>
           <p className="text-[15px] sm:text-base text-white/90 mt-3 max-w-md leading-relaxed">
-            Eventos, planes familiares, farmacias, deporte y cultura en una sola guía.
+            {t('home.hero.subtitle')}
           </p>
         </div>
 
         {/* Buscador */}
         <form onSubmit={handleSearch} className="relative mt-5" role="search">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" aria-hidden="true" />
-          <label htmlFor="home-search" className="sr-only">Buscar</label>
+          <label htmlFor="home-search" className="sr-only">{t('home.hero.searchAria')}</label>
           <Input
             id="home-search"
             type="search"
-            placeholder="Buscar concierto, teatro, niños, museo…"
+            placeholder={t('home.hero.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="glass-input pl-12 h-14 text-foreground border-0 focus-visible:ring-2 focus-visible:ring-white/60 placeholder:text-muted-foreground"
@@ -173,16 +175,16 @@ const Index = () => {
         ) : (
           <>
             {/* ============== QUICK ACTIONS visible desde primer pantallazo ============== */}
-            <section aria-label="Accesos rápidos" className="glass-panel p-3">
+            <section aria-label={t('home.quickActions.aria')} className="glass-panel p-3">
               <div className="grid grid-cols-3 gap-2">
                 {QUICK_ACTIONS.map((qa) => (
                   <button
-                    key={qa.label}
+                    key={qa.k}
                     onClick={() => navigate(qa.to)}
                     className="liquid-press flex flex-col items-center justify-center gap-1.5 rounded-2xl py-3 px-2 bg-background/40 hover:bg-primary/10 transition-colors border border-border/40 min-h-[76px]"
                   >
                     <qa.icon className="h-5 w-5 text-primary" aria-hidden />
-                    <span className="text-[12px] font-semibold text-foreground leading-tight text-center">{qa.label}</span>
+                    <span className="text-[12px] font-semibold text-foreground leading-tight text-center">{t(`home.quickActions.${qa.k}`)}</span>
                   </button>
                 ))}
               </div>
@@ -195,34 +197,34 @@ const Index = () => {
                   <Baby className="h-5 w-5 text-primary" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">Planes para familias</h2>
+                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.family.title')}</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Actividades para niñas y niños, talleres, teatro familiar y planes gratuitos.
+                    {t('home.family.subtitle')}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
-                  { label: 'Infantil', to: '/events?filter=family' },
-                  { label: '0–3 años', to: '/events?filter=family&age=0-3' },
-                  { label: '4–8 años', to: '/events?filter=family&age=4-8' },
-                  { label: '9–12 años', to: '/events?filter=family&age=9-12' },
-                  { label: 'Gratis', to: '/events?filter=free' },
-                  { label: 'Este finde', to: '/events?filter=weekend' },
+                  { k: 'kids', to: '/events?filter=family' },
+                  { k: 'age0_3', to: '/events?filter=family&age=0-3' },
+                  { k: 'age4_8', to: '/events?filter=family&age=4-8' },
+                  { k: 'age9_12', to: '/events?filter=family&age=9-12' },
+                  { k: 'free', to: '/events?filter=free' },
+                  { k: 'weekend', to: '/events?filter=weekend' },
                 ].map((c) => (
                   <button
-                    key={c.label}
+                    key={c.k}
                     onClick={() => navigate(c.to)}
                     className="glass-chip liquid-press px-4 py-2 text-sm font-medium hover:bg-primary/10"
                   >
-                    {c.label}
+                    {t(`home.family.chips.${c.k}`)}
                   </button>
                 ))}
               </div>
 
               <Button onClick={() => navigate('/events?filter=family')} className="liquid-press h-11 px-5 font-semibold">
-                Ver planes para niños
+                {t('home.family.cta')}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </section>
@@ -230,9 +232,9 @@ const Index = () => {
             {/* ============== Ahora en Málaga (Hoy) ============== */}
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">Ahora en Málaga</h2>
+                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.nowInMalaga')}</h2>
                 <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=today')}>
-                  Ver todo <ChevronRight className="h-4 w-4" />
+                  {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               {loadingToday ? (
@@ -253,7 +255,7 @@ const Index = () => {
 
             {/* ============== Qué puedes encontrar ============== */}
             <section>
-              <h2 className="text-lg font-bold tracking-tight mb-3 px-1">Qué puedes encontrar</h2>
+              <h2 className="text-lg font-bold tracking-tight mb-3 px-1">{t('home.sections.whatYouFind')}</h2>
               <div className="grid grid-cols-2 gap-3">
                 {DISCOVER_CARDS.map((card) => (
                   <button
@@ -265,8 +267,8 @@ const Index = () => {
                       <card.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm leading-tight">{card.label}</div>
-                      <div className="text-[12px] text-muted-foreground leading-snug mt-1 line-clamp-2">{card.copy}</div>
+                      <div className="font-semibold text-sm leading-tight">{t(`home.discover.${card.key}.label`)}</div>
+                      <div className="text-[12px] text-muted-foreground leading-snug mt-1 line-clamp-2">{t(`home.discover.${card.key}.copy`)}</div>
                     </div>
                   </button>
                 ))}
@@ -276,9 +278,9 @@ const Index = () => {
             {/* ============== Este finde ============== */}
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">Este finde</h2>
+                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.thisWeekend')}</h2>
                 <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=weekend')}>
-                  Ver todo <ChevronRight className="h-4 w-4" />
+                  {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               {loadingWeekend ? (
@@ -307,9 +309,9 @@ const Index = () => {
                   <Landmark className="h-5 w-5 text-secondary" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">Málaga ciudad y provincia</h2>
+                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.cityProvince.title')}</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Descubre planes en la capital, la Costa del Sol, la Axarquía y el interior.
+                    {t('home.cityProvince.subtitle')}
                   </p>
                 </div>
               </div>
@@ -344,23 +346,16 @@ const Index = () => {
             <section>
               <div className="flex items-center gap-2 mb-3 px-1">
                 <Sparkles className="h-4 w-4 text-accent" aria-hidden />
-                <h2 className="text-lg font-bold tracking-tight">Cultura viva</h2>
+                <h2 className="text-lg font-bold tracking-tight">{t('home.culture.title')}</h2>
               </div>
               <p className="text-sm text-muted-foreground mb-4 px-1 leading-relaxed">
-                Teatros, salas, museos, festivales y programación familiar de referencia en la ciudad.
+                {t('home.culture.subtitle')}
               </p>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Teatros', copy: 'Cervantes, Echegaray, Soho, Cánovas.' },
-                  { label: 'Festivales', copy: 'Festival de Málaga, Fancine, Brisa, Canela.' },
-                  { label: 'Salas', copy: 'Trinchera, París 15, La Cochera Cabaret.' },
-                  { label: 'Museos', copy: 'Picasso, Thyssen, Pompidou, Museo de Málaga.' },
-                  { label: 'Familiar', copy: 'Talleres y espectáculos para todas las edades.' },
-                  { label: 'Provincia', copy: 'Programación municipal más allá de la capital.' },
-                ].map((c) => (
-                  <div key={c.label} className="glass-card p-4">
-                    <div className="font-semibold text-sm">{c.label}</div>
-                    <div className="text-[12px] text-muted-foreground mt-1 leading-snug">{c.copy}</div>
+                {CULTURE_CARDS.map((k) => (
+                  <div key={k} className="glass-card p-4">
+                    <div className="font-semibold text-sm">{t(`home.culture.${k}.label`)}</div>
+                    <div className="text-[12px] text-muted-foreground mt-1 leading-snug">{t(`home.culture.${k}.copy`)}</div>
                   </div>
                 ))}
               </div>
@@ -373,15 +368,15 @@ const Index = () => {
                   <Trophy className="h-5 w-5 text-emerald-600" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-bold tracking-tight">Málaga en clave deporte</h2>
+                  <h2 className="text-lg font-bold tracking-tight">{t('home.sports.title')}</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Fútbol, baloncesto, carreras populares y clubes de la provincia — una capa deportiva completa.
+                    {t('home.sports.subtitle')}
                   </p>
                   <Button
                     onClick={() => setAppMode('deportes')}
                     className="mt-4 liquid-press h-10 px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
-                    Ver deportes <ChevronRight className="h-4 w-4 ml-1" />
+                    {t('home.sports.cta')} <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               </div>
@@ -392,22 +387,22 @@ const Index = () => {
               <div className="text-center mb-5">
                 <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-primary font-semibold mb-2">
                   <Radar className="h-3.5 w-3.5" aria-hidden />
-                  Plataforma ciudadana
+                  {t('home.institutional.eyebrow')}
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Una plataforma viva para Málaga</h2>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.institutional.title')}</h2>
                 <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                  Diseñada para conectar a la ciudadanía con la vida cultural, familiar y deportiva de la ciudad y su provincia.
+                  {t('home.institutional.subtitle')}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {INSTITUTIONAL_CARDS.map((c) => (
-                  <div key={c.label} className="glass-card p-4 flex flex-col gap-2">
+                  <div key={c.key} className="glass-card p-4 flex flex-col gap-2">
                     <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
                       <c.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm leading-tight">{c.label}</div>
-                      <div className="text-[12px] text-muted-foreground leading-snug mt-1">{c.copy}</div>
+                      <div className="font-semibold text-sm leading-tight">{t(`home.institutional.${c.key}.label`)}</div>
+                      <div className="text-[12px] text-muted-foreground leading-snug mt-1">{t(`home.institutional.${c.key}.copy`)}</div>
                     </div>
                   </div>
                 ))}
@@ -416,12 +411,12 @@ const Index = () => {
               {/* Coverage stats — read-only aspirational counts */}
               <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
                 {[
-                  { n: '35+', l: 'Recintos y salas' },
-                  { n: '24', l: 'Municipios prioritarios' },
-                  { n: '70+', l: 'Fuentes culturales' },
-                  { n: 'Diaria', l: 'Farmacias de guardia' },
-                  { n: 'Familia', l: 'Planes por edad' },
-                  { n: 'Deporte', l: 'Capa en expansión' },
+                  { n: '35+', l: t('home.stats.venues') },
+                  { n: '24', l: t('home.stats.municipalities') },
+                  { n: '70+', l: t('home.stats.sources') },
+                  { n: t('home.stats.dailyValue'), l: t('home.stats.pharmaciesDaily') },
+                  { n: t('home.stats.familyValue'), l: t('home.stats.familyByAge') },
+                  { n: t('home.stats.sportsValue'), l: t('home.stats.sportsGrowing') },
                 ].map((s) => (
                   <div key={s.l} className="rounded-2xl bg-background/50 border border-border/40 px-2 py-3 text-center">
                     <div className="text-base sm:text-lg font-bold tracking-tight text-primary">{s.n}</div>
@@ -430,7 +425,7 @@ const Index = () => {
                 ))}
               </div>
               <p className="mt-3 text-center text-[11px] text-muted-foreground italic">
-                Cobertura en expansión — nuevas fuentes y municipios se incorporan progresivamente.
+                {t('home.stats.footer')}
               </p>
             </section>
 
@@ -440,17 +435,17 @@ const Index = () => {
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-sunset text-white mb-3 shadow-lift">
                 <Users className="h-6 w-6" aria-hidden />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Explora la agenda de Málaga</h2>
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.finalCta.title')}</h2>
               <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                Una forma clara, rápida y bonita de descubrir qué ocurre cerca de ti.
+                {t('home.finalCta.subtitle')}
               </p>
               <div className="flex flex-wrap justify-center gap-2 mt-5">
                 <Button onClick={() => navigate('/events')} className="liquid-press h-11 px-5 font-semibold">
-                  Explorar eventos
+                  {t('home.finalCta.exploreEvents')}
                 </Button>
                 <Button onClick={() => navigate('/pharmacies')} variant="outline" className="liquid-press h-11 px-5 font-semibold glass-button border-primary/20">
                   <Pill className="h-4 w-4 mr-1.5" />
-                  Farmacias de guardia
+                  {t('home.finalCta.pharmacies')}
                 </Button>
               </div>
             </section>
