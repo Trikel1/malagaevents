@@ -387,8 +387,11 @@ const EventImage = ({
   const finalAspectRatio = aspectRatio || ASPECT_RATIOS[variant];
   const isCompact = variant === 'compact';
 
-  // Get the category-specific Unsplash fallback image
-  const unsplashFallbackUrl = CATEGORY_FALLBACK_IMAGES[resolvedEventType];
+  // Get a stable, varied category-specific Unsplash fallback image
+  const unsplashFallbackUrl = useMemo(
+    () => pickFallbackImage(resolvedEventType, alt || src || ''),
+    [resolvedEventType, alt, src]
+  );
 
   // Cascade logic:
   // 1. If we have a valid src and no error → show real image
