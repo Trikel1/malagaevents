@@ -174,6 +174,7 @@ function parseListingDateLine(rawLine: string, now: Date): ParsedDate | null {
 
     return {
       date: madridWallTimeToDate(startYear, startMonth, startDay, 20, 0),
+      endDate: madridWallTimeToDate(endYear, endMonth, endDay, 23, 59),
       timeExplicit: false,
       rangeStartRaw: `${startDay}/${startMonth}/${startYear}`,
       rangeEndRaw: `${endDay}/${endMonth}/${endYear}`,
