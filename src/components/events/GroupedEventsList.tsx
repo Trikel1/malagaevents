@@ -5,8 +5,6 @@ import { format, isToday, isTomorrow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import EventCard from '@/components/events/EventCard';
 import type { Event } from '@/types';
-import EventCard from '@/components/events/EventCard';
-import type { Event } from '@/types';
 
 interface GroupedEventsListProps {
   events: Event[];
