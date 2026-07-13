@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, ExternalLink, CalendarX2, Compass } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMunicipalityBySlug, useMunicipalities } from '@/hooks/useMunicipalities';
 import EventCard from '@/components/events/EventCard';
 import { LifecycleStatusBadge } from '@/components/events/LifecycleStatusBadge';
-import { EmptyState } from '@/components/common/EmptyState';
+import EmptyState from '@/components/common/EmptyState';
 import SEO from '@/components/common/SEO';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
