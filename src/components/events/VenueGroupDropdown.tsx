@@ -287,31 +287,51 @@ export function VenueGroupDropdown({
                     </div>
                   )}
 
-                  {/* Individual venues with checkboxes */}
-                  {filteredVenues.map((venue) => {
-                    const isSelected = draftIds.includes(venue.id);
-                    const showCity = venue.city &&
-                      !venue.city.toLowerCase().includes('málaga') &&
-                      !venue.city.toLowerCase().includes('malaga');
-
-                    return (
-                      <div
-                        key={venue.id}
-                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent cursor-pointer"
-                        onClick={() => handleToggleDraftVenue(venue.id)}
-                      >
-                        <Checkbox checked={isSelected} className="h-4 w-4" />
-                        <div className="flex-1 min-w-0">
-                          <span className="block truncate text-sm">{venue.name}</span>
-                          {showCity && (
-                            <span className="text-xs text-muted-foreground block truncate">
-                              {venue.city}
-                            </span>
+                  {/* Málaga capital primero, luego resto agrupado por localidad */}
+                  {(() => {
+                    const isMalagaCity = (c?: string | null) =>
+                      !!c && /m[aá]laga/i.test(c);
+                    const sorted = [...filteredVenues].sort((a, b) => {
+                      const am = isMalagaCity(a.city) ? 0 : 1;
+                      const bm = isMalagaCity(b.city) ? 0 : 1;
+                      if (am !== bm) return am - bm;
+                      const ac = (a.city || 'Otros').localeCompare(b.city || 'Otros');
+                      return ac !== 0 ? ac : a.name.localeCompare(b.name);
+                    });
+                    let lastHeader = '';
+                    return sorted.map((venue) => {
+                      const header = isMalagaCity(venue.city)
+                        ? 'Málaga capital'
+                        : (venue.city || 'Otros municipios');
+                      const showHeader = header !== lastHeader;
+                      lastHeader = header;
+                      const isSelected = draftIds.includes(venue.id);
+                      const showCity = !isMalagaCity(venue.city) && venue.city;
+                      return (
+                        <div key={venue.id}>
+                          {showHeader && (
+                            <div className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                              {header}
+                            </div>
                           )}
+                          <div
+                            className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent cursor-pointer"
+                            onClick={() => handleToggleDraftVenue(venue.id)}
+                          >
+                            <Checkbox checked={isSelected} className="h-4 w-4" />
+                            <div className="flex-1 min-w-0">
+                              <span className="block truncate text-sm">{venue.name}</span>
+                              {showCity && (
+                                <span className="text-xs text-muted-foreground block truncate">
+                                  {venue.city}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </>
               )}
             </div>
