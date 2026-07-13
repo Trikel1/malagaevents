@@ -143,19 +143,11 @@ const Index = () => {
         </div>
 
         {/* Título editorial — corto */}
-        <div className="relative mt-1">
-          <img
-            src={malagaEmblem}
-            alt="Málaga Connect"
-            width={512}
-            height={512}
-            loading="lazy"
-            className="pointer-events-none select-none absolute -top-4 -right-2 sm:-top-4 sm:right-2 w-32 sm:w-44 md:w-48 drop-shadow-lg"
-          />
-          <h1 className="relative text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-[62%] sm:max-w-[65%]">
+        <div className="relative">
+          <h1 className="text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-xl">
             Qué hacer hoy en Málaga
           </h1>
-          <p className="relative text-[15px] sm:text-base text-white/90 mt-3 max-w-[70%] sm:max-w-md leading-relaxed">
+          <p className="text-[15px] sm:text-base text-white/90 mt-3 max-w-md leading-relaxed">
             Eventos, planes familiares, farmacias, deporte y cultura en una sola guía.
           </p>
         </div>
