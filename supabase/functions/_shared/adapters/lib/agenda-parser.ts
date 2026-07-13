@@ -379,6 +379,10 @@ export function extractAgendaCandidates(
       if (!imageUrl) {
         const im = l.match(IMG_RE);
         if (im) imageUrl = im[1];
+        else {
+          const him = l.match(HTML_IMG_RE);
+          if (him) imageUrl = him[1];
+        }
       }
       if (!ticketUrl) {
         const links = l.matchAll(/\[([^\]]{1,80})\]\((https?:\/\/[^\s)]+)\)/g);
