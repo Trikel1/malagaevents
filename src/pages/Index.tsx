@@ -24,22 +24,24 @@ import { MUNICIPALITIES, VENUE_ZONES } from '@/lib/venuesCatalog';
 
 
 const DISCOVER_CARDS = [
-  { icon: Music, key: 'music', label: 'Conciertos', copy: 'Salas, festivales y música en vivo.', to: '/events?category=music' },
-  { icon: Drama, key: 'theater', label: 'Teatro', copy: 'Cervantes, Soho, Echegaray y más.', to: '/events?category=theater' },
-  { icon: PartyPopper, key: 'festivals', label: 'Festivales', copy: 'Grandes citas culturales.', to: '/events?category=festivals' },
-  { icon: Building2, key: 'museums', label: 'Museos', copy: 'Arte, historia y exposiciones.', to: '/events?category=exhibitions' },
-  { icon: Ticket, key: 'markets', label: 'Ferias', copy: 'Mercadillos y artesanía.', to: '/events?category=markets' },
-  { icon: Trees, key: 'outdoor', label: 'Aire libre', copy: 'Parques, playas y outdoor.', to: '/events?filter=outdoor' },
-];
+  { icon: Music, key: 'music', to: '/events?category=music' },
+  { icon: Drama, key: 'theater', to: '/events?category=theater' },
+  { icon: PartyPopper, key: 'festivals', to: '/events?category=festivals' },
+  { icon: Building2, key: 'museums', to: '/events?category=exhibitions' },
+  { icon: Ticket, key: 'markets', to: '/events?category=markets' },
+  { icon: Trees, key: 'outdoor', to: '/events?filter=outdoor' },
+] as const;
 
 const INSTITUTIONAL_CARDS = [
-  { icon: Calendar, label: 'Agenda cultural', copy: 'Programación diaria de teatros, salas y museos.' },
-  { icon: Baby, label: 'Planes familiares', copy: 'Actividades pensadas para niñas, niños y familia.' },
-  { icon: Pill, label: 'Farmacias de guardia', copy: 'Farmacia abierta más cercana en tiempo real.' },
-  { icon: MapIcon, label: 'Mapa ciudadano', copy: 'Explora la ciudad y descubre qué hay cerca de ti.' },
-  { icon: Landmark, label: 'Ciudad y provincia', copy: 'Málaga capital y municipios de la Costa e Interior.' },
-  { icon: Trophy, label: 'Capa deportiva', copy: 'Málaga en clave deporte: clubes, ligas y eventos.' },
-];
+  { icon: Calendar, key: 'agenda' },
+  { icon: Baby, key: 'family' },
+  { icon: Pill, key: 'pharmacies' },
+  { icon: MapIcon, key: 'map' },
+  { icon: Landmark, key: 'province' },
+  { icon: Trophy, key: 'sportsLayer' },
+] as const;
+
+const CULTURE_CARDS = ['theaters', 'festivals', 'halls', 'museums', 'family', 'province'] as const;
 
 const Index = () => {
   const { t } = useTranslation();
