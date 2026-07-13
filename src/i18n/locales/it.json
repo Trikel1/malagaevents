@@ -181,7 +181,8 @@
     "allVenues": "Tutte",
     "theaters": "Teatri",
     "halls": "Sale",
-    "otherVenues": "Altro"
+    "otherVenues": "Altro",
+    "timeTBC": "Orario da confermare"
   },
   "eventDetail": {
     "when": "Quando",

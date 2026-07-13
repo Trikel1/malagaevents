@@ -181,7 +181,8 @@
     "allVenues": "الكل",
     "theaters": "المسارح",
     "halls": "الصالات",
-    "otherVenues": "أخرى"
+    "otherVenues": "أخرى",
+    "timeTBC": "الوقت قيد التأكيد"
   },
   "eventDetail": {
     "when": "متى",

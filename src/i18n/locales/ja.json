@@ -181,7 +181,8 @@
     "allVenues": "すべて",
     "theaters": "劇場",
     "halls": "ホール",
-    "otherVenues": "その他"
+    "otherVenues": "その他",
+    "timeTBC": "時間未定"
   },
   "eventDetail": {
     "when": "いつ",
