@@ -1,16 +1,19 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, X, MapPin, AlertTriangle, Navigation } from 'lucide-react';
+import { Search, SlidersHorizontal, X, AlertTriangle, Navigation, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import EventCard from '@/components/events/EventCard';
 import FilterDrawer, { type EventFilters, type DatePreset, type AgeRange } from '@/components/events/FilterDrawer';
 import { VenueKindFilter } from '@/components/events/VenueKindFilter';
 import LocationFilter from '@/components/events/LocationFilter';
+import UpcomingHighlights from '@/components/events/UpcomingHighlights';
+import GroupedEventsList from '@/components/events/GroupedEventsList';
 import EmptyState from '@/components/common/EmptyState';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEventsOptimized } from '@/hooks/useEventsOptimized';
@@ -24,21 +27,29 @@ import SEO from '@/components/common/SEO';
 
 const EventsPage = () => {
   const { appMode } = useAppMode();
-
-  // Sports mode: render entirely different page
-  if (appMode === 'deportes') {
-    return <SportsEventsPage />;
-  }
-
+  if (appMode === 'deportes') return <SportsEventsPage />;
   return <CultureEventsPage />;
 };
+
+// ────────────────────────────────────────────────────────────────────────────
+// Header preset chips — 4 primary temporal filters
+// ────────────────────────────────────────────────────────────────────────────
+
+const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: string }[] = [
+  { key: 'today', labelKey: 'events.today', labelFallback: 'Hoy' },
+  { key: 'tomorrow', labelKey: 'events.tomorrow', labelFallback: 'Mañana' },
+  { key: 'weekend', labelKey: 'events.thisWeekend', labelFallback: 'Este finde' },
+  { key: 'next30', labelKey: 'events.next30Days', labelFallback: 'Próximos 30 días' },
+];
+
+// ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthContext();
-  
+
   const initialQuery = searchParams.get('q') || '';
   const initialCategory = searchParams.get('category') as EventCategory | null;
   const initialFilter = searchParams.get('filter');
@@ -53,22 +64,18 @@ const CultureEventsPage = () => {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [debouncedSearch, setDebouncedSearch] = useState(initialQuery);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [showSearchInput, setShowSearchInput] = useState(!!initialQuery);
   const [filters, setFilters] = useState<EventFilters>({
     categories: initialCategory ? [initialCategory] : [],
     datePreset: initialPreset,
     familyKids: initialFilter === 'family' ? true : undefined,
     isFree: initialFilter === 'free' ? true : undefined,
     isOutdoor: initialFilter === 'outdoor' ? true : undefined,
-    ageRange: initialAge && ['0-3','4-8','9-12'].includes(initialAge) ? initialAge : undefined,
+    ageRange: initialAge && ['0-3', '4-8', '9-12'].includes(initialAge) ? initialAge : undefined,
   });
 
-
-  // Venue filter state (single-select via VenueKindFilter sheets)
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
 
-  // Cities associated with the currently selected localities (for venue dropdown priority sort)
   const { data: allLocations = [] } = useLocations();
   const priorityCities = useMemo(
     () =>
@@ -78,37 +85,21 @@ const CultureEventsPage = () => {
     [selectedLocationIds, allLocations],
   );
 
-  // Near me — order-only, non-destructive
+  // Near-me — order-only sort
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
 
-  // Debounce search input
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
-    }
-    debounceTimeout.current = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 300);
-
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => {
-      if (debounceTimeout.current) {
-        clearTimeout(debounceTimeout.current);
-      }
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     };
   }, [searchQuery]);
 
-  // Focus search input when opened
-  useEffect(() => {
-    if (showSearchInput && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [showSearchInput]);
-
-  // Determine query options based on filters
   const queryOptions = useMemo(
     () => ({
       searchQuery: debouncedSearch || undefined,
@@ -121,16 +112,13 @@ const CultureEventsPage = () => {
 
   const { data: events, isLoading, isError, refetch } = useEventsOptimized(queryOptions);
 
-  // Fetch favorites
   const { data: favorites } = useFavorites();
   const { data: favoriteEvents, isLoading: loadingFavorites } = useFavoriteEvents();
   const toggleFavorite = useToggleFavorite();
 
-  // Use favorite events if filter is set
   const baseDisplayed = filters.onlyFavorites ? favoriteEvents : events;
   const isLoadingEvents = filters.onlyFavorites ? loadingFavorites : isLoading;
 
-  // Sort by distance when Near-me active. Events without coords go last.
   const displayedEvents = useMemo(() => {
     if (!userCoords || !baseDisplayed) return baseDisplayed;
     const haversine = (aLat: number, aLng: number, bLat: number, bLng: number) => {
@@ -162,55 +150,38 @@ const CultureEventsPage = () => {
     });
   }, [baseDisplayed, userCoords]);
 
-  const isFavorite = (eventId: string) =>
-    favorites?.some((f) => f.event_id === eventId) ?? false;
-
-  const handleToggleFavorite = (eventId: string) => {
-    if (!isAuthenticated) {
-      navigate('/auth');
-      return;
-    }
-    toggleFavorite.mutate({ eventId, isFavorite: isFavorite(eventId) });
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      setSearchParams({ q: searchQuery });
-    } else {
-      setSearchParams({});
-    }
-  };
-
-  const togglePreset = useCallback((preset: DatePreset) => {
-    setFilters((prev) => ({
-      ...prev,
-      datePreset: prev.datePreset === preset ? undefined : preset,
-      // Presets and manual date range are mutually exclusive
-      dateFrom: undefined,
-      dateTo: undefined,
-    }));
-    // Keep URL in sync for today/weekend legacy links; drop it otherwise
-    setSearchParams((sp) => {
-      const next = new URLSearchParams(sp);
-      next.delete('filter');
-      return next;
-    });
-  }, [setSearchParams]);
-
-  const toggleBooleanFilter = useCallback(
-    (key: 'isFree' | 'withTickets' | 'familyKids' | 'isOutdoor') => {
-      setFilters((prev) => ({ ...prev, [key]: prev[key] ? undefined : true }));
-    },
-    [],
+  const isFavorite = useCallback(
+    (eventId: string) => favorites?.some((f) => f.event_id === eventId) ?? false,
+    [favorites],
   );
 
-  const toggleAgeRange = useCallback((range: AgeRange) => {
-    setFilters((prev) => ({
-      ...prev,
-      ageRange: prev.ageRange === range ? undefined : range,
-    }));
-  }, []);
+  const handleToggleFavorite = useCallback(
+    (eventId: string) => {
+      if (!isAuthenticated) {
+        navigate('/auth');
+        return;
+      }
+      toggleFavorite.mutate({ eventId, isFavorite: isFavorite(eventId) });
+    },
+    [isAuthenticated, navigate, isFavorite, toggleFavorite],
+  );
+
+  const setPreset = useCallback(
+    (preset: DatePreset) => {
+      setFilters((prev) => ({
+        ...prev,
+        datePreset: prev.datePreset === preset ? undefined : preset,
+        dateFrom: undefined,
+        dateTo: undefined,
+      }));
+      setSearchParams((sp) => {
+        const next = new URLSearchParams(sp);
+        next.delete('filter');
+        return next;
+      });
+    },
+    [setSearchParams],
+  );
 
   const handleNearMe = useCallback(() => {
     if (userCoords) {
@@ -251,160 +222,235 @@ const CultureEventsPage = () => {
     setSelectedVenueIds([]);
     setSelectedLocationIds([]);
     setSearchQuery('');
-    setShowSearchInput(false);
     setUserCoords(null);
     setSearchParams({});
   }, [setSearchParams]);
 
-  const activeFilterCount =
-    filters.categories.length +
-    (filters.isFree ? 1 : 0) +
-    (filters.withTickets ? 1 : 0) +
-    (filters.familyKids ? 1 : 0) +
-    (filters.ageRange ? 1 : 0) +
-    (filters.isOutdoor ? 1 : 0) +
-    (filters.datePreset ? 1 : 0) +
-    (filters.dateFrom ? 1 : 0) +
-    (filters.dateTo ? 1 : 0) +
-    (filters.onlyFavorites ? 1 : 0);
+  // ── Active-filter chip descriptors ────────────────────────────────────────
+  type Chip = { key: string; label: string; onRemove: () => void };
+  const activeChips: Chip[] = useMemo(() => {
+    const chips: Chip[] = [];
+    if (debouncedSearch) {
+      chips.push({
+        key: 'q',
+        label: `“${debouncedSearch}”`,
+        onRemove: () => {
+          setSearchQuery('');
+          setSearchParams({});
+        },
+      });
+    }
+    if (filters.datePreset) {
+      const p = PRIMARY_PRESETS.find((x) => x.key === filters.datePreset);
+      chips.push({
+        key: 'preset',
+        label: p ? t(p.labelKey, p.labelFallback) : String(filters.datePreset),
+        onRemove: () => setFilters((f) => ({ ...f, datePreset: undefined })),
+      });
+    }
+    if (filters.dateFrom || filters.dateTo) {
+      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale: es }) : '…';
+      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale: es }) : '…';
+      chips.push({
+        key: 'daterange',
+        label: `${from} – ${to}`,
+        onRemove: () =>
+          setFilters((f) => ({ ...f, dateFrom: undefined, dateTo: undefined })),
+      });
+    }
+    for (const c of filters.categories) {
+      chips.push({
+        key: `cat:${c}`,
+        label: t(`categories.${c}`, c),
+        onRemove: () =>
+          setFilters((f) => ({ ...f, categories: f.categories.filter((x) => x !== c) })),
+      });
+    }
+    if (filters.isFree) {
+      chips.push({
+        key: 'free',
+        label: t('events.freeOnly', 'Gratis'),
+        onRemove: () => setFilters((f) => ({ ...f, isFree: undefined })),
+      });
+    }
+    if (filters.withTickets) {
+      chips.push({
+        key: 'tickets',
+        label: t('events.withTickets', 'Con entradas'),
+        onRemove: () => setFilters((f) => ({ ...f, withTickets: undefined })),
+      });
+    }
+    if (filters.familyKids) {
+      chips.push({
+        key: 'family',
+        label: t('events.familyKids', 'Infantil / Familiar'),
+        onRemove: () => setFilters((f) => ({ ...f, familyKids: undefined })),
+      });
+    }
+    if (filters.ageRange) {
+      chips.push({
+        key: 'age',
+        label: `${filters.ageRange} ${t('events.yearsShort', 'años')}`,
+        onRemove: () => setFilters((f) => ({ ...f, ageRange: undefined })),
+      });
+    }
+    if (filters.isOutdoor) {
+      chips.push({
+        key: 'outdoor',
+        label: t('events.outdoor', 'Al aire libre'),
+        onRemove: () => setFilters((f) => ({ ...f, isOutdoor: undefined })),
+      });
+    }
+    if (filters.onlyFavorites) {
+      chips.push({
+        key: 'fav',
+        label: t('events.favorites', 'Favoritos'),
+        onRemove: () => setFilters((f) => ({ ...f, onlyFavorites: undefined })),
+      });
+    }
+    if (selectedLocationIds.length > 0) {
+      chips.push({
+        key: 'loc',
+        label:
+          selectedLocationIds.length === 1
+            ? allLocations.find((l) => l.id === selectedLocationIds[0])?.name ??
+              t('events.localityShort', 'Localidad')
+            : `${selectedLocationIds.length} ${t('events.localitiesShort', 'localidades')}`,
+        onRemove: () => setSelectedLocationIds([]),
+      });
+    }
+    if (selectedVenueIds.length > 0) {
+      chips.push({
+        key: 'venues',
+        label:
+          selectedVenueIds.length === 1
+            ? t('events.oneVenueSelected', '1 recinto')
+            : `${selectedVenueIds.length} ${t('events.venuesShort', 'recintos')}`,
+        onRemove: () => setSelectedVenueIds([]),
+      });
+    }
+    if (userCoords) {
+      chips.push({
+        key: 'near',
+        label: t('events.nearMe', 'Cerca de mí'),
+        onRemove: () => setUserCoords(null),
+      });
+    }
+    return chips;
+  }, [
+    debouncedSearch,
+    filters,
+    selectedLocationIds,
+    selectedVenueIds,
+    userCoords,
+    allLocations,
+    t,
+    setSearchParams,
+  ]);
 
-  const totalActiveFilters =
-    activeFilterCount +
-    (selectedVenueIds.length > 0 ? 1 : 0) +
-    selectedLocationIds.length +
-    (debouncedSearch ? 1 : 0) +
-    (userCoords ? 1 : 0);
+  const totalCount = displayedEvents?.length ?? 0;
+  const hasFilters = activeChips.length > 0;
 
-  const quickPresets: { key: DatePreset; label: string }[] = [
-    { key: 'today', label: t('events.today', 'Hoy') },
-    { key: 'tomorrow', label: t('events.tomorrow', 'Mañana') },
-    { key: 'thisWeek', label: t('events.thisWeek', 'Esta semana') },
-    { key: 'weekend', label: t('events.thisWeekend', 'Este finde') },
-    { key: 'next30', label: t('events.next30Days', 'Próximos 30 días') },
-  ];
-
-  const quickCategories: { key: EventCategory; label: string }[] = [
-    { key: 'music' as EventCategory, label: t('categories.music', 'Conciertos') },
-    { key: 'theater' as EventCategory, label: t('categories.theater', 'Teatro') },
-    { key: 'festivals' as EventCategory, label: t('categories.festivals', 'Festivales') },
-    { key: 'exhibitions' as EventCategory, label: t('categories.exhibitions', 'Museos / Exposiciones') },
-  ];
-
-  const toggleCategory = useCallback((cat: EventCategory) => {
-    setFilters((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(cat)
-        ? prev.categories.filter((c) => c !== cat)
-        : [...prev.categories, cat],
-    }));
-  }, []);
+  // Human-readable "range" summary shown in the header
+  const rangeSummary = useMemo(() => {
+    const today = format(new Date(), "EEEE d 'de' MMMM", { locale: es });
+    const nice = today.charAt(0).toUpperCase() + today.slice(1);
+    if (filters.datePreset === 'today') return nice;
+    if (filters.datePreset === 'tomorrow') return t('events.tomorrow', 'Mañana');
+    if (filters.datePreset === 'weekend') return t('events.thisWeekend', 'Este finde');
+    if (filters.datePreset === 'next30') return t('events.next30Days', 'Próximos 30 días');
+    if (filters.datePreset === 'thisWeek') return t('events.thisWeek', 'Esta semana');
+    return `${t('events.today', 'Hoy')} · ${nice}`;
+  }, [filters.datePreset, t]);
 
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Eventos en Málaga — Conciertos, Cultura y Planes"
-        description="Todos los eventos de Málaga capital y provincia: conciertos, teatro, exposiciones, festivales y planes para hoy, este finde y los próximos días."
+        title="Agenda cultural de Málaga — Qué hacer hoy y los próximos días"
+        description="Agenda cultural en Málaga: conciertos, teatro, exposiciones y festivales para hoy, mañana, este finde y los próximos 30 días."
         path="/events"
-        jsonLd={displayedEvents && displayedEvents.length > 0 ? {
-          "@context": "https://schema.org",
-          "@type": "ItemList",
-          name: "Eventos en Málaga",
-          itemListElement: displayedEvents.slice(0, 20).map((ev, i) => ({
-            "@type": "ListItem",
-            position: i + 1,
-            url: `https://malagaevents.lovable.app/events/${ev.id}`,
-            name: ev.title,
-          })),
-        } : undefined}
+        jsonLd={
+          displayedEvents && displayedEvents.length > 0
+            ? {
+                '@context': 'https://schema.org',
+                '@type': 'ItemList',
+                name: 'Agenda cultural de Málaga',
+                itemListElement: displayedEvents.slice(0, 20).map((ev, i) => ({
+                  '@type': 'ListItem',
+                  position: i + 1,
+                  url: `https://malagaevents.lovable.app/events/${ev.id}`,
+                  name: ev.title,
+                })),
+              }
+            : undefined
+        }
       />
-      {/* Header - Centered actions taking full width */}
+
+      {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <header className="glass-nav sticky top-0 z-40 rounded-none">
-        <div className="p-3 sm:p-4 space-y-3">
-          {/* Row 1: 3 centered action buttons (no title) */}
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 min-w-0">
-            {/* Localidades - icon + text, flex:1 */}
-            <div className="flex-1 min-w-0 flex justify-center">
-              <LocationFilter
-                selectedLocationIds={selectedLocationIds}
-                onSelectionChange={setSelectedLocationIds}
-                showLabel={true}
-              />
+        <div className="px-4 pt-3 pb-2 sm:px-6 sm:pt-4 space-y-3">
+          {/* Title + subtitle + count */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold tracking-tight leading-tight">
+                {t('events.agendaTitle', 'Agenda cultural')}
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
+                <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">
+                  {t('events.agendaSubtitle', 'Qué hacer en Málaga')} ·{' '}
+                  <span className="capitalize">{rangeSummary}</span>
+                </span>
+              </p>
             </div>
-
-            {/* Filtros - icon + text, flex:1 */}
-            <div className="flex-1 min-w-0 flex justify-center">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setIsFilterOpen(true)}
-                className="h-9 px-2 sm:px-3 gap-1 sm:gap-1.5 relative whitespace-nowrap min-w-0 max-w-full"
-              >
-                <SlidersHorizontal className="h-4 w-4 shrink-0" />
-                <span className="text-sm truncate">{t('events.filters', 'Filtros')}</span>
-                {activeFilterCount > 0 && (
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
-                  >
-                    {activeFilterCount}
-                  </Badge>
-                )}
-              </Button>
-            </div>
-
-            {/* Buscar - icon + text toggle, flex:1 */}
-            <div className="flex-1 min-w-0 flex justify-center">
-              <Button 
-                variant={showSearchInput ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setShowSearchInput(!showSearchInput)}
-                className="h-9 px-2 sm:px-3 gap-1 sm:gap-1.5 whitespace-nowrap min-w-0 max-w-full"
-              >
-                <Search className="h-4 w-4 shrink-0" />
-                <span className="text-sm truncate">{t('common.search', 'Buscar')}</span>
-              </Button>
+            <div className="shrink-0 text-right">
+              <span className="inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20">
+                <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
+                <span className="text-[10px] uppercase tracking-wide">
+                  {totalCount === 1
+                    ? t('events.eventSingular', 'evento')
+                    : t('events.eventPlural', 'eventos')}
+                </span>
+              </span>
             </div>
           </div>
 
-          {/* Clear filters button (only when filters active) */}
-          {totalActiveFilters > 0 && (
-            <div className="flex justify-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllFilters}
-                className="text-muted-foreground h-7 px-2 text-xs"
-              >
-                <X className="h-3.5 w-3.5 mr-1" />
-                {t('events.clearFilters')}
-              </Button>
-            </div>
-          )}
-
-          {/* Search input (collapsible) */}
-          {showSearchInput && (
-            <form onSubmit={handleSearch} className="relative" role="search">
-              <label htmlFor="event-search" className="sr-only">{t('common.search')}</label>
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          {/* Prominent search + action buttons */}
+          <div className="flex items-center gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchQuery.trim()) setSearchParams({ q: searchQuery });
+                else setSearchParams({});
+              }}
+              className="relative flex-1 min-w-0"
+              role="search"
+            >
+              <label htmlFor="event-search" className="sr-only">
+                {t('common.search', 'Buscar')}
+              </label>
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               <Input
                 ref={searchInputRef}
                 id="event-search"
                 type="search"
-                placeholder={t('common.search')}
+                placeholder={t(
+                  'events.searchPlaceholder',
+                  'Buscar concierto, sala, artista…',
+                )}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-10"
-                aria-describedby="search-hint"
+                className="pl-9 pr-9 h-10 rounded-full text-sm bg-background/80 border-border/70 focus-visible:ring-primary"
               />
-              <span id="search-hint" className="sr-only">
-                {t('events.searchHint', 'Buscar por nombre de evento, sala o descripción')}
-              </span>
               {searchQuery && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
                   onClick={() => {
                     setSearchQuery('');
                     setSearchParams({});
@@ -415,155 +461,71 @@ const CultureEventsPage = () => {
                 </Button>
               )}
             </form>
-          )}
+            <LocationFilter
+              selectedLocationIds={selectedLocationIds}
+              onSelectionChange={setSelectedLocationIds}
+              showLabel={false}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsFilterOpen(true)}
+              className="h-10 w-10 rounded-full relative shrink-0"
+              aria-label={t('events.filters', 'Filtros')}
+            >
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+              {activeChips.length > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 flex items-center justify-center text-[10px]"
+                >
+                  {activeChips.length}
+                </Badge>
+              )}
+            </Button>
+          </div>
 
-          {/* Row 2: Venue kind buttons opening pre-filtered picker */}
-          <VenueKindFilter
-            selectedVenueIds={selectedVenueIds}
-            onVenueIdsChange={setSelectedVenueIds}
-            priorityCities={priorityCities}
-          />
-
-
-
-          {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
+          {/* Primary time presets */}
           <div
-            className="flex gap-2 overflow-x-auto pb-1 -mx-3 sm:-mx-4 px-3 sm:px-4 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            role="toolbar"
-            aria-label={t('events.quickFilters', 'Filtros rápidos')}
+            role="tablist"
+            aria-label={t('events.timeRange', 'Franja temporal')}
+            className="flex gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {quickPresets.map((p) => {
+            {PRIMARY_PRESETS.map((p) => {
               const active = filters.datePreset === p.key;
               return (
                 <button
                   key={p.key}
                   type="button"
-                  onClick={() => togglePreset(p.key)}
-                  aria-pressed={active}
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setPreset(p.key)}
                   className={cn(
-                    'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
+                    'shrink-0 h-9 px-4 rounded-full text-sm font-semibold border transition-all whitespace-nowrap',
                     active
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-background text-foreground border-border hover:bg-muted',
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-[1.02]'
+                      : 'bg-background/70 text-foreground border-border hover:bg-muted',
                   )}
                 >
-                  {p.label}
+                  {t(p.labelKey, p.labelFallback)}
                 </button>
               );
             })}
-
-            <span className="shrink-0 self-center mx-1 h-4 w-px bg-border" aria-hidden />
-
-            {quickCategories.map((c) => {
-              const active = filters.categories.includes(c.key);
-              return (
-                <button
-                  key={c.key}
-                  type="button"
-                  onClick={() => toggleCategory(c.key)}
-                  aria-pressed={active}
-                  className={cn(
-                    'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
-                    active
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-background text-foreground border-border hover:bg-muted',
-                  )}
-                >
-                  {c.label}
-                </button>
-              );
-            })}
-
-            <span className="shrink-0 self-center mx-1 h-4 w-px bg-border" aria-hidden />
-
-
-            <button
-              type="button"
-              onClick={() => toggleBooleanFilter('familyKids')}
-              aria-pressed={!!filters.familyKids}
-              className={cn(
-                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
-                filters.familyKids
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background text-foreground border-border hover:bg-muted',
-              )}
-            >
-              {t('events.familyKids', 'Infantil / Familiar')}
-            </button>
-            {(['0-3', '4-8', '9-12'] as AgeRange[]).map((r) => {
-              const active = filters.ageRange === r;
-              const labelKey = `events.age${r.replace('-', 'to')}`;
-              const fallback = `${r} ${t('events.yearsShort', 'años')}`;
-              return (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => toggleAgeRange(r)}
-                  aria-pressed={active}
-                  className={cn(
-                    'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
-                    active
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-background text-foreground border-border hover:bg-muted',
-                  )}
-                >
-                  {t(labelKey, fallback)}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => toggleBooleanFilter('isOutdoor')}
-              aria-pressed={!!filters.isOutdoor}
-              className={cn(
-                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
-                filters.isOutdoor
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background text-foreground border-border hover:bg-muted',
-              )}
-            >
-              {t('events.outdoor', 'Al aire libre')}
-            </button>
-            <button
-              type="button"
-              onClick={() => toggleBooleanFilter('isFree')}
-              aria-pressed={!!filters.isFree}
-              className={cn(
-                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
-                filters.isFree
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background text-foreground border-border hover:bg-muted',
-              )}
-            >
-              {t('events.freeOnly', 'Gratis')}
-            </button>
-            <button
-              type="button"
-              onClick={() => toggleBooleanFilter('withTickets')}
-              aria-pressed={!!filters.withTickets}
-              className={cn(
-                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap',
-                filters.withTickets
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background text-foreground border-border hover:bg-muted',
-              )}
-            >
-              {t('events.withTickets', 'Con entradas')}
-            </button>
+            <span className="shrink-0 self-center mx-1 h-5 w-px bg-border" aria-hidden />
             <button
               type="button"
               onClick={handleNearMe}
               disabled={isRequestingLocation}
               aria-pressed={!!userCoords}
               className={cn(
-                'shrink-0 h-8 px-3 rounded-full text-xs font-medium border transition-colors whitespace-nowrap inline-flex items-center gap-1.5',
+                'shrink-0 h-9 px-3.5 rounded-full text-sm font-medium border transition-colors whitespace-nowrap inline-flex items-center gap-1.5',
                 userCoords
                   ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background text-foreground border-border hover:bg-muted',
+                  : 'bg-background/70 text-foreground border-border hover:bg-muted',
                 isRequestingLocation && 'opacity-60',
               )}
             >
-              <Navigation className="h-3 w-3" aria-hidden="true" />
+              <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
               {isRequestingLocation
                 ? t('events.locating', 'Localizando…')
                 : userCoords
@@ -571,48 +533,88 @@ const CultureEventsPage = () => {
                   : t('events.nearMe', 'Cerca de mí')}
             </button>
           </div>
+
+          {/* Venue kind buttons (Todo · Salas · Teatros) */}
+          <VenueKindFilter
+            selectedVenueIds={selectedVenueIds}
+            onVenueIdsChange={setSelectedVenueIds}
+            priorityCities={priorityCities}
+          />
+
+          {/* Active filter chips */}
+          {hasFilters && (
+            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              {activeChips.map((chip) => (
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={chip.onRemove}
+                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-xs border border-border/60 max-w-full"
+                  aria-label={`${t('common.remove', 'Quitar')} ${chip.label}`}
+                >
+                  <span className="truncate max-w-[180px]">{chip.label}</span>
+                  <X className="h-3 w-3 shrink-0" aria-hidden="true" />
+                </button>
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {t('events.clearFilters', 'Limpiar todo')}
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 
-
-      <main className="p-4">
+      {/* ── BODY ───────────────────────────────────────────────────────── */}
+      <main className="px-4 py-4 sm:px-6">
         {isLoadingEvents ? (
           <EventListSkeleton count={4} />
         ) : isError ? (
           <EmptyState
             icon={AlertTriangle}
             title={t('errors.loadFailed', 'Error al cargar')}
-            description={t('errors.loadFailedDesc', 'No se pudieron cargar los eventos. Comprueba tu conexión e inténtalo de nuevo.')}
+            description={t(
+              'errors.loadFailedDesc',
+              'No se pudieron cargar los eventos. Comprueba tu conexión e inténtalo de nuevo.',
+            )}
             actionLabel={t('common.retry', 'Reintentar')}
             onAction={() => refetch()}
             variant="error"
           />
         ) : displayedEvents && displayedEvents.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {displayedEvents.map((event) => (
-              <EventCard 
-                key={event.id} 
-                event={event}
-                dense
-                isFavorite={isFavorite(event.id)}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            ))}
-          </div>
+          <>
+            {!userCoords && (
+              <UpcomingHighlights events={displayedEvents} />
+            )}
+            <GroupedEventsList
+              events={displayedEvents}
+              isFavorite={isFavorite}
+              onToggleFavorite={handleToggleFavorite}
+            />
+          </>
         ) : (
           <EmptyState
             icon={Search}
-            title={t('events.noEvents')}
-            description={totalActiveFilters > 0 
-              ? t('events.noEventsFiltered', 'No hay eventos con los filtros seleccionados. Prueba a limpiar filtros o cambiar la fecha.')
-              : t('events.noEventsDesc')}
-            actionLabel={totalActiveFilters > 0 ? t('events.clearFilters') : undefined}
-            onAction={totalActiveFilters > 0 ? clearAllFilters : undefined}
+            title={t('events.noEventsWithFilters', 'No hay eventos con estos filtros')}
+            description={t(
+              'events.noEventsHint',
+              'Prueba otra fecha, localidad o recinto.',
+            )}
+            actionLabel={hasFilters ? t('events.clearFilters', 'Limpiar filtros') : undefined}
+            onAction={hasFilters ? clearAllFilters : undefined}
+            secondaryActionLabel={t('events.next30Days', 'Próximos 30 días')}
+            onSecondaryAction={() => {
+              clearAllFilters();
+              setPreset('next30');
+            }}
           />
         )}
       </main>
 
-      {/* Filter Drawer */}
       <FilterDrawer
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
