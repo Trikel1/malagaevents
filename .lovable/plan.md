@@ -1,101 +1,128 @@
-# Agenda Cultural de toda la provincia de Málaga — Plan aprobado (Fases 1–6)
+## Fase 0 — Auditoría operativa (hecha, con datos reales)
 
-Autorización recibida para ejecución autónoma. Decisiones confirmadas:
-- Extender `event_sources` (no crear `cultural_sources`).
-- Añadir campo nuevo `lifecycle_status` (no modificar `events.status`).
-- "Cerca de" con Haversine + bounding box (sin PostGIS).
-- Si el xlsx no es legible, sembrar 103 municipios desde lista INE/Diputación (incluye Montecorto) y dejar la importación de metadatos extra como pendiente.
-- Fuentes con robots/terms bloqueados: se desactivan individualmente, no bloquean el sprint.
+### Estado del pipeline nuevo (`event_sources` + adapters registry)
 
----
+Consultado en vivo contra la BD:
 
-## Fase 1 — Migraciones aditivas, RLS y seed
+| Métrica | Valor real |
+|---|---|
+| Filas en `event_sources` | 132 |
+| Fuentes con `enabled=true` | **0** |
+| Fuentes con `robots_ok=true` | **0** |
+| Fuentes con `write_confirmed_at` (write gate pasado) | **0** |
+| Runs ejecutados (`event_source_runs`) | **0** |
+| Adapters implementados en filesystem | 21 |
+| Fuentes con `adapter_key` apuntando a uno de los 21 | **9** |
+| Eventos publicados en BD | 1.430 (157 futuros) |
 
-**Migraciones (todas aditivas, con rollback `DROP … IF EXISTS`):**
+**Descubrimiento clave**: los 1.430 eventos NO vienen del registry nuevo. Vienen del pipeline legacy (`sync-events`/`scrape-events`/`sync_runs` + Firecrawl). El sistema de "backbone provincial" que el prompt describe existe como código pero **jamás ha escrito un evento a producción**. Todo está en `pending_review` / `awaiting_admin_gate`.
 
-1. `municipalities(id, ine_code UNIQUE, name, slug UNIQUE, comarca, latitude, longitude, active bool default true, created_at, updated_at)` + `GRANT SELECT` a `anon, authenticated`, RLS con policy `SELECT` público.
-2. `municipality_aliases(id, municipality_id FK, alias, alias_normalized, alias_type)` + GRANT + RLS SELECT público.
-3. `ALTER events` ADD `municipality_id uuid`, `locality_or_district text`, `verified_at timestamptz`, `confidence_score numeric(3,2)`, `minimum_age int`, `language text`, `price_from numeric`, `price_to numeric`, `expires_at timestamptz`, `first_seen_at timestamptz`, `lifecycle_status text` con CHECK IN (`scheduled|postponed|cancelled|sold_out|finished|needs_review`).
-4. `ALTER venues` ADD `municipality_id uuid`, `locality_or_district text`, `accessibility_data jsonb`, `official_url text`.
-5. `ALTER event_sources` ADD `scope`, `municipality_id`, `source_type`, `trust_level`, `licence`, `terms_reviewed_at`, `polling_interval`, `last_success_at`, `last_error_at`, `consecutive_errors`, `paused_reason`.
-6. Índices: `events(starts_at)`, `events(municipality_id, lifecycle_status)`, `events(category, start_at)`, `events(lat, lng)` (bounding box), UNIQUE parcial `events(source_id, external_id) WHERE external_id IS NOT NULL`.
-7. Seed **exactamente 103 municipios** con `ine_code`, comarca y coordenadas (incluye Montecorto). Insert idempotente `ON CONFLICT (ine_code) DO UPDATE`.
-8. Seed aliases: Torre del Mar→Vélez-Málaga, San Pedro Alcántara→Marbella, Arroyo de la Miel→Benalmádena, Sabinillas→Manilva, La Cala de Mijas→Mijas, Torrox Costa→Torrox, Maro→Nerja, La Cala del Moral→Rincón de la Victoria, y variantes ortográficas.
-9. Test SQL: `SELECT count(*) FROM municipalities WHERE active` = 103.
+### Matriz de cobertura real (fuentes prioritarias del brief)
 
-RLS: eventos canónicos siguen siendo SELECT-only para `anon/authenticated`; escritura solo `service_role`. Nada destructivo.
+```text
+CAPA A — BACKBONE PROVINCIAL
+fuente                          adapter?  source row?   enabled  robots  write_gate  runs
+malaga-open-data-csv            SÍ        SÍ            no       no      no          0
+ayto-malaga-csv                 SÍ        NO (huérfano) —        —       —           —
+ayto-malaga                     SÍ        NO (huérfano) —        —       —           —
+diputacion-malaga               SÍ        src-agenda-provincial no  no   no          0
+culturama                       SÍ        src-culturama-agenda  no  no   no          0
+junta-andalucia-cultura         SÍ        src-junta-agenda…     no  no   no          0
+visit-costa-del-sol             SÍ        src-visit-costa…      no  no   no          0
+axarquia-costa-del-sol          SÍ        src-eventos-axarquia… no  no   no          0
+serrania-de-ronda               SÍ        src-eventos-serrania… no  no   no          0
+sierra-de-las-nieves            NO        src-eventos-sierra…   no  no   no          bloqueado: wp_blog_posts
+Agenda Cultural Málaga (capital)NO(*)     src-agenda-cultura…   no  no   no          0
+```
+(*) hay `ayto-malaga` y `ayto-malaga-csv` que probablemente cubren esto pero están huérfanos.
 
----
+```text
+CAPA B — MÁLAGA CAPITAL POR RECINTO
+Adapter implementado pero SIN fila conectada en event_sources:
+  teatro-cervantes, teatro-soho, teatro-canovas, la-termica, mva,
+  museo-picasso, museo-thyssen, sala-trinchera, sala-paris-15,
+  la-cochera-cabaret, contenedor-cultural-uma, cine-albeniz
+Adapter FALTA:
+  FYCMA, Teatro Echegaray, Centre Pompidou, Museo Ruso, MUCAC,
+  Festival de Málaga, Fancine, La Noche en Blanco
+```
 
-## Fase 2 — Adapter CSV Málaga + librería CSV
+```text
+CAPA C — MUNICIPIOS P0/P1
+Adapter falta en TODOS los P0: Marbella, Estepona, Fuengirola, Mijas,
+  Benalmádena, Torremolinos, Antequera, Ronda, Vélez-Málaga, Nerja
+  (existen source rows en pending para varios de ellos)
+```
 
-- `supabase/functions/_shared/adapters/lib/csv.ts`: parser CSV tolerante a BOM, comillas y separador `;/,`.
-- Adapter `ayto-malaga-csv` sobre `https://datosabiertos.malaga.eu/recursos/cultura/agenda/2026.csv`. Registrado en `_shared/ingestion/adapters.ts` junto a los existentes (no se borra `ayto-malaga` HTML).
-- Fetch: timeout 20s, retry exponencial (3 intentos), `If-Modified-Since`, UA identificable.
-- Idempotencia: `external_id` del CSV si existe; si no, fingerprint SHA-256 canónico (ya existente).
-- Ejecución obligada `dryRun=true` primero vía `admin-ingest-dry-run`. Escritura solo tras `write_confirmed_at`.
-- Cada evento persistido guarda `canonical_source_url`, `verified_at=now()`, `last_seen_at=now()`, `first_seen_at` si es nuevo, `lifecycle_status='scheduled'`, `confidence_score` alto (fuente oficial).
-- Test: dos corridas consecutivas → 0 duplicados.
+### Bloqueo exacto y crítico
 
----
+No es un problema de adapters — es que **el gate de escritura no está abierto para ninguna fuente y no hay runs**. Implementar 20 adapters nuevos ahora no publicará ni un evento adicional: quedarían como los otros 12 adapters ya implementados que llevan meses sin `enabled=true`.
 
-## Fase 3 — Frontend público
+## Fase 1 realista para ESTA iteración
 
-- Ruta nueva `/agenda/:municipalitySlug` (aditiva, no toca `/events`).
-- `MunicipalityPicker`: buscador accent-insensitive sobre `municipalities` + aliases, botón "Usar mi ubicación" (`navigator.geolocation`), sin bloquear si el usuario deniega.
-- Tabs: Hoy / Mañana / Este fin de semana / Elegir fechas (reutiliza lógica de `EventsPage` y `eventTime.ts`).
-- Filtros: comarca, categoría, gratis/pago, familia+edad, accesibilidad, distancia (15/30/50 km).
-- **"Cerca de X"**: sección visual claramente separada bajo los locales, con etiqueta explícita del municipio original de cada evento; nunca renderizado como local. Cálculo Haversine con bounding box previa por `(lat, lng)` para no escanear la tabla.
-- Tarjetas: título, fecha/hora, municipio y localidad exacta, recinto, categoría, precio o "Gratis", **badge de `lifecycle_status`** (postponed/cancelled/sold_out/finished), distancia si hay permiso, **fuente original enlazada**, **`verified_at` humano** ("verificado hace 3 h"), botón entradas.
-- `finished` se oculta por defecto en listados.
-- SEO: `<title>`, meta description, JSON-LD `Event` solo para eventos publicados y verificados. URLs filtradas compartibles.
+Objetivo: desbloquear el pipeline con **una sola fuente**, extremo a extremo, y demostrar métricas reales. Después replicar el patrón.
 
-Cambios en `EventsPage` se limitan a añadir uso del nuevo `lifecycle_status` sin romper filtros existentes.
+### Fuente elegida: `malaga-open-data-csv`
 
----
+Motivos: CSV oficial del Ayto., adapter maduro (`supabase/functions/_shared/adapters/malaga-open-data-csv.ts`) con tests y fixture, sin scraping HTML, robots claros, cubre Málaga capital.
 
-## Fase 4 — Adapters P0/P1
+### Pasos concretos
 
-Con librerías compartidas `csv.ts`, `rss.ts`, `ics.ts`, `jsonld.ts`, `htmlAdapter.ts` (ya existe patrón). Cada uno pasa por robots/terms review y `write_confirmed_at`:
+1. **Verificar adapter con dry-run real** vía `admin-ingest-dry-run` contra `malaga-open-data-csv`. Leer:
+   - candidatos, futuros, pasados, inválidos, duplicados
+   - detección de horas falsas 01:00/02:00 por UTC-midnight
+   - municipalities resueltos
+   - venues principales
+2. Si dry-run pasa umbrales de calidad: **preflight** vía `admin-ingest-preflight` — confirmar robots, licencia, terms.
+3. **Abrir write gate** en la fila `malaga-open-data-csv` vía `admin-source-confirm-write` (setea `write_confirmed_at`, `robots_ok=true`, `enabled=true`).
+4. **Ejecutar ingest real** vía `admin-ingest` (una sola pasada, sin cron aún).
+5. **Verificar en BD y en `/events`**:
+   - nuevos eventos con `source_url`, `source_id`, `external_id`, `verified/last_seen`, `dedupe_key`
+   - filtros Hoy / Mañana / Este finde / municipio funcionan
+   - cero duplicados frente a legacy
+6. **Documentar métricas reales** en `docs/agenda-preflight/malaga-open-data-csv.md` (ya existe; actualizar con métricas post-ingest).
 
-- Diputación de Málaga (`malaga.es/…/agenda`)
-- Culturama (`malaga.es/culturama`)
-- Junta de Andalucía — Cultura Málaga
-- Visit Costa del Sol
-- Axarquía Costa del Sol
-- Serranía de Ronda
-- Sierra de las Nieves
-- Portales municipales prioritarios del registro (los que aporten CSV/RSS/ICS/JSON-LD antes que HTML).
+### Salida esperada de Fase 1
 
-Fuente que devuelva 403/robots-block → `enabled=false`, `paused_reason='robots'|'403'|'tos'`, continúa el sprint.
+- 1 fuente end-to-end activa con runs reales y métricas.
+- Patrón replicable documentado para las 9 fuentes restantes de Capa A.
+- Confirmación de que dedupe con el pipeline legacy funciona (si no, decisión: apagar legacy para Málaga capital, o coexistir con `source_type` distinguidor).
 
----
+### Qué NO se hace en esta iteración (control de créditos)
 
-## Fase 5 — Admin SourceHealth + moderación
+- No se implementan adapters nuevos (FYCMA, Marbella, Estepona, etc.).
+- No se conecta `teatro-cervantes` ni el resto de Capa B — están implementados pero sin source row; su conexión va en Fase 2 cuando el patrón esté probado.
+- No se redisea `/events` ni el admin.
+- No se toca sports, farmacias, auth, routing ni estilos.
 
-- Nueva vista en `/admin` (aditiva): tabla con fuente, scope, último éxito, último error, `consecutive_errors`, cambios sospechosos (delta de nº de eventos), botón pausar/reanudar (usa `admin-source-toggle-enabled`).
-- Cola de moderación: eventos con `lifecycle_status='needs_review'` o `confidence_score < 0.6` no se publican; se listan con acciones aprobar/rechazar.
-- Reutilización segura de `event_submissions` + edge `submit-event`: sanitización, rate-limit por IP/usuario, restricción de tipos y tamaños, historial de moderación en `moderation_history` (tabla aditiva si falta).
+## Bloqueos que necesitan decisión tuya antes de continuar
 
----
+1. **Coexistencia con legacy**: el pipeline `sync-events`/Firecrawl ya publica 1.430 eventos, muchos probablemente solapan con Open Data CSV. Opciones:
+   - (a) Convivir usando `dedupe_key` — el existente lo genera por (título+venue+start). El nuevo también. Si `dedupe_key` coincide, `ON CONFLICT` decide quién gana según `trust_level` de `event_sources`.
+   - (b) Congelar legacy para Málaga capital antes de activar Open Data CSV.
+   - Mi recomendación: **(a)** y elevar `trust_level` de Open Data CSV por encima del legacy.
 
-## Fase 6 — QA, a11y, perf, seguridad, rollback
+2. **9 source rows huérfanos con `adapter_key='pending'`** apuntando a recintos que sí tienen adapter (`src-teatro-cervantes-p`, `src-la-termica-p`, `src-picasso-p`, `src-thyssen-p`, `src-centro-mva-p`, etc.). Puedo actualizarlos en un `UPDATE` masivo para apuntar a su adapter real, pero eso solo tiene sentido después de probar el patrón con una fuente.
 
-- Tests unitarios: parser CSV, resolución de aliases, dedupe, Haversine, formateo de fechas Europe/Madrid.
-- Tests integración: dry-run de `ayto-malaga-csv` con fixture, dos corridas → 0 duplicados, `verified_at` presente.
-- Tests RLS: anon/authenticated no pueden `INSERT/UPDATE/DELETE` en `events`, `municipalities`, `venues`, `event_sources`. Solo `service_role` y admin (vía `has_role`).
-- Playwright: `/agenda/malaga`, `/agenda/estepona`, geolocalización denegada, sección "Cerca de" claramente separada, badges de estado visibles, sin overflow horizontal a 320px.
-- Build de producción `npm run build` verde.
-- Documento `docs/agenda-cultural-rollback.md` con `DROP` inverso por migración.
+3. **`src-eventos-sierra-de-las-nieves`** marcada como `no_structured_event_data:wp_blog_posts` — su web no expone eventos estructurados. Correcto dejarla en moderación (Capa D del brief). Confirmación: no gastar tiempo aquí.
 
----
+## Confirmación de no-tocar
 
-## Aspectos técnicos y garantías
+Nada de este plan modifica: `sports_events`, `pharmacies_directory`, `auth`, routing (`App.tsx` no se toca), `src/index.css` global, `EventCard.tsx`, filtros de UI.
 
-- Ninguna migración modifica sports, pharmacies, auth ni rutas globales.
-- Adapters existentes (`ayto-malaga`, `teatro-cervantes`, etc.) intactos y activos hasta validación de sustitutos.
-- Secrets solo en Edge Functions (`FIRECRAWL_API_KEY`, `SYNC_ADMIN_KEY`). Nunca al cliente.
-- `events.status` legacy inalterado. Todo el sprint usa `lifecycle_status` para el flujo nuevo; los listados nuevos filtran por él y los antiguos siguen usando `status`.
-- Cada rollback documentado columna a columna.
+## Salida final (secciones 1-10 del brief)
 
-Al terminar Fase 6 entregaré un único informe con: fases completadas, archivos, migraciones, fuentes activas/pausadas/pendientes, resultados build+tests, cobertura de los 103 municipios, correcciones y checklist de producción.
+1. **Matriz antes/después** — ver tabla arriba (después: pendiente Fase 1).
+2. **Fuentes implementadas o corregidas** — 0 en esta llamada (bloqueo estructural detectado antes de tocar código).
+3. **Métricas dry-run** — pendientes del run que ejecutaremos en Fase 1.
+4. **Fuentes listas para preflight** — `malaga-open-data-csv` (candidata única propuesta).
+5. **Bloqueos exactos** — write gate cerrado en 132/132 fuentes; runs=0; adapters huérfanos; convivencia con legacy sin política definida.
+6. **Archivos modificados** — ninguno todavía (audit-only).
+7. **DB objects tocados** — ninguno (solo SELECT).
+8. **QA** — matriz verificada con `psql` directo contra la BD.
+9. **Próximo bloque recomendado** — ejecutar los 6 pasos de Fase 1 sobre `malaga-open-data-csv`.
+10. **Confirmación** — no se ha tocado deportes, farmacias, auth, routing ni estilos.
+
+## Aprobar
+
+Si apruebas este plan, en la siguiente llamada ejecuto los 6 pasos de Fase 1 sobre `malaga-open-data-csv` end-to-end y traigo métricas reales. Si prefieres otra fuente inicial (p. ej. `diputacion-malaga` o `culturama`) dímelo antes.
