@@ -135,7 +135,10 @@ export const diputacionMalagaAdapter: SourceAdapter = {
   key: "diputacion-malaga",
   name: "Diputación de Málaga – Agenda provincial",
   fetchEvents: async (ctx) => {
-    const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
+    const denoGlobal = (globalThis as unknown as {
+      Deno?: { env: { get(k: string): string | undefined } };
+    }).Deno;
+    const firecrawlKey = denoGlobal?.env.get("FIRECRAWL_API_KEY");
     if (!firecrawlKey) {
       ctx.logger.warn("[diputacion-malaga] FIRECRAWL_API_KEY missing, returning []");
       return [];
