@@ -497,6 +497,7 @@ export const teatroCervantesAdapter: SourceAdapter = {
       parsed: ParsedDate;
       category: string | null;
       venueName: string;
+      venueSource: "listing" | "detail" | "fallback";
       detail?: {
         fetched: boolean;
         failed: boolean;
@@ -527,11 +528,15 @@ export const teatroCervantesAdapter: SourceAdapter = {
       }
       seen.add(dedupeKey);
 
+      // Listing-level venue signal from cycle text (e.g. "Ciclo Echegaray Off").
+      const listingVenue = inferVenueFromText(cand.cycleText ?? null) ||
+        inferVenueFromText(cand.title ?? null);
       prepared.push({
         cand,
         parsed,
         category: inferCategoryFromUrl(cand.eventUrl, cand.title ?? ""),
-        venueName: inferVenue(cand.cycleText ?? null, cand.title ?? null),
+        venueName: listingVenue ?? "Teatro Cervantes",
+        venueSource: listingVenue ? "listing" : "fallback",
       });
     }
 
