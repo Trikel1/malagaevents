@@ -286,9 +286,12 @@ export type AgendaCandidate = {
 };
 
 const IMG_RE = /!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/i;
+const HTML_IMG_RE = /<img[^>]+src=["'](https?:\/\/[^"']+)["']/i;
+const HTML_ANCHOR_RE = /<a[^>]+href=["']([^"']+)["'][^>]*>([^<]{2,300})<\/a>/i;
 const TICKET_LABEL_RE = /\b(entradas?|comprar|tickets?|reservar|inscribirse|inscripciones?)\b/i;
 const TICKET_HOST_RE =
-  /^https?:\/\/([^/]+\.)?(entradas\.|elcorteingles\.es|ticketmaster\.es|entradas\.com|giglon\.com|enterticket\.es|uniticket\.es|mientrada\.net|tickets\.)/i;
+  /^https?:\/\/([^/]+\.)?(entradas\.|elcorteingles\.es|ticketmaster\.es|entradas\.com|giglon\.com|enterticket\.es|uniticket\.es|mientrada\.net|tickets\.|dice\.fm|wegow\.com|bacantix\.com|seetickets\.com|fever\.com)/i;
+const REJECT_URL_RE = /^(#|mailto:|tel:|javascript:)/i;
 
 /**
  * Extract event candidates from a markdown agenda page.
@@ -333,7 +336,7 @@ export function extractAgendaCandidates(
       title = lm[1].trim();
       eventUrl = absolutize(base, lm[2]);
     } else {
-      // Look forward up to 6 lines for an internal link.
+      // Look forward up to 6 lines for an internal link (markdown OR HTML).
       for (let j = i + 1, k = 0; j < lines.length && k < 6; j++, k++) {
         const next = lines[j];
         if (!next) continue;
@@ -342,9 +345,15 @@ export function extractAgendaCandidates(
           eventUrl = absolutize(base, nm[2]);
           break;
         }
+        const hm2 = next.match(HTML_ANCHOR_RE);
+        if (hm2) {
+          eventUrl = absolutize(base, hm2[1]);
+          break;
+        }
       }
     }
     if (!eventUrl) continue;
+    if (REJECT_URL_RE.test(eventUrl)) continue;
     if (opts.hrefFilter && !opts.hrefFilter.test(eventUrl)) continue;
     if (opts.excludeFilter && opts.excludeFilter.test(eventUrl)) continue;
     if (!title || title.length < 2 || title.length > 300) continue;
@@ -370,6 +379,10 @@ export function extractAgendaCandidates(
       if (!imageUrl) {
         const im = l.match(IMG_RE);
         if (im) imageUrl = im[1];
+        else {
+          const him = l.match(HTML_IMG_RE);
+          if (him) imageUrl = him[1];
+        }
       }
       if (!ticketUrl) {
         const links = l.matchAll(/\[([^\]]{1,80})\]\((https?:\/\/[^\s)]+)\)/g);
