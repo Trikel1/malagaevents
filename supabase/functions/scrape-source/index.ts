@@ -34,9 +34,10 @@ import {
 import { parseSpanishDateToMadrid } from "../_shared/ingestion/dates.ts";
 import { resolveVenueAlias } from "../_shared/ingestion/venues.ts";
 import { resolveLocalityAlias } from "../_shared/ingestion/localities.ts";
-
-// Hard cap on writes per single run — cannot be exceeded even if body asks for more.
-const MAX_WRITES_PER_RUN = 50;
+import {
+  authorizeWrite,
+  MAX_WRITES_PER_RUN,
+} from "../_shared/ingestion/write-auth.ts";
 
 // deno-lint-ignore no-explicit-any
 type Deps = any;
@@ -154,27 +155,10 @@ function isValidCanonical(ev: CanonicalEvent): boolean {
   return true;
 }
 
-type WriteAuth =
-  | { ok: true; maxWrites: number }
-  | { ok: false; reason: string };
+// authorizeWrite + MAX_WRITES_PER_RUN are imported from
+// _shared/ingestion/write-auth.ts to keep the gate identical in production
+// (Edge Function) and in unit tests (vitest).
 
-function authorizeWrite(
-  body: { writeEnabled?: boolean; dryRun?: boolean; maxWrites?: number },
-  source: EventSourceRow,
-  adapterKey: string,
-): WriteAuth {
-  if (body.writeEnabled !== true) return { ok: false, reason: "writeEnabled_false" };
-  if (body.dryRun !== false) return { ok: false, reason: "dryRun_true" };
-  if (!source.enabled) return { ok: false, reason: "source_disabled" };
-  if (!source.robots_ok) return { ok: false, reason: "robots_not_confirmed" };
-  if (!source.write_confirmed_at) return { ok: false, reason: "write_not_confirmed" };
-  if (source.adapter_key !== adapterKey) return { ok: false, reason: "adapter_mismatch" };
-  const requested = typeof body.maxWrites === "number" && body.maxWrites > 0
-    ? Math.floor(body.maxWrites)
-    : MAX_WRITES_PER_RUN;
-  if (requested > MAX_WRITES_PER_RUN) return { ok: false, reason: "max_writes_exceeded" };
-  return { ok: true, maxWrites: requested };
-}
 
 /** Find an existing event row: first by sha256 dedupe_key, then by legacy fallback. */
 async function findExistingEvent(
