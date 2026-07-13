@@ -249,7 +249,6 @@ const CultureEventsPage = () => {
   const clearAllFilters = useCallback(() => {
     setFilters({ categories: [] });
     setSelectedVenueIds([]);
-    setSelectedVenueGroup('all');
     setSelectedLocationIds([]);
     setSearchQuery('');
     setShowSearchInput(false);
