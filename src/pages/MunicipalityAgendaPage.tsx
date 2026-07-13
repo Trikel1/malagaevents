@@ -182,6 +182,7 @@ const MunicipalityAgendaPage = () => {
             <div className="text-sm text-muted-foreground">Cargando eventos…</div>
           ) : localEvents.length === 0 ? (
             <EmptyState
+              icon={CalendarX2}
               title="Sin eventos confirmados"
               description={`Todavía no hay eventos culturales publicados en ${municipality.name}. Mira las opciones cercanas abajo.`}
             />
