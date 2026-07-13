@@ -21,6 +21,7 @@ import SportsContent from '@/components/sports/SportsContent';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SEO from '@/components/common/SEO';
 import { MUNICIPALITIES, VENUE_ZONES } from '@/lib/venuesCatalog';
+import malagaEmblem from '@/assets/malaga-emblem.png';
 
 const DISCOVER_CARDS = [
   { icon: Music, key: 'music', label: 'Conciertos', copy: 'Salas, festivales y música en vivo.', to: '/events?category=music' },
@@ -142,15 +143,20 @@ const Index = () => {
         </div>
 
         {/* Título editorial — corto */}
-        <div className="relative">
-          <p className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-white/95 font-semibold mb-3">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Málaga Connect
-          </p>
-          <h1 className="text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-xl">
+        <div className="relative mt-1">
+          <img
+            src={malagaEmblem}
+            alt=""
+            aria-hidden="true"
+            width={512}
+            height={512}
+            loading="lazy"
+            className="pointer-events-none select-none absolute -top-6 -right-6 sm:-top-10 sm:-right-10 w-40 sm:w-56 md:w-64 opacity-[0.18] mix-blend-screen"
+          />
+          <h1 className="relative text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-xl">
             Qué hacer hoy en Málaga
           </h1>
-          <p className="text-[15px] sm:text-base text-white/90 mt-3 max-w-md leading-relaxed">
+          <p className="relative text-[15px] sm:text-base text-white/90 mt-3 max-w-md leading-relaxed">
             Eventos, planes familiares, farmacias, deporte y cultura en una sola guía.
           </p>
         </div>
