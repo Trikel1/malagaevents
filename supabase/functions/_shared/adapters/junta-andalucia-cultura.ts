@@ -38,8 +38,11 @@ const LIST_URL =
 const DEFAULT_LIMIT = 20;
 const DETAIL_DELAY_MS = 400;
 
+export type HtmlGetter = (url: string) => Promise<string>;
+
 export interface JuntaBuildDeps {
-  fetchImpl?: typeof fetch;
+  /** Injected fetcher — production uses safeFetch, tests use fixtures. */
+  httpGet?: HtmlGetter;
   limit?: number;
   detailDelayMs?: number;
   listUrl?: string;
@@ -76,10 +79,8 @@ export function juntaDetailToCanonical(detail: JuntaDetail): CanonicalEvent | nu
   };
 }
 
-async function fetchHtml(
-  url: string,
-  fetchImpl: typeof fetch,
-): Promise<string> {
+/** Default HTML getter using safeFetch (used in production). */
+export async function defaultJuntaHttpGet(url: string): Promise<string> {
   const res = await safeFetch(url, {
     accept: "text/html,application/xhtml+xml",
     headers: {
@@ -87,10 +88,9 @@ async function fetchHtml(
       "User-Agent":
         "Mozilla/5.0 (compatible; MalagaEventsBot/1.0; +https://malagaevents.lovable.app)",
     },
-    fetchImpl,
     timeoutMs: 30_000,
     maxBytes: 3_000_000,
-  } as unknown as Parameters<typeof safeFetch>[1]);
+  });
   if (res.status !== 200) {
     throw new Error(`junta_http_${res.status}`);
   }
