@@ -31,10 +31,16 @@ export interface CatalogVenue {
   city: string;
   zone: VenueZone;
   kind: VenueKind;
+  /**
+   * Secondary kinds this venue also belongs to, for filter buttons.
+   * Ex: Teatro Romano is `exterior` but also surfaces under Teatros.
+   */
+  extraKinds?: VenueKind[];
   status?: VenueStatus;
   tags?: string[];
   searchAliases?: string[];
 }
+
 
 export const VENUE_ZONES: Array<{ id: VenueZone; label: string }> = [
   { id: 'malaga-ciudad', label: 'Málaga capital' },
