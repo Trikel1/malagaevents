@@ -286,9 +286,12 @@ export type AgendaCandidate = {
 };
 
 const IMG_RE = /!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/i;
+const HTML_IMG_RE = /<img[^>]+src=["'](https?:\/\/[^"']+)["']/i;
+const HTML_ANCHOR_RE = /<a[^>]+href=["']([^"']+)["'][^>]*>([^<]{2,300})<\/a>/i;
 const TICKET_LABEL_RE = /\b(entradas?|comprar|tickets?|reservar|inscribirse|inscripciones?)\b/i;
 const TICKET_HOST_RE =
-  /^https?:\/\/([^/]+\.)?(entradas\.|elcorteingles\.es|ticketmaster\.es|entradas\.com|giglon\.com|enterticket\.es|uniticket\.es|mientrada\.net|tickets\.)/i;
+  /^https?:\/\/([^/]+\.)?(entradas\.|elcorteingles\.es|ticketmaster\.es|entradas\.com|giglon\.com|enterticket\.es|uniticket\.es|mientrada\.net|tickets\.|dice\.fm|wegow\.com|bacantix\.com|seetickets\.com|fever\.com)/i;
+const REJECT_URL_RE = /^(#|mailto:|tel:|javascript:)/i;
 
 /**
  * Extract event candidates from a markdown agenda page.
