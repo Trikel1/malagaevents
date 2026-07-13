@@ -390,13 +390,22 @@ const CultureEventsPage = () => {
       <header className="glass-nav sticky top-0 z-40 rounded-none border-b border-border/40">
         <div className="px-4 pt-3 pb-2.5 sm:px-6 sm:pt-4 space-y-2.5">
           {/* Title + count pill */}
-          <div className="flex items-center justify-between gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none">
-              {t('events.agendaTitle', 'Agenda')}
-              <span className="text-primary">.</span>
-            </h1>
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="flex items-baseline gap-0.5 text-[28px] sm:text-[34px] font-extrabold tracking-[-0.02em] leading-[0.95]">
+                <span className="agenda-title-gradient">
+                  {t('events.agendaTitle', 'Agenda')}
+                </span>
+                <span className="agenda-dot" aria-hidden="true" />
+              </h1>
+              <p
+                className="mt-1 text-[11px] sm:text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground/80"
+              >
+                {t('events.agendaKicker', 'Cultura · Málaga')}
+              </p>
+            </div>
             <span
-              className="inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
+              className="shrink-0 inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
               aria-label={`${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`}
             >
               <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
@@ -407,6 +416,7 @@ const CultureEventsPage = () => {
               </span>
             </span>
           </div>
+
 
           {/* Search + location + filter + near-me */}
           <div className="flex items-center gap-2">
