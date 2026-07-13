@@ -197,34 +197,34 @@ const Index = () => {
                   <Baby className="h-5 w-5 text-primary" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">Planes para familias</h2>
+                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.family.title')}</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Actividades para niñas y niños, talleres, teatro familiar y planes gratuitos.
+                    {t('home.family.subtitle')}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
                 {[
-                  { label: 'Infantil', to: '/events?filter=family' },
-                  { label: '0–3 años', to: '/events?filter=family&age=0-3' },
-                  { label: '4–8 años', to: '/events?filter=family&age=4-8' },
-                  { label: '9–12 años', to: '/events?filter=family&age=9-12' },
-                  { label: 'Gratis', to: '/events?filter=free' },
-                  { label: 'Este finde', to: '/events?filter=weekend' },
+                  { k: 'kids', to: '/events?filter=family' },
+                  { k: 'age0_3', to: '/events?filter=family&age=0-3' },
+                  { k: 'age4_8', to: '/events?filter=family&age=4-8' },
+                  { k: 'age9_12', to: '/events?filter=family&age=9-12' },
+                  { k: 'free', to: '/events?filter=free' },
+                  { k: 'weekend', to: '/events?filter=weekend' },
                 ].map((c) => (
                   <button
-                    key={c.label}
+                    key={c.k}
                     onClick={() => navigate(c.to)}
                     className="glass-chip liquid-press px-4 py-2 text-sm font-medium hover:bg-primary/10"
                   >
-                    {c.label}
+                    {t(`home.family.chips.${c.k}`)}
                   </button>
                 ))}
               </div>
 
               <Button onClick={() => navigate('/events?filter=family')} className="liquid-press h-11 px-5 font-semibold">
-                Ver planes para niños
+                {t('home.family.cta')}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </section>
