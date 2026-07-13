@@ -51,17 +51,22 @@ const useMunicipalEvents = (municipalityId: string | null | undefined) => {
   });
 };
 
+interface NearbyRow {
+  event: Event;
+  distanceKm: number;
+}
+
 const useNearbyEvents = (
   municipalityId: string | null | undefined,
   lat: number | null,
   lng: number | null,
   radiusKm: number,
 ) => {
-  return useQuery({
+  return useQuery<NearbyRow[]>({
     queryKey: ['nearby-events', municipalityId, lat, lng, radiusKm],
     enabled: !!municipalityId && lat != null && lng != null,
-    queryFn: async () => {
-      if (lat == null || lng == null || !municipalityId) return [] as Event[];
+    queryFn: async (): Promise<NearbyRow[]> => {
+      if (lat == null || lng == null || !municipalityId) return [];
       const box = boundingBox(lat, lng, radiusKm);
       const nowIso = new Date().toISOString();
       const { data, error } = await supabase
@@ -81,7 +86,7 @@ const useNearbyEvents = (
       const rows = (data ?? []) as Event[];
       return rows
         .filter((e) => e.lat != null && e.lng != null)
-        .map((e) => ({
+        .map<NearbyRow>((e) => ({
           event: e,
           distanceKm: haversineKm(lat, lng, Number(e.lat), Number(e.lng)),
         }))
