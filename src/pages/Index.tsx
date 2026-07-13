@@ -175,16 +175,16 @@ const Index = () => {
         ) : (
           <>
             {/* ============== QUICK ACTIONS visible desde primer pantallazo ============== */}
-            <section aria-label="Accesos rápidos" className="glass-panel p-3">
+            <section aria-label={t('home.quickActions.aria')} className="glass-panel p-3">
               <div className="grid grid-cols-3 gap-2">
                 {QUICK_ACTIONS.map((qa) => (
                   <button
-                    key={qa.label}
+                    key={qa.k}
                     onClick={() => navigate(qa.to)}
                     className="liquid-press flex flex-col items-center justify-center gap-1.5 rounded-2xl py-3 px-2 bg-background/40 hover:bg-primary/10 transition-colors border border-border/40 min-h-[76px]"
                   >
                     <qa.icon className="h-5 w-5 text-primary" aria-hidden />
-                    <span className="text-[12px] font-semibold text-foreground leading-tight text-center">{qa.label}</span>
+                    <span className="text-[12px] font-semibold text-foreground leading-tight text-center">{t(`home.quickActions.${qa.k}`)}</span>
                   </button>
                 ))}
               </div>
