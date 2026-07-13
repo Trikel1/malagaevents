@@ -66,10 +66,14 @@ const CultureEventsPage = () => {
   });
 
 
-  // Venue group filter state
-  const [selectedVenueGroup, setSelectedVenueGroup] = useState<VenueGroup>('all');
-  const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
+  // Venue filter state (simple: one kind chip + optional single venue)
+  const [selectedKind, setSelectedKind] = useState<VenueKindFilterValue>('all');
+  const [selectedVenue, setSelectedVenue] = useState<{ id: string; name: string } | null>(null);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+
+  // Real DB venues (used both for id-list-by-kind and for locality priority names)
+  const { data: dbVenues = [] } = useVenues();
+  const mergedVenues = useMemo(() => mergeVenues(dbVenues), [dbVenues]);
 
   // Cities associated with the currently selected localities (for venue dropdown priority sort)
   const { data: allLocations = [] } = useLocations();
@@ -80,6 +84,13 @@ const CultureEventsPage = () => {
         .filter((n): n is string => !!n),
     [selectedLocationIds, allLocations],
   );
+
+  // Derived: venue ids used to filter events
+  const effectiveVenueIds = useMemo<string[]>(() => {
+    if (selectedVenue) return [selectedVenue.id];
+    if (selectedKind !== 'all') return venueIdsForKind(mergedVenues, selectedKind);
+    return [];
+  }, [selectedVenue, selectedKind, mergedVenues]);
 
   // Near me — order-only, non-destructive
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
