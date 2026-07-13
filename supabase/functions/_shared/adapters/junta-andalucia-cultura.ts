@@ -104,13 +104,13 @@ function sleep(ms: number): Promise<void> {
 export async function runJuntaAndalucia(
   deps: JuntaBuildDeps,
 ): Promise<CanonicalEvent[]> {
-  const fetchImpl = deps.fetchImpl ?? fetch;
+  const httpGet = deps.httpGet ?? defaultJuntaHttpGet;
   const listUrl = deps.listUrl ?? LIST_URL;
   const limit = deps.limit ?? DEFAULT_LIMIT;
   const logger = deps.logger;
   const detailDelay = deps.detailDelayMs ?? DETAIL_DELAY_MS;
 
-  const listHtml = await fetchHtml(listUrl, fetchImpl);
+  const listHtml = await httpGet(listUrl);
   const items = extractJuntaListLinks(listHtml);
   logger?.info("[junta-andalucia-cultura] list", {
     listUrl,
@@ -123,7 +123,7 @@ export async function runJuntaAndalucia(
   for (let i = 0; i < bounded.length; i += 1) {
     const item = bounded[i];
     try {
-      const html = await fetchHtml(item.detailUrl, fetchImpl);
+      const html = await httpGet(item.detailUrl);
       const parsed = parseJuntaDetailPage(html, item.detailUrl);
       if (!parsed) {
         logger?.warn("[junta-andalucia-cultura] parse failed", {
