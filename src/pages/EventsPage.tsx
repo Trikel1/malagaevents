@@ -114,10 +114,10 @@ const CultureEventsPage = () => {
     () => ({
       searchQuery: debouncedSearch || undefined,
       filters: filters.onlyFavorites ? undefined : filters,
-      venueIds: effectiveVenueIds.length > 0 ? effectiveVenueIds : undefined,
+      venueIds: selectedVenueIds.length > 0 ? selectedVenueIds : undefined,
       locationIds: selectedLocationIds.length > 0 ? selectedLocationIds : undefined,
     }),
-    [debouncedSearch, filters, effectiveVenueIds, selectedLocationIds],
+    [debouncedSearch, filters, selectedVenueIds, selectedLocationIds],
   );
 
   const { data: events, isLoading, isError, refetch } = useEventsOptimized(queryOptions);
