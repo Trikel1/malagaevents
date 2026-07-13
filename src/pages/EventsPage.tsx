@@ -9,7 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
 import FilterDrawer, { type EventFilters, type DatePreset, type AgeRange } from '@/components/events/FilterDrawer';
-import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
+import { VenueKindFilter, venueIdsForKind, type VenueKindFilterValue } from '@/components/events/VenueKindFilter';
+import { mergeVenues } from '@/lib/venueFilters';
+import { useVenues } from '@/hooks/useVenues';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
@@ -64,10 +66,14 @@ const CultureEventsPage = () => {
   });
 
 
-  // Venue group filter state
-  const [selectedVenueGroup, setSelectedVenueGroup] = useState<VenueGroup>('all');
-  const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
+  // Venue filter state (simple: one kind chip + optional single venue)
+  const [selectedKind, setSelectedKind] = useState<VenueKindFilterValue>('all');
+  const [selectedVenue, setSelectedVenue] = useState<{ id: string; name: string } | null>(null);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+
+  // Real DB venues (used both for id-list-by-kind and for locality priority names)
+  const { data: dbVenues = [] } = useVenues();
+  const mergedVenues = useMemo(() => mergeVenues(dbVenues), [dbVenues]);
 
   // Cities associated with the currently selected localities (for venue dropdown priority sort)
   const { data: allLocations = [] } = useLocations();
@@ -78,6 +84,13 @@ const CultureEventsPage = () => {
         .filter((n): n is string => !!n),
     [selectedLocationIds, allLocations],
   );
+
+  // Derived: venue ids used to filter events
+  const effectiveVenueIds = useMemo<string[]>(() => {
+    if (selectedVenue) return [selectedVenue.id];
+    if (selectedKind !== 'all') return venueIdsForKind(mergedVenues, selectedKind);
+    return [];
+  }, [selectedVenue, selectedKind, mergedVenues]);
 
   // Near me — order-only, non-destructive
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -114,10 +127,10 @@ const CultureEventsPage = () => {
     () => ({
       searchQuery: debouncedSearch || undefined,
       filters: filters.onlyFavorites ? undefined : filters,
-      venueIds: selectedVenueIds.length > 0 ? selectedVenueIds : undefined,
+      venueIds: effectiveVenueIds.length > 0 ? effectiveVenueIds : undefined,
       locationIds: selectedLocationIds.length > 0 ? selectedLocationIds : undefined,
     }),
-    [debouncedSearch, filters, selectedVenueIds, selectedLocationIds],
+    [debouncedSearch, filters, effectiveVenueIds, selectedLocationIds],
   );
 
   const { data: events, isLoading, isError, refetch } = useEventsOptimized(queryOptions);
@@ -249,8 +262,8 @@ const CultureEventsPage = () => {
 
   const clearAllFilters = useCallback(() => {
     setFilters({ categories: [] });
-    setSelectedVenueIds([]);
-    setSelectedVenueGroup('all');
+    setSelectedVenue(null);
+    setSelectedKind('all');
     setSelectedLocationIds([]);
     setSearchQuery('');
     setShowSearchInput(false);
@@ -272,7 +285,8 @@ const CultureEventsPage = () => {
 
   const totalActiveFilters =
     activeFilterCount +
-    (selectedVenueGroup !== 'all' ? 1 : 0) +
+    (selectedKind !== 'all' ? 1 : 0) +
+    (selectedVenue ? 1 : 0) +
     selectedLocationIds.length +
     (debouncedSearch ? 1 : 0) +
     (userCoords ? 1 : 0);
@@ -419,12 +433,13 @@ const CultureEventsPage = () => {
             </form>
           )}
 
-          {/* Row 2: Premium venue selector (halls, theaters, museums, venues) */}
-          <VenueGroupDropdown
-            selectedGroup={selectedVenueGroup}
-            selectedVenueIds={selectedVenueIds}
-            onGroupChange={setSelectedVenueGroup}
-            onVenueIdsChange={setSelectedVenueIds}
+          {/* Row 2: Simple venue kind chips + link to full picker */}
+          <VenueKindFilter
+            selectedKind={selectedKind}
+            selectedVenueId={selectedVenue?.id ?? null}
+            selectedVenueName={selectedVenue?.name ?? null}
+            onKindChange={setSelectedKind}
+            onVenueChange={(id, name) => setSelectedVenue(id && name ? { id, name } : null)}
             priorityCities={priorityCities}
           />
 
