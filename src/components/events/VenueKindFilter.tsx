@@ -11,11 +11,14 @@ import { useVenues } from '@/hooks/useVenues';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   filterMerged,
+  groupCapital,
   mergeVenues,
   normalize,
+  venueMatchesKinds,
   type MergedVenue,
 } from '@/lib/venueFilters';
 import type { VenueKind } from '@/lib/venuesCatalog';
+
 
 /**
  * Premium venue navigation.
