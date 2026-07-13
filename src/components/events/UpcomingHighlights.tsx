@@ -140,9 +140,10 @@ const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
 interface HighlightCardProps {
   event: Event;
   'aria-hidden'?: boolean;
+  snap?: boolean;
 }
 
-const HighlightCard = ({ event, 'aria-hidden': ariaHidden }: HighlightCardProps) => {
+const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
   const { t } = useTranslation();
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
@@ -166,6 +167,7 @@ const HighlightCard = ({ event, 'aria-hidden': ariaHidden }: HighlightCardProps)
     <Link
       to={`/events/${event.id}`}
       className="group shrink-0 w-[220px] sm:w-[240px] md:w-[260px]"
+      style={snap ? { scrollSnapAlign: 'start' } : undefined}
       aria-label={`${title}, ${dayBadge}${showTime ? `, ${timeLabel}` : ''}`}
       aria-hidden={ariaHidden || undefined}
       tabIndex={ariaHidden ? -1 : undefined}
