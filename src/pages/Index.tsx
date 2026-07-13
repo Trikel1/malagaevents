@@ -77,13 +77,13 @@ const Index = () => {
   const goLocality = (name: string) => navigate(`/events?q=${encodeURIComponent(name)}`);
 
   const QUICK_ACTIONS = [
-    { label: 'Hoy', icon: Sparkles, to: '/events?filter=today' },
-    { label: 'Este finde', icon: Calendar, to: '/events?filter=weekend' },
-    { label: 'Infantil', icon: Baby, to: '/events?filter=family' },
-    { label: 'Farmacias', icon: Pill, to: '/pharmacies' },
-    { label: 'Mapa', icon: MapIcon, to: '/map' },
-    { label: 'Gratis', icon: Heart, to: '/events?filter=free' },
-  ];
+    { k: 'today', icon: Sparkles, to: '/events?filter=today' },
+    { k: 'weekend', icon: Calendar, to: '/events?filter=weekend' },
+    { k: 'family', icon: Baby, to: '/events?filter=family' },
+    { k: 'pharmacies', icon: Pill, to: '/pharmacies' },
+    { k: 'map', icon: MapIcon, to: '/map' },
+    { k: 'free', icon: Heart, to: '/events?filter=free' },
+  ] as const;
 
   return (
     <div className="min-h-screen">
