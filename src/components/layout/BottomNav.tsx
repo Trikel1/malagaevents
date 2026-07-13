@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, Calendar, Map, User, Building2 } from 'lucide-react';
+import { Home, Sparkles, Calendar, Map, User, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppMode } from '@/contexts/AppModeContext';
 
@@ -13,7 +13,7 @@ const BottomNav = () => {
   const navItems = useMemo(() => {
     const base = [
       { to: '/', icon: Home, label: t('nav.home') },
-      { to: '/events', icon: CalendarDays, label: t('nav.events') },
+      { to: '/events', icon: Sparkles, label: t('nav.events') },
       { to: '/calendar', icon: Calendar, label: t('nav.calendar') },
     ];
 
@@ -29,15 +29,16 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed left-0 right-0 z-50 glass-nav bottom-nav-dock sm:left-2 sm:right-2"
+      className="fixed z-50 glass-nav bottom-nav-dock"
       style={{
-        bottom: 'max(8px, env(safe-area-inset-bottom, 0px))',
-        paddingBottom: 'max(8px, env(safe-area-inset-bottom, 0px))',
+        bottom: 'max(12px, env(safe-area-inset-bottom, 0px) + 4px)',
+        left: '50%',
+        transform: 'translateX(-50%)',
       }}
       aria-label={t('nav.primary', 'Navegación principal')}
     >
       <div
-        className="bottom-nav-track max-w-lg mx-auto"
+        className="bottom-nav-track"
         style={{ ['--item-count' as any]: navItems.length } as React.CSSProperties}
       >
         {navItems.map((item) => {
@@ -51,25 +52,19 @@ const BottomNav = () => {
               to={item.to}
               className={cn(
                 'bottom-nav-item',
-                isActive
-                  ? 'bottom-nav-item-active'
-                  : 'bottom-nav-item-idle'
+                isActive ? 'bottom-nav-item-active' : 'bottom-nav-item-idle'
               )}
               aria-label={item.label}
+              title={item.label}
             >
               {isActive && <span className="bottom-nav-active-surface" aria-hidden />}
-              <span className="bottom-nav-content">
-                <span className="bottom-nav-icon-shell" aria-hidden>
-                  <item.icon
-                    className={cn(
-                      'h-[22px] w-[22px] shrink-0 transition-[transform,stroke-width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                      isActive && 'stroke-[2.35px] -translate-y-0.5'
-                    )}
-                  />
-                </span>
-                <span className="bottom-nav-label">
-                  {item.label}
-                </span>
+              <span className="bottom-nav-icon-shell" aria-hidden>
+                <item.icon
+                  className={cn(
+                    'h-[24px] w-[24px] shrink-0 transition-[transform,stroke-width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                    isActive && 'stroke-[2.4px] scale-[1.12]'
+                  )}
+                />
               </span>
             </NavLink>
           );
