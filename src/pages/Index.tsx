@@ -232,9 +232,9 @@ const Index = () => {
             {/* ============== Ahora en Málaga (Hoy) ============== */}
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">Ahora en Málaga</h2>
+                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.nowInMalaga')}</h2>
                 <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=today')}>
-                  Ver todo <ChevronRight className="h-4 w-4" />
+                  {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               {loadingToday ? (
@@ -255,7 +255,7 @@ const Index = () => {
 
             {/* ============== Qué puedes encontrar ============== */}
             <section>
-              <h2 className="text-lg font-bold tracking-tight mb-3 px-1">Qué puedes encontrar</h2>
+              <h2 className="text-lg font-bold tracking-tight mb-3 px-1">{t('home.sections.whatYouFind')}</h2>
               <div className="grid grid-cols-2 gap-3">
                 {DISCOVER_CARDS.map((card) => (
                   <button
@@ -267,8 +267,8 @@ const Index = () => {
                       <card.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm leading-tight">{card.label}</div>
-                      <div className="text-[12px] text-muted-foreground leading-snug mt-1 line-clamp-2">{card.copy}</div>
+                      <div className="font-semibold text-sm leading-tight">{t(`home.discover.${card.key}.label`)}</div>
+                      <div className="text-[12px] text-muted-foreground leading-snug mt-1 line-clamp-2">{t(`home.discover.${card.key}.copy`)}</div>
                     </div>
                   </button>
                 ))}
@@ -278,9 +278,9 @@ const Index = () => {
             {/* ============== Este finde ============== */}
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">Este finde</h2>
+                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.thisWeekend')}</h2>
                 <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=weekend')}>
-                  Ver todo <ChevronRight className="h-4 w-4" />
+                  {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               {loadingWeekend ? (
