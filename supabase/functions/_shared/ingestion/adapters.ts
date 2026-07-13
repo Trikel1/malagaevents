@@ -11,6 +11,11 @@ import { laTermicaAdapter } from "../adapters/la-termica.ts";
 import { mvaAdapter } from "../adapters/mva.ts";
 import { museoPicassoAdapter } from "../adapters/museo-picasso.ts";
 import { museoThyssenAdapter } from "../adapters/museo-thyssen.ts";
+import { salaTrincheraAdapter } from "../adapters/sala-trinchera.ts";
+import { salaParis15Adapter } from "../adapters/sala-paris-15.ts";
+import { laCocheraCabaretAdapter } from "../adapters/la-cochera-cabaret.ts";
+import { contenedorCulturalUmaAdapter } from "../adapters/contenedor-cultural-uma.ts";
+import { cineAlbenizAdapter } from "../adapters/cine-albeniz.ts";
 
 const REGISTRY = new Map<string, SourceAdapter>();
 
@@ -26,6 +31,11 @@ register(laTermicaAdapter);
 register(mvaAdapter);
 register(museoPicassoAdapter);
 register(museoThyssenAdapter);
+register(salaTrincheraAdapter);
+register(salaParis15Adapter);
+register(laCocheraCabaretAdapter);
+register(contenedorCulturalUmaAdapter);
+register(cineAlbenizAdapter);
 
 export function getAdapter(key: string | null | undefined): SourceAdapter | null {
   if (!key) return null;
