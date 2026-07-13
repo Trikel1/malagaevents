@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building2, Loader2, MapPin, Search, X } from 'lucide-react';
+import { Check, Loader2, MapPin, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -11,29 +11,157 @@ import { useVenues } from '@/hooks/useVenues';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   filterMerged,
-  groupIntoSections,
   mergeVenues,
   normalize,
   type MergedVenue,
-  type VenueCategory,
 } from '@/lib/venueFilters';
 import type { VenueKind } from '@/lib/venuesCatalog';
 
-/** Three simple buttons that each open the venue picker sheet pre-filtered. */
-type Kind = 'all' | 'salas' | 'teatro-auditorio';
+/**
+ * Premium venue navigation.
+ *
+ * Outside: three icon buttons — Todo · Salas · Teatros.
+ * Inside : multi-select picker (sheet on mobile, popover on desktop),
+ *          with sticky Limpiar / Mostrar footer.
+ */
+
+type Kind = 'all' | 'salas' | 'teatros';
 
 interface VenueKindFilterProps {
   selectedVenueIds: string[];
   onVenueIdsChange: (venueIds: string[]) => void;
-  /** Cities to surface first (e.g. currently selected locality). */
   priorityCities?: string[];
 }
 
 const KIND_TO_KINDS: Record<Kind, VenueKind[] | 'all'> = {
   all: 'all',
   salas: ['sala', 'espacio'],
-  'teatro-auditorio': ['teatro', 'auditorio'],
+  teatros: ['teatro', 'auditorio'],
 };
+
+// ────────────────────────────────────────────────────────────────────────────
+// Custom SVG icons — composed, elegant, works at 20/24/32px, light+dark.
+// ────────────────────────────────────────────────────────────────────────────
+
+interface IconProps {
+  className?: string;
+  size?: number;
+}
+
+/** Three rounded tiles + spark — "all / discovery". */
+function IconTodo({ className, size = 22 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <rect x="3" y="3.5" width="7.5" height="7.5" rx="2" />
+      <rect x="13.5" y="3.5" width="7.5" height="7.5" rx="2" />
+      <rect x="3" y="14" width="7.5" height="7.5" rx="2" />
+      <path d="M17.25 15.5 l0.9 1.8 l1.8 0.9 l-1.8 0.9 l-0.9 1.8 l-0.9 -1.8 l-1.8 -0.9 l1.8 -0.9 z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+/** Rounded stage with mic + two soundwaves — "salas / live". */
+function IconSalas({ className, size = 22 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      {/* stage arch */}
+      <path d="M3.5 18 V12 a8.5 8.5 0 0 1 17 0 v6" />
+      <path d="M2.5 18 h19" />
+      {/* mic capsule */}
+      <rect x="10.25" y="8.5" width="3.5" height="6" rx="1.75" />
+      <path d="M8.5 12.75 a3.5 3.5 0 0 0 7 0" />
+      <path d="M12 16.25 V18" />
+      {/* soundwaves */}
+      <path d="M6 11.5 c0.8 -0.8 0.8 -2 0 -2.8" opacity="0.85" />
+      <path d="M18 11.5 c-0.8 -0.8 -0.8 -2 0 -2.8" opacity="0.85" />
+    </svg>
+  );
+}
+
+/** Proscenium curtain with two drapes + stage base — "teatros". */
+function IconTeatros({ className, size = 22 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      {/* pelmet */}
+      <path d="M3.5 5 h17" />
+      <path d="M3.5 5 v1.5 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 V5" />
+      {/* left drape */}
+      <path d="M5 9 C 5 13, 6.5 16, 7.5 18.5" />
+      <path d="M7.5 9 C 8 13, 8.75 16.5, 9 19" />
+      {/* right drape */}
+      <path d="M19 9 C 19 13, 17.5 16, 16.5 18.5" />
+      <path d="M16.5 9 C 16 13, 15.25 16.5, 15 19" />
+      {/* stage base */}
+      <path d="M4 20 h16" />
+    </svg>
+  );
+}
+
+const KIND_META: Record<Kind, { Icon: (p: IconProps) => JSX.Element; labelKey: string; labelFallback: string }> = {
+  all: { Icon: IconTodo, labelKey: 'events.venueKind.all', labelFallback: 'Todo' },
+  salas: { Icon: IconSalas, labelKey: 'events.venueKind.halls', labelFallback: 'Salas' },
+  teatros: { Icon: IconTeatros, labelKey: 'events.venueKind.theaters', labelFallback: 'Teatros' },
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+
+/** Shorten a long venue name for compact pills, keeping full name in aria-label. */
+function shortenVenueName(name: string): string {
+  const patterns: Array<[RegExp, string]> = [
+    [/^Teatro del Soho.*$/i, 'Soho'],
+    [/^Teatro Cervantes.*$/i, 'Cervantes'],
+    [/^Teatro Echegaray.*$/i, 'Echegaray'],
+    [/^Teatro Cánovas.*$/i, 'Cánovas'],
+    [/^Auditorio Edgar Neville.*$/i, 'Edgar Neville'],
+    [/^Auditorio Eduardo Ocón.*$/i, 'Eduardo Ocón'],
+    [/^Auditorio Municipal .*Torres.*$/i, 'Cortijo de Torres'],
+    [/^Sala Trinchera.*$/i, 'Trinchera'],
+    [/^Sala París 15.*$/i, 'París 15'],
+    [/^La Cochera Cabaret.*$/i, 'La Cochera'],
+    [/^La Térmica.*$/i, 'La Térmica'],
+    [/^Museo Picasso.*$/i, 'M. Picasso'],
+    [/^Museo Thyssen.*$/i, 'M. Thyssen'],
+    [/^Contenedor Cultural.*$/i, 'Contenedor UMA'],
+  ];
+  for (const [re, short] of patterns) if (re.test(name)) return short;
+  if (name.length <= 22) return name;
+  return name.replace(/^(Teatro|Sala|Auditorio|Museo|Centro)\s+/i, '').slice(0, 22);
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 export function VenueKindFilter({
   selectedVenueIds,
@@ -47,70 +175,129 @@ export function VenueKindFilter({
   const [openKind, setOpenKind] = useState<Kind | null>(null);
   const [search, setSearch] = useState('');
   const [showCatalog, setShowCatalog] = useState(false);
+  const [draft, setDraft] = useState<string[]>([]);
 
   const merged = useMemo(() => mergeVenues(venues), [venues]);
 
-  const selectedVenueName = useMemo(() => {
-    if (selectedVenueIds.length === 0) return null;
-    const v = merged.find((m) => m.id && selectedVenueIds.includes(m.id));
-    return v?.name ?? null;
+  // Look up selected venue objects for the pill row.
+  const selectedVenues = useMemo(() => {
+    if (selectedVenueIds.length === 0) return [];
+    return selectedVenueIds
+      .map((id) => merged.find((m) => m.id === id))
+      .filter((v): v is MergedVenue => !!v);
   }, [merged, selectedVenueIds]);
 
+  // Open picker: reset local state, prime draft with current selection.
   useEffect(() => {
     if (openKind) {
       setSearch('');
       setShowCatalog(false);
+      setDraft(selectedVenueIds);
     }
-  }, [openKind]);
+  }, [openKind]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Pre-filter by kind, then reuse filterMerged for search + priority sort.
-  const filtered = useMemo(() => {
+  const kindPreFiltered = useMemo(() => {
     if (!openKind) return [];
     const kinds = KIND_TO_KINDS[openKind];
-    const preList =
-      kinds === 'all' ? merged : merged.filter((v) => kinds.includes(v.kind));
-    const category: VenueCategory = 'all';
-    const list = filterMerged(preList, { category, search, priorityCities });
-    return list;
-  }, [merged, openKind, search, priorityCities]);
+    return kinds === 'all' ? merged : merged.filter((v) => kinds.includes(v.kind));
+  }, [merged, openKind]);
+
+  const filtered = useMemo(
+    () => filterMerged(kindPreFiltered, { category: 'all', search, priorityCities }),
+    [kindPreFiltered, search, priorityCities],
+  );
 
   const activeItems = useMemo(() => filtered.filter((v) => v.hasEvents), [filtered]);
   const catalogItems = useMemo(() => filtered.filter((v) => !v.hasEvents), [filtered]);
 
-  const activeSections = useMemo(
-    () => groupIntoSections(activeItems, 'all'),
-    [activeItems],
-  );
-  const catalogSections = useMemo(
-    () => groupIntoSections(catalogItems, 'all'),
-    [catalogItems],
+  // Group active items by "priority locality → Málaga capital → other cities".
+  const sections = useMemo(() => {
+    const priority = (priorityCities ?? []).map(normalize).filter(Boolean);
+    const buckets = new Map<string, MergedVenue[]>();
+    const push = (key: string, v: MergedVenue) => {
+      const arr = buckets.get(key) ?? [];
+      arr.push(v);
+      buckets.set(key, arr);
+    };
+    for (const v of activeItems) {
+      const cityNorm = normalize(v.city);
+      const isPriority = priority.some((p) => cityNorm.includes(p));
+      if (isPriority) push(`p:${v.city}`, v);
+      else if (v.zone === 'malaga-ciudad') push('capital', v);
+      else push(`c:${v.city}`, v);
+    }
+    const keys = Array.from(buckets.keys());
+    const order = (k: string) => (k.startsWith('p:') ? 0 : k === 'capital' ? 1 : 2);
+    keys.sort((a, b) => {
+      const oa = order(a);
+      const ob = order(b);
+      if (oa !== ob) return oa - ob;
+      return a.localeCompare(b, 'es');
+    });
+    return keys.map((k) => ({
+      key: k,
+      label:
+        k === 'capital'
+          ? t('events.sectionCapital', 'Málaga capital')
+          : k.slice(2),
+      items: buckets.get(k)!,
+    }));
+  }, [activeItems, priorityCities, t]);
+
+  const toggleDraft = useCallback((id: string | null) => {
+    if (!id) return;
+    setDraft((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }, []);
+
+  const handleApply = useCallback(() => {
+    if (draft.length === 0 && openKind && openKind !== 'all') {
+      // "Mostrar todas las salas / todos los teatros" → select every DB-backed
+      // venue of that kind (respects current locality priority filter? No — use ALL kinds).
+      const kinds = KIND_TO_KINDS[openKind];
+      const all = merged.filter(
+        (v) => v.hasEvents && v.id && kinds !== 'all' && kinds.includes(v.kind),
+      );
+      onVenueIdsChange(all.map((v) => v.id!) as string[]);
+    } else {
+      onVenueIdsChange(draft);
+    }
+    setOpenKind(null);
+  }, [draft, openKind, merged, onVenueIdsChange]);
+
+  const handleClearDraft = useCallback(() => setDraft([]), []);
+
+  const handleRemoveOne = useCallback(
+    (id: string) => onVenueIdsChange(selectedVenueIds.filter((x) => x !== id)),
+    [selectedVenueIds, onVenueIdsChange],
   );
 
-  const handleSelectVenue = useCallback(
-    (id: string | null) => {
-      if (!id) return;
-      onVenueIdsChange([id]);
-      setOpenKind(null);
-    },
-    [onVenueIdsChange],
-  );
-
-  const handleClearVenue = useCallback(() => {
-    onVenueIdsChange([]);
-  }, [onVenueIdsChange]);
-
-  const kindLabels: Record<Kind, string> = {
-    all: t('events.venueKind.all', 'Todo'),
-    salas: t('events.venueKind.halls', 'Salas'),
-    'teatro-auditorio': t('events.venueKind.theaters', 'Teatros'),
-  };
+  const handleClearAll = useCallback(() => onVenueIdsChange([]), [onVenueIdsChange]);
 
   const currentKind = openKind;
   const highlight = search ? normalize(search) : '';
 
+  const pickerTitle = openKind
+    ? openKind === 'all'
+      ? t('events.venuesTitle2', 'Recintos')
+      : openKind === 'salas'
+        ? t('events.venueKind.hallsTitle', 'Salas')
+        : t('events.venueKind.theatersTitle', 'Teatros y auditorios')
+    : '';
+
+  const applyLabel = (() => {
+    if (draft.length === 1) return t('events.showOneVenue', 'Mostrar 1 recinto');
+    if (draft.length > 1)
+      return t('events.showNVenues', { count: draft.length, defaultValue: `Mostrar ${draft.length} recintos` });
+    // Empty draft → contextual "Mostrar all X"
+    if (openKind === 'salas') return t('events.showAllHalls', 'Mostrar todas las salas');
+    if (openKind === 'teatros') return t('events.showAllTheaters', 'Mostrar todos los teatros');
+    return t('events.showAll', 'Mostrar todo');
+  })();
+
   const body = (
     <div className="flex flex-col h-full min-h-0">
-      <div className="p-3 border-b space-y-2.5">
+      {/* Search */}
+      <div className="p-3 border-b">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -133,8 +320,9 @@ export function VenueKindFilter({
         </div>
       </div>
 
+      {/* List */}
       <ScrollArea className="flex-1 min-h-0 overscroll-contain [-webkit-overflow-scrolling:touch]">
-        <div className="p-2">
+        <div className="p-2 pb-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -143,7 +331,7 @@ export function VenueKindFilter({
             <div className="py-8 text-center text-sm text-destructive">
               {t('errors.generic', 'Error al cargar')}
             </div>
-          ) : activeSections.length === 0 && catalogSections.length === 0 ? (
+          ) : sections.length === 0 && catalogItems.length === 0 ? (
             <div className="py-10 px-4 text-center">
               <p className="text-sm font-medium text-foreground">
                 {t('events.venuesEmptyTitle', 'Sin recintos que coincidan')}
@@ -154,18 +342,19 @@ export function VenueKindFilter({
             </div>
           ) : (
             <>
-              {activeSections.map((section, idx) => (
+              {sections.map((section, idx) => (
                 <SectionBlock
                   key={'a-' + section.key}
-                  label={sectionLabel(section.key, section.label, priorityCities, t)}
+                  label={section.label}
                   items={section.items}
-                  onSelect={handleSelectVenue}
+                  selectedIds={draft}
+                  onToggle={toggleDraft}
                   highlight={highlight}
                   className={idx > 0 ? 'mt-3' : ''}
                 />
               ))}
 
-              {catalogSections.length > 0 && (
+              {catalogItems.length > 0 && (
                 <div className="mt-3 border-t pt-2">
                   <button
                     type="button"
@@ -179,58 +368,116 @@ export function VenueKindFilter({
                       · {catalogItems.length}
                     </span>
                   </button>
-                  {showCatalog &&
-                    catalogSections.map((section, idx) => (
-                      <SectionBlock
-                        key={'c-' + section.key}
-                        label={section.label}
-                        items={section.items}
-                        onSelect={handleSelectVenue}
-                        highlight={highlight}
-                        className={idx > 0 ? 'mt-3' : 'mt-1'}
-                      />
-                    ))}
+                  {showCatalog && (
+                    <SectionBlock
+                      label={t('events.catalogSectionLabel', 'Sin agenda activa')}
+                      items={catalogItems}
+                      selectedIds={draft}
+                      onToggle={toggleDraft}
+                      highlight={highlight}
+                      className="mt-1"
+                      subdued
+                    />
+                  )}
                 </div>
               )}
             </>
           )}
         </div>
       </ScrollArea>
+
+      {/* Sticky footer */}
+      <div className="border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] flex items-center gap-2 bg-background/95 backdrop-blur-sm">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClearDraft}
+          disabled={draft.length === 0}
+          className="h-10 px-3 text-sm"
+        >
+          {t('common.clear', 'Limpiar')}
+        </Button>
+        <Button
+          size="sm"
+          onClick={handleApply}
+          className="h-10 flex-1 text-sm font-semibold"
+        >
+          {applyLabel}
+        </Button>
+      </div>
     </div>
   );
 
-  const title = t('events.venuesTitle2', 'Recintos');
-
   return (
     <div className="space-y-2">
+      {/* Three icon buttons */}
       <div
-        className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="grid grid-cols-3 gap-2"
         role="toolbar"
-        aria-label={title}
+        aria-label={t('events.venuesTitle2', 'Recintos')}
       >
-        {(['all', 'salas', 'teatro-auditorio'] as Kind[]).map((k) => (
-          <KindButton
-            key={k}
-            label={kindLabels[k]}
-            onClick={() => setOpenKind(k)}
-          />
-        ))}
+        {(['all', 'salas', 'teatros'] as Kind[]).map((k) => {
+          const { Icon, labelKey, labelFallback } = KIND_META[k];
+          const isActive = openKind === k;
+          return (
+            <KindButton
+              key={k}
+              label={t(labelKey, labelFallback)}
+              Icon={Icon}
+              active={isActive}
+              onClick={() => setOpenKind(k)}
+            />
+          );
+        })}
       </div>
 
-      {selectedVenueName && (
-        <div className="flex items-center">
-          <span className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20 max-w-full">
-            <Building2 className="h-3 w-3 shrink-0" />
-            <span className="truncate max-w-[220px]">{selectedVenueName}</span>
+      {/* Selected venues summary */}
+      {selectedVenues.length > 0 && (
+        <div className="flex items-center flex-wrap gap-1.5">
+          {selectedVenues.length <= 3 ? (
+            selectedVenues.map((v) => (
+              <span
+                key={v.id!}
+                className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20 max-w-full"
+                title={v.name}
+              >
+                <span className="truncate max-w-[180px]">{shortenVenueName(v.name)}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveOne(v.id!)}
+                  aria-label={t('common.clearOne', 'Quitar') + ' ' + v.name}
+                  className="h-5 w-5 inline-flex items-center justify-center rounded-full hover:bg-primary/20 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))
+          ) : (
+            <>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20">
+                {t('events.nVenuesSelected', {
+                  count: selectedVenues.length,
+                  defaultValue: `${selectedVenues.length} recintos seleccionados`,
+                })}
+              </span>
+              <button
+                type="button"
+                onClick={() => setOpenKind('all')}
+                className="text-xs text-primary underline-offset-2 hover:underline px-1.5 h-6"
+              >
+                {t('common.edit', 'Editar')}
+              </button>
+            </>
+          )}
+          {selectedVenues.length > 1 && (
             <button
               type="button"
-              onClick={handleClearVenue}
-              aria-label={t('common.clear', 'Limpiar')}
-              className="h-5 w-5 inline-flex items-center justify-center rounded-full hover:bg-primary/20 transition-colors"
+              onClick={handleClearAll}
+              className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1.5 h-6"
             >
-              <X className="h-3 w-3" />
+              {t('events.clearVenues', 'Limpiar recintos')}
             </button>
-          </span>
+          )}
         </div>
       )}
 
@@ -238,18 +485,13 @@ export function VenueKindFilter({
         <Sheet open={openKind !== null} onOpenChange={(o) => !o && setOpenKind(null)}>
           <SheetContent
             side="bottom"
-            className="h-[85vh] p-0 flex flex-col"
+            className="h-[88vh] p-0 flex flex-col"
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
-            <SheetHeader className="p-4 pb-2 text-left border-b">
+            <SheetHeader className="p-4 pb-3 text-left border-b">
               <SheetTitle className="flex items-center gap-2 text-base">
-                <Building2 className="h-4 w-4 text-primary" />
-                {title}
-                {currentKind && currentKind !== 'all' && (
-                  <span className="text-xs font-normal text-muted-foreground">
-                    · {kindLabels[currentKind]}
-                  </span>
-                )}
+                {currentKind && <PickerHeaderIcon kind={currentKind} />}
+                {pickerTitle}
               </SheetTitle>
             </SheetHeader>
             {body}
@@ -257,26 +499,20 @@ export function VenueKindFilter({
         </Sheet>
       ) : (
         <Popover open={openKind !== null} onOpenChange={(o) => !o && setOpenKind(null)}>
-          {/* Invisible anchor near the buttons */}
           <PopoverTrigger asChild>
             <span className="sr-only" aria-hidden />
           </PopoverTrigger>
           <PopoverContent
-            className="w-[min(420px,calc(100vw-24px))] p-0 flex flex-col h-[520px]"
-            align="start"
+            className="w-[min(460px,calc(100vw-24px))] p-0 flex flex-col h-[560px]"
+            align="center"
             side="bottom"
             sideOffset={8}
             collisionPadding={16}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
-            <div className="px-3 pt-3 pb-1 border-b flex items-center gap-2 text-sm font-semibold">
-              <Building2 className="h-4 w-4 text-primary" />
-              {title}
-              {currentKind && currentKind !== 'all' && (
-                <span className="text-xs font-normal text-muted-foreground">
-                  · {kindLabels[currentKind]}
-                </span>
-              )}
+            <div className="px-4 pt-3 pb-2 border-b flex items-center gap-2 text-sm font-semibold">
+              {currentKind && <PickerHeaderIcon kind={currentKind} />}
+              {pickerTitle}
             </div>
             {body}
           </PopoverContent>
@@ -286,49 +522,77 @@ export function VenueKindFilter({
   );
 }
 
-function sectionLabel(
-  key: string,
-  fallback: string,
-  priorityCities: string[] | undefined,
-  t: (k: string, d: string) => string,
-): string {
-  const priority = (priorityCities ?? []).map((c) => c.toLowerCase());
-  if (priority.includes(key.toLowerCase())) return fallback; // keep locality name
-  if (/m[aá]laga$/i.test(key)) return t('events.sectionCapital', 'Málaga capital');
-  return fallback;
+// ────────────────────────────────────────────────────────────────────────────
+
+function PickerHeaderIcon({ kind }: { kind: Kind }) {
+  const { Icon } = KIND_META[kind];
+  return (
+    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+      <Icon size={16} />
+    </span>
+  );
 }
 
 interface KindButtonProps {
   label: string;
+  Icon: (p: IconProps) => JSX.Element;
+  active: boolean;
   onClick: () => void;
 }
 
-function KindButton({ label, onClick }: KindButtonProps) {
+function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
   return (
-    <Button
-      variant="outline"
-      size="sm"
+    <button
+      type="button"
       onClick={onClick}
+      aria-label={label}
+      aria-pressed={active}
       className={cn(
-        'h-9 px-4 rounded-full text-sm font-medium shrink-0',
-        'bg-background/80 backdrop-blur-sm border-border/70',
-        'hover:bg-accent hover:border-border transition-colors',
+        'group relative flex items-center justify-center gap-2 h-12 sm:h-11 px-2 sm:px-3',
+        'rounded-2xl border transition-all duration-150',
+        'bg-gradient-to-b from-background/90 to-background/60 backdrop-blur-md',
+        'border-border/70 hover:border-primary/50 hover:shadow-sm',
+        'active:scale-[0.98] motion-reduce:active:scale-100',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        active && 'border-primary/70 shadow-md ring-1 ring-primary/30',
       )}
     >
-      {label}
-    </Button>
+      <span
+        className={cn(
+          'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
+          'bg-gradient-to-br from-primary/10 to-primary/5',
+          'text-primary transition-colors',
+          'group-hover:from-primary/20 group-hover:to-primary/10',
+          active && 'from-primary/25 to-primary/10',
+        )}
+      >
+        <Icon size={20} />
+      </span>
+      <span className="text-sm font-semibold tracking-tight truncate">
+        {label}
+      </span>
+    </button>
   );
 }
 
 interface SectionBlockProps {
   label: string;
   items: MergedVenue[];
-  onSelect: (id: string | null) => void;
+  selectedIds: string[];
+  onToggle: (id: string | null) => void;
   highlight: string;
   className?: string;
+  subdued?: boolean;
 }
 
-function SectionBlock({ label, items, onSelect, highlight, className }: SectionBlockProps) {
+function SectionBlock({
+  label,
+  items,
+  selectedIds,
+  onToggle,
+  className,
+  subdued,
+}: SectionBlockProps) {
   return (
     <div className={className}>
       <div className="sticky top-0 z-10 bg-popover/95 backdrop-blur-sm px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -343,8 +607,9 @@ function SectionBlock({ label, items, onSelect, highlight, className }: SectionB
           <VenueRow
             key={v.slug + (v.id ?? '')}
             venue={v}
-            highlight={highlight}
-            onSelect={() => onSelect(v.id)}
+            selected={!!v.id && selectedIds.includes(v.id)}
+            onToggle={() => onToggle(v.id)}
+            subdued={subdued}
           />
         ))}
       </div>
@@ -354,26 +619,41 @@ function SectionBlock({ label, items, onSelect, highlight, className }: SectionB
 
 interface VenueRowProps {
   venue: MergedVenue;
-  highlight: string;
-  onSelect: () => void;
+  selected: boolean;
+  onToggle: () => void;
+  subdued?: boolean;
 }
 
-function VenueRow({ venue, onSelect }: VenueRowProps) {
+function VenueRow({ venue, selected, onToggle, subdued }: VenueRowProps) {
   const { t } = useTranslation();
   const disabled = !venue.hasEvents;
   return (
     <button
       type="button"
-      onClick={onSelect}
+      onClick={onToggle}
       disabled={disabled}
+      aria-pressed={selected}
       className={cn(
-        'w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-left transition-colors min-h-[40px]',
+        'w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-left transition-colors min-h-[42px]',
         !disabled && 'hover:bg-accent cursor-pointer',
         disabled && 'opacity-60 cursor-not-allowed',
+        selected && 'bg-primary/10',
+        subdued && 'opacity-70',
       )}
     >
+      <span
+        className={cn(
+          'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all',
+          selected
+            ? 'bg-primary border-primary text-primary-foreground'
+            : 'border-border/70 bg-background',
+        )}
+        aria-hidden
+      >
+        {selected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+      </span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm truncate">{venue.name}</div>
+        <div className={cn('text-sm truncate', selected && 'font-medium')}>{venue.name}</div>
         <div className="text-[11px] text-muted-foreground truncate">
           {venue.city}
           {disabled && (
