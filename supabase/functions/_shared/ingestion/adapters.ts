@@ -21,6 +21,8 @@ import { diputacionMalagaAdapter } from "../adapters/diputacion-malaga.ts";
 import { culturamaAdapter } from "../adapters/culturama.ts";
 import { juntaAndaluciaCulturaAdapter } from "../adapters/junta-andalucia-cultura.ts";
 import { visitCostaDelSolAdapter } from "../adapters/visit-costa-del-sol.ts";
+import { axarquiaCostaDelSolAdapter } from "../adapters/axarquia-costa-del-sol.ts";
+import { serraniaDeRondaAdapter } from "../adapters/serrania-de-ronda.ts";
 
 const REGISTRY = new Map<string, SourceAdapter>();
 
@@ -46,6 +48,8 @@ register(diputacionMalagaAdapter);
 register(culturamaAdapter);
 register(juntaAndaluciaCulturaAdapter);
 register(visitCostaDelSolAdapter);
+register(axarquiaCostaDelSolAdapter);
+register(serraniaDeRondaAdapter);
 
 
 export function getAdapter(key: string | null | undefined): SourceAdapter | null {
