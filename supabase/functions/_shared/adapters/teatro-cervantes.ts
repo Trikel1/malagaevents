@@ -102,6 +102,7 @@ function isInternalCervantesUrl(u: string): boolean {
 
 type ParsedDate = {
   date: Date;
+  endDate?: Date;
   timeExplicit: boolean;
   rangeStartRaw?: string;
   rangeEndRaw?: string;
@@ -173,6 +174,7 @@ function parseListingDateLine(rawLine: string, now: Date): ParsedDate | null {
 
     return {
       date: madridWallTimeToDate(startYear, startMonth, startDay, 20, 0),
+      endDate: madridWallTimeToDate(endYear, endMonth, endDay, 23, 59),
       timeExplicit: false,
       rangeStartRaw: `${startDay}/${startMonth}/${startYear}`,
       rangeEndRaw: `${endDay}/${endMonth}/${endYear}`,
@@ -200,6 +202,7 @@ function parseListingDateLine(rawLine: string, now: Date): ParsedDate | null {
     }
     return {
       date: madridWallTimeToDate(year, month, startDay, 20, 0),
+      endDate: madridWallTimeToDate(year, month, endDay, 23, 59),
       timeExplicit: false,
       rangeStartRaw: `${startDay}/${month}/${year}`,
       rangeEndRaw: `${endDay}/${month}/${year}`,
@@ -494,6 +497,7 @@ export const teatroCervantesAdapter: SourceAdapter = {
       parsed: ParsedDate;
       category: string | null;
       venueName: string;
+      venueSource: "listing" | "detail" | "fallback";
       detail?: {
         fetched: boolean;
         failed: boolean;
@@ -524,11 +528,15 @@ export const teatroCervantesAdapter: SourceAdapter = {
       }
       seen.add(dedupeKey);
 
+      // Listing-level venue signal from cycle text (e.g. "Ciclo Echegaray Off").
+      const listingVenue = inferVenueFromText(cand.cycleText ?? null) ||
+        inferVenueFromText(cand.title ?? null);
       prepared.push({
         cand,
         parsed,
         category: inferCategoryFromUrl(cand.eventUrl, cand.title ?? ""),
-        venueName: inferVenue(cand.cycleText ?? null, cand.title ?? null),
+        venueName: listingVenue ?? "Teatro Cervantes",
+        venueSource: listingVenue ? "listing" : "fallback",
       });
     }
 
@@ -551,7 +559,11 @@ export const teatroCervantesAdapter: SourceAdapter = {
           const improvedVenue = newVenue !== p.venueName;
           if (improvedVenue) {
             p.venueName = newVenue;
+            p.venueSource = "detail";
             venueImproved++;
+          } else if (p.venueSource !== "listing") {
+            // Detail confirms the fallback — mark as detail-anchored.
+            p.venueSource = "detail";
           }
           const improvedDate = !!newDate && !p.parsed.timeExplicit;
           if (improvedDate && newDate) {
@@ -586,11 +598,12 @@ export const teatroCervantesAdapter: SourceAdapter = {
 
     for (const p of prepared) {
       if (!p.parsed.timeExplicit) timeAssumedCount++;
+      const endAt = p.parsed.endDate ? p.parsed.endDate.toISOString() : null;
       out.push({
         title: (p.cand.title ?? "").trim(),
         description: p.cand.cycleText ? `Ciclo: ${p.cand.cycleText}` : null,
         startAt: p.parsed.date.toISOString(),
-        endAt: null,
+        endAt,
         timezone: "Europe/Madrid",
         venueName: p.venueName,
         venueAddress: null,
@@ -601,18 +614,17 @@ export const teatroCervantesAdapter: SourceAdapter = {
         ticketUrl: p.cand.ticketUrl ?? null,
         priceText: null,
         raw: {
-          dateLine: p.cand.dateLine,
+          adapter: "teatro-cervantes",
+          dateLine: p.cand.dateLine.slice(0, 300),
           cycleText: p.cand.cycleText ?? null,
           timeAssumed: !p.parsed.timeExplicit,
+          venueSource: p.venueSource,
+          detailEnriched: p.detail?.fetched === true,
           rangeStartRaw: p.parsed.rangeStartRaw ?? null,
           rangeEndRaw: p.parsed.rangeEndRaw ?? null,
           rangeWasActiveWhenParsed: p.parsed.rangeWasActiveWhenParsed ?? null,
-          detailFetched: p.detail?.fetched ?? false,
           detailFailed: p.detail?.failed ?? false,
-          detailUrl: p.detail?.url ?? null,
-          detailVenueRaw: p.detail?.venueRaw ?? null,
           detailDateRaw: p.detail?.dateRaw ?? null,
-          adapter: "teatro-cervantes",
         },
       });
     }
