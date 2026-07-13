@@ -146,6 +146,7 @@ const MunicipalityAgendaPage = () => {
       <SEO
         title={`Agenda cultural de ${municipality.name} | MalagaEvents`}
         description={`Descubre los eventos culturales confirmados en ${municipality.name} (${municipality.comarca}) y sus alrededores.`}
+        path={`/agenda/${municipality.slug}`}
       />
 
       <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
