@@ -181,7 +181,8 @@
     "allVenues": "Все",
     "theaters": "Театры",
     "halls": "Залы",
-    "otherVenues": "Другие"
+    "otherVenues": "Другие",
+    "timeTBC": "Время уточняется"
   },
   "eventDetail": {
     "when": "Когда",

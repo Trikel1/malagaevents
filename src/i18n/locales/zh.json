@@ -181,7 +181,8 @@
     "allVenues": "所有",
     "theaters": "剧院",
     "halls": "大厅",
-    "otherVenues": "其他"
+    "otherVenues": "其他",
+    "timeTBC": "时间待定"
   },
   "eventDetail": {
     "when": "何时",

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import EventImage from '@/components/events/EventImage';
 import { sanitizeText, generateAltText } from '@/lib/sanitize';
+import { hasExplicitTime } from '@/lib/eventTime';
 import type { Event } from '@/types';
 
 const locales: Record<string, Locale> = {
@@ -29,10 +30,16 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
-  const formattedDate = format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale });
+  const showTime = hasExplicitTime(event.start_at);
+  const timeConfirmLabel = t('events.timeTBC', 'Hora por confirmar');
+  const formattedDate = showTime
+    ? format(new Date(event.start_at), "EEE d MMM · HH:mm", { locale })
+    : format(new Date(event.start_at), "EEE d MMM", { locale });
   const dayShort = format(new Date(event.start_at), "d", { locale });
   const monthShort = format(new Date(event.start_at), "MMM", { locale }).replace('.', '');
-  const timeShort = format(new Date(event.start_at), "HH:mm", { locale });
+  const timeShort = showTime
+    ? format(new Date(event.start_at), "HH:mm", { locale })
+    : timeConfirmLabel;
 
   // Strict cleaner: filter null/undefined/placeholders. Used for visible metadata only.
   const cleanMetaPart = (val: string | null | undefined): string | null => {

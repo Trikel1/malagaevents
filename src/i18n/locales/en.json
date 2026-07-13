@@ -181,7 +181,8 @@
     "allVenues": "All",
     "theaters": "Theaters",
     "halls": "Halls",
-    "otherVenues": "Others"
+    "otherVenues": "Others",
+    "timeTBC": "Time to be confirmed"
   },
   "eventDetail": {
     "when": "When",

@@ -181,7 +181,8 @@
     "allVenues": "Alle",
     "theaters": "Theater",
     "halls": "Hallen",
-    "otherVenues": "Andere"
+    "otherVenues": "Andere",
+    "timeTBC": "Uhrzeit folgt"
   },
   "eventDetail": {
     "when": "Wann",
