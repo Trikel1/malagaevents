@@ -187,7 +187,7 @@ describe('serrania-de-ronda adapter', () => {
   it('produces CanonicalEvent[] with Europe/Madrid defaults', async () => {
     const events = await runSerrania({ httpGet: getter, limit: 20 });
     expect(events.length).toBeGreaterThanOrEqual(3);
-    const setenil = events.find((e) => e.externalId === 'serrania-iii-carrera-urbana-nocturna-setenil-2026');
+    const setenil = events.find((e) => e.externalId === 'serrania-carrera-urbana-nocturna-de-setenil');
     expect(setenil).toBeDefined();
     expect(setenil!.locality).toBe('Setenil');
     expect(setenil!.timezone).toBe('Europe/Madrid');
