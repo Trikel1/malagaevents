@@ -41,12 +41,17 @@ function normHeader(h: string): string {
     .trim();
 }
 
-/** Case- and accent-insensitive column picker over a CsvRow. */
+/**
+ * Case- and accent-insensitive column picker over a CsvRow.
+ * Iterates in caller's key priority order so the first listed alias wins,
+ * regardless of the physical column order in the source CSV.
+ */
 function pick(row: CsvRow, keys: string[]): string {
-  // Precompute normalized header index lazily via WeakMap-like closure.
-  for (const raw of Object.keys(row)) {
-    const norm = normHeader(raw);
-    if (keys.includes(norm) && row[raw]) return row[raw];
+  const index = new Map<string, string>();
+  for (const raw of Object.keys(row)) index.set(normHeader(raw), raw);
+  for (const key of keys) {
+    const raw = index.get(key);
+    if (raw && row[raw]) return row[raw];
   }
   return "";
 }
