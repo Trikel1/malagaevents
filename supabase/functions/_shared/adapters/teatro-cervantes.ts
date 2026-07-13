@@ -24,10 +24,14 @@ import { madridWallTimeToDate } from "../ingestion/dates.ts";
 
 const LISTING_PATH = "/es/programacion/";
 const DEFAULT_BASE = "https://www.teatrocervantes.com";
-const MAX_DETAIL_FOLLOWS = 80;
-const DETAIL_CONCURRENCY = 3;
+const MAX_DETAIL_FOLLOWS = 20;
+const DETAIL_CONCURRENCY = 2;
+const FETCH_TIMEOUT_MS = 20_000;
+const FIRECRAWL_SCRAPE_TIMEOUT_MS = 20_000;
+// Real Chrome UA — teatrocervantes.com returns 403 for obvious bot UAs.
 const USER_AGENT =
-  "MalagaEventsBot/1.0 (+https://malagaevents.lovable.app; contacto via web)";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
+  "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
 const MONTHS_ES: Record<string, number> = {
   enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,
@@ -38,19 +42,34 @@ const MONTHS_ES: Record<string, number> = {
 
 // --- Fetch helpers -------------------------------------------------------
 
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchViaFirecrawl(url: string, apiKey: string): Promise<string> {
-  const res = await fetch("https://api.firecrawl.dev/v2/scrape", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+  const res = await fetchWithTimeout(
+    "https://api.firecrawl.dev/v2/scrape",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url,
+        formats: ["markdown"],
+        onlyMainContent: true,
+        timeout: FIRECRAWL_SCRAPE_TIMEOUT_MS,
+      }),
     },
-    body: JSON.stringify({
-      url,
-      formats: ["markdown"],
-      onlyMainContent: true,
-    }),
-  });
+    FIRECRAWL_SCRAPE_TIMEOUT_MS + 5_000,
+  );
   if (!res.ok) {
     const txt = await res.text();
     throw new Error(`firecrawl_${res.status}: ${txt.slice(0, 200)}`);
@@ -60,13 +79,25 @@ async function fetchViaFirecrawl(url: string, apiKey: string): Promise<string> {
 }
 
 async function fetchPlain(url: string): Promise<string> {
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "text/html,application/xhtml+xml",
-      "Accept-Language": "es-ES,es;q=0.9",
+  const res = await fetchWithTimeout(
+    url,
+    {
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Upgrade-Insecure-Requests": "1",
+      },
+      redirect: "follow",
     },
-  });
+    FETCH_TIMEOUT_MS,
+  );
   if (!res.ok) throw new Error(`fetch_${res.status}`);
   return await res.text();
 }
