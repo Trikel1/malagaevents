@@ -117,23 +117,32 @@ function findStartTime(text: string): { h: number; mi: number; endH?: number; en
   return null;
 }
 
+const WP_FETCH_TIMEOUT_MS = 15_000;
+
 async function fetchPosts(catId: number, perPage: number): Promise<WpPost[]> {
   const url =
     `${API}/posts?per_page=${perPage}&categories=${catId}` +
     `&_fields=id,date,link,slug,title,excerpt,content,categories,_embedded` +
     `&_embed=wp:featuredmedia`;
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      Accept: "application/json",
-      "Accept-Language": "es-ES,es;q=0.9",
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`wp_${res.status}: ${body.slice(0, 120)}`);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), WP_FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "application/json",
+        "Accept-Language": "es-ES,es;q=0.9",
+      },
+      signal: ctrl.signal,
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`wp_${res.status}: ${body.slice(0, 120)}`);
+    }
+    return (await res.json()) as WpPost[];
+  } finally {
+    clearTimeout(timer);
   }
-  return (await res.json()) as WpPost[];
 }
 
 // ---------- adapter ------------------------------------------------------
