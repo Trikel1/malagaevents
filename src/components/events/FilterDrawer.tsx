@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { CalendarIcon, X, Baby, Users, Heart, Trees, Ticket } from 'lucide-react';
@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+
+
 
 import {
   Drawer,
@@ -87,11 +89,93 @@ const FilterDrawer = ({
     onOpenChange(false);
   };
 
+  // Build the visible summary of active filters as removable chips
+  const activeChips = useMemo(() => {
+    const chips: Array<{ key: string; label: string; onRemove: () => void }> = [];
+    if (localFilters.datePreset === 'weekend') {
+      chips.push({
+        key: 'weekend',
+        label: t('common.thisWeekend', 'Este finde'),
+        onRemove: () => setLocalFilters((p) => ({ ...p, datePreset: undefined })),
+      });
+    }
+    if (localFilters.familyKids) {
+      chips.push({
+        key: 'family',
+        label: t('events.family', 'Infantil'),
+        onRemove: () => setLocalFilters((p) => ({ ...p, familyKids: undefined })),
+      });
+    }
+    if (localFilters.isFree) {
+      chips.push({
+        key: 'free',
+        label: t('common.free', 'Gratis'),
+        onRemove: () => setLocalFilters((p) => ({ ...p, isFree: undefined })),
+      });
+    }
+    if (localFilters.isOutdoor) {
+      chips.push({
+        key: 'outdoor',
+        label: t('events.outdoor', 'Al aire libre'),
+        onRemove: () => setLocalFilters((p) => ({ ...p, isOutdoor: undefined })),
+      });
+    }
+    if (localFilters.withTickets) {
+      chips.push({
+        key: 'tickets',
+        label: t('events.withTickets', 'Con entradas'),
+        onRemove: () => setLocalFilters((p) => ({ ...p, withTickets: undefined })),
+      });
+    }
+    if (localFilters.onlyFavorites) {
+      chips.push({
+        key: 'favs',
+        label: t('events.onlyFavorites', 'Solo favoritos'),
+        onRemove: () => setLocalFilters((p) => ({ ...p, onlyFavorites: undefined })),
+      });
+    }
+    if (localFilters.dateFrom) {
+      chips.push({
+        key: 'from',
+        label: `${t('events.dateFrom', 'Desde')} ${format(localFilters.dateFrom, 'd MMM')}`,
+        onRemove: () => setLocalFilters((p) => ({ ...p, dateFrom: undefined })),
+      });
+    }
+    if (localFilters.dateTo) {
+      chips.push({
+        key: 'to',
+        label: `${t('events.dateTo', 'Hasta')} ${format(localFilters.dateTo, 'd MMM')}`,
+        onRemove: () => setLocalFilters((p) => ({ ...p, dateTo: undefined })),
+      });
+    }
+    for (const cat of localFilters.categories) {
+      chips.push({
+        key: `cat-${cat}`,
+        label: t(`categories.${cat}`, cat),
+        onRemove: () =>
+          setLocalFilters((p) => ({
+            ...p,
+            categories: p.categories.filter((c) => c !== cat),
+          })),
+      });
+    }
+    return chips;
+  }, [localFilters, t]);
+
+  const activeCount = activeChips.length;
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="max-h-[85vh]">
         <DrawerHeader className="flex items-center justify-between">
-          <DrawerTitle>{t('events.filters')}</DrawerTitle>
+          <DrawerTitle className="flex items-center gap-2">
+            {t('events.filters')}
+            {activeCount > 0 && (
+              <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold tabular-nums">
+                {activeCount}
+              </span>
+            )}
+          </DrawerTitle>
           <DrawerClose asChild>
             <Button variant="ghost" size="icon">
               <X className="h-4 w-4" />
@@ -99,8 +183,45 @@ const FilterDrawer = ({
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="px-4 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
+        {/* Active filters summary — sticky under the header */}
+        {activeCount > 0 && (
+          <div className="px-4 pb-3 -mt-1 border-b border-border/60">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {t('events.activeFilters', 'Filtros activos')}
+              </span>
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="ml-auto text-[11px] text-primary hover:underline underline-offset-2"
+              >
+                {t('events.clearAll', 'Quitar todos')}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {activeChips.map((chip) => (
+                <span
+                  key={chip.key}
+                  className="inline-flex items-center gap-1 pl-2.5 pr-1 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20"
+                >
+                  <span className="truncate max-w-[160px]">{chip.label}</span>
+                  <button
+                    type="button"
+                    onClick={chip.onRemove}
+                    aria-label={`${t('common.clearOne', 'Quitar')} ${chip.label}`}
+                    className="h-5 w-5 inline-flex items-center justify-center rounded-full hover:bg-primary/20 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="px-4 pt-4 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
           {/* Quick presets — infantil/familiar priorizados arriba */}
+
           <div className="space-y-2">
             <Label>{t('events.quickPresets', 'Accesos rápidos')}</Label>
             <div className="flex flex-wrap gap-2">
@@ -297,14 +418,22 @@ const FilterDrawer = ({
           )}
         </div>
 
-        <DrawerFooter className="flex-row gap-2">
-          <Button variant="outline" onClick={handleClearFilters} className="flex-1">
-            {t('events.clearFilters')}
+        <DrawerFooter className="flex-row gap-2 border-t border-border/60 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+          <Button
+            variant="ghost"
+            onClick={handleClearFilters}
+            disabled={activeCount === 0}
+            className="flex-1"
+          >
+            {t('events.clearFilters', 'Limpiar')}
           </Button>
-          <Button onClick={handleApply} className="flex-1">
-            {t('events.applyFilters')}
+          <Button onClick={handleApply} className="flex-[2] font-semibold">
+            {activeCount > 0
+              ? `${t('events.showResults', 'Mostrar')} · ${activeCount}`
+              : t('events.showAll', 'Mostrar todo')}
           </Button>
         </DrawerFooter>
+
       </DrawerContent>
     </Drawer>
   );
