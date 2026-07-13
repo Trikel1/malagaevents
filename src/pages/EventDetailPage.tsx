@@ -120,9 +120,14 @@ const EventDetailPage = () => {
     );
   }
 
+  const showTime = hasExplicitTime(event.start_at);
   const formattedDate = format(new Date(event.start_at), "EEEE d 'de' MMMM", { locale });
-  const formattedTime = format(new Date(event.start_at), 'HH:mm', { locale });
-  const formattedEndTime = event.end_at ? format(new Date(event.end_at), 'HH:mm', { locale }) : null;
+  const formattedTime = showTime
+    ? format(new Date(event.start_at), 'HH:mm', { locale })
+    : t('events.timeTBC', 'Hora por confirmar');
+  const formattedEndTime = showTime && event.end_at && hasExplicitTime(event.end_at)
+    ? format(new Date(event.end_at), 'HH:mm', { locale })
+    : null;
 
   const handleOpenMaps = () => {
     if (event.lat && event.lng) {
