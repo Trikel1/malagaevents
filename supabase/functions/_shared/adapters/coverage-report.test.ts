@@ -218,6 +218,9 @@ Deno.test("coverage-report: cultural adapters", async () => {
     }
     const row = await runOne(adapter, firecrawlAvailable);
     rows.push(row);
+    // Politeness delay to reduce Firecrawl rate-limit collisions across
+    // adapters. Not strict — even without it the harness still reports.
+    await new Promise((r) => setTimeout(r, 1500));
   }
 
   // Print compact per-adapter summary.
