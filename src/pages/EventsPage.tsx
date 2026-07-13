@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import EventCard from '@/components/events/EventCard';
 import FilterDrawer, { type EventFilters, type DatePreset, type AgeRange } from '@/components/events/FilterDrawer';
-import { VenueGroupDropdown, type VenueGroup } from '@/components/events/VenueGroupDropdown';
+import { VenueKindFilter } from '@/components/events/VenueKindFilter';
 import LocationFilter from '@/components/events/LocationFilter';
 import EmptyState from '@/components/common/EmptyState';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
@@ -64,8 +64,7 @@ const CultureEventsPage = () => {
   });
 
 
-  // Venue group filter state (multi-select with search)
-  const [selectedVenueGroup, setSelectedVenueGroup] = useState<VenueGroup>('all');
+  // Venue filter state (single-select via VenueKindFilter sheets)
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
 
@@ -250,7 +249,6 @@ const CultureEventsPage = () => {
   const clearAllFilters = useCallback(() => {
     setFilters({ categories: [] });
     setSelectedVenueIds([]);
-    setSelectedVenueGroup('all');
     setSelectedLocationIds([]);
     setSearchQuery('');
     setShowSearchInput(false);
@@ -272,7 +270,6 @@ const CultureEventsPage = () => {
 
   const totalActiveFilters =
     activeFilterCount +
-    (selectedVenueGroup !== 'all' ? 1 : 0) +
     (selectedVenueIds.length > 0 ? 1 : 0) +
     selectedLocationIds.length +
     (debouncedSearch ? 1 : 0) +
@@ -420,14 +417,13 @@ const CultureEventsPage = () => {
             </form>
           )}
 
-          {/* Row 2: Venue selector with search and multi-select */}
-          <VenueGroupDropdown
-            selectedGroup={selectedVenueGroup}
+          {/* Row 2: Venue kind buttons opening pre-filtered picker */}
+          <VenueKindFilter
             selectedVenueIds={selectedVenueIds}
-            onGroupChange={setSelectedVenueGroup}
             onVenueIdsChange={setSelectedVenueIds}
             priorityCities={priorityCities}
           />
+
 
 
           {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
