@@ -112,7 +112,7 @@ const HighlightCard = ({ event, 'aria-hidden': ariaHidden }: HighlightCardProps)
   return (
     <Link
       to={`/events/${event.id}`}
-      className="group shrink-0 w-[58%] sm:w-[38%] md:w-[26%] lg:w-[20%] xl:w-[17%]"
+      className="group shrink-0 w-[220px] sm:w-[240px] md:w-[260px]"
       aria-label={`${title}, ${dayBadge}${showTime ? `, ${timeLabel}` : ''}`}
       aria-hidden={ariaHidden || undefined}
       tabIndex={ariaHidden ? -1 : undefined}
