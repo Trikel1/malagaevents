@@ -242,10 +242,15 @@ export function groupCapital(list: MergedVenue[]): Array<{
   for (const group of CAPITAL_GROUPS) {
     const items = list
       .filter((v) => venueMatchesKinds(v, group.kinds))
-      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+      .sort((a, b) => {
+        // Con agenda first, then alphabetical
+        if (a.hasEvents !== b.hasEvents) return a.hasEvents ? -1 : 1;
+        return a.name.localeCompare(b.name, 'es');
+      });
     if (items.length > 0) result.push({ key: group.key, label: group.label, items });
   }
   return result;
+
 }
 
 export interface VenueSection {
