@@ -60,6 +60,7 @@ const App = () => (
                   <Route path="/tickets" element={<TicketsPage />} />
                   <Route path="/venues" element={<VenuesPage />} />
                   <Route path="/map" element={<MapPage />} />
+                  <Route path="/agenda/:municipalitySlug" element={<MunicipalityAgendaPage />} />
                 </Route>
 
                 {/* Pages without bottom nav */}
