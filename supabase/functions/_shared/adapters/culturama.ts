@@ -85,7 +85,10 @@ export const culturamaAdapter: SourceAdapter = {
   key: "culturama",
   name: "Culturama – Diputación de Málaga",
   fetchEvents: async (ctx) => {
-    const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
+    const denoGlobal = (globalThis as unknown as {
+      Deno?: { env: { get(k: string): string | undefined } };
+    }).Deno;
+    const firecrawlKey = denoGlobal?.env.get("FIRECRAWL_API_KEY");
     if (!firecrawlKey) {
       ctx.logger.warn("[culturama] FIRECRAWL_API_KEY missing, returning []");
       return [];
