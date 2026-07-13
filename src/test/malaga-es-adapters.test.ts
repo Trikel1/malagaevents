@@ -191,15 +191,14 @@ describe('diputacion-malaga adapter', () => {
     const a = await pass();
     const b = await pass();
     expect(a).toEqual(b);
-    const keyOf = (e: (typeof a)[number]) =>
-      generateEventDedupeKey({
-        title: e.title,
-        venue: e.venueName ?? '',
-        locality: e.locality,
-        startMadridMinute: formatMadridDedupeMinute(new Date(e.startAt)),
-      });
-    expect(keyOf(a[0])).toBe(keyOf(b[0]));
+    const keyA = await generateEventDedupeKey(a[0]);
+    const keyB = await generateEventDedupeKey(b[0]);
+    expect(keyA).toBe(keyB);
     expect(a[0].externalId).toBe(b[0].externalId);
+    // Sanity: dedupe key covers the Madrid minute.
+    expect(formatMadridDedupeMinute(new Date(a[0].startAt))).toMatch(
+      /^2026-07-16T09:00$/,
+    );
   });
 });
 
