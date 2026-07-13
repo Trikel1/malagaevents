@@ -647,13 +647,19 @@ function VenueRow({ venue, selected, onToggle, subdued }: VenueRowProps) {
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={disabled ? undefined : onToggle}
       disabled={disabled}
       aria-pressed={selected}
+      aria-disabled={disabled}
+      title={
+        disabled
+          ? `${venue.name} — ${t('events.venueNoAgendaLong', 'Sin agenda disponible')}`
+          : venue.name
+      }
       className={cn(
         'w-full flex items-center gap-2.5 px-2 py-2 rounded-md text-left transition-colors min-h-[42px]',
         !disabled && 'hover:bg-accent cursor-pointer',
-        disabled && 'opacity-60 cursor-not-allowed',
+        disabled && 'cursor-default',
         selected && 'bg-primary/10',
         subdued && 'opacity-70',
       )}
@@ -663,19 +669,33 @@ function VenueRow({ venue, selected, onToggle, subdued }: VenueRowProps) {
           'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all',
           selected
             ? 'bg-primary border-primary text-primary-foreground'
-            : 'border-border/70 bg-background',
+            : disabled
+              ? 'border-dashed border-border/50 bg-transparent'
+              : 'border-border/70 bg-background',
         )}
         aria-hidden
       >
         {selected && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
       </span>
       <div className="flex-1 min-w-0">
-        <div className={cn('text-sm truncate', selected && 'font-medium')}>{venue.name}</div>
-        <div className="text-[11px] text-muted-foreground truncate">
-          {venue.city}
-          {disabled && (
-            <span className="ml-1.5 text-muted-foreground/70">
-              · {t('events.venueNoAgenda', 'sin agenda aún')}
+        <div
+          className={cn(
+            'text-sm truncate',
+            selected && 'font-medium',
+            disabled && 'text-muted-foreground',
+          )}
+        >
+          {venue.name}
+        </div>
+        <div className="text-[11px] text-muted-foreground/80 truncate flex items-center gap-1.5">
+          <span className="truncate">{venue.city}</span>
+          {disabled ? (
+            <span className="shrink-0 inline-flex items-center rounded-full border border-border/50 px-1.5 py-px text-[10px] text-muted-foreground/70">
+              {t('events.venueNoAgendaLong', 'Sin agenda disponible')}
+            </span>
+          ) : (
+            <span className="shrink-0 inline-flex items-center rounded-full bg-primary/10 text-primary px-1.5 py-px text-[10px] font-medium">
+              {t('events.venueHasAgenda', 'Con agenda')}
             </span>
           )}
         </div>
@@ -683,5 +703,6 @@ function VenueRow({ venue, selected, onToggle, subdued }: VenueRowProps) {
     </button>
   );
 }
+
 
 export default VenueKindFilter;
