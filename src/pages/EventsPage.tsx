@@ -15,6 +15,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { EventListSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEventsOptimized } from '@/hooks/useEventsOptimized';
 import { useFavorites, useToggleFavorite, useFavoriteEvents } from '@/hooks/useFavorites';
+import { useLocations } from '@/hooks/useLocations';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SportsEventsPage from '@/components/sports/SportsEventsPage';
@@ -67,6 +68,16 @@ const CultureEventsPage = () => {
   const [selectedVenueGroup, setSelectedVenueGroup] = useState<VenueGroup>('all');
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+
+  // Cities associated with the currently selected localities (for venue dropdown priority sort)
+  const { data: allLocations = [] } = useLocations();
+  const priorityCities = useMemo(
+    () =>
+      selectedLocationIds
+        .map((id) => allLocations.find((l) => l.id === id)?.name)
+        .filter((n): n is string => !!n),
+    [selectedLocationIds, allLocations],
+  );
 
   // Near me — order-only, non-destructive
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -408,13 +419,15 @@ const CultureEventsPage = () => {
             </form>
           )}
 
-          {/* Row 2: Venue segmented control [Todos] [Salas] [Teatros] - 100% width */}
+          {/* Row 2: Premium venue selector (halls, theaters, museums, venues) */}
           <VenueGroupDropdown
             selectedGroup={selectedVenueGroup}
             selectedVenueIds={selectedVenueIds}
             onGroupChange={setSelectedVenueGroup}
             onVenueIdsChange={setSelectedVenueIds}
+            priorityCities={priorityCities}
           />
+
 
           {/* Row 3: Quick filter chips (horizontal scroll on mobile) */}
           <div
