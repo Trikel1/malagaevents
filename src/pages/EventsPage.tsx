@@ -69,6 +69,16 @@ const CultureEventsPage = () => {
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
 
+  // Cities associated with the currently selected localities (for venue dropdown priority sort)
+  const { data: allLocations = [] } = useLocations();
+  const priorityCities = useMemo(
+    () =>
+      selectedLocationIds
+        .map((id) => allLocations.find((l) => l.id === id)?.name)
+        .filter((n): n is string => !!n),
+    [selectedLocationIds, allLocations],
+  );
+
   // Near me — order-only, non-destructive
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
