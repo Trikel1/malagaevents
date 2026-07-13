@@ -418,14 +418,22 @@ const FilterDrawer = ({
           )}
         </div>
 
-        <DrawerFooter className="flex-row gap-2">
-          <Button variant="outline" onClick={handleClearFilters} className="flex-1">
-            {t('events.clearFilters')}
+        <DrawerFooter className="flex-row gap-2 border-t border-border/60 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+          <Button
+            variant="ghost"
+            onClick={handleClearFilters}
+            disabled={activeCount === 0}
+            className="flex-1"
+          >
+            {t('events.clearFilters', 'Limpiar')}
           </Button>
-          <Button onClick={handleApply} className="flex-1">
-            {t('events.applyFilters')}
+          <Button onClick={handleApply} className="flex-[2] font-semibold">
+            {activeCount > 0
+              ? `${t('events.showResults', 'Mostrar')} · ${activeCount}`
+              : t('events.showAll', 'Mostrar todo')}
           </Button>
         </DrawerFooter>
+
       </DrawerContent>
     </Drawer>
   );
