@@ -291,6 +291,28 @@ Deno.serve(async (req) => {
       await logError(supabase, sourceId, runId, "fetch", (e as Error).message);
     }
 
+    // Drop events whose startAt is more than 48h in the past. Past events
+    // are never shown in the UI, and processing them per-row (alias
+    // lookups + hashing + dedupe select) blows the CPU budget on large
+    // feeds like malaga-open-data-csv (907 rows -> ~66 future).
+    const pastCutoffMs = Date.now() - 48 * 3600_000;
+    const beforeFilter = events.length;
+    events = events.filter((ev) => {
+      const t = ev?.startAt ? new Date(ev.startAt).getTime() : NaN;
+      return !isFinite(t) || t >= pastCutoffMs;
+    });
+    if (events.length !== beforeFilter) {
+      logger.info("filtered past events", {
+        before: beforeFilter,
+        after: events.length,
+      });
+    }
+
+    // Cache alias lookups per-run — a single feed reuses the same venues /
+    // localities dozens of times.
+    const venueCache = new Map<string, string | null>();
+    const localityCache = new Set<string>();
+
     for (const ev of events) {
       if (!isValidCanonical(ev)) {
         errors++;
@@ -299,9 +321,19 @@ Deno.serve(async (req) => {
       }
       let canonicalVenue: string | null = null;
       try {
-        const v = await resolveVenueAlias(supabase as never, ev.venueName);
-        canonicalVenue = v.canonicalName;
-        await resolveLocalityAlias(supabase as never, ev.locality);
+        const venueKey = (ev.venueName ?? "").trim().toLowerCase();
+        if (venueCache.has(venueKey)) {
+          canonicalVenue = venueCache.get(venueKey) ?? null;
+        } else {
+          const v = await resolveVenueAlias(supabase as never, ev.venueName);
+          canonicalVenue = v.canonicalName;
+          venueCache.set(venueKey, canonicalVenue);
+        }
+        const localityKey = (ev.locality ?? "").trim().toLowerCase();
+        if (localityKey && !localityCache.has(localityKey)) {
+          await resolveLocalityAlias(supabase as never, ev.locality);
+          localityCache.add(localityKey);
+        }
       } catch { /* alias lookup is best-effort */ }
 
       let dedupeKey: string;
