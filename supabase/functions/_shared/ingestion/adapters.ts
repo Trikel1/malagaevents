@@ -4,6 +4,7 @@
 
 import type { SourceAdapter } from "./types.ts";
 import { aytoMalagaAdapter } from "../adapters/ayto-malaga.ts";
+import { aytoMalagaCsvAdapter } from "../adapters/ayto-malaga-csv.ts";
 import { teatroCervantesAdapter } from "../adapters/teatro-cervantes.ts";
 import { teatroSohoAdapter } from "../adapters/teatro-soho.ts";
 import { teatroCanovasAdapter } from "../adapters/teatro-canovas.ts";
