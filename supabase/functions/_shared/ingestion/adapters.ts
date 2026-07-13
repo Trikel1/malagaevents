@@ -5,6 +5,7 @@
 import type { SourceAdapter } from "./types.ts";
 import { aytoMalagaAdapter } from "../adapters/ayto-malaga.ts";
 import { aytoMalagaCsvAdapter } from "../adapters/ayto-malaga-csv.ts";
+import { malagaOpenDataCsvAdapter } from "../adapters/malaga-open-data-csv.ts";
 import { teatroCervantesAdapter } from "../adapters/teatro-cervantes.ts";
 import { teatroSohoAdapter } from "../adapters/teatro-soho.ts";
 import { teatroCanovasAdapter } from "../adapters/teatro-canovas.ts";
@@ -32,6 +33,7 @@ function register(adapter: SourceAdapter) {
 
 register(aytoMalagaAdapter);
 register(aytoMalagaCsvAdapter);
+register(malagaOpenDataCsvAdapter);
 register(teatroCervantesAdapter);
 register(teatroSohoAdapter);
 register(teatroCanovasAdapter);
