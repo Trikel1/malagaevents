@@ -1,128 +1,101 @@
+# Agenda Cultural de toda la provincia de Málaga — Plan aprobado (Fases 1–6)
 
-# Plan — Simplificar UX de /events (recintos, salas y teatros)
+Autorización recibida para ejecución autónoma. Decisiones confirmadas:
+- Extender `event_sources` (no crear `cultural_sources`).
+- Añadir campo nuevo `lifecycle_status` (no modificar `events.status`).
+- "Cerca de" con Haversine + bounding box (sin PostGIS).
+- Si el xlsx no es legible, sembrar 103 municipios desde lista INE/Diputación (incluye Montecorto) y dejar la importación de metadatos extra como pendiente.
+- Fuentes con robots/terms bloqueados: se desactivan individualmente, no bloquean el sprint.
 
-## 1. Diagnóstico: por qué el diseño actual se siente peor
+---
 
-El `VenueGroupDropdown` actual, aunque técnicamente sólido, introduce fricción para el público general:
+## Fase 1 — Migraciones aditivas, RLS y seed
 
-- **Un solo trigger opaco.** El usuario ya no ve "Salas" o "Teatros" directamente — todo está escondido detrás de un botón "Salas, teatros y recintos" que hay que abrir sí o sí. Antes se filtraba con un clic; ahora requiere 3 (abrir → chip → aplicar).
-- **Sobrecarga cognitiva al abrir.** Dentro conviven: buscador, 9 chips de categoría, headers sticky con iconos `MapPin`, contador (`· 34`), subtítulo explicativo, checkboxes, estados "sin agenda aún", footer con dos botones. Es una herramienta de admin, no un filtro de agenda.
-- **Iconos + descripción en cada fila.** Cada venue muestra checkbox + nombre + ciudad + estado. Para una abuela buscando "algo en el Cervantes", es ruido.
-- **Recintos sin eventos mezclados** con los activos (aunque atenuados) sugieren que la app promete cosas que no cumple.
-- **Patrón "draft + Aplicar"** es correcto para multi-select potente, pero rompe la expectativa de "toco chip → veo resultados" que tenía la versión anterior.
-- **Presentación institucional.** Para el Ayuntamiento la app debe leerse como una agenda ciudadana clara, no como un panel de curación.
+**Migraciones (todas aditivas, con rollback `DROP … IF EXISTS`):**
 
-## 2. Recomendación UX final
+1. `municipalities(id, ine_code UNIQUE, name, slug UNIQUE, comarca, latitude, longitude, active bool default true, created_at, updated_at)` + `GRANT SELECT` a `anon, authenticated`, RLS con policy `SELECT` público.
+2. `municipality_aliases(id, municipality_id FK, alias, alias_normalized, alias_type)` + GRANT + RLS SELECT público.
+3. `ALTER events` ADD `municipality_id uuid`, `locality_or_district text`, `verified_at timestamptz`, `confidence_score numeric(3,2)`, `minimum_age int`, `language text`, `price_from numeric`, `price_to numeric`, `expires_at timestamptz`, `first_seen_at timestamptz`, `lifecycle_status text` con CHECK IN (`scheduled|postponed|cancelled|sold_out|finished|needs_review`).
+4. `ALTER venues` ADD `municipality_id uuid`, `locality_or_district text`, `accessibility_data jsonb`, `official_url text`.
+5. `ALTER event_sources` ADD `scope`, `municipality_id`, `source_type`, `trust_level`, `licence`, `terms_reviewed_at`, `polling_interval`, `last_success_at`, `last_error_at`, `consecutive_errors`, `paused_reason`.
+6. Índices: `events(starts_at)`, `events(municipality_id, lifecycle_status)`, `events(category, start_at)`, `events(lat, lng)` (bounding box), UNIQUE parcial `events(source_id, external_id) WHERE external_id IS NOT NULL`.
+7. Seed **exactamente 103 municipios** con `ine_code`, comarca y coordenadas (incluye Montecorto). Insert idempotente `ON CONFLICT (ine_code) DO UPDATE`.
+8. Seed aliases: Torre del Mar→Vélez-Málaga, San Pedro Alcántara→Marbella, Arroyo de la Miel→Benalmádena, Sabinillas→Manilva, La Cala de Mijas→Mijas, Torrox Costa→Torrox, Maro→Nerja, La Cala del Moral→Rincón de la Victoria, y variantes ortográficas.
+9. Test SQL: `SELECT count(*) FROM municipalities WHERE active` = 103.
 
-Adoptar la propuesta del usuario con matices de diseñador senior. Dos capas:
+RLS: eventos canónicos siguen siendo SELECT-only para `anon/authenticated`; escritura solo `service_role`. Nada destructivo.
 
-### Capa 1 — Chips directos (95% de los usuarios se quedan aquí)
+---
 
-Una fila horizontal, scrollable en móvil, sin iconos ni subtítulos:
+## Fase 2 — Adapter CSV Málaga + librería CSV
 
-```text
-[ Todos ] [ Salas ] [ Teatros y auditorios ] [ Museos ] [ Festivales ]  · Ver todos los recintos
-```
+- `supabase/functions/_shared/adapters/lib/csv.ts`: parser CSV tolerante a BOM, comillas y separador `;/,`.
+- Adapter `ayto-malaga-csv` sobre `https://datosabiertos.malaga.eu/recursos/cultura/agenda/2026.csv`. Registrado en `_shared/ingestion/adapters.ts` junto a los existentes (no se borra `ayto-malaga` HTML).
+- Fetch: timeout 20s, retry exponencial (3 intentos), `If-Modified-Since`, UA identificable.
+- Idempotencia: `external_id` del CSV si existe; si no, fingerprint SHA-256 canónico (ya existente).
+- Ejecución obligada `dryRun=true` primero vía `admin-ingest-dry-run`. Escritura solo tras `write_confirmed_at`.
+- Cada evento persistido guarda `canonical_source_url`, `verified_at=now()`, `last_seen_at=now()`, `first_seen_at` si es nuevo, `lifecycle_status='scheduled'`, `confidence_score` alto (fuente oficial).
+- Test: dos corridas consecutivas → 0 duplicados.
 
-- Un clic aplica el filtro inmediato (sin "Mostrar").
-- Solo un chip activo a la vez (radio, no multi).
-- `Ver todos los recintos` es un enlace textual discreto a la derecha, no un botón principal.
-- El chip activo tiene fondo primario; los inactivos, outline suave. Sin badges numéricos.
+---
 
-### Capa 2 — Sheet "Ver todos los recintos" (usuarios que buscan un recinto concreto)
+## Fase 3 — Frontend público
 
-Bottom sheet en móvil, popover centrado en desktop. Minimalista:
+- Ruta nueva `/agenda/:municipalitySlug` (aditiva, no toca `/events`).
+- `MunicipalityPicker`: buscador accent-insensitive sobre `municipalities` + aliases, botón "Usar mi ubicación" (`navigator.geolocation`), sin bloquear si el usuario deniega.
+- Tabs: Hoy / Mañana / Este fin de semana / Elegir fechas (reutiliza lógica de `EventsPage` y `eventTime.ts`).
+- Filtros: comarca, categoría, gratis/pago, familia+edad, accesibilidad, distancia (15/30/50 km).
+- **"Cerca de X"**: sección visual claramente separada bajo los locales, con etiqueta explícita del municipio original de cada evento; nunca renderizado como local. Cálculo Haversine con bounding box previa por `(lat, lng)` para no escanear la tabla.
+- Tarjetas: título, fecha/hora, municipio y localidad exacta, recinto, categoría, precio o "Gratis", **badge de `lifecycle_status`** (postponed/cancelled/sold_out/finished), distancia si hay permiso, **fuente original enlazada**, **`verified_at` humano** ("verificado hace 3 h"), botón entradas.
+- `finished` se oculta por defecto en listados.
+- SEO: `<title>`, meta description, JSON-LD `Event` solo para eventos publicados y verificados. URLs filtradas compartibles.
 
-```text
-┌───────────────────────────────────┐
-│ Recintos                        × │
-│ ┌───────────────────────────────┐ │
-│ │ 🔍  Buscar recinto o ciudad  │ │
-│ └───────────────────────────────┘ │
-│ [ Todos ] [ Salas ] [ Teatros ]   │
-│ [ Museos ]                        │
-│                                   │
-│ MÁLAGA CAPITAL                    │
-│  Teatro Cervantes                 │
-│  Teatro Cánovas                   │
-│  La Térmica                       │
-│  ...                              │
-│                                   │
-│ PROVINCIA                         │
-│  Auditorio Felipe VI · Estepona   │
-│  ...                              │
-│                                   │
-│  Ver catálogo completo (32 más)   │
-└───────────────────────────────────┘
-```
+Cambios en `EventsPage` se limitan a añadir uso del nuevo `lifecycle_status` sin romper filtros existentes.
 
-Reglas:
-- **Solo dos secciones por defecto:** "Málaga capital" y "Provincia". No agrupamos por tipo dentro del sheet salvo que el chip lo pida.
-- **Selección directa:** tocar una fila filtra al instante y cierra el sheet. Adiós al patrón draft/Aplicar.
-- **Single-select** por defecto (más simple, coincide con la mentalidad "quiero ver el Cervantes"). El multi-select queda para una v2 si el Ayto lo pide.
-- **Recintos sin eventos ocultos.** Solo aparecen tras pulsar "Ver catálogo completo (N más)". Ahí se muestran atenuados y no clicables, con un tooltip "Aún sin agenda publicada".
-- **Localidad seleccionada.** Si el filtro de localidad en `/events` está activo, esa localidad se muestra como primera sección ("BENALMÁDENA") por encima de "Málaga capital". Sin lógica de prioridad rara ni orden alfabético invertido.
-- **Sin iconos por fila.** Nombre + ciudad en gris pequeño debajo cuando la ciudad no es obvia por la sección. Nada más.
-- **Buscador tolerante a acentos** (ya funciona) — mantener.
+---
 
-### Reglas transversales
+## Fase 4 — Adapters P0/P1
 
-- Los chips de la Capa 1 y los de dentro del sheet **comparten estado**: si eliges "Teatros" en el sheet y cierras, el chip "Teatros y auditorios" queda activo arriba.
-- Al elegir un venue concreto, los chips de tipo se desactivan y aparece un pill removible arriba: `Teatro Cervantes ×`.
-- La copia se reduce: título del sheet solo "Recintos". Sin subtítulo. Sin "sin agenda aún" salvo en el catálogo completo.
+Con librerías compartidas `csv.ts`, `rss.ts`, `ics.ts`, `jsonld.ts`, `htmlAdapter.ts` (ya existe patrón). Cada uno pasa por robots/terms review y `write_confirmed_at`:
 
-## 3. Fases de implementación (cuando se apruebe)
+- Diputación de Málaga (`malaga.es/…/agenda`)
+- Culturama (`malaga.es/culturama`)
+- Junta de Andalucía — Cultura Málaga
+- Visit Costa del Sol
+- Axarquía Costa del Sol
+- Serranía de Ronda
+- Sierra de las Nieves
+- Portales municipales prioritarios del registro (los que aporten CSV/RSS/ICS/JSON-LD antes que HTML).
 
-**Fase 1 — Chips directos en la barra de filtros**
-- Nuevo componente ligero `VenueKindChips` (radio de 5 opciones).
-- Reemplaza al `VenueGroupDropdown` como filtro principal en `EventsPage`.
-- Mapea a los `kind` existentes en `venuesCatalog`/`venueFilters` (ya tenemos `kindToCategory`).
+Fuente que devuelva 403/robots-block → `enabled=false`, `paused_reason='robots'|'403'|'tos'`, continúa el sprint.
 
-**Fase 2 — Sheet simplificado "Ver todos los recintos"**
-- Reescribir `VenueGroupDropdown` como `VenuePickerSheet` (single-select, sin draft, sin footer).
-- Reutiliza `mergeVenues` y `filterMerged` de `venueFilters.ts` (no se toca la lógica de fusión).
-- Sección "Ver catálogo completo" colapsable al final.
+---
 
-**Fase 3 — Integración con estado de EventsPage**
-- Unificar `selectedKind` (chip) y `selectedVenueId` (sheet) en el filtro de eventos.
-- Pill removible cuando hay venue específico.
-- Sincronizar con `priorityCity` que ya se pasa hoy.
+## Fase 5 — Admin SourceHealth + moderación
 
-**Fase 4 — Pulido y copy**
-- Traducciones (10 idiomas) para las 6-8 strings nuevas.
-- Revisar espacios, alturas, overflow horizontal en 360px.
+- Nueva vista en `/admin` (aditiva): tabla con fuente, scope, último éxito, último error, `consecutive_errors`, cambios sospechosos (delta de nº de eventos), botón pausar/reanudar (usa `admin-source-toggle-enabled`).
+- Cola de moderación: eventos con `lifecycle_status='needs_review'` o `confidence_score < 0.6` no se publican; se listan con acciones aprobar/rechazar.
+- Reutilización segura de `event_submissions` + edge `submit-event`: sanitización, rate-limit por IP/usuario, restricción de tipos y tamaños, historial de moderación en `moderation_history` (tabla aditiva si falta).
 
-## 4. Archivos que habría que tocar (frontend-only)
+---
 
-- `src/components/events/VenueGroupDropdown.tsx` — se sustituye o se reduce drásticamente.
-- `src/components/events/` — nuevo `VenueKindChips.tsx` y `VenuePickerSheet.tsx`.
-- `src/pages/EventsPage.tsx` — reemplazo del filtro y estado.
-- `src/lib/venueFilters.ts` — mantener; posible reducción de `VENUE_CATEGORIES` a las 5 del nuevo diseño.
-- `src/i18n/locales/*.json` — nuevas claves de copy.
+## Fase 6 — QA, a11y, perf, seguridad, rollback
 
-## 5. Qué NO se debe tocar
+- Tests unitarios: parser CSV, resolución de aliases, dedupe, Haversine, formateo de fechas Europe/Madrid.
+- Tests integración: dry-run de `ayto-malaga-csv` con fixture, dos corridas → 0 duplicados, `verified_at` presente.
+- Tests RLS: anon/authenticated no pueden `INSERT/UPDATE/DELETE` en `events`, `municipalities`, `venues`, `event_sources`. Solo `service_role` y admin (vía `has_role`).
+- Playwright: `/agenda/malaga`, `/agenda/estepona`, geolocalización denegada, sección "Cerca de" claramente separada, badges de estado visibles, sin overflow horizontal a 320px.
+- Build de producción `npm run build` verde.
+- Documento `docs/agenda-cultural-rollback.md` con `DROP` inverso por migración.
 
-- Backend, edge functions, adapters, ingesta, Firecrawl.
-- Base de datos: `venues`, `events`, `event_sources`, RLS, grants.
-- Routing, auth, cron, `supabase/config.toml`.
-- `venuesCatalog.ts` (catálogo estático; se sigue usando tal cual).
-- Lógica de horarios y `eventTime.ts`.
-- Sports mode.
+---
 
-## 6. QA mínimo (Playwright + manual)
+## Aspectos técnicos y garantías
 
-- 360px y 1280px: sin overflow horizontal, chips scrollables si no caben.
-- Tocar "Teatros y auditorios" filtra al instante sin abrir nada.
-- Abrir sheet, buscar "Térmica" → aparece en primer resultado; tocar cierra sheet y aplica.
-- Buscar "Estepona" → aparecen recintos de Estepona bajo su sección.
-- Seleccionar localidad Estepona en el filtro superior → sección Estepona aparece primera en el sheet.
-- "Ver catálogo completo" muestra recintos sin agenda atenuados y no clicables.
-- Pill `Teatro Cervantes ×` removible restaura el chip activo previo.
-- Dark mode: contraste correcto en chips activos/inactivos.
-- 10 idiomas: no truncan chips en móvil.
-- Safety check final: `events` count sin cambios, `enabled=0`, `robots_ok=0`, `write_confirmed_at=0`.
+- Ninguna migración modifica sports, pharmacies, auth ni rutas globales.
+- Adapters existentes (`ayto-malaga`, `teatro-cervantes`, etc.) intactos y activos hasta validación de sustitutos.
+- Secrets solo en Edge Functions (`FIRECRAWL_API_KEY`, `SYNC_ADMIN_KEY`). Nunca al cliente.
+- `events.status` legacy inalterado. Todo el sprint usa `lifecycle_status` para el flujo nuevo; los listados nuevos filtran por él y los antiguos siguen usando `status`.
+- Cada rollback documentado columna a columna.
 
-## Notas de diseño
-
-- La versión anterior gustaba porque **mostraba las opciones, no las escondía**. Recuperamos ese principio: los tipos más comunes están a la vista; solo el catálogo largo se esconde.
-- Regla de oro para el Ayto: el usuario debe poder filtrar por "teatros en Málaga" sin abrir un solo menú.
+Al terminar Fase 6 entregaré un único informe con: fases completadas, archivos, migraciones, fuentes activas/pausadas/pendientes, resultados build+tests, cobertura de los 103 municipios, correcciones y checklist de producción.

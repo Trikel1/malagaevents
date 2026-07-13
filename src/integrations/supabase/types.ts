@@ -143,18 +143,29 @@ export type Database = {
           adapter_key: string
           base_url: string
           category_hints: string[]
+          consecutive_errors: number
           created_at: string
           enabled: boolean
           id: string
           kind: string
+          last_error_at: string | null
+          last_success_at: string | null
           legacy_source_id: string | null
+          licence: string | null
           locality_slug: string
+          municipality_id: string | null
           name: string
           notes: string | null
+          paused_reason: string | null
+          polling_interval: string | null
           priority: number
           robots_ok: boolean
           schedule_cron: string | null
+          scope: string | null
           slug: string
+          source_type: string | null
+          terms_reviewed_at: string | null
+          trust_level: number | null
           updated_at: string
           write_confirmed_at: string | null
           write_confirmed_by: string | null
@@ -163,18 +174,29 @@ export type Database = {
           adapter_key: string
           base_url: string
           category_hints?: string[]
+          consecutive_errors?: number
           created_at?: string
           enabled?: boolean
           id?: string
           kind: string
+          last_error_at?: string | null
+          last_success_at?: string | null
           legacy_source_id?: string | null
+          licence?: string | null
           locality_slug?: string
+          municipality_id?: string | null
           name: string
           notes?: string | null
+          paused_reason?: string | null
+          polling_interval?: string | null
           priority?: number
           robots_ok?: boolean
           schedule_cron?: string | null
+          scope?: string | null
           slug: string
+          source_type?: string | null
+          terms_reviewed_at?: string | null
+          trust_level?: number | null
           updated_at?: string
           write_confirmed_at?: string | null
           write_confirmed_by?: string | null
@@ -183,23 +205,42 @@ export type Database = {
           adapter_key?: string
           base_url?: string
           category_hints?: string[]
+          consecutive_errors?: number
           created_at?: string
           enabled?: boolean
           id?: string
           kind?: string
+          last_error_at?: string | null
+          last_success_at?: string | null
           legacy_source_id?: string | null
+          licence?: string | null
           locality_slug?: string
+          municipality_id?: string | null
           name?: string
           notes?: string | null
+          paused_reason?: string | null
+          polling_interval?: string | null
           priority?: number
           robots_ok?: boolean
           schedule_cron?: string | null
+          scope?: string | null
           slug?: string
+          source_type?: string | null
+          terms_reviewed_at?: string | null
+          trust_level?: number | null
           updated_at?: string
           write_confirmed_at?: string | null
           write_confirmed_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "event_sources_municipality_id_fkey"
+            columns: ["municipality_id"]
+            isOneToOne: false
+            referencedRelation: "municipalities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_submissions: {
         Row: {
@@ -260,6 +301,7 @@ export type Database = {
           buy_url: string | null
           capacity_info: string | null
           category: string
+          confidence_score: number | null
           content_hash: string | null
           country: string | null
           created_at: string
@@ -269,22 +311,31 @@ export type Database = {
           description_short: string | null
           end_at: string | null
           event_type: string | null
+          expires_at: string | null
           external_id: string | null
+          first_seen_at: string | null
           id: string
           image_status: string | null
           image_url: string | null
           is_family_friendly: boolean | null
           is_free: boolean
           is_outdoor: boolean | null
+          language: string | null
           last_seen_at: string | null
           last_synced_at: string | null
           lat: number | null
+          lifecycle_status: string | null
           lng: number | null
+          locality_or_district: string | null
           location_id: string | null
           location_name_raw: string | null
           location_normalized: string | null
+          minimum_age: number | null
+          municipality_id: string | null
           organizer_user_id: string | null
+          price_from: number | null
           price_info: string | null
+          price_to: number | null
           province: string | null
           source: string | null
           source_id: string | null
@@ -303,6 +354,7 @@ export type Database = {
           venue_name_normalized: string | null
           venue_name_raw: string | null
           venue_normalized: string | null
+          verified_at: string | null
         }
         Insert: {
           accessibility_info?: string | null
@@ -314,6 +366,7 @@ export type Database = {
           buy_url?: string | null
           capacity_info?: string | null
           category?: string
+          confidence_score?: number | null
           content_hash?: string | null
           country?: string | null
           created_at?: string
@@ -323,22 +376,31 @@ export type Database = {
           description_short?: string | null
           end_at?: string | null
           event_type?: string | null
+          expires_at?: string | null
           external_id?: string | null
+          first_seen_at?: string | null
           id?: string
           image_status?: string | null
           image_url?: string | null
           is_family_friendly?: boolean | null
           is_free?: boolean
           is_outdoor?: boolean | null
+          language?: string | null
           last_seen_at?: string | null
           last_synced_at?: string | null
           lat?: number | null
+          lifecycle_status?: string | null
           lng?: number | null
+          locality_or_district?: string | null
           location_id?: string | null
           location_name_raw?: string | null
           location_normalized?: string | null
+          minimum_age?: number | null
+          municipality_id?: string | null
           organizer_user_id?: string | null
+          price_from?: number | null
           price_info?: string | null
+          price_to?: number | null
           province?: string | null
           source?: string | null
           source_id?: string | null
@@ -357,6 +419,7 @@ export type Database = {
           venue_name_normalized?: string | null
           venue_name_raw?: string | null
           venue_normalized?: string | null
+          verified_at?: string | null
         }
         Update: {
           accessibility_info?: string | null
@@ -368,6 +431,7 @@ export type Database = {
           buy_url?: string | null
           capacity_info?: string | null
           category?: string
+          confidence_score?: number | null
           content_hash?: string | null
           country?: string | null
           created_at?: string
@@ -377,22 +441,31 @@ export type Database = {
           description_short?: string | null
           end_at?: string | null
           event_type?: string | null
+          expires_at?: string | null
           external_id?: string | null
+          first_seen_at?: string | null
           id?: string
           image_status?: string | null
           image_url?: string | null
           is_family_friendly?: boolean | null
           is_free?: boolean
           is_outdoor?: boolean | null
+          language?: string | null
           last_seen_at?: string | null
           last_synced_at?: string | null
           lat?: number | null
+          lifecycle_status?: string | null
           lng?: number | null
+          locality_or_district?: string | null
           location_id?: string | null
           location_name_raw?: string | null
           location_normalized?: string | null
+          minimum_age?: number | null
+          municipality_id?: string | null
           organizer_user_id?: string | null
+          price_from?: number | null
           price_info?: string | null
+          price_to?: number | null
           province?: string | null
           source?: string | null
           source_id?: string | null
@@ -411,6 +484,7 @@ export type Database = {
           venue_name_normalized?: string | null
           venue_name_raw?: string | null
           venue_normalized?: string | null
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -418,6 +492,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_municipality_id_fkey"
+            columns: ["municipality_id"]
+            isOneToOne: false
+            referencedRelation: "municipalities"
             referencedColumns: ["id"]
           },
           {
@@ -638,6 +719,80 @@ export type Database = {
           province?: string
         }
         Relationships: []
+      }
+      municipalities: {
+        Row: {
+          active: boolean
+          comarca: string
+          created_at: string
+          id: string
+          ine_code: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          comarca: string
+          created_at?: string
+          id?: string
+          ine_code: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          comarca?: string
+          created_at?: string
+          id?: string
+          ine_code?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      municipality_aliases: {
+        Row: {
+          alias: string
+          alias_normalized: string
+          alias_type: string
+          created_at: string
+          id: string
+          municipality_id: string
+        }
+        Insert: {
+          alias: string
+          alias_normalized: string
+          alias_type?: string
+          created_at?: string
+          id?: string
+          municipality_id: string
+        }
+        Update: {
+          alias?: string
+          alias_normalized?: string
+          alias_type?: string
+          created_at?: string
+          id?: string
+          municipality_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "municipality_aliases_municipality_id_fkey"
+            columns: ["municipality_id"]
+            isOneToOne: false
+            referencedRelation: "municipalities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notification_prefs: {
         Row: {
@@ -1311,6 +1466,7 @@ export type Database = {
       }
       venues: {
         Row: {
+          accessibility_data: Json | null
           address: string | null
           city: string | null
           created_at: string
@@ -1318,12 +1474,16 @@ export type Database = {
           is_featured: boolean | null
           lat: number | null
           lng: number | null
+          locality_or_district: string | null
+          municipality_id: string | null
           name: string
           normalized_name: string
+          official_url: string | null
           venue_type: string | null
           website: string | null
         }
         Insert: {
+          accessibility_data?: Json | null
           address?: string | null
           city?: string | null
           created_at?: string
@@ -1331,12 +1491,16 @@ export type Database = {
           is_featured?: boolean | null
           lat?: number | null
           lng?: number | null
+          locality_or_district?: string | null
+          municipality_id?: string | null
           name: string
           normalized_name: string
+          official_url?: string | null
           venue_type?: string | null
           website?: string | null
         }
         Update: {
+          accessibility_data?: Json | null
           address?: string | null
           city?: string | null
           created_at?: string
@@ -1344,12 +1508,23 @@ export type Database = {
           is_featured?: boolean | null
           lat?: number | null
           lng?: number | null
+          locality_or_district?: string | null
+          municipality_id?: string | null
           name?: string
           normalized_name?: string
+          official_url?: string | null
           venue_type?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "venues_municipality_id_fkey"
+            columns: ["municipality_id"]
+            isOneToOne: false
+            referencedRelation: "municipalities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
