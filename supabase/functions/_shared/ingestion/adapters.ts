@@ -44,6 +44,9 @@ register(contenedorCulturalUmaAdapter);
 register(cineAlbenizAdapter);
 register(diputacionMalagaAdapter);
 register(culturamaAdapter);
+register(juntaAndaluciaCulturaAdapter);
+register(visitCostaDelSolAdapter);
+
 
 export function getAdapter(key: string | null | undefined): SourceAdapter | null {
   if (!key) return null;
