@@ -17,6 +17,8 @@ import { salaParis15Adapter } from "../adapters/sala-paris-15.ts";
 import { laCocheraCabaretAdapter } from "../adapters/la-cochera-cabaret.ts";
 import { contenedorCulturalUmaAdapter } from "../adapters/contenedor-cultural-uma.ts";
 import { cineAlbenizAdapter } from "../adapters/cine-albeniz.ts";
+import { diputacionMalagaAdapter } from "../adapters/diputacion-malaga.ts";
+import { culturamaAdapter } from "../adapters/culturama.ts";
 
 const REGISTRY = new Map<string, SourceAdapter>();
 
