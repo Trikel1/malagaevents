@@ -128,6 +128,7 @@ const MunicipalityAgendaPage = () => {
     return (
       <div className="container max-w-2xl mx-auto py-12 px-4">
         <EmptyState
+          icon={MapPin}
           title="Municipio no encontrado"
           description="El municipio solicitado no está en el registro provincial."
         />
