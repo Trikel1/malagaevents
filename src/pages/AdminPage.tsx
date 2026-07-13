@@ -325,6 +325,10 @@ const AdminPage = () => {
               <Database className="h-4 w-4 mr-1" />
               Ingesta
             </TabsTrigger>
+            <TabsTrigger value="salud" className="flex-1">
+              <BarChart3 className="h-4 w-4 mr-1" />
+              Salud
+            </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
 
