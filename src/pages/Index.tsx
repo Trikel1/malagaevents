@@ -415,7 +415,28 @@ const Index = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Coverage stats — read-only aspirational counts */}
+              <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
+                {[
+                  { n: '35+', l: 'Recintos y salas' },
+                  { n: '24', l: 'Municipios prioritarios' },
+                  { n: '70+', l: 'Fuentes culturales' },
+                  { n: 'Diaria', l: 'Farmacias de guardia' },
+                  { n: 'Familia', l: 'Planes por edad' },
+                  { n: 'Deporte', l: 'Capa en expansión' },
+                ].map((s) => (
+                  <div key={s.l} className="rounded-2xl bg-background/50 border border-border/40 px-2 py-3 text-center">
+                    <div className="text-base sm:text-lg font-bold tracking-tight text-primary">{s.n}</div>
+                    <div className="text-[10.5px] sm:text-[11px] text-muted-foreground leading-tight mt-0.5">{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-center text-[11px] text-muted-foreground italic">
+                Cobertura en expansión — nuevas fuentes y municipios se incorporan progresivamente.
+              </p>
             </section>
+
 
             {/* ============== Final CTA ============== */}
             <section className="glass-card-strong p-6 sm:p-8 text-center">
