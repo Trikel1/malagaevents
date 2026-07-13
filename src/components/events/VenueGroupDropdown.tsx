@@ -306,7 +306,17 @@ function VenueRow({ venue, selected, onToggle }: VenueRowProps) {
         {disabled ? (
           <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" aria-hidden />
         ) : (
-          <Checkbox checked={selected} className="h-4 w-4 pointer-events-none" />
+          <span
+            className={cn(
+              'h-4 w-4 rounded border flex items-center justify-center transition-colors',
+              selected
+                ? 'bg-primary border-primary text-primary-foreground'
+                : 'border-input bg-background',
+            )}
+            aria-hidden
+          >
+            {selected && <Check className="h-3 w-3" strokeWidth={3} />}
+          </span>
         )}
       </div>
       <div className="flex-1 min-w-0">
