@@ -416,54 +416,24 @@ function VenuePickerSheet({
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent
-          side="bottom"
-          className="h-[80vh] p-0 flex flex-col"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <SheetHeader className="p-4 pb-2 text-left border-b">
-            <SheetTitle className="text-base">
-              {t('events.venuesTitleShort', 'Recintos')}
-            </SheetTitle>
-          </SheetHeader>
-          {body}
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        <span className="sr-only" />
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-[min(420px,calc(100vw-24px))] p-0 flex flex-col h-[520px]"
-        align="end"
-        side="bottom"
-        sideOffset={8}
-        collisionPadding={16}
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side={isMobile ? 'bottom' : 'right'}
+        className={cn(
+          'p-0 flex flex-col',
+          isMobile ? 'h-[82vh]' : 'w-[420px] sm:max-w-[420px]',
+        )}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <div className="px-4 pt-3 pb-1 flex items-center justify-between border-b">
-          <span className="text-sm font-semibold">
+        <SheetHeader className="p-4 pb-2 text-left border-b">
+          <SheetTitle className="text-base">
             {t('events.venuesTitleShort', 'Recintos')}
-          </span>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="h-7 w-7 inline-flex items-center justify-center rounded hover:bg-accent"
-            aria-label={t('common.close', 'Cerrar')}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+          </SheetTitle>
+        </SheetHeader>
         {body}
-      </PopoverContent>
-    </Popover>
+      </SheetContent>
+    </Sheet>
   );
 }
 
