@@ -598,11 +598,12 @@ export const teatroCervantesAdapter: SourceAdapter = {
 
     for (const p of prepared) {
       if (!p.parsed.timeExplicit) timeAssumedCount++;
+      const endAt = p.parsed.endDate ? p.parsed.endDate.toISOString() : null;
       out.push({
         title: (p.cand.title ?? "").trim(),
         description: p.cand.cycleText ? `Ciclo: ${p.cand.cycleText}` : null,
         startAt: p.parsed.date.toISOString(),
-        endAt: null,
+        endAt,
         timezone: "Europe/Madrid",
         venueName: p.venueName,
         venueAddress: null,
@@ -613,18 +614,17 @@ export const teatroCervantesAdapter: SourceAdapter = {
         ticketUrl: p.cand.ticketUrl ?? null,
         priceText: null,
         raw: {
-          dateLine: p.cand.dateLine,
+          adapter: "teatro-cervantes",
+          dateLine: p.cand.dateLine.slice(0, 300),
           cycleText: p.cand.cycleText ?? null,
           timeAssumed: !p.parsed.timeExplicit,
+          venueSource: p.venueSource,
+          detailEnriched: p.detail?.fetched === true,
           rangeStartRaw: p.parsed.rangeStartRaw ?? null,
           rangeEndRaw: p.parsed.rangeEndRaw ?? null,
           rangeWasActiveWhenParsed: p.parsed.rangeWasActiveWhenParsed ?? null,
-          detailFetched: p.detail?.fetched ?? false,
           detailFailed: p.detail?.failed ?? false,
-          detailUrl: p.detail?.url ?? null,
-          detailVenueRaw: p.detail?.venueRaw ?? null,
           detailDateRaw: p.detail?.dateRaw ?? null,
-          adapter: "teatro-cervantes",
         },
       });
     }
