@@ -19,6 +19,8 @@ import { contenedorCulturalUmaAdapter } from "../adapters/contenedor-cultural-um
 import { cineAlbenizAdapter } from "../adapters/cine-albeniz.ts";
 import { diputacionMalagaAdapter } from "../adapters/diputacion-malaga.ts";
 import { culturamaAdapter } from "../adapters/culturama.ts";
+import { juntaAndaluciaCulturaAdapter } from "../adapters/junta-andalucia-cultura.ts";
+import { visitCostaDelSolAdapter } from "../adapters/visit-costa-del-sol.ts";
 
 const REGISTRY = new Map<string, SourceAdapter>();
 
