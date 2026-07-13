@@ -90,19 +90,25 @@ export function mergeVenues(dbVenues: Venue[]): MergedVenue[] {
   }
 
   // Overlay DB venues.
-  for (const v of dbVenues) {
+  for (const v of dbVenues as Array<Venue & { is_featured?: boolean }>) {
     if (!v?.name) continue;
-    if (v.name.toLowerCase().includes('sin sala')) continue;
-    const city = v.city ?? (isMalagaCity(v.city) ? 'Málaga' : 'Málaga');
+    const lower = v.name.toLowerCase();
+    if (lower.includes('sin sala')) continue;
+    // Reject obvious noise (addresses / broken names)
+    if (/^[¿?¡!]/.test(v.name.trim())) continue;
+    if (/^(c\/|avda\.|calle |avenida |plaza de |paseo )/i.test(v.name.trim())) continue;
+
+    const city = v.city ?? 'Málaga';
     const key = `${normalize(v.name)}|${normalize(city)}`;
 
     const existing = map.get(key);
     if (existing) {
+      // DB match found → this venue has real events.
       existing.id = v.id;
       existing.hasEvents = true;
       existing.searchTokens.push(normalize(v.name), v.normalized_name || '');
-    } else {
-      // DB venue not in catalog → still show it. Infer zone by city.
+    } else if (v.is_featured) {
+      // Only surface non-catalog DB venues if they're curated (is_featured).
       const zone: VenueZone = isMalagaCity(v.city) ? 'malaga-ciudad' : 'costa-occidental';
       map.set(key, {
         id: v.id,
