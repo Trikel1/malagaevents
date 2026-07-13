@@ -166,7 +166,7 @@ const FilterDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh]">
+      <DrawerContent className="max-h-[90vh] h-[90vh] flex flex-col">
         <DrawerHeader className="flex items-center justify-between">
           <DrawerTitle className="flex items-center gap-2">
             {t('events.filters')}
@@ -183,9 +183,9 @@ const FilterDrawer = ({
           </DrawerClose>
         </DrawerHeader>
 
-        {/* Active filters summary — sticky under the header */}
+        {/* Active filters summary — sticky under the header, con botón Mostrar */}
         {activeCount > 0 && (
-          <div className="px-4 pb-3 -mt-1 border-b border-border/60">
+          <div className="px-4 pb-3 -mt-1 border-b border-border/60 bg-background">
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {t('events.activeFilters', 'Filtros activos')}
@@ -216,10 +216,18 @@ const FilterDrawer = ({
                 </span>
               ))}
             </div>
+            <Button
+              onClick={handleApply}
+              size="sm"
+              className="w-full mt-2.5 font-semibold shadow-sm"
+            >
+              {`${t('events.showResults', 'Mostrar')} · ${activeCount}`}
+            </Button>
           </div>
         )}
 
-        <div className="px-4 pt-4 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
+        <div className="flex-1 min-h-0 px-4 pt-4 pb-6 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
+
           {/* Quick presets — infantil/familiar priorizados arriba */}
 
           <div className="space-y-2">
