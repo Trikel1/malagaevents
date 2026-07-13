@@ -64,8 +64,7 @@ const CultureEventsPage = () => {
   });
 
 
-  // Venue group filter state (multi-select with search)
-  const [selectedVenueGroup, setSelectedVenueGroup] = useState<VenueGroup>('all');
+  // Venue filter state (single-select via VenueKindFilter sheets)
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
 
