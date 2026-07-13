@@ -167,7 +167,12 @@ export const visitCostaDelSolAdapter: SourceAdapter = {
     }
     try {
       return await runVisitCostaDelSol({
-        firecrawl: { apiKey: firecrawlKey, timeoutMs: 90_000 },
+        firecrawl: {
+          apiKey: firecrawlKey,
+          timeoutMs: 90_000,
+          waitFor: 3000,
+          onlyMainContent: false,
+        },
         logger: ctx.logger,
       });
     } catch (e) {
