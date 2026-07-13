@@ -194,7 +194,7 @@ export function filterMerged(all: MergedVenue[], opts: FilterOptions): MergedVen
     const bcap = b.zone === 'malaga-ciudad' ? 0 : 1;
     if (acap !== bcap) return acap - bcap;
     // Alphabetical (DB-backed and catalog-only interleaved — keep catalog visible)
-    return a.name.localeCompare(b, 'es');
+    return a.name.localeCompare(b.name, 'es');
   });
 
   return filtered;
