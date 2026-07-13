@@ -387,35 +387,28 @@ const CultureEventsPage = () => {
       />
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <header className="glass-nav sticky top-0 z-40 rounded-none">
-        <div className="px-4 pt-3 pb-2 sm:px-6 sm:pt-4 space-y-3">
-          {/* Title + subtitle + count */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold tracking-tight leading-tight">
-                {t('events.agendaTitle', 'Agenda cultural')}
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
-                <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span className="truncate">
-                  {t('events.agendaSubtitle', 'Qué hacer en Málaga')} ·{' '}
-                  <span className="capitalize">{rangeSummary}</span>
-                </span>
-              </p>
-            </div>
-            <div className="shrink-0 text-right">
-              <span className="inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20">
-                <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
-                <span className="text-[10px] uppercase tracking-wide">
-                  {totalCount === 1
-                    ? t('events.eventSingular', 'evento')
-                    : t('events.eventPlural', 'eventos')}
-                </span>
+      <header className="glass-nav sticky top-0 z-40 rounded-none border-b border-border/40">
+        <div className="px-4 pt-3 pb-2.5 sm:px-6 sm:pt-4 space-y-2.5">
+          {/* Title + count pill */}
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-none">
+              {t('events.agendaTitle', 'Agenda')}
+              <span className="text-primary">.</span>
+            </h1>
+            <span
+              className="inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
+              aria-label={`${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`}
+            >
+              <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
+              <span className="text-[10px] uppercase tracking-wide opacity-80">
+                {totalCount === 1
+                  ? t('events.eventSingular', 'evento')
+                  : t('events.eventPlural', 'eventos')}
               </span>
-            </div>
+            </span>
           </div>
 
-          {/* Prominent search + action buttons */}
+          {/* Search + location + filter + near-me */}
           <div className="flex items-center gap-2">
             <form
               onSubmit={(e) => {
@@ -437,13 +430,10 @@ const CultureEventsPage = () => {
                 ref={searchInputRef}
                 id="event-search"
                 type="search"
-                placeholder={t(
-                  'events.searchPlaceholder',
-                  'Buscar concierto, sala, artista…',
-                )}
+                placeholder={t('events.searchPlaceholderShort', 'Buscar…')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-9 h-10 rounded-full text-sm bg-background/80 border-border/70 focus-visible:ring-primary"
+                className="pl-9 pr-9 h-10 rounded-full text-sm bg-background/70 border-border/60 focus-visible:ring-primary"
               />
               {searchQuery && (
                 <Button
@@ -469,6 +459,21 @@ const CultureEventsPage = () => {
             <Button
               variant="outline"
               size="icon"
+              onClick={handleNearMe}
+              disabled={isRequestingLocation}
+              aria-pressed={!!userCoords}
+              aria-label={t('events.nearMe', 'Cerca de mí')}
+              className={cn(
+                'h-10 w-10 rounded-full shrink-0 transition-colors',
+                userCoords && 'bg-primary text-primary-foreground border-primary hover:bg-primary/90',
+                isRequestingLocation && 'opacity-60',
+              )}
+            >
+              <Navigation className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setIsFilterOpen(true)}
               className="h-10 w-10 rounded-full relative shrink-0"
               aria-label={t('events.filters', 'Filtros')}
@@ -485,14 +490,18 @@ const CultureEventsPage = () => {
             </Button>
           </div>
 
-          {/* Primary time presets */}
+          {/* Time presets — compact segmented row */}
           <div
             role="tablist"
             aria-label={t('events.timeRange', 'Franja temporal')}
-            className="flex gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-1.5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {PRIMARY_PRESETS.map((p) => {
               const active = filters.datePreset === p.key;
+              const shortLabel =
+                p.key === 'next30'
+                  ? t('events.next30Short', '30 días')
+                  : t(p.labelKey, p.labelFallback);
               return (
                 <button
                   key={p.key}
@@ -501,58 +510,30 @@ const CultureEventsPage = () => {
                   aria-selected={active}
                   onClick={() => setPreset(p.key)}
                   className={cn(
-                    'shrink-0 h-9 px-4 rounded-full text-sm font-semibold border transition-all whitespace-nowrap',
+                    'shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium border transition-all whitespace-nowrap',
                     active
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-[1.02]'
-                      : 'bg-background/70 text-foreground border-border hover:bg-muted',
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-transparent text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground',
                   )}
                 >
-                  {t(p.labelKey, p.labelFallback)}
+                  {shortLabel}
                 </button>
               );
             })}
-            <span className="shrink-0 self-center mx-1 h-5 w-px bg-border" aria-hidden />
-            <button
-              type="button"
-              onClick={handleNearMe}
-              disabled={isRequestingLocation}
-              aria-pressed={!!userCoords}
-              className={cn(
-                'shrink-0 h-9 px-3.5 rounded-full text-sm font-medium border transition-colors whitespace-nowrap inline-flex items-center gap-1.5',
-                userCoords
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background/70 text-foreground border-border hover:bg-muted',
-                isRequestingLocation && 'opacity-60',
-              )}
-            >
-              <Navigation className="h-3.5 w-3.5" aria-hidden="true" />
-              {isRequestingLocation
-                ? t('events.locating', 'Localizando…')
-                : userCoords
-                  ? t('events.clearDistanceSort', 'Cerca de mí ✕')
-                  : t('events.nearMe', 'Cerca de mí')}
-            </button>
           </div>
-
-          {/* Venue kind buttons (Todo · Salas · Teatros) */}
-          <VenueKindFilter
-            selectedVenueIds={selectedVenueIds}
-            onVenueIdsChange={setSelectedVenueIds}
-            priorityCities={priorityCities}
-          />
 
           {/* Active filter chips */}
           {hasFilters && (
-            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {activeChips.map((chip) => (
                 <button
                   key={chip.key}
                   type="button"
                   onClick={chip.onRemove}
-                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-xs border border-border/60 max-w-full"
+                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-[11px] border border-border/60 max-w-full"
                   aria-label={`${t('common.remove', 'Quitar')} ${chip.label}`}
                 >
-                  <span className="truncate max-w-[180px]">{chip.label}</span>
+                  <span className="truncate max-w-[160px]">{chip.label}</span>
                   <X className="h-3 w-3 shrink-0" aria-hidden="true" />
                 </button>
               ))}
@@ -560,9 +541,9 @@ const CultureEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
               >
-                {t('events.clearFilters', 'Limpiar todo')}
+                {t('events.clearFilters', 'Limpiar')}
               </Button>
             </div>
           )}
@@ -571,6 +552,13 @@ const CultureEventsPage = () => {
 
       {/* ── BODY ───────────────────────────────────────────────────────── */}
       <main className="px-4 py-4 sm:px-6">
+        <div className="mb-4">
+          <VenueKindFilter
+            selectedVenueIds={selectedVenueIds}
+            onVenueIdsChange={setSelectedVenueIds}
+            priorityCities={priorityCities}
+          />
+        </div>
         {isLoadingEvents ? (
           <EventListSkeleton count={4} />
         ) : isError ? (
