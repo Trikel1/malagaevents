@@ -4,7 +4,7 @@
  * Combines real DB venues (from useVenues) with the static frontend catalog
  * (VENUES_CATALOG). Frontend-only: does not create or filter any events
  * unless a real DB match exists. Catalog-only entries are surfaced as
- * "sin agenda activa" so the user still sees the full picture of Málaga.
+ * "Sin agenda disponible" so the user still sees the full picture of Málaga.
  */
 
 import {
@@ -16,7 +16,16 @@ import {
 } from './venuesCatalog';
 import type { Venue } from '@/types';
 
-export type VenueCategory = 'all' | 'capital' | 'provincia' | 'teatros' | 'salas' | 'museos' | 'auditorios' | 'exteriores' | 'festivales';
+export type VenueCategory =
+  | 'all'
+  | 'capital'
+  | 'provincia'
+  | 'teatros'
+  | 'salas'
+  | 'museos'
+  | 'auditorios'
+  | 'exteriores'
+  | 'festivales';
 
 export interface MergedVenue {
   /** Real DB id when available. Only DB-backed venues actually filter events. */
@@ -27,6 +36,8 @@ export interface MergedVenue {
   city: string;
   zone: VenueZone;
   kind: VenueKind;
+  /** Additional kinds this venue also belongs to (for filter buttons). */
+  extraKinds: VenueKind[];
   /** True when a matching real venue exists in DB (i.e. filter will produce results). */
   hasEvents: boolean;
   status?: CatalogVenue['status'];
@@ -43,15 +54,29 @@ export const normalize = (s: string): string =>
 
 const isMalagaCity = (c?: string | null) => !!c && /m[aá]laga/i.test(c);
 
+/** True when the venue belongs to any of the requested kinds, considering extraKinds. */
+export function venueMatchesKinds(v: MergedVenue, kinds: VenueKind[]): boolean {
+  if (kinds.includes(v.kind)) return true;
+  return v.extraKinds.some((k) => kinds.includes(k));
+}
+
 /** Map catalog kind → high-level UI category chip. */
-export function kindToCategory(kind: VenueKind): Exclude<VenueCategory, 'all' | 'capital' | 'provincia'> {
+export function kindToCategory(
+  kind: VenueKind,
+): Exclude<VenueCategory, 'all' | 'capital' | 'provincia'> {
   switch (kind) {
-    case 'teatro': return 'teatros';
-    case 'sala': return 'salas';
-    case 'museo': return 'museos';
-    case 'auditorio': return 'auditorios';
-    case 'exterior': return 'exteriores';
-    case 'festival': return 'festivales';
+    case 'teatro':
+      return 'teatros';
+    case 'sala':
+      return 'salas';
+    case 'museo':
+      return 'museos';
+    case 'auditorio':
+      return 'auditorios';
+    case 'exterior':
+      return 'exteriores';
+    case 'festival':
+      return 'festivales';
     case 'ferial':
     case 'espacio':
     default:
@@ -83,6 +108,7 @@ export function mergeVenues(dbVenues: Venue[]): MergedVenue[] {
       city: c.city,
       zone: c.zone,
       kind: c.kind,
+      extraKinds: c.extraKinds ?? [],
       hasEvents: false,
       status: c.status,
       searchTokens: Array.from(tokens),
@@ -117,6 +143,7 @@ export function mergeVenues(dbVenues: Venue[]): MergedVenue[] {
         city: v.city || 'Málaga',
         zone,
         kind: 'espacio',
+        extraKinds: [],
         hasEvents: true,
         searchTokens: [normalize(v.name), normalize(v.city || ''), v.normalized_name || ''],
       });
@@ -146,10 +173,12 @@ export function filterMerged(all: MergedVenue[], opts: FilterOptions): MergedVen
       opts.category !== 'all' &&
       opts.category !== 'capital' &&
       opts.category !== 'provincia' &&
-      kindToCategory(v.kind) !== opts.category
-    ) return false;
+      kindToCategory(v.kind) !== opts.category &&
+      !v.extraKinds.some((k) => kindToCategory(k) === opts.category)
+    )
+      return false;
 
-    // Search
+    // Search — accent-insensitive, matches any token
     if (q && !v.searchTokens.some((tok) => tok.includes(q))) return false;
 
     return true;
@@ -164,13 +193,59 @@ export function filterMerged(all: MergedVenue[], opts: FilterOptions): MergedVen
     const acap = a.zone === 'malaga-ciudad' ? 0 : 1;
     const bcap = b.zone === 'malaga-ciudad' ? 0 : 1;
     if (acap !== bcap) return acap - bcap;
-    // Then hasEvents (real DB venues first)
-    if (a.hasEvents !== b.hasEvents) return a.hasEvents ? -1 : 1;
-    // Alphabetical
-    return a.name.localeCompare(b.name, 'es');
+    // Alphabetical (DB-backed and catalog-only interleaved — keep catalog visible)
+    return a.name.localeCompare(b, 'es');
   });
 
   return filtered;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Capital sub-grouping (used inside the picker to render Málaga completa)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type CapitalGroupKey =
+  | 'teatros-auditorios'
+  | 'salas'
+  | 'centros-culturales'
+  | 'museos'
+  | 'recintos-exteriores'
+  | 'festivales';
+
+export interface CapitalGroupDef {
+  key: CapitalGroupKey;
+  label: string;
+  /** Membership criteria: primary or extra kind matches any of these. */
+  kinds: VenueKind[];
+}
+
+export const CAPITAL_GROUPS: CapitalGroupDef[] = [
+  { key: 'teatros-auditorios', label: 'Teatros y auditorios', kinds: ['teatro', 'auditorio'] },
+  { key: 'salas', label: 'Salas y música en vivo', kinds: ['sala'] },
+  { key: 'centros-culturales', label: 'Centros culturales', kinds: ['espacio'] },
+  { key: 'museos', label: 'Museos', kinds: ['museo'] },
+  { key: 'recintos-exteriores', label: 'Recintos y exteriores', kinds: ['exterior', 'ferial'] },
+  { key: 'festivales', label: 'Festivales y grandes citas', kinds: ['festival'] },
+];
+
+/**
+ * Group a set of venues into the six canonical capital categories, considering
+ * `extraKinds`. A venue with extraKinds may appear in multiple groups (e.g.
+ * Teatro Romano lands under Recintos y exteriores AND Teatros y auditorios).
+ */
+export function groupCapital(list: MergedVenue[]): Array<{
+  key: CapitalGroupKey;
+  label: string;
+  items: MergedVenue[];
+}> {
+  const result: Array<{ key: CapitalGroupKey; label: string; items: MergedVenue[] }> = [];
+  for (const group of CAPITAL_GROUPS) {
+    const items = list
+      .filter((v) => venueMatchesKinds(v, group.kinds))
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    if (items.length > 0) result.push({ key: group.key, label: group.label, items });
+  }
+  return result;
 }
 
 export interface VenueSection {
@@ -182,37 +257,27 @@ export interface VenueSection {
 /** Group filtered list into visual sections. */
 export function groupIntoSections(list: MergedVenue[], category: VenueCategory): VenueSection[] {
   if (category === 'capital') {
-    // Group by kind within Málaga capital
     const byKind = new Map<VenueKind, MergedVenue[]>();
     for (const v of list) {
       const arr = byKind.get(v.kind) ?? [];
       arr.push(v);
       byKind.set(v.kind, arr);
     }
-    const order: VenueKind[] = ['teatro', 'auditorio', 'sala', 'museo', 'espacio', 'ferial', 'exterior', 'festival'];
+    const order: VenueKind[] = [
+      'teatro',
+      'auditorio',
+      'sala',
+      'museo',
+      'espacio',
+      'ferial',
+      'exterior',
+      'festival',
+    ];
     return order
       .filter((k) => byKind.has(k))
       .map((k) => ({ key: k, label: VENUE_KIND_LABELS[k], items: byKind.get(k)! }));
   }
 
-  if (category === 'provincia' || category === 'all') {
-    // Group by city, capital first
-    const byCity = new Map<string, MergedVenue[]>();
-    for (const v of list) {
-      const arr = byCity.get(v.city) ?? [];
-      arr.push(v);
-      byCity.set(v.city, arr);
-    }
-    const cities = Array.from(byCity.keys()).sort((a, b) => {
-      const am = isMalagaCity(a) ? 0 : 1;
-      const bm = isMalagaCity(b) ? 0 : 1;
-      if (am !== bm) return am - bm;
-      return a.localeCompare(b, 'es');
-    });
-    return cities.map((c) => ({ key: c, label: c, items: byCity.get(c)! }));
-  }
-
-  // Category by kind → group by city
   const byCity = new Map<string, MergedVenue[]>();
   for (const v of list) {
     const arr = byCity.get(v.city) ?? [];
