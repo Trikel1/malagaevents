@@ -433,12 +433,13 @@ const CultureEventsPage = () => {
             </form>
           )}
 
-          {/* Row 2: Premium venue selector (halls, theaters, museums, venues) */}
-          <VenueGroupDropdown
-            selectedGroup={selectedVenueGroup}
-            selectedVenueIds={selectedVenueIds}
-            onGroupChange={setSelectedVenueGroup}
-            onVenueIdsChange={setSelectedVenueIds}
+          {/* Row 2: Simple venue kind chips + link to full picker */}
+          <VenueKindFilter
+            selectedKind={selectedKind}
+            selectedVenueId={selectedVenue?.id ?? null}
+            selectedVenueName={selectedVenue?.name ?? null}
+            onKindChange={setSelectedKind}
+            onVenueChange={(id, name) => setSelectedVenue(id && name ? { id, name } : null)}
             priorityCities={priorityCities}
           />
 
