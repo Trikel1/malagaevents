@@ -309,9 +309,9 @@ const Index = () => {
                   <Landmark className="h-5 w-5 text-secondary" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">Málaga ciudad y provincia</h2>
+                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.cityProvince.title')}</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Descubre planes en la capital, la Costa del Sol, la Axarquía y el interior.
+                    {t('home.cityProvince.subtitle')}
                   </p>
                 </div>
               </div>
@@ -346,23 +346,16 @@ const Index = () => {
             <section>
               <div className="flex items-center gap-2 mb-3 px-1">
                 <Sparkles className="h-4 w-4 text-accent" aria-hidden />
-                <h2 className="text-lg font-bold tracking-tight">Cultura viva</h2>
+                <h2 className="text-lg font-bold tracking-tight">{t('home.culture.title')}</h2>
               </div>
               <p className="text-sm text-muted-foreground mb-4 px-1 leading-relaxed">
-                Teatros, salas, museos, festivales y programación familiar de referencia en la ciudad.
+                {t('home.culture.subtitle')}
               </p>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Teatros', copy: 'Cervantes, Echegaray, Soho, Cánovas.' },
-                  { label: 'Festivales', copy: 'Festival de Málaga, Fancine, Brisa, Canela.' },
-                  { label: 'Salas', copy: 'Trinchera, París 15, La Cochera Cabaret.' },
-                  { label: 'Museos', copy: 'Picasso, Thyssen, Pompidou, Museo de Málaga.' },
-                  { label: 'Familiar', copy: 'Talleres y espectáculos para todas las edades.' },
-                  { label: 'Provincia', copy: 'Programación municipal más allá de la capital.' },
-                ].map((c) => (
-                  <div key={c.label} className="glass-card p-4">
-                    <div className="font-semibold text-sm">{c.label}</div>
-                    <div className="text-[12px] text-muted-foreground mt-1 leading-snug">{c.copy}</div>
+                {CULTURE_CARDS.map((k) => (
+                  <div key={k} className="glass-card p-4">
+                    <div className="font-semibold text-sm">{t(`home.culture.${k}.label`)}</div>
+                    <div className="text-[12px] text-muted-foreground mt-1 leading-snug">{t(`home.culture.${k}.copy`)}</div>
                   </div>
                 ))}
               </div>
@@ -375,15 +368,15 @@ const Index = () => {
                   <Trophy className="h-5 w-5 text-emerald-600" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-bold tracking-tight">Málaga en clave deporte</h2>
+                  <h2 className="text-lg font-bold tracking-tight">{t('home.sports.title')}</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    Fútbol, baloncesto, carreras populares y clubes de la provincia — una capa deportiva completa.
+                    {t('home.sports.subtitle')}
                   </p>
                   <Button
                     onClick={() => setAppMode('deportes')}
                     className="mt-4 liquid-press h-10 px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
-                    Ver deportes <ChevronRight className="h-4 w-4 ml-1" />
+                    {t('home.sports.cta')} <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               </div>
@@ -394,22 +387,22 @@ const Index = () => {
               <div className="text-center mb-5">
                 <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-primary font-semibold mb-2">
                   <Radar className="h-3.5 w-3.5" aria-hidden />
-                  Plataforma ciudadana
+                  {t('home.institutional.eyebrow')}
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Una plataforma viva para Málaga</h2>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.institutional.title')}</h2>
                 <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                  Diseñada para conectar a la ciudadanía con la vida cultural, familiar y deportiva de la ciudad y su provincia.
+                  {t('home.institutional.subtitle')}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {INSTITUTIONAL_CARDS.map((c) => (
-                  <div key={c.label} className="glass-card p-4 flex flex-col gap-2">
+                  <div key={c.key} className="glass-card p-4 flex flex-col gap-2">
                     <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
                       <c.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm leading-tight">{c.label}</div>
-                      <div className="text-[12px] text-muted-foreground leading-snug mt-1">{c.copy}</div>
+                      <div className="font-semibold text-sm leading-tight">{t(`home.institutional.${c.key}.label`)}</div>
+                      <div className="text-[12px] text-muted-foreground leading-snug mt-1">{t(`home.institutional.${c.key}.copy`)}</div>
                     </div>
                   </div>
                 ))}
@@ -418,12 +411,12 @@ const Index = () => {
               {/* Coverage stats — read-only aspirational counts */}
               <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
                 {[
-                  { n: '35+', l: 'Recintos y salas' },
-                  { n: '24', l: 'Municipios prioritarios' },
-                  { n: '70+', l: 'Fuentes culturales' },
-                  { n: 'Diaria', l: 'Farmacias de guardia' },
-                  { n: 'Familia', l: 'Planes por edad' },
-                  { n: 'Deporte', l: 'Capa en expansión' },
+                  { n: '35+', l: t('home.stats.venues') },
+                  { n: '24', l: t('home.stats.municipalities') },
+                  { n: '70+', l: t('home.stats.sources') },
+                  { n: t('home.stats.dailyValue'), l: t('home.stats.pharmaciesDaily') },
+                  { n: t('home.stats.familyValue'), l: t('home.stats.familyByAge') },
+                  { n: t('home.stats.sportsValue'), l: t('home.stats.sportsGrowing') },
                 ].map((s) => (
                   <div key={s.l} className="rounded-2xl bg-background/50 border border-border/40 px-2 py-3 text-center">
                     <div className="text-base sm:text-lg font-bold tracking-tight text-primary">{s.n}</div>
@@ -432,7 +425,7 @@ const Index = () => {
                 ))}
               </div>
               <p className="mt-3 text-center text-[11px] text-muted-foreground italic">
-                Cobertura en expansión — nuevas fuentes y municipios se incorporan progresivamente.
+                {t('home.stats.footer')}
               </p>
             </section>
 
@@ -442,17 +435,17 @@ const Index = () => {
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-sunset text-white mb-3 shadow-lift">
                 <Users className="h-6 w-6" aria-hidden />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Explora la agenda de Málaga</h2>
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.finalCta.title')}</h2>
               <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                Una forma clara, rápida y bonita de descubrir qué ocurre cerca de ti.
+                {t('home.finalCta.subtitle')}
               </p>
               <div className="flex flex-wrap justify-center gap-2 mt-5">
                 <Button onClick={() => navigate('/events')} className="liquid-press h-11 px-5 font-semibold">
-                  Explorar eventos
+                  {t('home.finalCta.exploreEvents')}
                 </Button>
                 <Button onClick={() => navigate('/pharmacies')} variant="outline" className="liquid-press h-11 px-5 font-semibold glass-button border-primary/20">
                   <Pill className="h-4 w-4 mr-1.5" />
-                  Farmacias de guardia
+                  {t('home.finalCta.pharmacies')}
                 </Button>
               </div>
             </section>
