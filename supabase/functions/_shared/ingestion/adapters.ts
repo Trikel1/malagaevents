@@ -25,6 +25,7 @@ function register(adapter: SourceAdapter) {
 }
 
 register(aytoMalagaAdapter);
+register(aytoMalagaCsvAdapter);
 register(teatroCervantesAdapter);
 register(teatroSohoAdapter);
 register(teatroCanovasAdapter);
