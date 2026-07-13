@@ -73,7 +73,7 @@ export const VENUES_CATALOG: CatalogVenue[] = [
   M({ slug: 'teatro-echegaray', name: 'Teatro Echegaray', kind: 'teatro', searchAliases: ['echegaray', 'factoria echegaray'] }),
   M({ slug: 'teatro-soho-caixabank', name: 'Teatro del Soho CaixaBank', kind: 'teatro', searchAliases: ['soho', 'antonio banderas'] }),
   M({ slug: 'teatro-canovas', name: 'Teatro Cánovas', kind: 'teatro', searchAliases: ['canovas'] }),
-  M({ slug: 'teatro-romano', name: 'Teatro Romano', kind: 'exterior', tags: ['patrimonio'], searchAliases: ['romano'] }),
+  M({ slug: 'teatro-romano', name: 'Teatro Romano', kind: 'exterior', extraKinds: ['teatro'], tags: ['patrimonio'], searchAliases: ['romano'] }),
 
   // ═══════ Málaga capital — Auditorios ═══════
   M({ slug: 'auditorio-edgar-neville', name: 'Auditorio Edgar Neville', kind: 'auditorio', searchAliases: ['edgar neville', 'neville'] }),
