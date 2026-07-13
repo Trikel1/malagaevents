@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Pause, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EventImage from '@/components/events/EventImage';
 import { sanitizeText, generateAltText } from '@/lib/sanitize';
