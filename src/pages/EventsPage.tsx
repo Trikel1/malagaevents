@@ -392,15 +392,16 @@ const CultureEventsPage = () => {
           {/* Title + count pill */}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="flex items-baseline gap-0.5 text-[28px] sm:text-[34px] font-extrabold tracking-[-0.02em] leading-[0.95]">
+              <h1 className="flex items-baseline gap-0.5 text-[28px] sm:text-[34px] font-extrabold tracking-[-0.02em] leading-[1.1] pb-0.5">
                 <span className="agenda-title-gradient">
                   {t('events.agendaTitle', 'Agenda')}
                 </span>
                 <span className="agenda-dot" aria-hidden="true" />
               </h1>
               <p
-                className="mt-1 text-[11px] sm:text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground/80"
+                className="mt-1.5 text-[11px] sm:text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground/80"
               >
+
                 {t('events.agendaKicker', 'Cultura · Málaga')}
               </p>
             </div>
