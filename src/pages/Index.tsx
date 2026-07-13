@@ -146,12 +146,11 @@ const Index = () => {
         <div className="relative mt-1">
           <img
             src={malagaEmblem}
-            alt=""
-            aria-hidden="true"
+            alt="Málaga Connect"
             width={512}
             height={512}
             loading="lazy"
-            className="pointer-events-none select-none absolute top-2 right-4 sm:top-0 sm:right-6 w-24 sm:w-32 md:w-36 opacity-25"
+            className="pointer-events-none select-none absolute -top-2 right-2 sm:top-0 sm:right-4 w-24 sm:w-32 md:w-36 drop-shadow-lg"
           />
           <h1 className="relative text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-xl">
             Qué hacer hoy en Málaga
