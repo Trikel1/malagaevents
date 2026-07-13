@@ -228,21 +228,24 @@ const MunicipalityAgendaPage = () => {
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              {nearby.map(({ event, distanceKm }) => (
-                <div key={event.id} className="relative">
-                  <EventCardWithVerified event={event} />
-                  <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
-                    <Badge className="bg-background/90 text-foreground border border-border shadow-sm">
-                      {formatDistance(distanceKm)}
-                    </Badge>
-                    {event.municipality_id && municipalityById.get(event.municipality_id) && (
-                      <Badge variant="outline" className="bg-background/90 text-[10px]">
-                        {municipalityById.get(event.municipality_id)}
+              {nearby.map(({ event, distanceKm }) => {
+                const mid = (event as Event & { municipality_id?: string | null }).municipality_id;
+                return (
+                  <div key={event.id} className="relative">
+                    <EventCardWithVerified event={event} />
+                    <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
+                      <Badge className="bg-background/90 text-foreground border border-border shadow-sm">
+                        {formatDistance(distanceKm)}
                       </Badge>
-                    )}
+                      {mid && municipalityById.get(mid) && (
+                        <Badge variant="outline" className="bg-background/90 text-[10px]">
+                          {municipalityById.get(mid)}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
