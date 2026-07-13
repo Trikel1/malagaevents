@@ -102,6 +102,7 @@ function isInternalCervantesUrl(u: string): boolean {
 
 type ParsedDate = {
   date: Date;
+  endDate?: Date;
   timeExplicit: boolean;
   rangeStartRaw?: string;
   rangeEndRaw?: string;
