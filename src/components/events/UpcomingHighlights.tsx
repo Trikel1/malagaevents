@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Pause, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EventImage from '@/components/events/EventImage';
 import { sanitizeText, generateAltText } from '@/lib/sanitize';
@@ -23,6 +23,8 @@ interface UpcomingHighlightsProps {
  */
 const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
   const { t } = useTranslation();
+  const [paused, setPaused] = useState(false);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
     const now = Date.now();
@@ -39,11 +41,26 @@ const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
     return limited.map((s) => s.e);
   }, [events, maxItems]);
 
+  // Auto-pause when user interacts with the strip (touch, wheel, pointer drag).
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const pause = () => setPaused(true);
+    el.addEventListener('touchstart', pause, { passive: true });
+    el.addEventListener('wheel', pause, { passive: true });
+    el.addEventListener('pointerdown', pause);
+    return () => {
+      el.removeEventListener('touchstart', pause);
+      el.removeEventListener('wheel', pause);
+      el.removeEventListener('pointerdown', pause);
+    };
+  }, []);
+
   if (items.length === 0) return null;
 
-  // Duplicate the list so the marquee loop is seamless.
-  const loop = [...items, ...items];
-  // Duration scales with number of items so scroll speed stays comfortable.
+  // When playing we duplicate the list so the marquee loop is seamless.
+  // When paused we render the list once and let the user scroll manually.
+  const loop = paused ? items : [...items, ...items];
   const durationSec = Math.max(24, Math.min(120, items.length * 6));
 
   return (
@@ -56,27 +73,63 @@ const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
           <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
           {t('events.upcomingHighlights', 'Destacados próximos')}
         </h2>
-        <span className="text-[11px] text-muted-foreground">
-          {items.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPaused((p) => !p)}
+            aria-pressed={paused}
+            aria-label={
+              paused
+                ? t('events.resumeCarousel', 'Reanudar carrusel')
+                : t('events.pauseCarousel', 'Pausar carrusel')
+            }
+            className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/70 backdrop-blur px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+          >
+            {paused ? (
+              <>
+                <Play className="h-3 w-3" aria-hidden="true" />
+                {t('events.play', 'Reanudar')}
+              </>
+            ) : (
+              <>
+                <Pause className="h-3 w-3" aria-hidden="true" />
+                {t('events.pause', 'Pausar')}
+              </>
+            )}
+          </button>
+          <span className="text-[11px] text-muted-foreground">{items.length}</span>
+        </div>
       </div>
 
       <div
-        className="highlights-marquee relative overflow-hidden"
+        className="highlights-marquee relative"
         style={{
           maskImage:
             'linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%)',
           WebkitMaskImage:
             'linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%)',
+          overflowX: paused ? 'auto' : 'hidden',
+          overflowY: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          scrollSnapType: paused ? 'x mandatory' : undefined,
         }}
       >
         <div
-          className="highlights-marquee-track flex gap-3 w-max"
-          style={{ ['--marquee-duration' as string]: `${durationSec}s` }}
+          ref={trackRef}
+          className={`highlights-marquee-track flex gap-3 ${paused ? '' : 'w-max'}`}
+          style={{
+            ['--marquee-duration' as string]: `${durationSec}s`,
+            animationPlayState: paused ? 'paused' : undefined,
+          }}
           aria-live="off"
         >
           {loop.map((event, i) => (
-            <HighlightCard key={`${event.id}-${i}`} event={event} aria-hidden={i >= items.length} />
+            <HighlightCard
+              key={`${event.id}-${i}`}
+              event={event}
+              aria-hidden={!paused && i >= items.length}
+              snap={paused}
+            />
           ))}
         </div>
       </div>
@@ -87,9 +140,10 @@ const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
 interface HighlightCardProps {
   event: Event;
   'aria-hidden'?: boolean;
+  snap?: boolean;
 }
 
-const HighlightCard = ({ event, 'aria-hidden': ariaHidden }: HighlightCardProps) => {
+const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
   const { t } = useTranslation();
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
@@ -113,6 +167,7 @@ const HighlightCard = ({ event, 'aria-hidden': ariaHidden }: HighlightCardProps)
     <Link
       to={`/events/${event.id}`}
       className="group shrink-0 w-[220px] sm:w-[240px] md:w-[260px]"
+      style={snap ? { scrollSnapAlign: 'start' } : undefined}
       aria-label={`${title}, ${dayBadge}${showTime ? `, ${timeLabel}` : ''}`}
       aria-hidden={ariaHidden || undefined}
       tabIndex={ariaHidden ? -1 : undefined}
