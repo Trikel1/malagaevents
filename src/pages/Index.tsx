@@ -212,10 +212,10 @@ const Index = () => {
             </section>
 
             {/* Deportes teaser */}
-            <section className="rounded-2xl bg-card border border-border shadow-card p-5 sm:p-6">
+            <section className="rounded-2xl bg-card border border-border shadow-md p-5 sm:p-6">
               <div className="flex items-start gap-3">
-                <div className="h-11 w-11 shrink-0 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
-                  <Trophy className="h-5 w-5 text-emerald-600 dark:text-emerald-400" aria-hidden />
+                <div className="h-11 w-11 shrink-0 rounded-2xl bg-secondary/15 flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-secondary" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="font-display text-lg font-semibold tracking-tight">{t('home.sports.title')}</h2>
@@ -224,7 +224,7 @@ const Index = () => {
                   </p>
                   <Button
                     onClick={() => navigate('/sports')}
-                    className="mt-4 min-h-[44px] px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="mt-4 min-h-[44px] px-4 font-semibold bg-secondary hover:bg-secondary/90 text-secondary-foreground"
                   >
                     {t('home.sports.cta')} <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
@@ -235,23 +235,36 @@ const Index = () => {
             {/* Bloque institucional — compacto, al final */}
             <InstitutionalStrip />
 
-            {/* Final CTA */}
-            <section className="rounded-2xl bg-card border border-border shadow-card p-6 sm:p-8 text-center">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-sunset text-white mb-3 shadow-lift">
-                <Users className="h-6 w-6" aria-hidden />
+            {/* Final CTA — gradiente de marca */}
+            <section className="relative overflow-hidden rounded-3xl p-6 sm:p-10 text-center text-white shadow-floating bg-gradient-brand">
+              <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40">
+                <div className="absolute -top-16 -left-16 h-56 w-56 rounded-full bg-white/20 blur-3xl" />
+                <div className="absolute -bottom-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
               </div>
-              <h2 className="font-display text-xl sm:text-2xl font-semibold tracking-tight">{t('home.finalCta.title')}</h2>
-              <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                {t('home.finalCta.subtitle')}
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 mt-5">
-                <Button onClick={() => navigate('/events')} className="min-h-[44px] px-5 font-semibold">
-                  {t('home.finalCta.exploreEvents')}
-                </Button>
-                <Button onClick={() => navigate('/pharmacies')} variant="outline" className="min-h-[44px] px-5 font-semibold">
-                  <Pill className="h-4 w-4 mr-1.5" />
-                  {t('home.finalCta.pharmacies')}
-                </Button>
+              <div className="relative">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm text-white mb-3 ring-1 ring-white/25">
+                  <Users className="h-6 w-6" aria-hidden />
+                </div>
+                <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight">{t('home.finalCta.title')}</h2>
+                <p className="text-sm sm:text-base text-white/90 mt-2 max-w-md mx-auto leading-relaxed">
+                  {t('home.finalCta.subtitle')}
+                </p>
+                <div className="flex flex-wrap justify-center gap-2 mt-6">
+                  <Button
+                    onClick={() => navigate('/events')}
+                    className="min-h-[44px] px-6 font-semibold bg-white text-foreground hover:bg-white/90"
+                  >
+                    {t('home.finalCta.exploreEvents')}
+                  </Button>
+                  <Button
+                    onClick={() => navigate('/pharmacies')}
+                    variant="outline"
+                    className="min-h-[44px] px-5 font-semibold bg-transparent border-white/60 text-white hover:bg-white/10 hover:text-white"
+                  >
+                    <Pill className="h-4 w-4 mr-1.5" />
+                    {t('home.finalCta.pharmacies')}
+                  </Button>
+                </div>
               </div>
             </section>
           </>

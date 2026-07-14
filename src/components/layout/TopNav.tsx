@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Sparkles, Calendar, Map, User, Trophy } from 'lucide-react';
@@ -9,8 +9,15 @@ import { ThemeToggle } from '@/components/common/ThemeToggle';
 const TopNav = () => {
   const { t } = useTranslation();
   const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
 
-  // Stable desktop nav. Events and Sports are separate destinations.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const navItems = useMemo(
     () => [
       { to: '/', icon: Home, label: t('nav.home'), end: true },
@@ -23,8 +30,6 @@ const TopNav = () => {
     [t],
   );
 
-  // On /sports and /venues, keep the Events tab visually inactive but flag
-  // the Sports destination as current — provides continuity for users.
   const isCurrent = (to: string) => {
     const p = location.pathname;
     if (to === '/sports' && (p === '/venues' || p.startsWith('/venues'))) return true;
@@ -34,16 +39,30 @@ const TopNav = () => {
 
   return (
     <header
-      className="hidden lg:block sticky top-0 z-40 glass-nav border-b border-border/60"
+      className={cn(
+        'hidden lg:block sticky top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-200',
+        scrolled
+          ? 'glass-nav border-b border-border/60'
+          : 'bg-transparent border-b border-transparent',
+      )}
       aria-label={t('nav.primary', 'Navegación principal')}
     >
-      <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between gap-6 px-6">
-        <NavLink to="/" className="flex items-baseline gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded">
-          <span className="font-display text-2xl font-semibold tracking-tight text-foreground">
-            Málaga
-          </span>
-          <span className="hidden xl:inline text-sm text-muted-foreground">
-            {t('home.hero.subtitle')}
+      <div className="mx-auto flex h-16 max-w-[1240px] items-center justify-between gap-6 px-8">
+        <NavLink
+          to="/"
+          className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+          aria-label="Málaga Events"
+        >
+          <img
+            src="/favicon.png"
+            alt=""
+            aria-hidden
+            className="h-8 w-8 rounded-lg object-cover shadow-xs"
+            loading="eager"
+            decoding="async"
+          />
+          <span className="font-display text-[19px] font-bold tracking-tight text-foreground">
+            Málaga Events
           </span>
         </NavLink>
 
@@ -56,10 +75,10 @@ const TopNav = () => {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  'inline-flex items-center gap-2 h-11 px-3 rounded-full text-sm font-medium transition-colors',
+                  'inline-flex items-center gap-2 h-11 px-3.5 rounded-full text-[13.5px] font-semibold transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   current
-                    ? 'bg-primary/10 text-primary'
+                    ? 'bg-primary/12 text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted',
                 )}
                 aria-label={item.label}
