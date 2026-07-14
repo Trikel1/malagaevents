@@ -46,10 +46,15 @@ const MapPage = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
 
-  const { data: cultureEvents = [] } = useEvents({ limit: 200 });
-  const { data: sportsEvents = [] } = useSportsEvents({});
-  const { data: venues = [] } = useVenues();
-  const { data: pharmacies = [] } = usePharmaciesOnDuty(new Date());
+  const { data: cultureEvents = [], isLoading: eventsLoading, isError: eventsError, refetch: refetchEvents } = useEvents({ limit: 200 });
+  const { data: sportsEvents = [], isLoading: sportsLoading, isError: sportsError, refetch: refetchSports } = useSportsEvents({});
+  const { data: venues = [], isLoading: venuesLoading, isError: venuesError, refetch: refetchVenues } = useVenues();
+  const { data: pharmacies = [], isLoading: pharmaLoading } = usePharmaciesOnDuty(new Date());
+
+  const isLoadingData = eventsLoading || sportsLoading || venuesLoading || pharmaLoading;
+  const hasError = eventsError || sportsError || venuesError;
+  const retryAll = () => { refetchEvents(); refetchSports(); refetchVenues(); };
+
 
   const eventMarkers = useMemo<MapMarker[]>(() => {
     return cultureEvents.map((e: any) => {
