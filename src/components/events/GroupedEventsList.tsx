@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
+import type { Locale } from 'date-fns';
 import EventCard from '@/components/events/EventCard';
 import type { Event } from '@/types';
 
