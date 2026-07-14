@@ -144,7 +144,7 @@ export function normalizeSportKey(raw: string | null | undefined): string {
  * "other" bucket if the value is unknown.
  */
 export function getSportLabel(
-  t: (key: string, options?: unknown) => string,
+  t: (key: string) => string,
   raw: string | null | undefined,
 ): string {
   const key = normalizeSportKey(raw);
@@ -155,4 +155,5 @@ export function getSportLabel(
   }
   return localized;
 }
+
 
