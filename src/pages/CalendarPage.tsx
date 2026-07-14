@@ -362,7 +362,7 @@ const CalendarPage = () => {
                       <button
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
-                        aria-label={format(day, "EEEE d 'de' MMMM yyyy", { locale }) + (hasEvents ? `, ${eventCount} ${t('calendar.eventsShort', 'eventos')}` : '')}
+                        aria-label={format(day, 'PPPP', { locale }) + (hasEvents ? `, ${eventCount} ${t('calendar.eventsShort', 'eventos')}` : '')}
                         aria-pressed={!!isSelected}
                         aria-current={dayIsToday ? 'date' : undefined}
                         className={cn(
