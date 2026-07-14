@@ -34,10 +34,10 @@ const HeroHeader = () => {
       <div className="relative mx-auto w-full max-w-[1180px] px-4 lg:px-8 pt-5 pb-14">
         {/* Top controls */}
         <div className="flex items-center justify-between gap-2 mb-7 min-w-0">
-          <div className="glass-button relative flex p-0.5 min-w-0 shrink text-white overflow-hidden">
+          <div className="glass-button relative flex p-0.5 min-w-0 shrink overflow-hidden">
             <span
               aria-hidden
-              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-white/95 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-card transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={{
                 width: 'calc(50% - 2px)',
                 transform: `translateX(${appMode === 'eventos' ? '0%' : '100%'})`,
@@ -49,7 +49,9 @@ const HeroHeader = () => {
               aria-pressed={appMode === 'eventos'}
               className={cn(
                 'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-200 min-h-[44px] whitespace-nowrap',
-                appMode === 'eventos' ? 'text-slate-900' : 'text-white/90 hover:text-white'
+                appMode === 'eventos'
+                  ? 'text-foreground'
+                  : 'text-foreground/80 hover:text-foreground dark:text-white/85 dark:hover:text-white'
               )}
             >
               {t('sports.events')}
@@ -59,7 +61,9 @@ const HeroHeader = () => {
               aria-pressed={appMode === 'deportes'}
               className={cn(
                 'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-200 min-h-[44px] whitespace-nowrap',
-                appMode === 'deportes' ? 'text-slate-900' : 'text-white/90 hover:text-white'
+                appMode === 'deportes'
+                  ? 'text-foreground'
+                  : 'text-foreground/80 hover:text-foreground dark:text-white/85 dark:hover:text-white'
               )}
             >
               {t('sports.title')}
