@@ -53,6 +53,7 @@ register(juntaAndaluciaCulturaAdapter);
 register(visitCostaDelSolAdapter);
 register(axarquiaCostaDelSolAdapter);
 register(serraniaDeRondaAdapter);
+register(fycmaAdapter);
 
 
 export function getAdapter(key: string | null | undefined): SourceAdapter | null {
