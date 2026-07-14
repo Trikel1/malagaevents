@@ -531,7 +531,9 @@
     "savePreferences": "Einstellungen speichern",
     "loginRequired": "Für den Zugriff anmelden",
     "loginRequiredDesc": "Für diese Funktion benötigen Sie ein Konto",
-    "guestTitle": "Gast"
+    "guestTitle": "Gast",
+    "user": "Nutzer",
+    "adminPanel": "Admin-Bereich"
   },
   "theme": {
     "system": "System",

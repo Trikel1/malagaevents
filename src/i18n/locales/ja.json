@@ -531,7 +531,9 @@
     "savePreferences": "設定を保存",
     "loginRequired": "アクセスするにはログインしてください",
     "loginRequiredDesc": "この機能を使用するにはアカウントが必要です",
-    "guestTitle": "ゲスト"
+    "guestTitle": "ゲスト",
+    "user": "ユーザー",
+    "adminPanel": "管理パネル"
   },
   "theme": {
     "system": "システム",
