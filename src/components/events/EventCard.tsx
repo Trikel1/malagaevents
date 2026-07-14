@@ -25,7 +25,7 @@ interface EventCardProps {
 
 const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority, variant }, ref) => {
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
 
   const showTime = hasExplicitTime(event.start_at);
   const timeConfirmLabel = t('events.timeTBC', 'Hora por confirmar');
