@@ -121,6 +121,9 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'villanueva-de-tapia', name: 'Villanueva de Tapia', zone: 'antequera' },
   { slug: 'villanueva-de-algaidas', name: 'Villanueva de Algaidas', zone: 'antequera' },
   { slug: 'casabermeja', name: 'Casabermeja', zone: 'antequera' },
+  { slug: 'cuevas-bajas', name: 'Cuevas Bajas', zone: 'antequera' },
+  { slug: 'cuevas-de-san-marcos', name: 'Cuevas de San Marcos', zone: 'antequera' },
+  { slug: 'valle-de-abdalajis', name: 'Valle de Abdalajís', zone: 'antequera', aliases: ['valle-de-abdalajis'] },
 
   // Serranía de Ronda
   { slug: 'ronda', name: 'Ronda', zone: 'serrania-ronda', priority: 90 },
