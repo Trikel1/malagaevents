@@ -121,7 +121,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed z-50 glass-nav bottom-nav-dock"
+      className="fixed z-50 glass-nav bottom-nav-dock lg:hidden"
       style={{
         bottom: 'max(12px, env(safe-area-inset-bottom, 0px) + 4px)',
         left: '50%',
