@@ -120,7 +120,7 @@ const VenuesPage = () => {
         </div>
       </header>
 
-      <main className="p-4 space-y-3">
+      <main className="p-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -128,39 +128,48 @@ const VenuesPage = () => {
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Building2 className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t('sports.noVenues')}</p>
+            <p className="text-sm">{t('sports.noVenues', 'No se encontraron recintos')}</p>
           </div>
         ) : (
-          filtered.map((venue) => (
-            <Card key={venue.id}>
-              <CardContent className="p-3 flex items-start gap-3">
-                <div className="p-2 rounded-full bg-primary/10 shrink-0 mt-0.5">
-                  <MapPin className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm break-words">{venue.name}</h3>
-                  <p className="text-xs text-muted-foreground">{venue.city}{venue.address ? ` · ${venue.address}` : ''}</p>
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {venue.sports.map(s => (
-                      <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
-                        <SportIcon sport={s} className="h-3 w-3" />
-                        {t(`sports.${s}`)}
-                      </Badge>
-                    ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filtered.map((venue) => (
+              <Card key={venue.id} className="hover:border-primary/30 transition-colors">
+                <CardContent className="p-3 flex flex-col gap-2">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-full bg-primary/10 shrink-0 mt-0.5">
+                      <Building2 className="h-5 w-5 text-primary" aria-hidden />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm break-words leading-snug">{venue.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5 break-words" style={{ overflowWrap: 'anywhere' }}>
+                        {venue.city}{venue.address ? ` · ${venue.address}` : ''}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="shrink-0 text-xs"
-                  onClick={() => openMap(venue)}
-                >
-                  <MapPin className="h-3 w-3 mr-1" />
-                  {t('sports.map')}
-                </Button>
-              </CardContent>
-            </Card>
-          ))
+                  {venue.sports?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {venue.sports.map((s) => (
+                        <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+                          <SportIcon sport={s} className="h-3 w-3" />
+                          {t(`sports.${s}`, s)}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="self-start text-xs"
+                    onClick={() => openMap(venue)}
+                    aria-label={`${t('sports.map', 'Mapa')} — ${venue.name}`}
+                  >
+                    <MapPin className="h-3 w-3 mr-1" aria-hidden />
+                    {t('sports.map', 'Mapa')}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
       </main>
     </div>
