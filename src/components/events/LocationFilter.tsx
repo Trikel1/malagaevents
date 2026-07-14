@@ -67,11 +67,11 @@ const LocationFilter = ({
       ?? { slug: loc.normalized_name || '', name: loc.name, zone: 'capital' as ZoneKey };
   }, [selectedLocationIds, dbLocations]);
 
-  // Default behaviour: if nothing has been chosen yet, the trigger SHOWS "Málaga"
-  // but the actual filter remains empty (= all province) until the user picks one.
-  // We surface "Málaga" as the visual default per spec.
+  // Trigger must always reflect the actual selection state. When nothing is
+  // selected, the filter is "Toda la provincia" — show that, not the default
+  // capital, to avoid the "Málaga trigger / Toda la provincia state" mismatch.
   const triggerLabel = selectedLocationIds.length === 0
-    ? t('events.locationDefault', 'Málaga')
+    ? t('events.allProvince', 'Toda la provincia')
     : selectedEntry?.name ?? t('events.allProvince', 'Toda la provincia');
 
   const isActive = selectedLocationIds.length > 0;
