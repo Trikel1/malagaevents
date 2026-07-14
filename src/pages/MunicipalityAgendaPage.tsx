@@ -153,8 +153,8 @@ const MunicipalityAgendaPage = () => {
       <main className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/events" aria-label="Volver">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Volver
+            <Link to="/events" aria-label={t('common.back', 'Volver')}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> {t('common.back', 'Volver')}
             </Link>
           </Button>
         </div>
