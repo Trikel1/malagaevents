@@ -44,6 +44,7 @@ const BottomNav = () => {
   const pointerIdRef = useRef<number | null>(null);
   const dragStartedRef = useRef(false);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
+  const handledByPointerRef = useRef(false);
 
   const measure = useCallback(() => {
     const track = trackRef.current;
