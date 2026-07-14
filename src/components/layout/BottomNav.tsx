@@ -185,7 +185,7 @@ const BottomNav = () => {
                 }
               }}
               className={cn(
-                'bottom-nav-item',
+                'bottom-nav-item flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] px-1.5',
                 isActive ? 'bottom-nav-item-active' : 'bottom-nav-item-idle'
               )}
               aria-label={item.label}
@@ -196,10 +196,18 @@ const BottomNav = () => {
               <span className="bottom-nav-icon-shell" aria-hidden>
                 <item.icon
                   className={cn(
-                    'h-[24px] w-[24px] shrink-0 transition-[transform,stroke-width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                    isActive && 'stroke-[2.4px] scale-[1.12]'
+                    'h-[22px] w-[22px] shrink-0 transition-[transform,stroke-width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                    isActive && 'stroke-[2.4px] scale-[1.08]'
                   )}
                 />
+              </span>
+              <span
+                className={cn(
+                  'text-[10.5px] leading-none font-medium tracking-tight transition-colors',
+                  isActive ? 'text-foreground' : 'text-muted-foreground'
+                )}
+              >
+                {item.label}
               </span>
             </button>
           );
