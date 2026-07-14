@@ -23,9 +23,6 @@ import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib
 import { haversineKm, formatDistance } from '@/lib/distance';
 import { cn } from '@/lib/utils';
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
-};
 
 const TIMEZONE = 'Europe/Madrid';
 const DEFAULT_MUNICIPALITY = 'Málaga';
