@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield, Palette } from 'lucide-react';
+import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield, Palette, ChevronRight, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
