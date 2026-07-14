@@ -98,6 +98,7 @@ const useNearbyEvents = (
 };
 
 const MunicipalityAgendaPage = () => {
+  const { t } = useTranslation();
   const { municipalitySlug } = useParams();
   const [radiusKm, setRadiusKm] = useState<15 | 30 | 50>(15);
 
