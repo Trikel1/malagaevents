@@ -349,7 +349,7 @@ const CultureEventsPage = () => {
 
   // Human-readable "range" summary shown in the header
   const rangeSummary = useMemo(() => {
-    const today = format(new Date(), "EEEE d 'de' MMMM", { locale: es });
+    const today = format(new Date(), 'PPPP', { locale });
     const nice = today.charAt(0).toUpperCase() + today.slice(1);
     if (filters.datePreset === 'today') return nice;
     if (filters.datePreset === 'tomorrow') return t('events.tomorrow', 'Mañana');
