@@ -620,7 +620,7 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
           : 'text-muted-foreground',
       )}
     >
-      <Icon size={28} />
+      <Icon size={44} />
     </button>
   );
 }
