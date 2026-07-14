@@ -12,6 +12,7 @@ import {
   isRegistrationUrl,
   isFreeEvent,
   buildDirectionsUrl,
+  getSportLabel,
 } from '@/lib/sports';
 
 interface SportEventCardProps {
@@ -23,7 +24,7 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
   const locale = getDateLocale(i18n.language);
   const formattedDate = format(new Date(event.start_at), 'EEE d MMM · HH:mm', { locale });
   const sportCat = event.sport as SportCategory;
-  const label = t(`sports.${sportCat}`, event.sport);
+  const label = getSportLabel(t, event.sport);
   const SportLucide = getSportIcon(event.sport);
 
   const cleanTitle = cleanSportTitle(event.teams || event.title);
