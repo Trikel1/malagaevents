@@ -38,8 +38,6 @@ beforeAll(async () => {
 });
 
 describe('Sprint UI 4 · /sports', () => {
-  beforeEach: {
-  }
 
   it('renderiza el hero deportivo dedicado con título propio, subtítulo y buscador', () => {
     useSportsEventsMock.mockReturnValue({ data: [], isLoading: false, isError: false });
