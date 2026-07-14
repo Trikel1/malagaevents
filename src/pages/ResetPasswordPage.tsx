@@ -56,54 +56,57 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEO title={t('seo.reset.title')} description={t('seo.reset.description')} path="/auth/reset" noindex />
       <header className="p-4 flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/auth')}>
-          <ArrowLeft className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={() => navigate('/auth')} aria-label={t('common.back', 'Volver')}>
+          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </Button>
-        <h1 className="text-xl font-bold">Restablecer contraseña</h1>
+        <h1 className="text-xl font-bold">{t('auth.resetTitle', 'Restablecer contraseña')}</h1>
       </header>
       <main className="p-4 max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>Nueva contraseña</CardTitle>
+            <CardTitle>{t('auth.newPassword', 'Nueva contraseña')}</CardTitle>
             <CardDescription>
-              {ready ? 'Introduce tu nueva contraseña.' : 'Verificando el enlace de recuperación…'}
+              {ready ? t('auth.newPasswordHelp', 'Introduce tu nueva contraseña.') : t('auth.verifyingLink', 'Verificando el enlace de recuperación…')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Nueva contraseña</Label>
+                <Label htmlFor="password">{t('auth.newPassword', 'Nueva contraseña')}</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   <Input
                     id="password"
                     type={show ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-9 pr-9"
+                    className="pl-9 pr-11"
                     required
                     minLength={6}
                     disabled={!ready}
+                    autoComplete="new-password"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3"
+                    className="absolute right-0 top-0 h-full min-h-11 min-w-11 px-3"
                     onClick={() => setShow(!show)}
+                    aria-label={show ? t('auth.hidePassword', 'Ocultar contraseña') : t('auth.showPassword', 'Mostrar contraseña')}
+                    aria-pressed={show}
                   >
-                    {show ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
+                    {show ? <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" /> : <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm">Confirmar contraseña</Label>
+                <Label htmlFor="confirm">{t('auth.confirmPassword', 'Confirmar contraseña')}</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   <Input
                     id="confirm"
                     type={show ? 'text' : 'password'}
@@ -114,11 +117,12 @@ const ResetPasswordPage = () => {
                     required
                     minLength={6}
                     disabled={!ready}
+                    autoComplete="new-password"
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={!ready || loading}>
-                {loading ? 'Guardando…' : 'Actualizar contraseña'}
+              <Button type="submit" className="w-full min-h-11" disabled={!ready || loading}>
+                {loading ? t('auth.saving', 'Guardando…') : t('auth.updatePassword', 'Actualizar contraseña')}
               </Button>
             </form>
           </CardContent>
