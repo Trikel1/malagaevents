@@ -81,11 +81,20 @@ const TicketsPage = () => {
       {/* Content */}
       <main className="p-4">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-3" aria-busy="true">
             <EventCardSkeleton />
             <EventCardSkeleton />
           </div>
+        ) : isError ? (
+          <EmptyState
+            icon={Ticket}
+            title={t('tickets.errorTitle', 'No se pudieron cargar tus entradas')}
+            description={t('tickets.errorDesc', 'Comprueba tu conexión e inténtalo de nuevo.')}
+            actionLabel={t('common.retry', 'Reintentar')}
+            onAction={() => refetch()}
+          />
         ) : tickets && tickets.length > 0 ? (
+
           <div className="space-y-3">
             {tickets.map((ticket) => {
               const Icon = getTicketIcon(ticket);
