@@ -310,7 +310,10 @@
     "theaters": "剧院",
     "halls": "大厅",
     "otherVenues": "其他",
-    "timeTBC": "时间待定"
+    "timeTBC": "时间待定",
+    "verifiedAt": "已验证",
+    "viewOnSource": "在原始来源查看",
+    "source": "来源"
   },
   "eventDetail": {
     "when": "何时",
@@ -568,5 +571,63 @@
     "rugby": "橄榄球",
     "acuaticos": "水上运动",
     "artes_marciales": "武术"
+  },
+  "seo": {
+    "events": {
+      "title": "马拉加文化日程 — 今日与未来几天",
+      "description": "马拉加文化日程:音乐会、戏剧、展览、电影、美食及家庭活动。"
+    },
+    "calendar": {
+      "title": "马拉加活动日历",
+      "description": "马拉加文化和体育活动按日、周、月分类的日历。"
+    },
+    "map": {
+      "title": "马拉加活动与药店地图",
+      "description": "马拉加文化、体育活动及值班药店的互动地图。"
+    },
+    "venues": {
+      "title": "马拉加体育场馆",
+      "description": "马拉加省的体育场馆、体育馆和体育场目录。"
+    },
+    "sports": {
+      "title": "马拉加体育 — 活动、赛事与场馆",
+      "description": "马拉加体育日程:比赛、赛事、活动及官方场馆。"
+    },
+    "profile": {
+      "title": "我的资料 — MalagaEvents",
+      "description": "在MalagaEvents管理账户、收藏、门票和语言。"
+    },
+    "submit": {
+      "title": "提交马拉加活动",
+      "description": "提交文化或体育活动供MalagaEvents团队审核。"
+    },
+    "tickets": {
+      "title": "我的门票 — MalagaEvents",
+      "description": "查看并整理你在MalagaEvents保存的门票。"
+    },
+    "addTicket": {
+      "title": "添加门票 — MalagaEvents",
+      "description": "将门票加入你的个人收藏。"
+    },
+    "pharmacies": {
+      "title": "今日马拉加值班药店",
+      "description": "马拉加官方值班药店及按市镇的信息目录。"
+    },
+    "auth": {
+      "title": "登录MalagaEvents",
+      "description": "登录或创建账户以保存收藏、门票及偏好。"
+    },
+    "reset": {
+      "title": "重置密码 — MalagaEvents",
+      "description": "为你的账户选择新密码。"
+    },
+    "admin": {
+      "title": "Admin — MalagaEvents",
+      "description": "内部管理面板。"
+    },
+    "notFound": {
+      "title": "页面未找到 — MalagaEvents",
+      "description": "请求的页面不存在或已被移动。"
+    }
   }
 }

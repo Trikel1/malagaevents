@@ -310,7 +310,10 @@
     "theaters": "劇場",
     "halls": "ホール",
     "otherVenues": "その他",
-    "timeTBC": "時間未定"
+    "timeTBC": "時間未定",
+    "verifiedAt": "確認済み",
+    "viewOnSource": "元のソースで見る",
+    "source": "ソース"
   },
   "eventDetail": {
     "when": "いつ",
@@ -568,5 +571,63 @@
     "rugby": "ラグビー",
     "acuaticos": "ウォータースポーツ",
     "artes_marciales": "格闘技"
+  },
+  "seo": {
+    "events": {
+      "title": "マラガの文化アジェンダ — 今日とこれからの数日間",
+      "description": "マラガの文化案内:コンサート、演劇、展覧会、映画、グルメ、家族向けプラン。"
+    },
+    "calendar": {
+      "title": "マラガのイベントカレンダー",
+      "description": "マラガの文化・スポーツイベントを日別、週別、月別に。"
+    },
+    "map": {
+      "title": "マラガのイベントと薬局の地図",
+      "description": "マラガの文化・スポーツイベントと当番薬局のインタラクティブマップ。"
+    },
+    "venues": {
+      "title": "マラガのスポーツ会場",
+      "description": "マラガ県のスポーツ会場、体育館、スタジアムの一覧。"
+    },
+    "sports": {
+      "title": "マラガのスポーツ — アクティビティ、大会、会場",
+      "description": "マラガのスポーツアジェンダ:試合、大会、アクティビティ、公式会場。"
+    },
+    "profile": {
+      "title": "マイプロフィール — MalagaEvents",
+      "description": "MalagaEventsでアカウント、お気に入り、チケット、言語を管理。"
+    },
+    "submit": {
+      "title": "マラガのイベントを投稿",
+      "description": "MalagaEventsチームがレビューする文化・スポーツイベントを送信。"
+    },
+    "tickets": {
+      "title": "マイチケット — MalagaEvents",
+      "description": "MalagaEventsに保存したチケットを閲覧・整理。"
+    },
+    "addTicket": {
+      "title": "チケットを追加 — MalagaEvents",
+      "description": "あなたの個人コレクションにチケットを追加。"
+    },
+    "pharmacies": {
+      "title": "本日のマラガ当番薬局",
+      "description": "マラガの公式当番薬局と自治体別の情報ディレクトリ。"
+    },
+    "auth": {
+      "title": "MalagaEventsにサインイン",
+      "description": "サインインまたはアカウント作成でお気に入り、チケット、設定を保存。"
+    },
+    "reset": {
+      "title": "パスワードをリセット — MalagaEvents",
+      "description": "アカウントの新しいパスワードを選択。"
+    },
+    "admin": {
+      "title": "Admin — MalagaEvents",
+      "description": "内部管理パネル。"
+    },
+    "notFound": {
+      "title": "ページが見つかりません — MalagaEvents",
+      "description": "要求されたページは存在しないか、移動されました。"
+    }
   }
 }

@@ -310,7 +310,10 @@
     "theaters": "Theaters",
     "halls": "Halls",
     "otherVenues": "Others",
-    "timeTBC": "Time to be confirmed"
+    "timeTBC": "Time to be confirmed",
+    "verifiedAt": "Verified",
+    "viewOnSource": "View on original source",
+    "source": "Source"
   },
   "eventDetail": {
     "when": "When",
@@ -568,5 +571,63 @@
     "rugby": "Rugby",
     "acuaticos": "Water sports",
     "artes_marciales": "Martial arts"
+  },
+  "seo": {
+    "events": {
+      "title": "Cultural agenda in Málaga — What to do today and the coming days",
+      "description": "Cultural agenda in Málaga: concerts, theatre, exhibitions, cinema, food and family plans."
+    },
+    "calendar": {
+      "title": "Málaga events calendar",
+      "description": "Cultural and sports events calendar in Málaga by day, week and month."
+    },
+    "map": {
+      "title": "Map of events and pharmacies in Málaga",
+      "description": "Interactive map with cultural events, sports and on-duty pharmacies in Málaga."
+    },
+    "venues": {
+      "title": "Sports venues in Málaga",
+      "description": "Directory of sports venues, arenas and stadiums in the province of Málaga."
+    },
+    "sports": {
+      "title": "Sports in Málaga — Activities, competitions and venues",
+      "description": "Sports agenda in Málaga: matches, competitions, activities and official venues."
+    },
+    "profile": {
+      "title": "My profile — MalagaEvents",
+      "description": "Manage your account, favourites, tickets and language on MalagaEvents."
+    },
+    "submit": {
+      "title": "Submit a Málaga event",
+      "description": "Submit a cultural or sports event for review by the MalagaEvents team."
+    },
+    "tickets": {
+      "title": "My tickets — MalagaEvents",
+      "description": "Browse and organise your saved tickets on MalagaEvents."
+    },
+    "addTicket": {
+      "title": "Add ticket — MalagaEvents",
+      "description": "Add a ticket to your personal collection."
+    },
+    "pharmacies": {
+      "title": "Pharmacies on duty in Málaga today",
+      "description": "Official on-duty pharmacies in Málaga and informational directory by municipality."
+    },
+    "auth": {
+      "title": "Sign in to MalagaEvents",
+      "description": "Sign in or create an account to save favourites, tickets and preferences."
+    },
+    "reset": {
+      "title": "Reset password — MalagaEvents",
+      "description": "Choose a new password for your account."
+    },
+    "admin": {
+      "title": "Admin — MalagaEvents",
+      "description": "Internal administration panel."
+    },
+    "notFound": {
+      "title": "Page not found — MalagaEvents",
+      "description": "The requested page does not exist or has been moved."
+    }
   }
 }
