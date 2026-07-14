@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { languages } from '@/i18n';
+import { getResolvedLanguage, normalizeLanguageCode } from '@/i18n/language';
 
 interface LanguageSelectorProps {
   variant?: 'default' | 'compact';
@@ -33,11 +34,17 @@ const ShortBadge = ({ code, size = 'md' }: { code: string; size?: 'sm' | 'md' | 
 const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
   const { i18n, t } = useTranslation();
 
-  const currentLang = languages.find((l) => l.code === i18n.language) || languages[0];
+  const activeCode = getResolvedLanguage(i18n);
+  const currentLang = languages.find((l) => l.code === activeCode) || languages[0];
+  const handleChange = (value: string) => {
+    const base = normalizeLanguageCode(value);
+    void i18n.changeLanguage(base);
+  };
 
   if (variant === 'compact') {
     return (
-      <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
+      <Select value={activeCode} onValueChange={handleChange}>
+
         <SelectTrigger
           aria-label={t('profile.language', 'Idioma')}
           className="w-auto border-0 bg-transparent hover:bg-white/10 px-2 py-1 h-11 min-w-[44px] focus:ring-0 focus:ring-offset-0 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:opacity-70 gap-1.5"
