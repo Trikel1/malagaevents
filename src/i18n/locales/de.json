@@ -30,7 +30,11 @@
     "remove": "Entfernen",
     "confirm": "Bestätigen",
     "tryAgain": "Bitte erneut versuchen",
-    "loadingDots": "…"
+    "loadingDots": "…",
+    "pause": "Pause",
+    "play": "Fortsetzen",
+    "clearOne": "Entfernen",
+    "clearSearch": "Suche löschen"
   },
   "notFound": {
     "title": "Seite nicht gefunden",
@@ -313,7 +317,70 @@
     "timeTBC": "Uhrzeit folgt",
     "verifiedAt": "Verifiziert",
     "viewOnSource": "Auf der Originalquelle ansehen",
-    "source": "Quelle"
+    "source": "Quelle",
+    "agendaKicker": "Kulturagenda · Málaga",
+    "agendaTitle": "Kulturagenda",
+    "timeRange": "Zeitraum",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "thisWeek": "Diese Woche",
+    "thisWeekend": "Dieses Wochenende",
+    "next30Days": "Nächste 30 Tage",
+    "next30Short": "30 Tage",
+    "searchPlaceholderShort": "Suchen…",
+    "eventCount_one": "{{count}} Veranstaltung",
+    "eventCount_other": "{{count}} Veranstaltungen",
+    "allProvince": "Gesamte Provinz",
+    "searchLocality": "Ort suchen",
+    "locationDefault": "Málaga",
+    "clearLocality": "Ort löschen",
+    "localityShort": "Ort",
+    "localitiesShort": "Orte",
+    "venueKind": {
+      "all": "Alle",
+      "halls": "Konzertsäle",
+      "theaters": "Theater",
+      "outdoors": "Freilichtorte",
+      "hallsTitle": "Konzertsäle",
+      "theatersTitle": "Theater und Auditorien",
+      "outdoorsTitle": "Freilichtorte"
+    },
+    "venuesTitle2": "Veranstaltungsorte",
+    "venuesSearchPlaceholder2": "Ort oder Stadt suchen",
+    "venuesEmptyTitle": "Keine passenden Orte",
+    "venuesEmptyHint2": "Versuche eine andere Suche oder Kategorie.",
+    "venueNoAgendaLong": "Keine Agenda verfügbar",
+    "venueHasAgenda": "Mit Programm",
+    "sectionCapital": "Málaga Stadt",
+    "sectionProvincia": "Provinz Málaga",
+    "showAll": "Alle anzeigen",
+    "showAllHalls": "Alle Säle anzeigen",
+    "showAllTheaters": "Alle Theater anzeigen",
+    "showAllOutdoors": "Freilichtorte anzeigen",
+    "showOneVenue": "1 Ort anzeigen",
+    "showNVenues": "{{count}} Orte anzeigen",
+    "oneVenueSelected": "1 Ort",
+    "nVenuesSelected": "{{count}} Orte ausgewählt",
+    "venuesShort": "Orte",
+    "clearVenues": "Orte zurücksetzen",
+    "upcomingHighlights": "Nächste Highlights",
+    "pauseCarousel": "Karussell pausieren",
+    "resumeCarousel": "Karussell fortsetzen",
+    "pause": "Pause",
+    "play": "Fortsetzen",
+    "noEventsWithFilters": "Keine Veranstaltungen mit diesen Filtern",
+    "noEventsHint": "Versuche ein anderes Datum, Ort oder Veranstaltungsort.",
+    "familyKids": "Familie / Kinder",
+    "withTickets": "Mit Tickets",
+    "outdoor": "Im Freien",
+    "yearsShort": "Jahre",
+    "nearMe": "In meiner Nähe",
+    "sortedByDistance": "Nach Entfernung sortiert",
+    "clearDistanceSort": "Sortierung nach Entfernung deaktiviert",
+    "locationUnsupported": "Dein Browser unterstützt keine Geolokalisierung",
+    "locationPermissionDenied": "Standortzugriff verweigert. Aktiviere ihn in den Browsereinstellungen.",
+    "locationError": "Wir konnten deinen Standort nicht ermitteln",
+    "imagePlaceholder": "Symbolbild"
   },
   "eventDetail": {
     "when": "Wann",
@@ -337,7 +404,17 @@
     "allEvents": "Alle Events",
     "myFavorites": "Meine Favoriten",
     "exportEvent": "Event exportieren",
-    "noEventsDay": "Keine Events an diesem Tag"
+    "noEventsDay": "Keine Events an diesem Tag",
+    "eventCount_one": "{{count}} Veranstaltung",
+    "eventCount_other": "{{count}} Veranstaltungen",
+    "viewMonth": "Monatsansicht",
+    "viewList": "Listenansicht",
+    "selectMonth": "Monat und Jahr auswählen",
+    "prevMonth": "Vorheriger Monat",
+    "nextMonth": "Nächster Monat",
+    "prevYear": "Vorheriges Jahr",
+    "nextYear": "Nächstes Jahr",
+    "months": "Monate"
   },
   "pharmacies": {
     "title": "Notdienst-Apotheken",
@@ -379,7 +456,13 @@
     "locationUnsupported": "Geolokalisierung wird nicht unterstützt",
     "locationError": "Standort konnte nicht abgerufen werden",
     "distanceAway": "entfernt",
-    "fallbackNotice": "Geschätzter Notdienst (offizielle Daten nicht verfügbar)."
+    "fallbackNotice": "Geschätzter Notdienst (offizielle Daten nicht verfügbar).",
+    "officialLabel": "Offiziell",
+    "showingCount": "Zeige {{shown}} von {{total}}",
+    "directoryDisclaimer": "Informative Liste. Der Notdienst-Status wird nur oben mit offiziellen Daten angezeigt.",
+    "noOfficialData": "Keine verifizierten offiziellen Daten zu Bereitschaftsapotheken für dieses Datum und diesen Ort. Bitte offizielle Quelle vor der Anreise prüfen.",
+    "showMore": "Mehr anzeigen",
+    "showMoreAria": "Mehr Apotheken anzeigen ({{remaining}} verbleibend)"
   },
   "tickets": {
     "title": "Meine Tickets",
@@ -447,7 +530,8 @@
     "quietTo": "Bis",
     "savePreferences": "Einstellungen speichern",
     "loginRequired": "Für den Zugriff anmelden",
-    "loginRequiredDesc": "Für diese Funktion benötigen Sie ein Konto"
+    "loginRequiredDesc": "Für diese Funktion benötigen Sie ein Konto",
+    "guestTitle": "Gast"
   },
   "theme": {
     "system": "System",
@@ -504,7 +588,11 @@
     "useMyLocation": "Meinen Standort verwenden",
     "viewEvent": "Event ansehen",
     "viewList": "Liste anzeigen",
-    "viewMap": "Karte anzeigen"
+    "viewMap": "Karte anzeigen",
+    "pointCount_one": "{{count}} Punkt",
+    "pointCount_other": "{{count}} Punkte",
+    "loading": "Punkte werden geladen…",
+    "errorLoading": "Daten konnten nicht geladen werden."
   },
   "sports": {
     "title": "Sport",
@@ -554,7 +642,9 @@
       "today": "Heute keine sportlichen Aktivitäten.",
       "weekend": "Dieses Wochenende keine sportlichen Aktivitäten.",
       "results": "Keine Aktivitäten mit diesen Filtern gefunden.",
-      "venuesSoon": "Wir fügen bald Sportstätten hinzu."
+      "venuesSoon": "Wir fügen bald Sportstätten hinzu.",
+      "expandDates": "Zeitraum erweitern",
+      "seeUpcoming": "Kommende Veranstaltungen ansehen"
     },
     "filter": {
       "free": "Kostenlos",
@@ -570,7 +660,31 @@
     "voleibol": "Volleyball",
     "rugby": "Rugby",
     "acuaticos": "Wassersport",
-    "artes_marciales": "Kampfsport"
+    "artes_marciales": "Kampfsport",
+    "pageTitle": "Sport in Málaga",
+    "pageSubtitle": "Wettkämpfe, Aktivitäten, Trainings und Sportstätten in Málaga und Provinz.",
+    "heroSearchPlaceholder": "Sportart, Team, Wettbewerb oder Ort suchen",
+    "categories": {
+      "football": "Fußball",
+      "basketball": "Basketball",
+      "tennis": "Tennis",
+      "triathlon": "Triathlon",
+      "running": "Laufen",
+      "cycling": "Radsport",
+      "swimming": "Schwimmen",
+      "padel": "Padel",
+      "handball": "Handball",
+      "futsal": "Futsal",
+      "athletics": "Leichtathletik",
+      "motor": "Motorsport",
+      "volleyball": "Volleyball",
+      "rugby": "Rugby",
+      "hiking": "Wandern",
+      "fitness": "Fitness",
+      "water_sports": "Wassersport",
+      "martial_arts": "Kampfsport",
+      "other": "Andere"
+    }
   },
   "seo": {
     "events": {
@@ -640,5 +754,21 @@
     "updatePassword": "Passwort aktualisieren",
     "showPassword": "Passwort anzeigen",
     "hidePassword": "Passwort ausblenden"
+  },
+  "agenda": {
+    "notFoundTitle": "Gemeinde nicht gefunden",
+    "notFoundDesc": "Die angeforderte Gemeinde ist nicht im Provinzregister.",
+    "backToEvents": "Zurück zu Veranstaltungen",
+    "verifiedSources": "Verifizierte Kulturagenda · offizielle Quellen",
+    "inMunicipality": "In {{name}}",
+    "loadingEvents": "Veranstaltungen werden geladen…",
+    "noEventsTitle": "Keine bestätigten Veranstaltungen",
+    "noEventsDesc": "Für {{name}} sind noch keine Kulturveranstaltungen veröffentlicht. Siehe unten in der Nähe.",
+    "nearHeading": "In der Nähe von {{name}}",
+    "searchRadius": "Suchradius",
+    "nearDisclaimer": "Diese Veranstaltungen <strong>finden nicht in {{name}} statt</strong>. Sie werden nach Nähe zum Ortszentrum aufgelistet.",
+    "noNearby": "Keine verifizierten Veranstaltungen im Umkreis von {{radius}} km.",
+    "seoTitle": "Kulturagenda {{name}} | MalagaEvents",
+    "seoDescription": "Entdecke bestätigte Kulturveranstaltungen in {{name}} ({{comarca}}) und Umgebung."
   }
 }

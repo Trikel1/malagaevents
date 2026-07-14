@@ -30,7 +30,11 @@
     "remove": "削除",
     "confirm": "確認",
     "tryAgain": "もう一度お試しください",
-    "loadingDots": "…"
+    "loadingDots": "…",
+    "pause": "一時停止",
+    "play": "再開",
+    "clearOne": "削除",
+    "clearSearch": "検索をクリア"
   },
   "notFound": {
     "title": "ページが見つかりません",
@@ -313,7 +317,70 @@
     "timeTBC": "時間未定",
     "verifiedAt": "確認済み",
     "viewOnSource": "元のソースで見る",
-    "source": "ソース"
+    "source": "ソース",
+    "agendaKicker": "文化アジェンダ · マラガ",
+    "agendaTitle": "文化アジェンダ",
+    "timeRange": "期間",
+    "today": "今日",
+    "tomorrow": "明日",
+    "thisWeek": "今週",
+    "thisWeekend": "今週末",
+    "next30Days": "今後30日間",
+    "next30Short": "30日間",
+    "searchPlaceholderShort": "検索…",
+    "eventCount_one": "{{count}} 件のイベント",
+    "eventCount_other": "{{count}} 件のイベント",
+    "allProvince": "県全体",
+    "searchLocality": "地域を検索",
+    "locationDefault": "マラガ",
+    "clearLocality": "地域をクリア",
+    "localityShort": "地域",
+    "localitiesShort": "地域",
+    "venueKind": {
+      "all": "すべて",
+      "halls": "ホール",
+      "theaters": "劇場",
+      "outdoors": "屋外会場",
+      "hallsTitle": "ホール",
+      "theatersTitle": "劇場・ホール",
+      "outdoorsTitle": "屋外会場"
+    },
+    "venuesTitle2": "会場",
+    "venuesSearchPlaceholder2": "会場や都市を検索",
+    "venuesEmptyTitle": "一致する会場がありません",
+    "venuesEmptyHint2": "別の検索やカテゴリを試してください。",
+    "venueNoAgendaLong": "アジェンダなし",
+    "venueHasAgenda": "アジェンダあり",
+    "sectionCapital": "マラガ市",
+    "sectionProvincia": "マラガ県",
+    "showAll": "すべて表示",
+    "showAllHalls": "すべてのホールを表示",
+    "showAllTheaters": "すべての劇場を表示",
+    "showAllOutdoors": "屋外会場を表示",
+    "showOneVenue": "1件の会場を表示",
+    "showNVenues": "{{count}}件の会場を表示",
+    "oneVenueSelected": "1件の会場",
+    "nVenuesSelected": "{{count}}件の会場を選択",
+    "venuesShort": "会場",
+    "clearVenues": "会場をクリア",
+    "upcomingHighlights": "今後のハイライト",
+    "pauseCarousel": "カルーセルを一時停止",
+    "resumeCarousel": "カルーセルを再開",
+    "pause": "一時停止",
+    "play": "再開",
+    "noEventsWithFilters": "条件に一致するイベントはありません",
+    "noEventsHint": "別の日付、地域、または会場をお試しください。",
+    "familyKids": "子ども・家族向け",
+    "withTickets": "チケット販売あり",
+    "outdoor": "屋外",
+    "yearsShort": "歳",
+    "nearMe": "現在地の近く",
+    "sortedByDistance": "距離順に表示",
+    "clearDistanceSort": "距離順の並び替えをオフ",
+    "locationUnsupported": "このブラウザは位置情報に対応していません",
+    "locationPermissionDenied": "位置情報の許可が拒否されました。ブラウザの設定から有効にしてください。",
+    "locationError": "現在地を取得できませんでした",
+    "imagePlaceholder": "イメージ画像"
   },
   "eventDetail": {
     "when": "いつ",
@@ -337,7 +404,17 @@
     "allEvents": "すべてのイベント",
     "myFavorites": "お気に入りイベント",
     "exportEvent": "イベントをエクスポート",
-    "noEventsDay": "この日はイベントがありません"
+    "noEventsDay": "この日はイベントがありません",
+    "eventCount_one": "{{count}} 件",
+    "eventCount_other": "{{count}} 件",
+    "viewMonth": "月表示",
+    "viewList": "リスト表示",
+    "selectMonth": "月と年を選択",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "prevYear": "前の年",
+    "nextYear": "次の年",
+    "months": "月"
   },
   "pharmacies": {
     "title": "当番薬局",
@@ -379,7 +456,13 @@
     "locationUnsupported": "位置情報がサポートされていません",
     "locationError": "位置情報を取得できませんでした",
     "distanceAway": "先",
-    "fallbackNotice": "推定の当番薬局(公式データなし)"
+    "fallbackNotice": "推定の当番薬局(公式データなし)",
+    "officialLabel": "公式",
+    "showingCount": "{{total}} 件中 {{shown}} 件を表示",
+    "directoryDisclaimer": "情報リスト。当番状況は公式データのある上部セクションでのみ表示されます。",
+    "noOfficialData": "この日付・地域について当番薬局の公式データはありません。移動前に公式情報をご確認ください。",
+    "showMore": "もっと見る",
+    "showMoreAria": "さらに薬局を表示（残り {{remaining}} 件）"
   },
   "tickets": {
     "title": "マイチケット",
@@ -447,7 +530,8 @@
     "quietTo": "まで",
     "savePreferences": "設定を保存",
     "loginRequired": "アクセスするにはログインしてください",
-    "loginRequiredDesc": "この機能を使用するにはアカウントが必要です"
+    "loginRequiredDesc": "この機能を使用するにはアカウントが必要です",
+    "guestTitle": "ゲスト"
   },
   "theme": {
     "system": "システム",
@@ -504,7 +588,11 @@
     "useMyLocation": "現在地を使用",
     "viewEvent": "イベントを見る",
     "viewList": "リスト表示",
-    "viewMap": "マップ表示"
+    "viewMap": "マップ表示",
+    "pointCount_one": "{{count}} 件",
+    "pointCount_other": "{{count}} 件",
+    "loading": "ポイントを読み込み中…",
+    "errorLoading": "データを読み込めませんでした。"
   },
   "sports": {
     "title": "スポーツ",
@@ -554,7 +642,9 @@
       "today": "本日はスポーツ活動がありません。",
       "weekend": "今週末はスポーツ活動がありません。",
       "results": "これらのフィルターに一致する活動は見つかりませんでした。",
-      "venuesSoon": "スポーツ会場を登録中です。"
+      "venuesSoon": "スポーツ会場を登録中です。",
+      "expandDates": "期間を広げる",
+      "seeUpcoming": "今後のイベントを見る"
     },
     "filter": {
       "free": "無料",
@@ -570,7 +660,31 @@
     "voleibol": "バレーボール",
     "rugby": "ラグビー",
     "acuaticos": "ウォータースポーツ",
-    "artes_marciales": "格闘技"
+    "artes_marciales": "格闘技",
+    "pageTitle": "マラガのスポーツ",
+    "pageSubtitle": "マラガとその近郊の大会・アクティビティ・トレーニング・競技場情報。",
+    "heroSearchPlaceholder": "スポーツ、チーム、大会、会場を検索",
+    "categories": {
+      "football": "サッカー",
+      "basketball": "バスケットボール",
+      "tennis": "テニス",
+      "triathlon": "トライアスロン",
+      "running": "ランニング",
+      "cycling": "サイクリング",
+      "swimming": "水泳",
+      "padel": "パデル",
+      "handball": "ハンドボール",
+      "futsal": "フットサル",
+      "athletics": "陸上競技",
+      "motor": "モータースポーツ",
+      "volleyball": "バレーボール",
+      "rugby": "ラグビー",
+      "hiking": "ハイキング",
+      "fitness": "フィットネス",
+      "water_sports": "ウォータースポーツ",
+      "martial_arts": "武術",
+      "other": "その他"
+    }
   },
   "seo": {
     "events": {
@@ -640,5 +754,21 @@
     "updatePassword": "パスワードを更新",
     "showPassword": "パスワードを表示",
     "hidePassword": "パスワードを非表示"
+  },
+  "agenda": {
+    "notFoundTitle": "自治体が見つかりません",
+    "notFoundDesc": "該当する自治体は県の登録にありません。",
+    "backToEvents": "イベントに戻る",
+    "verifiedSources": "認証済み文化アジェンダ · 公式情報源",
+    "inMunicipality": "{{name}}",
+    "loadingEvents": "イベントを読み込み中…",
+    "noEventsTitle": "確定したイベントはありません",
+    "noEventsDesc": "{{name}} には現時点で公開されている文化イベントがありません。以下の近隣情報をご覧ください。",
+    "nearHeading": "{{name}} 周辺",
+    "searchRadius": "検索半径",
+    "nearDisclaimer": "これらのイベントは <strong>{{name}} では開催されません</strong>。市の中心地からの距離順に表示されます。",
+    "noNearby": "{{radius}} km 圏内に確認済みのイベントはありません。",
+    "seoTitle": "{{name}} の文化アジェンダ | MalagaEvents",
+    "seoDescription": "{{name}}（{{comarca}}）とその周辺で確定した文化イベントを発見。"
   }
 }

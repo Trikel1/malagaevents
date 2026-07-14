@@ -30,7 +30,11 @@
     "remove": "Rimuovi",
     "confirm": "Conferma",
     "tryAgain": "Riprova",
-    "loadingDots": "…"
+    "loadingDots": "…",
+    "pause": "Pausa",
+    "play": "Riprendi",
+    "clearOne": "Rimuovi",
+    "clearSearch": "Cancella ricerca"
   },
   "notFound": {
     "title": "Pagina non trovata",
@@ -313,7 +317,70 @@
     "timeTBC": "Orario da confermare",
     "verifiedAt": "Verificato",
     "viewOnSource": "Vedi sulla fonte originale",
-    "source": "Fonte"
+    "source": "Fonte",
+    "agendaKicker": "Agenda culturale · Málaga",
+    "agendaTitle": "Agenda culturale",
+    "timeRange": "Intervallo temporale",
+    "today": "Oggi",
+    "tomorrow": "Domani",
+    "thisWeek": "Questa settimana",
+    "thisWeekend": "Questo weekend",
+    "next30Days": "Prossimi 30 giorni",
+    "next30Short": "30 giorni",
+    "searchPlaceholderShort": "Cerca…",
+    "eventCount_one": "{{count}} evento",
+    "eventCount_other": "{{count}} eventi",
+    "allProvince": "Tutta la provincia",
+    "searchLocality": "Cerca località",
+    "locationDefault": "Málaga",
+    "clearLocality": "Cancella località",
+    "localityShort": "Località",
+    "localitiesShort": "località",
+    "venueKind": {
+      "all": "Tutto",
+      "halls": "Sale",
+      "theaters": "Teatri",
+      "outdoors": "Spazi esterni",
+      "hallsTitle": "Sale",
+      "theatersTitle": "Teatri e auditorium",
+      "outdoorsTitle": "Spazi esterni"
+    },
+    "venuesTitle2": "Sedi",
+    "venuesSearchPlaceholder2": "Cerca sede o città",
+    "venuesEmptyTitle": "Nessuna sede corrispondente",
+    "venuesEmptyHint2": "Prova un'altra ricerca o categoria.",
+    "venueNoAgendaLong": "Nessuna programmazione",
+    "venueHasAgenda": "Con programma",
+    "sectionCapital": "Málaga città",
+    "sectionProvincia": "Provincia di Málaga",
+    "showAll": "Mostra tutto",
+    "showAllHalls": "Mostra tutte le sale",
+    "showAllTheaters": "Mostra tutti i teatri",
+    "showAllOutdoors": "Mostra spazi esterni",
+    "showOneVenue": "Mostra 1 sede",
+    "showNVenues": "Mostra {{count}} sedi",
+    "oneVenueSelected": "1 sede",
+    "nVenuesSelected": "{{count}} sedi selezionate",
+    "venuesShort": "sedi",
+    "clearVenues": "Cancella sedi",
+    "upcomingHighlights": "In evidenza",
+    "pauseCarousel": "Metti in pausa il carosello",
+    "resumeCarousel": "Riprendi il carosello",
+    "pause": "Pausa",
+    "play": "Riprendi",
+    "noEventsWithFilters": "Nessun evento con questi filtri",
+    "noEventsHint": "Prova un'altra data, località o sede.",
+    "familyKids": "Famiglia / Bambini",
+    "withTickets": "Con biglietti",
+    "outdoor": "All'aperto",
+    "yearsShort": "anni",
+    "nearMe": "Vicino a me",
+    "sortedByDistance": "Ordinato per vicinanza",
+    "clearDistanceSort": "Ordinamento per distanza disattivato",
+    "locationUnsupported": "Il tuo browser non supporta la geolocalizzazione",
+    "locationPermissionDenied": "Autorizzazione alla posizione negata. Abilitala nelle impostazioni del browser.",
+    "locationError": "Impossibile ottenere la tua posizione",
+    "imagePlaceholder": "Immagine illustrativa"
   },
   "eventDetail": {
     "when": "Quando",
@@ -337,7 +404,17 @@
     "allEvents": "Tutti gli eventi",
     "myFavorites": "I miei preferiti",
     "exportEvent": "Esporta evento",
-    "noEventsDay": "Nessun evento in questo giorno"
+    "noEventsDay": "Nessun evento in questo giorno",
+    "eventCount_one": "{{count}} evento",
+    "eventCount_other": "{{count}} eventi",
+    "viewMonth": "Vista mese",
+    "viewList": "Vista elenco",
+    "selectMonth": "Seleziona mese e anno",
+    "prevMonth": "Mese precedente",
+    "nextMonth": "Mese successivo",
+    "prevYear": "Anno precedente",
+    "nextYear": "Anno successivo",
+    "months": "Mesi"
   },
   "pharmacies": {
     "title": "Farmacie di turno",
@@ -379,7 +456,13 @@
     "locationUnsupported": "Geolocalizzazione non supportata",
     "locationError": "Impossibile ottenere la posizione",
     "distanceAway": "di distanza",
-    "fallbackNotice": "Turno stimato (dati ufficiali non disponibili)."
+    "fallbackNotice": "Turno stimato (dati ufficiali non disponibili).",
+    "officialLabel": "Ufficiale",
+    "showingCount": "Mostrati {{shown}} di {{total}}",
+    "directoryDisclaimer": "Elenco informativo. Lo stato di turno è mostrato solo nella sezione superiore con dati ufficiali.",
+    "noOfficialData": "Nessun dato ufficiale verificato sulle farmacie di turno per questa data e località. Verifica la fonte ufficiale prima di recarti.",
+    "showMore": "Mostra altro",
+    "showMoreAria": "Mostra più farmacie ({{remaining}} rimaste)"
   },
   "tickets": {
     "title": "I miei biglietti",
@@ -447,7 +530,8 @@
     "quietTo": "A",
     "savePreferences": "Salva preferenze",
     "loginRequired": "Accedi per continuare",
-    "loginRequiredDesc": "È necessario un account per usare questa funzione"
+    "loginRequiredDesc": "È necessario un account per usare questa funzione",
+    "guestTitle": "Ospite"
   },
   "theme": {
     "system": "Sistema",
@@ -504,7 +588,11 @@
     "useMyLocation": "Usa la mia posizione",
     "viewEvent": "Vedi evento",
     "viewList": "Vedi elenco",
-    "viewMap": "Vedi mappa"
+    "viewMap": "Vedi mappa",
+    "pointCount_one": "{{count}} punto",
+    "pointCount_other": "{{count}} punti",
+    "loading": "Caricamento punti…",
+    "errorLoading": "Impossibile caricare i dati."
   },
   "sports": {
     "title": "Sport",
@@ -554,7 +642,9 @@
       "today": "Nessuna attività sportiva oggi.",
       "weekend": "Nessuna attività sportiva questo weekend.",
       "results": "Nessuna attività trovata con questi filtri.",
-      "venuesSoon": "Stiamo aggiungendo impianti sportivi."
+      "venuesSoon": "Stiamo aggiungendo impianti sportivi.",
+      "expandDates": "Amplia le date",
+      "seeUpcoming": "Vedi i prossimi eventi"
     },
     "filter": {
       "free": "Gratis",
@@ -570,7 +660,31 @@
     "voleibol": "Pallavolo",
     "rugby": "Rugby",
     "acuaticos": "Sport acquatici",
-    "artes_marciales": "Arti marziali"
+    "artes_marciales": "Arti marziali",
+    "pageTitle": "Sport a Málaga",
+    "pageSubtitle": "Competizioni, attività, allenamenti e impianti sportivi a Málaga e provincia.",
+    "heroSearchPlaceholder": "Cerca sport, squadra, competizione o sede",
+    "categories": {
+      "football": "Calcio",
+      "basketball": "Pallacanestro",
+      "tennis": "Tennis",
+      "triathlon": "Triathlon",
+      "running": "Corsa",
+      "cycling": "Ciclismo",
+      "swimming": "Nuoto",
+      "padel": "Padel",
+      "handball": "Pallamano",
+      "futsal": "Calcio a 5",
+      "athletics": "Atletica",
+      "motor": "Motorsport",
+      "volleyball": "Pallavolo",
+      "rugby": "Rugby",
+      "hiking": "Escursionismo",
+      "fitness": "Fitness",
+      "water_sports": "Sport acquatici",
+      "martial_arts": "Arti marziali",
+      "other": "Altro"
+    }
   },
   "seo": {
     "events": {
@@ -640,5 +754,21 @@
     "updatePassword": "Aggiorna password",
     "showPassword": "Mostra password",
     "hidePassword": "Nascondi password"
+  },
+  "agenda": {
+    "notFoundTitle": "Comune non trovato",
+    "notFoundDesc": "Il comune richiesto non è nel registro provinciale.",
+    "backToEvents": "Torna agli eventi",
+    "verifiedSources": "Agenda culturale verificata · fonti ufficiali",
+    "inMunicipality": "A {{name}}",
+    "loadingEvents": "Caricamento eventi…",
+    "noEventsTitle": "Nessun evento confermato",
+    "noEventsDesc": "Nessun evento culturale pubblicato a {{name}}. Vedi le opzioni vicine sotto.",
+    "nearHeading": "Vicino a {{name}}",
+    "searchRadius": "Raggio di ricerca",
+    "nearDisclaimer": "Questi eventi <strong>non si svolgono a {{name}}</strong>. Sono elencati per vicinanza al centro del comune.",
+    "noNearby": "Nessun evento verificato entro un raggio di {{radius}} km.",
+    "seoTitle": "Agenda culturale di {{name}} | MalagaEvents",
+    "seoDescription": "Scopri gli eventi culturali confermati a {{name}} ({{comarca}}) e dintorni."
   }
 }
