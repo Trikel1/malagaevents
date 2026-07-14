@@ -44,6 +44,7 @@ const BottomNav = () => {
   const pointerIdRef = useRef<number | null>(null);
   const dragStartedRef = useRef(false);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
+  const handledByPointerRef = useRef(false);
 
   const measure = useCallback(() => {
     const track = trackRef.current;
@@ -112,6 +113,7 @@ const BottomNav = () => {
   const endPointer = (e: React.PointerEvent<HTMLButtonElement>, tapIndex: number) => {
     if (pointerIdRef.current !== e.pointerId) return;
     pointerIdRef.current = null;
+    handledByPointerRef.current = true;
     const wasDrag = dragStartedRef.current;
     dragStartedRef.current = false;
     startPointRef.current = null;
@@ -169,6 +171,19 @@ const BottomNav = () => {
               onPointerMove={onPointerMove}
               onPointerUp={(e) => endPointer(e, i)}
               onPointerCancel={(e) => endPointer(e, i)}
+              onClick={() => {
+                // Handles keyboard activation (Enter/Space) and clicks not
+                // preceded by a pointer sequence. Pointer taps already
+                // navigated in endPointer, so guard against double nav.
+                if (handledByPointerRef.current) {
+                  handledByPointerRef.current = false;
+                  return;
+                }
+                const target = navItems[i];
+                if (target && target.to !== location.pathname) {
+                  navigate(target.to);
+                }
+              }}
               className={cn(
                 'bottom-nav-item',
                 isActive ? 'bottom-nav-item-active' : 'bottom-nav-item-idle'
