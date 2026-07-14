@@ -422,17 +422,22 @@ const PharmaciesPage = () => {
           <Button
             type="button"
             variant={userLoc ? 'default' : 'outline'}
-            className="rounded-full h-9 px-4 text-sm"
+            className="rounded-full min-h-11 px-4 text-sm"
             onClick={handleLocate}
             disabled={locating}
+            aria-pressed={!!userLoc}
+            aria-label={userLoc
+              ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
+              : t('pharmacies.nearMe', 'Cerca de mí')}
           >
-            <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} />
+            <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} aria-hidden />
             {locating
               ? t('pharmacies.locating', 'Localizando…')
               : userLoc
               ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
               : t('pharmacies.nearMe', 'Cerca de mí')}
           </Button>
+
           {userLoc && (
             <span className="text-[11px] text-muted-foreground">
               {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
