@@ -142,14 +142,19 @@ export type Database = {
         Row: {
           adapter_key: string
           base_url: string
+          canonical_source_id: string | null
           category_hints: string[]
           consecutive_errors: number
           created_at: string
           enabled: boolean
           id: string
           kind: string
+          last_dry_run_at: string | null
+          last_dry_run_result: Json | null
+          last_dry_run_status: string | null
           last_error_at: string | null
           last_success_at: string | null
+          legacy_refs: Json
           legacy_source_id: string | null
           licence: string | null
           locality_slug: string
@@ -159,6 +164,8 @@ export type Database = {
           paused_reason: string | null
           polling_interval: string | null
           priority: number
+          priority_tier: string | null
+          protected_source: boolean
           robots_ok: boolean
           schedule_cron: string | null
           scope: string | null
@@ -173,14 +180,19 @@ export type Database = {
         Insert: {
           adapter_key: string
           base_url: string
+          canonical_source_id?: string | null
           category_hints?: string[]
           consecutive_errors?: number
           created_at?: string
           enabled?: boolean
           id?: string
           kind: string
+          last_dry_run_at?: string | null
+          last_dry_run_result?: Json | null
+          last_dry_run_status?: string | null
           last_error_at?: string | null
           last_success_at?: string | null
+          legacy_refs?: Json
           legacy_source_id?: string | null
           licence?: string | null
           locality_slug?: string
@@ -190,6 +202,8 @@ export type Database = {
           paused_reason?: string | null
           polling_interval?: string | null
           priority?: number
+          priority_tier?: string | null
+          protected_source?: boolean
           robots_ok?: boolean
           schedule_cron?: string | null
           scope?: string | null
@@ -204,14 +218,19 @@ export type Database = {
         Update: {
           adapter_key?: string
           base_url?: string
+          canonical_source_id?: string | null
           category_hints?: string[]
           consecutive_errors?: number
           created_at?: string
           enabled?: boolean
           id?: string
           kind?: string
+          last_dry_run_at?: string | null
+          last_dry_run_result?: Json | null
+          last_dry_run_status?: string | null
           last_error_at?: string | null
           last_success_at?: string | null
+          legacy_refs?: Json
           legacy_source_id?: string | null
           licence?: string | null
           locality_slug?: string
@@ -221,6 +240,8 @@ export type Database = {
           paused_reason?: string | null
           polling_interval?: string | null
           priority?: number
+          priority_tier?: string | null
+          protected_source?: boolean
           robots_ok?: boolean
           schedule_cron?: string | null
           scope?: string | null
@@ -233,6 +254,13 @@ export type Database = {
           write_confirmed_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "event_sources_canonical_source_id_fkey"
+            columns: ["canonical_source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "event_sources_municipality_id_fkey"
             columns: ["municipality_id"]
