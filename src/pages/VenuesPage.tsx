@@ -113,7 +113,7 @@ const VenuesPage = () => {
                 )}
               >
                 <SportIcon sport={cat} className={cn('h-3.5 w-3.5', active ? 'text-primary' : 'text-muted-foreground')} />
-                {t(`sports.${cat}`)}
+                {t(`sports.${cat}`, cat)}
               </button>
             );
           })}
