@@ -362,7 +362,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             ))}
           </div>
         ) : (
-          renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'))
+          renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'), { showActions: true })
         )}
       </section>
 
