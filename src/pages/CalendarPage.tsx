@@ -40,9 +40,8 @@ import SportEventCard from '@/components/sports/SportEventCard';
 
 const TIMEZONE = 'Europe/Madrid';
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
-};
+
+
 
 // Month names for the selector
 const MONTHS = [
