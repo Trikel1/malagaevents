@@ -54,7 +54,7 @@ const Index = () => {
   const goLocality = (name: string) => navigate(`/events?q=${encodeURIComponent(name)}`);
 
   return (
-    <div className="min-h-screen">
+    <main className="min-h-dvh">
       <SEO title={t('home.seo.title')} description={t('home.seo.description')} path="/" />
 
       {/* Hero — full width, contenedor centrado dentro */}
