@@ -180,7 +180,7 @@ const Index = () => {
                           <button
                             key={loc.name}
                             onClick={() => goLocality(loc.name)}
-                            className="px-3.5 min-h-[36px] rounded-full border border-border bg-muted/40 text-sm font-medium hover:bg-secondary/10 hover:border-secondary/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            className="px-4 min-h-[44px] rounded-full border border-border bg-muted/40 text-sm font-medium hover:bg-secondary/10 hover:border-secondary/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             {loc.name}
                           </button>
