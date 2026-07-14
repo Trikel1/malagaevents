@@ -264,39 +264,54 @@ const SubmitEventPage = () => {
               <CardTitle className="text-lg">Información básica</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="title">{t('submitEvent.eventTitle')} *</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
+                  onBlur={() => setFieldErrors((f) => ({ ...f, title: validate().title || '' }))}
+                  aria-invalid={!!fieldErrors.title}
+                  aria-describedby={fieldErrors.title ? 'title-error' : 'title-help'}
                   minLength={3}
                   maxLength={200}
+                  className="min-h-11"
                 />
+                {fieldErrors.title
+                  ? <p id="title-error" role="alert" className="text-xs text-destructive">{fieldErrors.title}</p>
+                  : <p id="title-help" className="text-xs text-muted-foreground">{t('submitEvent.help.title', 'Nombre público del evento (3–200 caracteres).')}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="description">{t('submitEvent.eventDescription')} *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onBlur={() => setFieldErrors((f) => ({ ...f, description: validate().description || '' }))}
+                  aria-invalid={!!fieldErrors.description}
+                  aria-describedby={fieldErrors.description ? 'description-error' : 'description-help'}
                   rows={4}
-                  required
                   minLength={10}
                   maxLength={2000}
                 />
+                {fieldErrors.description
+                  ? <p id="description-error" role="alert" className="text-xs text-destructive">{fieldErrors.description}</p>
+                  : <p id="description-help" className="text-xs text-muted-foreground">{t('submitEvent.help.description', 'Explica qué se hará, quién actúa y por qué asistir.')}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label>{t('submitEvent.eventCategory')} *</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="category-trigger">{t('submitEvent.eventCategory')} *</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
-                  required
                 >
-                  <SelectTrigger>
+                  <SelectTrigger
+                    id="category-trigger"
+                    aria-invalid={!!fieldErrors.category}
+                    aria-describedby={fieldErrors.category ? 'category-error' : undefined}
+                    className="min-h-11"
+                  >
                     <SelectValue placeholder={t('events.category')} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover z-50">
@@ -307,9 +322,13 @@ const SubmitEventPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {fieldErrors.category && (
+                  <p id="category-error" role="alert" className="text-xs text-destructive">{fieldErrors.category}</p>
+                )}
               </div>
             </CardContent>
           </Card>
+
 
           {/* Date & Location */}
           <Card>
