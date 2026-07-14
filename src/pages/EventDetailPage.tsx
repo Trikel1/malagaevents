@@ -21,9 +21,6 @@ import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import SEO from '@/components/common/SEO';
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
-};
 
 const EventDetailPage = () => {
   const { id } = useParams();
