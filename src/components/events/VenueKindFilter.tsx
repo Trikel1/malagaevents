@@ -607,9 +607,10 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       type="button"
       onClick={onClick}
       aria-label={label}
+      title={label}
       aria-pressed={active}
       className={cn(
-        'group relative flex items-center justify-center gap-2 h-12 sm:h-11 px-2 sm:px-3',
+        'group relative flex items-center justify-center h-14 w-full',
         'rounded-2xl border transition-all duration-150',
         'bg-gradient-to-b from-background/90 to-background/60 backdrop-blur-md',
         'border-border/70 hover:border-primary/50 hover:shadow-sm',
@@ -620,17 +621,14 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
     >
       <span
         className={cn(
-          'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
-          'bg-gradient-to-br from-primary/10 to-primary/5',
+          'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
+          'bg-gradient-to-br from-primary/15 to-primary/5',
           'text-primary transition-colors',
-          'group-hover:from-primary/20 group-hover:to-primary/10',
-          active && 'from-primary/25 to-primary/10',
+          'group-hover:from-primary/25 group-hover:to-primary/10',
+          active && 'from-primary/30 to-primary/15',
         )}
       >
-        <Icon size={20} />
-      </span>
-      <span className="text-sm font-semibold tracking-tight truncate">
-        {label}
+        <Icon size={28} />
       </span>
     </button>
   );
