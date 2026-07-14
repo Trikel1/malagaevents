@@ -38,7 +38,7 @@ interface VenueKindFilterProps {
 
 const KIND_TO_KINDS: Record<Kind, VenueKind[] | 'all'> = {
   all: 'all',
-  salas: ['sala', 'espacio'],
+  salas: ['sala', 'live_music_bar', 'espacio'],
   teatros: ['teatro', 'auditorio'],
   recintos: ['exterior', 'ferial'],
 };

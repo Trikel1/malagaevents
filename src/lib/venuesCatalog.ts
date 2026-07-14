@@ -16,6 +16,7 @@ export type VenueZone =
 export type VenueKind =
   | 'teatro'
   | 'sala'
+  | 'live_music_bar'
   | 'auditorio'
   | 'museo'
   | 'espacio'
@@ -52,6 +53,7 @@ export const VENUE_ZONES: Array<{ id: VenueZone; label: string }> = [
 export const VENUE_KIND_LABELS: Record<VenueKind, string> = {
   teatro: 'Teatros',
   sala: 'Salas',
+  live_music_bar: 'Bares con música en directo',
   auditorio: 'Auditorios',
   museo: 'Museos',
   espacio: 'Centros culturales',
@@ -78,7 +80,7 @@ export const VENUES_CATALOG: CatalogVenue[] = [
   // ═══════ Málaga capital — Auditorios ═══════
   M({ slug: 'auditorio-edgar-neville', name: 'Auditorio Edgar Neville', kind: 'auditorio', searchAliases: ['edgar neville', 'neville'] }),
   M({ slug: 'auditorio-eduardo-ocon', name: 'Auditorio Eduardo Ocón', kind: 'auditorio', searchAliases: ['eduardo ocon', 'ocon'] }),
-  M({ slug: 'auditorio-cortijo-torres', name: 'Auditorio Municipal Cortijo de Torres', kind: 'auditorio', searchAliases: ['cortijo de torres'] }),
+  
 
   // ═══════ Málaga capital — Salas de conciertos y cine ═══════
   M({ slug: 'la-caja-blanca', name: 'La Caja Blanca', kind: 'espacio', searchAliases: ['caja blanca'] }),
@@ -86,22 +88,25 @@ export const VENUES_CATALOG: CatalogVenue[] = [
   M({ slug: 'ateneo-malaga', name: 'Ateneo de Málaga', kind: 'espacio', searchAliases: ['ateneo'] }),
   M({ slug: 'centro-cultural-provincial', name: 'Centro Cultural Provincial MVA', kind: 'espacio', searchAliases: ['mva', 'maria victoria atencia'] }),
   M({ slug: 'cine-albeniz', name: 'Cine Albéniz', kind: 'sala', searchAliases: ['albeniz', 'cine albeniz'] }),
-  M({ slug: 'sala-paris-15', name: 'Sala París 15', kind: 'sala', searchAliases: ['paris 15', 'paris15'] }),
+  M({ slug: 'sala-paris-15', name: 'Sala París 15', kind: 'sala', searchAliases: ['paris 15', 'paris15', 'paris', 'sala paris'] }),
   M({ slug: 'sala-trinchera', name: 'Sala Trinchera', kind: 'sala', searchAliases: ['trinchera'] }),
-  M({ slug: 'la-cochera-cabaret', name: 'La Cochera Cabaret', kind: 'sala', searchAliases: ['cochera', 'cochera cabaret'] }),
+  M({ slug: 'sala-marte', name: 'Sala Marte', kind: 'sala', searchAliases: ['marte', 'sala marte malaga', 'marte malaga'] }),
+  M({ slug: 'sala-core', name: 'Sala Core', kind: 'sala', searchAliases: ['core', 'core disco', 'core malaga', 'velvet', 'velvet club', 'sala velvet', 'velvet malaga'] }),
+  M({ slug: 'la-cochera-cabaret', name: 'La Cochera Cabaret', kind: 'espacio', extraKinds: ['sala'], searchAliases: ['cochera', 'cochera cabaret'] }),
   M({ slug: 'contenedor-cultural-uma', name: 'Contenedor Cultural UMA', kind: 'espacio', searchAliases: ['contenedor', 'uma'] }),
+  M({ slug: 'fabrica-cervezas-victoria', name: 'Fábrica de Cervezas Victoria', kind: 'espacio', extraKinds: ['sala'], searchAliases: ['fabrica victoria', 'cervezas victoria', 'fabrica de cerveza victoria', 'fabrica de cervezas victoria'] }),
   M({ slug: 'sala-gades', name: 'Sala Gades', kind: 'sala', status: 'candidate', searchAliases: ['gades'] }),
   M({ slug: 'sala-falla', name: 'Sala Falla', kind: 'sala', status: 'candidate', searchAliases: ['falla'] }),
-  M({ slug: 'velvet-club', name: 'Velvet Club', kind: 'sala', status: 'candidate', searchAliases: ['velvet'] }),
-  M({ slug: 'sala-marte', name: 'Sala Marte', kind: 'sala', status: 'candidate', searchAliases: ['marte'] }),
-  M({ slug: 'sala-vivero', name: 'Sala Vivero', kind: 'sala', status: 'candidate', searchAliases: ['vivero'] }),
-  M({ slug: 'la-fabrica-de-cerveza', name: 'La Fábrica de Cerveza', kind: 'sala', status: 'candidate', searchAliases: ['fabrica de cerveza'] }),
   M({ slug: 'la-garrapata', name: 'La Garrapata', kind: 'sala', status: 'candidate', searchAliases: ['garrapata'] }),
-  M({ slug: 'zz-pub', name: 'ZZ Pub', kind: 'sala', status: 'candidate', searchAliases: ['zz'] }),
   M({ slug: 'the-hall-malaga', name: 'The Hall Málaga', kind: 'sala', status: 'candidate', searchAliases: ['the hall'] }),
-  M({ slug: 'clarence-jazz-club', name: 'Clarence Jazz Club', kind: 'sala', status: 'candidate', searchAliases: ['clarence', 'jazz'] }),
+  M({ slug: 'clarence-jazz-club', name: 'Clarence Jazz Club', kind: 'live_music_bar', extraKinds: ['sala'], status: 'candidate', searchAliases: ['clarence', 'jazz'] }),
   M({ slug: 'kelipe-flamenco', name: 'Kelipe Centro de Arte Flamenco', kind: 'sala', status: 'candidate', searchAliases: ['kelipe', 'flamenco'] }),
   M({ slug: 'fundacion-unicaja-maria-cristina', name: 'Fundación Unicaja María Cristina', kind: 'espacio', status: 'candidate', searchAliases: ['maria cristina', 'unicaja'] }),
+
+  // ═══════ Málaga capital — Bares con música en directo ═══════
+  M({ slug: 'zz-pub', name: 'ZZ Pub', kind: 'live_music_bar', extraKinds: ['sala'], searchAliases: ['zz', 'zzpub', 'zz-pub'] }),
+  M({ slug: 'road-house-malaga', name: 'Road House Málaga', kind: 'live_music_bar', extraKinds: ['sala'], searchAliases: ['road house', 'roadhouse', 'road house mlg', 'roadhouse mlg', 'road house malaga', 'roadhouse malaga'] }),
+
 
   // ═══════ Málaga capital — Museos ═══════
   M({ slug: 'museo-picasso-malaga', name: 'Museo Picasso Málaga', kind: 'museo', searchAliases: ['picasso'] }),
@@ -125,9 +130,11 @@ export const VENUES_CATALOG: CatalogVenue[] = [
   M({ slug: 'playa-malagueta', name: 'Playa de La Malagueta', kind: 'exterior', status: 'seasonal' }),
   M({ slug: 'parque-de-malaga', name: 'Parque de Málaga', kind: 'exterior', status: 'candidate', searchAliases: ['parque'] }),
 
-  // ═══════ Málaga capital — Feriales y congresos ═══════
-  M({ slug: 'fycma', name: 'FYCMA — Palacio de Ferias y Congresos', kind: 'ferial', searchAliases: ['fycma', 'palacio ferias'] }),
-  M({ slug: 'malaga-forum', name: 'Málaga Forum', kind: 'espacio', searchAliases: ['forum'] }),
+  // ═══════ Málaga capital — Grandes recintos, feriales y congresos ═══════
+  M({ slug: 'fycma', name: 'FYCMA – Palacio de Ferias y Congresos de Málaga', kind: 'ferial', searchAliases: ['fycma', 'palacio ferias', 'palacio congresos', 'palacio de ferias', 'palacio de congresos'] }),
+  M({ slug: 'malaga-forum', name: 'Málaga Forum', kind: 'ferial', extraKinds: ['espacio'], searchAliases: ['forum', 'forum malaga', 'malaga forum arena'] }),
+  M({ slug: 'palacio-deportes-martin-carpena', name: 'Palacio de Deportes José María Martín Carpena', kind: 'ferial', extraKinds: ['exterior'], searchAliases: ['martin carpena', 'carpena', 'palacio de deportes', 'jose maria martin carpena', 'palacio martin carpena'] }),
+  M({ slug: 'auditorio-cortijo-torres', name: 'Auditorio Municipal Cortijo de Torres', kind: 'exterior', extraKinds: ['auditorio', 'ferial'], status: 'seasonal', searchAliases: ['cortijo de torres', 'auditorio municipal', 'auditorio de la feria', 'cortijo torres'] }),
   M({ slug: 'recinto-cortijo-torres', name: 'Recinto Ferial Cortijo de Torres', kind: 'ferial', searchAliases: ['cortijo', 'recinto ferial'] }),
 
   // ═══════ Málaga capital — Grandes citas ═══════
