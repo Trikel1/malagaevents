@@ -28,7 +28,9 @@ describe('Sprint final — QA regressions', () => {
 
   it('MainLayout does not render <main> (each page owns its own landmark)', () => {
     const txt = readFileSync(path.join(SRC, 'components/layout/MainLayout.tsx'), 'utf8');
-    expect(txt).not.toMatch(/<main\b/);
+    // Strip block comments so a reminder note mentioning <main> in prose is ignored.
+    const code = txt.replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(code).not.toMatch(/<main\b/);
   });
 
   it('every top-level page renders a <main> landmark', () => {
