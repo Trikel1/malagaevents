@@ -53,7 +53,7 @@ const MONTHS = [
 const CalendarPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
   const { appMode } = useAppMode();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());

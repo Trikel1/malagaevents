@@ -20,7 +20,7 @@ interface SportEventCardProps {
 
 const SportEventCard = ({ event }: SportEventCardProps) => {
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
   const formattedDate = format(new Date(event.start_at), 'EEE d MMM · HH:mm', { locale });
   const sportCat = event.sport as SportCategory;
   const label = t(`sports.${sportCat}`, event.sport);

@@ -265,7 +265,7 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
 
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
 
   const { toast } = useToast();
 

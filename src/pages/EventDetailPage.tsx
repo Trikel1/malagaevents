@@ -29,7 +29,7 @@ const EventDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
   const { isAuthenticated } = useAuthContext();
 
   // Fetch event
