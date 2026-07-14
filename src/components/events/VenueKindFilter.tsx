@@ -28,7 +28,7 @@ import type { VenueKind } from '@/lib/venuesCatalog';
  *          with sticky Limpiar / Mostrar footer.
  */
 
-type Kind = 'all' | 'salas' | 'teatros';
+type Kind = 'all' | 'salas' | 'teatros' | 'recintos';
 
 interface VenueKindFilterProps {
   selectedVenueIds: string[];
@@ -40,6 +40,7 @@ const KIND_TO_KINDS: Record<Kind, VenueKind[] | 'all'> = {
   all: 'all',
   salas: ['sala', 'espacio'],
   teatros: ['teatro', 'auditorio'],
+  recintos: ['exterior', 'ferial'],
 };
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -133,10 +134,45 @@ function IconTeatros({ className, size = 22 }: IconProps) {
   );
 }
 
+/** Palm trees + sun over horizon — "recintos y exteriores". */
+function IconRecintos({ className, size = 22 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      {/* sun */}
+      <circle cx="17" cy="7.5" r="2.4" fill="currentColor" stroke="none" opacity="0.9" />
+      {/* horizon / ground */}
+      <path d="M2.5 19 h19" />
+      {/* left palm */}
+      <path d="M8 19 V11.5" />
+      <path d="M8 11.5 c -2 -0.8 -3.6 -0.4 -4.8 1" opacity="0.9" />
+      <path d="M8 11.5 c -1.2 -1.6 -1.6 -3.2 -0.8 -5.2" opacity="0.9" />
+      <path d="M8 11.5 c 1.8 -1 3.4 -1 5 0" opacity="0.9" />
+      <path d="M8 11.5 c 0.6 -1.9 2 -3.1 4.2 -3.5" opacity="0.9" />
+      {/* right palm — shorter */}
+      <path d="M14.5 19 V14" />
+      <path d="M14.5 14 c -1.4 -0.6 -2.5 -0.3 -3.4 0.8" opacity="0.85" />
+      <path d="M14.5 14 c 1.4 -0.6 2.6 -0.3 3.6 0.7" opacity="0.85" />
+      <path d="M14.5 14 c -0.6 -1.4 -0.4 -2.6 0.6 -3.6" opacity="0.85" />
+    </svg>
+  );
+}
+
 const KIND_META: Record<Kind, { Icon: (p: IconProps) => JSX.Element; labelKey: string; labelFallback: string }> = {
   all: { Icon: IconTodo, labelKey: 'events.venueKind.all', labelFallback: 'Todo' },
   salas: { Icon: IconSalas, labelKey: 'events.venueKind.halls', labelFallback: 'Salas' },
   teatros: { Icon: IconTeatros, labelKey: 'events.venueKind.theaters', labelFallback: 'Teatros' },
+  recintos: { Icon: IconRecintos, labelKey: 'events.venueKind.outdoors', labelFallback: 'Recintos' },
 };
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -288,7 +324,9 @@ export function VenueKindFilter({
       ? t('events.venuesTitle2', 'Recintos')
       : openKind === 'salas'
         ? t('events.venueKind.hallsTitle', 'Salas')
-        : t('events.venueKind.theatersTitle', 'Teatros y auditorios')
+        : openKind === 'teatros'
+          ? t('events.venueKind.theatersTitle', 'Teatros y auditorios')
+          : t('events.venueKind.outdoorsTitle', 'Recintos y exteriores')
     : '';
 
   const applyLabel = (() => {
@@ -301,6 +339,8 @@ export function VenueKindFilter({
     // Empty draft → contextual "Mostrar all X"
     if (openKind === 'salas') return t('events.showAllHalls', 'Mostrar todas las salas');
     if (openKind === 'teatros') return t('events.showAllTheaters', 'Mostrar todos los teatros');
+    if (openKind === 'recintos')
+      return t('events.showAllOutdoors', 'Mostrar recintos y exteriores');
     return t('events.showAll', 'Mostrar todo');
   })();
 
@@ -431,13 +471,13 @@ export function VenueKindFilter({
 
   return (
     <div className="space-y-2">
-      {/* Three icon buttons */}
+      {/* Four icon buttons */}
       <div
-        className="grid grid-cols-3 gap-2"
+        className="grid grid-cols-4 gap-2"
         role="toolbar"
         aria-label={t('events.venuesTitle2', 'Recintos')}
       >
-        {(['all', 'salas', 'teatros'] as Kind[]).map((k) => {
+        {(['all', 'salas', 'teatros', 'recintos'] as Kind[]).map((k) => {
           const { Icon, labelKey, labelFallback } = KIND_META[k];
           const isActive = openKind === k;
           return (
@@ -567,9 +607,10 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       type="button"
       onClick={onClick}
       aria-label={label}
+      title={label}
       aria-pressed={active}
       className={cn(
-        'group relative flex items-center justify-center gap-2 h-12 sm:h-11 px-2 sm:px-3',
+        'group relative flex items-center justify-center h-14 w-full',
         'rounded-2xl border transition-all duration-150',
         'bg-gradient-to-b from-background/90 to-background/60 backdrop-blur-md',
         'border-border/70 hover:border-primary/50 hover:shadow-sm',
@@ -580,17 +621,14 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
     >
       <span
         className={cn(
-          'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
-          'bg-gradient-to-br from-primary/10 to-primary/5',
+          'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
+          'bg-gradient-to-br from-primary/15 to-primary/5',
           'text-primary transition-colors',
-          'group-hover:from-primary/20 group-hover:to-primary/10',
-          active && 'from-primary/25 to-primary/10',
+          'group-hover:from-primary/25 group-hover:to-primary/10',
+          active && 'from-primary/30 to-primary/15',
         )}
       >
-        <Icon size={20} />
-      </span>
-      <span className="text-sm font-semibold tracking-tight truncate">
-        {label}
+        <Icon size={28} />
       </span>
     </button>
   );
