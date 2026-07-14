@@ -513,7 +513,7 @@ END:VCALENDAR`;
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
