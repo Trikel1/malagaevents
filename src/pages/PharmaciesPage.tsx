@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
@@ -127,17 +127,25 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
 
         <div className="mt-3 flex gap-2">
           {pharmacy.phone && (
-            <Button asChild size="sm" className="flex-1">
-              <a href={`tel:${formatPhoneForLink(pharmacy.phone)}`}>
-                <Phone className="h-4 w-4 mr-1.5" />
+            <Button asChild size="sm" className="flex-1 min-h-11">
+              <a
+                href={`tel:${formatPhoneForLink(pharmacy.phone)}`}
+                aria-label={`${t('pharmacies.call', 'Llamar')} ${pharmacy.name} · ${pharmacy.phone}`}
+              >
+                <Phone className="h-4 w-4 mr-1.5" aria-hidden />
                 {t('pharmacies.call', 'Llamar')}
               </a>
             </Button>
           )}
           {pharmacy.address && (
-            <Button asChild size="sm" variant="outline" className="flex-1">
-              <a href={getMapsUrl(pharmacy)} target="_blank" rel="noreferrer">
-                <Navigation className="h-4 w-4 mr-1.5" />
+            <Button asChild size="sm" variant="outline" className="flex-1 min-h-11">
+              <a
+                href={getMapsUrl(pharmacy)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${t('pharmacies.directions', 'Cómo llegar')} · ${pharmacy.name}, ${pharmacy.address}`}
+              >
+                <Navigation className="h-4 w-4 mr-1.5" aria-hidden />
                 {t('pharmacies.directions', 'Cómo llegar')}
               </a>
             </Button>
@@ -147,6 +155,7 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
     </Card>
   );
 };
+
 
 interface LocalitySelectorProps {
   value: string;
@@ -203,6 +212,9 @@ const PharmaciesPage = () => {
   const [search, setSearch] = useState('');
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(24);
+
+
 
   const isAllProvince = municipality === ALL_PROVINCE_LABEL;
   const municipalityFilter = isAllProvince ? undefined : municipality;
@@ -244,6 +256,19 @@ const PharmaciesPage = () => {
     () => withDistanceAndSort((dirAll ?? []).filter(matchesSearch)),
     [dirAll, search, userLoc]
   );
+
+  // Reset progressive pagination when filters change (Sprint UI 7)
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [municipality, search, userLoc]);
+
+  const visibleDirPharmacies = useMemo(
+    () => dirPharmacies.slice(0, visibleCount),
+    [dirPharmacies, visibleCount]
+  );
+  const hasMoreDir = dirPharmacies.length > visibleCount;
+
+
 
   
 
@@ -348,12 +373,13 @@ const PharmaciesPage = () => {
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="Clear"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden />
             </button>
           )}
+
         </div>
       </header>
 
@@ -396,17 +422,22 @@ const PharmaciesPage = () => {
           <Button
             type="button"
             variant={userLoc ? 'default' : 'outline'}
-            className="rounded-full h-9 px-4 text-sm"
+            className="rounded-full min-h-11 px-4 text-sm"
             onClick={handleLocate}
             disabled={locating}
+            aria-pressed={!!userLoc}
+            aria-label={userLoc
+              ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
+              : t('pharmacies.nearMe', 'Cerca de mí')}
           >
-            <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} />
+            <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} aria-hidden />
             {locating
               ? t('pharmacies.locating', 'Localizando…')
               : userLoc
               ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
               : t('pharmacies.nearMe', 'Cerca de mí')}
           </Button>
+
           {userLoc && (
             <span className="text-[11px] text-muted-foreground">
               {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
@@ -415,10 +446,14 @@ const PharmaciesPage = () => {
         </div>
 
         {/* On-duty section */}
-        <section>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-semibold">
+        <section aria-labelledby="on-duty-heading">
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <h2 id="on-duty-heading" className="text-base font-semibold flex items-center gap-2">
+              <Clock className="h-4 w-4 text-emerald-600" aria-hidden />
               {t('pharmacies.onDutyTitle', 'Farmacias de guardia')}
+              <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                {t('pharmacies.officialLabel', 'Oficial')}
+              </Badge>
             </h2>
             <span className="text-xs text-muted-foreground">
               {isToday
@@ -426,6 +461,7 @@ const PharmaciesPage = () => {
                 : `${t('pharmacies.guardDate', 'Guardia el')} ${formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}`}
             </span>
           </div>
+
 
           {isLoadingDuty ? (
             <div className="space-y-2">
@@ -454,28 +490,71 @@ const PharmaciesPage = () => {
           )}
         </section>
 
-        {/* All pharmacies in locality */}
-        <section className="pt-2">
-          <h2 className="text-base font-semibold mb-2">
-            {t('pharmacies.allPharmaciesInLocation', 'Todas las farmacias en')} {municipality}
-          </h2>
+        {/* Separator to make the boundary between guardias and directorio unequivocal */}
+        <div role="separator" aria-hidden="true" className="h-px bg-border/70 my-3" />
+
+        {/* All pharmacies in locality — directorio informativo (sin badge oficial de guardia) */}
+        <section className="pt-1">
+          <div className="flex items-baseline justify-between mb-2 gap-3">
+            <h2 className="text-base font-semibold">
+              {t('pharmacies.allPharmaciesInLocation', 'Todas las farmacias en')} {municipality}
+            </h2>
+            {!isLoadingDir && dirPharmacies.length > 0 && (
+              <span className="text-xs text-muted-foreground" aria-live="polite" data-testid="pharmacy-dir-count">
+                {t('pharmacies.showingCount', {
+                  defaultValue: 'Mostrando {{shown}} de {{total}}',
+                  shown: visibleDirPharmacies.length,
+                  total: dirPharmacies.length,
+                })}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-2">
+            {t(
+              'pharmacies.directoryDisclaimer',
+              'Listado informativo. La condición de guardia solo se muestra en la sección superior con datos oficiales.',
+            )}
+          </p>
 
           {isLoadingDir ? (
-            <div className="space-y-2">
+            <div className="space-y-2" aria-hidden="true">
               <PharmacyCardSkeleton />
               <PharmacyCardSkeleton />
               <PharmacyCardSkeleton />
             </div>
           ) : dirPharmacies.length > 0 ? (
-            <div className="space-y-2">
-              {dirPharmacies.map((p: any) => (
-                <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
-              ))}
-            </div>
+            <>
+              <div className="space-y-2" data-testid="pharmacy-dir-list">
+                {visibleDirPharmacies.map((p: any) => (
+                  <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
+                ))}
+              </div>
+              {hasMoreDir && (
+                <div className="mt-3 flex justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11 px-6 rounded-full"
+                    onClick={() => setVisibleCount((c) => c + 24)}
+                    aria-label={t('pharmacies.showMoreAria', {
+                      defaultValue: 'Mostrar más farmacias ({{remaining}} pendientes)',
+                      remaining: dirPharmacies.length - visibleDirPharmacies.length,
+                    })}
+                    data-testid="pharmacy-show-more"
+                  >
+                    {t('pharmacies.showMore', 'Mostrar más')}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      +{Math.min(24, dirPharmacies.length - visibleDirPharmacies.length)}
+                    </span>
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <EmptyState
               icon={AlertTriangle}
               title={t('pharmacies.noPharmaciesFound', 'Sin resultados')}
+
               description={t(
                 'pharmacies.directoryEmpty',
                 'No hay farmacias listadas en esta localidad. Prueba con otra.'
