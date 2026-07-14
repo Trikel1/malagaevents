@@ -48,26 +48,28 @@ const TopNav = () => {
         </NavLink>
 
         <nav className="flex items-center gap-1" aria-label={t('nav.primary', 'Navegación principal')}>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                cn(
+          {navItems.map((item) => {
+            const current = isCurrent(item.to);
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={cn(
                   'inline-flex items-center gap-2 h-11 px-3 rounded-full text-sm font-medium transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  isActive
+                  current
                     ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                )
-              }
-              aria-label={item.label}
-            >
-              <item.icon className="h-4 w-4" aria-hidden />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                )}
+                aria-label={item.label}
+                aria-current={current ? 'page' : undefined}
+              >
+                <item.icon className="h-4 w-4" aria-hidden />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-1">
