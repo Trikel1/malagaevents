@@ -110,16 +110,10 @@ const BottomNav = () => {
     const wasDrag = dragStartedRef.current;
     dragStartedRef.current = false;
     startPointRef.current = null;
-    setDragging(false);
-    setDragX(null);
-    const targetIndex = wasDrag && hoverIndex != null ? hoverIndex : tapIndex;
-    setHoverIndex(null);
-    const target = navItems[targetIndex];
+    if (wasDrag) return; // Ignore drag-only gestures; only taps navigate.
+    const target = navItems[tapIndex];
     if (target && target.to !== location.pathname) {
       navigate(target.to);
-    } else if (wasDrag) {
-      // Snap back visually via measure
-      measure();
     }
   };
 
