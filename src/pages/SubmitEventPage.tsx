@@ -29,6 +29,8 @@ const SubmitEventPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const errorSummaryRef = useRef<HTMLDivElement | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -48,6 +50,66 @@ const SubmitEventPage = () => {
     tags: '',
     email: '',
   });
+
+  const isDirty = useMemo(() => {
+    return (
+      !!formData.title || !!formData.description || !!formData.category || !!formData.start_at ||
+      !!formData.venue_name || !!formData.address || !!formData.email || !!formData.tags ||
+      !!formData.ticket_url || !!formData.image_url || !!formData.price_info
+    );
+  }, [formData]);
+
+  // Warn on tab close / reload if there are unsaved changes
+  useEffect(() => {
+    if (!isDirty || submitted) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty, submitted]);
+
+  const guardedBack = () => {
+    if (
+      isDirty &&
+      !submitted &&
+      !window.confirm(t('submitEvent.confirmDiscard', '¿Descartar los datos sin guardar?'))
+    ) {
+      return;
+    }
+    navigate(-1);
+  };
+
+  const validate = (): Record<string, string> => {
+    const errs: Record<string, string> = {};
+    if (!formData.title.trim() || formData.title.trim().length < 3)
+      errs.title = t('submitEvent.errors.titleShort', 'El título debe tener al menos 3 caracteres.');
+    if (!formData.description.trim() || formData.description.trim().length < 10)
+      errs.description = t('submitEvent.errors.descriptionShort', 'Describe el evento con más detalle (mín. 10 caracteres).');
+    if (!formData.category)
+      errs.category = t('submitEvent.errors.categoryRequired', 'Selecciona una categoría.');
+    if (!formData.start_at)
+      errs.start_at = t('submitEvent.errors.startRequired', 'Indica la fecha y hora de inicio.');
+    if (!formData.venue_name.trim())
+      errs.venue_name = t('submitEvent.errors.venueRequired', 'Indica el recinto o lugar.');
+    if (!formData.address.trim())
+      errs.address = t('submitEvent.errors.addressRequired', 'Indica la dirección.');
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      errs.email = t('submitEvent.errors.emailInvalid', 'Introduce un email de contacto válido.');
+    return errs;
+  };
+
+  const focusFirstError = (errs: Record<string, string>) => {
+    const first = Object.keys(errs)[0];
+    if (!first) return;
+    // small delay to ensure summary renders first (a11y)
+    requestAnimationFrame(() => {
+      errorSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById(first)?.focus();
+    });
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
