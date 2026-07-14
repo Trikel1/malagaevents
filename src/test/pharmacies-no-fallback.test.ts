@@ -82,7 +82,7 @@ describe('usePharmaciesOnDuty — no synthetic rotations', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const data = (result.current.data ?? []) as Array<Record<string, unknown>>;
+    const data = (result.current.data ?? []) as unknown as Array<Record<string, unknown>>;
     for (const row of data) {
       expect(String(row.id ?? '')).not.toMatch(/^fallback-/);
       expect(row.source_ref).not.toBe('fallback-rotation');
