@@ -92,22 +92,15 @@ const BottomNav = () => {
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    // Drag no longer changes destination — navigation only via tap/click/Enter/Space.
     if (pointerIdRef.current !== e.pointerId) return;
     const start = startPointRef.current;
     if (!start) return;
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
-    if (!dragStartedRef.current) {
-      if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy)) return;
+    if (!dragStartedRef.current && (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy))) {
       dragStartedRef.current = true;
-      setDragging(true);
     }
-    const track = trackRef.current;
-    if (!track) return;
-    const tRect = track.getBoundingClientRect();
-    const localX = Math.max(0, Math.min(tRect.width, e.clientX - tRect.left));
-    setDragX(localX - bubble.w / 2);
-    setHoverIndex(indexFromX(localX));
   };
 
   const endPointer = (e: React.PointerEvent<HTMLButtonElement>, tapIndex: number) => {
