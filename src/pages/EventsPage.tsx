@@ -381,37 +381,32 @@ const CultureEventsPage = () => {
         }
       />
 
-      {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <header className="glass-nav sticky top-0 z-40 rounded-none border-b border-border/40">
-        <div className="px-4 pt-3 pb-2.5 sm:px-6 sm:pt-4 space-y-2.5">
-          {/* Title + count pill */}
-          <div className="flex items-end justify-between gap-3">
+      {/* ── EDITORIAL HEADER ────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md border-b border-border/60">
+        <div className="mx-auto w-full max-w-[1180px] px-4 lg:px-8 pt-4 pb-3 space-y-3">
+          {/* Editorial title block */}
+          <div className="flex items-end justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="flex items-baseline gap-0.5 text-[28px] sm:text-[34px] font-extrabold tracking-[-0.02em] leading-[1.1] pb-0.5">
-                <span className="agenda-title-gradient">
-                  {t('events.agendaTitle', 'Agenda')}
-                </span>
-                <span className="agenda-dot" aria-hidden="true" />
-              </h1>
-              <p
-                className="mt-1.5 text-[11px] sm:text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground/80"
-              >
-
-                {t('events.agendaKicker', 'Cultura · Málaga')}
+              <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground/85">
+                {t('events.agendaKicker', 'Agenda cultural · Málaga')}
               </p>
-            </div>
-            <span
-              className="shrink-0 inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
-              aria-label={`${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`}
-            >
-              <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
-              <span className="text-[10px] uppercase tracking-wide opacity-80">
+              <h1 className="mt-1 font-display text-[26px] sm:text-[32px] lg:text-[38px] font-semibold tracking-tight leading-[1.1] text-foreground">
+                {t('events.agendaTitle', 'Agenda cultural')}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground capitalize-first">
+                <span className="capitalize">{rangeSummary}</span>
+                <span className="mx-1.5 opacity-40">·</span>
+                <span className="tabular-nums">
+                  {isLoadingEvents ? '…' : totalCount}
+                </span>{' '}
                 {totalCount === 1
                   ? t('events.eventSingular', 'evento')
                   : t('events.eventPlural', 'eventos')}
-              </span>
-            </span>
+              </p>
+            </div>
           </div>
+
+
 
 
           {/* Search + location + filter + near-me */}
