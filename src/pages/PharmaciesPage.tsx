@@ -214,9 +214,6 @@ const PharmaciesPage = () => {
   const [locating, setLocating] = useState(false);
   const [visibleCount, setVisibleCount] = useState(24);
 
-  // Reset progressive pagination when filters change
-  const paginationKey = `${municipality}|${search}|${userLoc ? '1' : '0'}`;
-  const lastKeyRef = { current: paginationKey } as { current: string };
 
 
   const isAllProvince = municipality === ALL_PROVINCE_LABEL;
