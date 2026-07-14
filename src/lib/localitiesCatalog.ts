@@ -155,6 +155,8 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'canete-la-real', name: 'Cañete la Real', zone: 'guadalteba', aliases: ['canete-la-real'] },
   { slug: 'cuevas-del-becerro', name: 'Cuevas del Becerro', zone: 'guadalteba' },
   { slug: 'carratraca', name: 'Carratraca', zone: 'guadalteba' },
+  { slug: 'almargen', name: 'Almargen', zone: 'guadalteba' },
+  { slug: 'serrato', name: 'Serrato', zone: 'guadalteba' },
 ];
 
 // Slug -> entry
