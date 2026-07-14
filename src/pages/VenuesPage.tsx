@@ -97,7 +97,7 @@ const VenuesPage = () => {
             )}
           >
             <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
-            {t('sports.all')}
+            {t('sports.all', 'Todos')}
           </button>
           {SPORT_CATEGORIES.map((cat) => {
             const active = selectedSport === cat;
