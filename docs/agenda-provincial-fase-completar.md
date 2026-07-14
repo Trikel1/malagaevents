@@ -54,20 +54,135 @@ DELETE FROM public.municipality_aliases WHERE alias_normalized IN (
 No borra filas creadas por otros procesos (los aliases usan `ON CONFLICT DO NOTHING`
 por lo que sólo se eliminan las 12 nuevas).
 
-## Fases pendientes (no aplicadas en este turno)
+## Fase 4 aplicada — registro canónico de fuentes
 
-- **Fase 3** — Servicio de normalización de municipios y backfill controlado
-  de `events.municipality_id` con confianza alta (canonical name, aliases,
-  venue municipality, address). Reporte de ambigüos. Sin sobrescribir texto.
-- **Fase 4** — Consolidación de registro canónico en `event_sources` con
-  columnas `legacy_source_id` y campos de aliasing sin borrar `scraping_sources`
-  ni `sources_config`.
-- **Fase 5** — Adaptador FYCMA P0 (`supabase/functions/_shared/adapters/fycma.ts`)
-  + edge function `admin-ingest-dry-run` para FYCMA + flag `protected_p0` en
-  `event_sources` para evitar auto-desactivación tras errores transitorios.
-- **Fase 6** — Panel `/admin` (source health): tarjeta de cobertura provincial
-  real, FYCMA health, últimos sync.
-- **Fase 7** — QA: build, typecheck, verificación de selector, counts SQL.
+### Migración `event_sources_p0_registry`
+Aditiva, reversible, con `ADD COLUMN IF NOT EXISTS`:
+- `priority_tier text CHECK (P0|P1|P2|P3)`
+- `protected_source boolean NOT NULL DEFAULT false`
+- `canonical_source_id uuid REFERENCES event_sources(id) ON DELETE SET NULL`
+- `legacy_refs jsonb NOT NULL DEFAULT '{}'::jsonb`
+- `last_dry_run_at timestamptz`, `last_dry_run_status text`, `last_dry_run_result jsonb`
+- Índices parciales: `idx_event_sources_priority_tier`, `idx_event_sources_canonical`, `idx_event_sources_protected`.
 
-Cada fase se aplicará como migración aditiva independiente con su propio
-rollback documentado aquí antes de ejecutarse.
+Sin cambios de comportamiento para las 132 filas existentes: valores por defecto no
+alteran las columnas actuales ni la lógica de scrape-source, que no consulta estos
+campos todavía.
+
+**Contrato de protección (para futuras handlers de errores)**: cualquier lógica
+automática que desactive fuentes tras errores debe respetar
+`protected_source = false` en su cláusula `WHERE`. FYCMA lleva la marca `true`.
+
+### Rollback fase 4
+```sql
+DROP INDEX IF EXISTS public.idx_event_sources_priority_tier;
+DROP INDEX IF EXISTS public.idx_event_sources_canonical;
+DROP INDEX IF EXISTS public.idx_event_sources_protected;
+ALTER TABLE public.event_sources
+  DROP COLUMN IF EXISTS priority_tier,
+  DROP COLUMN IF EXISTS protected_source,
+  DROP COLUMN IF EXISTS canonical_source_id,
+  DROP COLUMN IF EXISTS legacy_refs,
+  DROP COLUMN IF EXISTS last_dry_run_at,
+  DROP COLUMN IF EXISTS last_dry_run_status,
+  DROP COLUMN IF EXISTS last_dry_run_result;
+```
+
+## Fase 5a aplicada — FYCMA P0 (dry-run, sin escritura de eventos)
+
+### FYCMA canónica elegida
+- `event_sources.id = a7c04ea1-2704-43e6-bcb7-f270f492d173`
+- `slug = 'fycma'`, `adapter_key = 'fycma'`
+- `name = 'FYCMA — Palacio de Ferias y Congresos de Málaga'`
+- `base_url = 'https://fycma.com/wp-json/tribe/events/v1/events'` (API oficial Tribe Events Calendar)
+- `priority = 100`, `priority_tier = 'P0'`, `protected_source = true`
+- `enabled = false` (permanece off; activación en fase 5b tras reconciliación)
+- `canonical_source_id = NULL` (es la canónica)
+
+### Aliases y referencias legacy preservados en `legacy_refs`
+```json
+{
+  "sources_config_id": "aef29768-1ea1-405b-83a7-1f5b8fe59731",
+  "sources_config_name": "FYCMA",
+  "venue_duplicates": [
+    "7bb158eb-5e36-4333-9250-a56ddf24d236",
+    "cb2e43bd-bef9-4a3b-b27c-9e5a73474c12",
+    "e492194c-e0fd-4801-af76-50bc3ab7836a"
+  ],
+  "canonical_venue_name": "FYCMA — Palacio de Ferias y Congresos de Málaga"
+}
+```
+Nada se borra. `scraping_sources` no tiene entrada FYCMA (0 filas), por lo
+que no requiere mapeo. Los 3 venues duplicados quedan intactos; su
+consolidación es responsabilidad de la fase 5b.
+
+### Archivos creados / modificados
+- `supabase/functions/_shared/adapters/fycma.ts` — adaptador aislado (Tribe REST API).
+- `supabase/functions/_shared/ingestion/adapters.ts` — registro del adaptador `fycma`.
+- `supabase/functions/admin-fycma-dry-run/index.ts` — edge function admin-only
+  (JWT + `has_role('admin')`). Nunca escribe en `events`; sólo actualiza campos
+  `last_dry_run_*` en `event_sources`.
+- `src/lib/localitiesCatalog.ts` — sin cambios en esta fase (ya terminada en fase 2).
+
+### Dry-run real (ejecutado desde sandbox contra la API oficial)
+| Métrica                          | Valor                                          |
+| -------------------------------- | ---------------------------------------------- |
+| URL inspeccionada                | `https://fycma.com/wp-json/tribe/events/v1/events` |
+| HTTP status                      | 200                                            |
+| Páginas obtenidas                | 1 (de máximo 10 permitidas por el adaptador)   |
+| Candidatos                       | 27                                             |
+| Válidos                          | 27                                             |
+| Rechazados                       | 0                                              |
+| Eventos multi-día                | 11                                             |
+| Duración                         | 799 ms                                         |
+| Cobertura de campos              | title 27/27, start_date 27/27, description 27/27, image 27/27, url 27/27, venue 27/27, category 27/27, organizer 26/27, ticket_url 25/27, end_date 11/27 (correcto: sólo multi-día) |
+| Duplicados vs `events` por URL   | 0 (los 31 registros FYCMA existentes no tienen la URL canónica almacenada) |
+| Duplicados vs `events` por título en venue FYCMA | 10                             |
+| Eventos escritos                 | **0**                                          |
+| Warnings                         | ninguno                                        |
+
+Ejemplos válidos: Greencities 2026 (15–16 sep), ECOC2026 (20–24 sep),
+Congreso Smart City RECI, San Diego Comic-Con Málaga 2026, Foro GPEF2026.
+Todos con `startAt`/`endAt` diferenciados, imagen oficial, organizer y URL
+canónica `fycma.com/evento/…`.
+
+### Rollback fase 5a
+1. Datos: revertir la fila FYCMA (`event_sources.id = a7c04ea1…`):
+   ```sql
+   UPDATE public.event_sources
+     SET priority_tier = NULL,
+         protected_source = false,
+         base_url = 'https://www.fycma.com/',
+         priority = 75,
+         legacy_refs = '{}'::jsonb,
+         last_dry_run_at = NULL,
+         last_dry_run_status = NULL,
+         last_dry_run_result = NULL,
+         name = 'FYCMA — Palacio de Ferias'
+   WHERE id = 'a7c04ea1-2704-43e6-bcb7-f270f492d173';
+   ```
+2. Código: eliminar `supabase/functions/_shared/adapters/fycma.ts`,
+   quitar su registro de `adapters.ts` y borrar la carpeta
+   `supabase/functions/admin-fycma-dry-run/`.
+
+### Bloqueo/riesgos técnicos encontrados
+- Ninguno. La API oficial responde 200, sin cloudflare/JS-wall, robots.txt
+  totalmente abierto, endpoint público estable del plugin Tribe Events.
+- Nota menor: el hostname canónico es `fycma.com` (no `www.`). El adaptador
+  usa el hostname sin `www`.
+
+## Fase 5b — pendiente (reconciliación / ingesta)
+
+- Merge idempotente contra los 31 eventos FYCMA existentes:
+  - 10 con match por título → añadir `url` canónica y `dedupe_key`
+    determinista (`fycma:url:…`) sin duplicar la fila.
+  - 17 nuevos → insertar preservando `start_at`/`end_at` reales para los
+    multi-día.
+- Consolidar los 3 venues duplicados en uno canónico (mantener IDs, mover
+  referencias vía `venue_id`); dejar los otros como aliases apuntando al
+  canónico.
+- Activar `enabled = true` sólo cuando la escritura protegida
+  (`SYNC_ADMIN_KEY` + WRITE_ENABLED) esté explícitamente habilitada.
+- Añadir tarjetas de coverage/health en `/admin` (fase 6) que lean
+  `last_dry_run_*` y `protected_source`.
+
