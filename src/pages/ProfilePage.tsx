@@ -127,47 +127,53 @@ const ProfilePage = () => {
         {/* Menu Items */}
         <Card className="rounded-2xl shadow-soft">
           <CardContent className="p-0">
-            {menuItems.map((item, index) => (
-              <div key={item.to}>
-                {item.requiresAuth && !isAuthenticated ? (
+            {menuItems.map((item, index) => {
+              const needsLogin = item.requiresAuth && !isAuthenticated;
+              return (
+                <div key={item.to}>
                   <Link
-                    to="/auth"
-                    className="flex items-center gap-3 p-4 hover:bg-muted transition-colors"
+                    to={needsLogin ? '/auth' : item.to}
+                    className="flex items-center gap-3 p-4 min-h-[56px] hover:bg-muted focus-visible:bg-muted focus-visible:outline-none transition-colors"
+                    aria-label={needsLogin ? `${item.label} — ${t('profile.loginRequired')}` : item.label}
                   >
-                    <item.icon className="h-5 w-5 text-muted-foreground" />
-                    <span>{item.label}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {t('profile.loginRequired')}
+                    <span className={cn(
+                      'h-9 w-9 rounded-full flex items-center justify-center shrink-0',
+                      needsLogin ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'
+                    )}>
+                      <item.icon className="h-4 w-4" aria-hidden />
                     </span>
+                    <span className="font-medium">{item.label}</span>
+                    {needsLogin ? (
+                      <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 rounded-full px-2 py-1">
+                        <Lock className="h-3 w-3" aria-hidden />
+                        {t('profile.loginRequired')}
+                      </span>
+                    ) : (
+                      <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" aria-hidden />
+                    )}
                   </Link>
-                ) : (
-                  <Link
-                    to={item.to}
-                    className="flex items-center gap-3 p-4 hover:bg-muted transition-colors"
-                  >
-                    <item.icon className="h-5 w-5 text-muted-foreground" />
-                    <span>{item.label}</span>
-                  </Link>
-                )}
-                {index < menuItems.length - 1 && <Separator />}
-              </div>
-            ))}
+                  {index < menuItems.length - 1 && <Separator />}
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
 
         {/* Logout */}
         {isAuthenticated && (
-          <Button 
-            variant="outline" 
-            className="w-full text-destructive hover:text-destructive"
+          <Button
+            variant="outline"
+            className="w-full min-h-11 text-destructive hover:text-destructive"
             onClick={handleLogout}
+            aria-label={t('profile.logout')}
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-4 w-4 mr-2" aria-hidden />
             {t('profile.logout')}
           </Button>
         )}
       </main>
     </div>
+
   );
 };
 
