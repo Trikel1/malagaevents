@@ -29,7 +29,7 @@ function interpolations(v: unknown): string[] {
   return (v.match(interpRe) || []).map((s) => s.replace(/\s+/g, '')).sort();
 }
 
-const others: Record<string, Node> = { en, de, fr, it, pt, ja, zh, ru, ar };
+const others: Record<string, Node> = { en, de, fr, it: itIT, pt, ja, zh, ru, ar };
 
 describe('i18n locales parity', () => {
   for (const [lang, resource] of Object.entries(others)) {
