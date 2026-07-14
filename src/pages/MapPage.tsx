@@ -205,7 +205,7 @@ const MapPage = () => {
   }, [filter]);
 
   return (
-    <div className="min-h-screen bg-gradient-warm relative">
+    <main className="min-h-dvh bg-gradient-warm relative">
       <SEO
         title={t('seo.map.title')}
         description={t('seo.map.description')}
