@@ -27,7 +27,7 @@ const SportsEventsPage = () => {
           onClearExternalSearch={() => setSearch('')}
         />
       </div>
-    </div>
+    </main>
   );
 };
 
