@@ -405,7 +405,7 @@ const CalendarPage = () => {
               <section className="space-y-3" aria-live="polite">
                 <div className="flex items-baseline justify-between gap-3">
                   <h2 className="font-serif text-xl capitalize leading-tight">
-                    {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
+                    {format(selectedDate, 'PPPP', { locale })}
                   </h2>
                   <span className="text-xs text-muted-foreground">
                     {(appMode === 'deportes' ? selectedDaySportEvents.length : selectedDayOccurrences.length)}{' '}
