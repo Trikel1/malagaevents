@@ -334,14 +334,19 @@ const CalendarPage = () => {
             {/* Calendar Grid — reserve height while loading to avoid layout jumps */}
             <Card className="mb-4">
               <CardContent className="p-2">
-                {/* Day headers */}
+                {/* Day headers — localised weekday initials (respects lang + RTL) */}
                 <div className="grid grid-cols-7 mb-2">
-                  {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day, i) => (
-                    <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
-                      {day}
-                    </div>
-                  ))}
+                  {Array.from({ length: 7 }, (_, i) => {
+                    // Sunday = 0 (matches startOfWeek weekStartsOn: 0)
+                    const sample = new Date(2024, 0, 7 + i); // 2024-01-07 is a Sunday
+                    return (
+                      <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
+                        {format(sample, 'EEEEEE', { locale })}
+                      </div>
+                    );
+                  })}
                 </div>
+
 
                 {/* Days */}
                 <div
