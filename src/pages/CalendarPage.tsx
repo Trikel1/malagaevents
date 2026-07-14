@@ -184,8 +184,8 @@ const CalendarPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Calendario de eventos en Málaga"
-        description="Calendario mensual con todos los eventos, conciertos y planes en Málaga capital y provincia. Filtra por día y descubre qué hacer."
+        title={t('seo.calendar.title')}
+        description={t('seo.calendar.description')}
         path="/calendar"
       />
       {/* Header — editorial */}
@@ -362,7 +362,7 @@ const CalendarPage = () => {
                       <button
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
-                        aria-label={format(day, "EEEE d 'de' MMMM yyyy", { locale }) + (hasEvents ? `, ${eventCount} ${t('calendar.eventsShort', 'eventos')}` : '')}
+                        aria-label={format(day, 'PPPP', { locale }) + (hasEvents ? `, ${eventCount} ${t('calendar.eventsShort', 'eventos')}` : '')}
                         aria-pressed={!!isSelected}
                         aria-current={dayIsToday ? 'date' : undefined}
                         className={cn(
@@ -405,7 +405,7 @@ const CalendarPage = () => {
               <section className="space-y-3" aria-live="polite">
                 <div className="flex items-baseline justify-between gap-3">
                   <h2 className="font-serif text-xl capitalize leading-tight">
-                    {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
+                    {format(selectedDate, 'PPPP', { locale })}
                   </h2>
                   <span className="text-xs text-muted-foreground">
                     {(appMode === 'deportes' ? selectedDaySportEvents.length : selectedDayOccurrences.length)}{' '}
@@ -468,7 +468,7 @@ const CalendarPage = () => {
           <div className="space-y-4">
             {selectedDate && (
               <h3 className="font-semibold capitalize">
-                {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
+                {format(selectedDate, 'PPPP', { locale })}
               </h3>
             )}
             {appMode === 'deportes' ? (() => {

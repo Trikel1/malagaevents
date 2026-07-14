@@ -310,7 +310,10 @@
     "theaters": "Theater",
     "halls": "Hallen",
     "otherVenues": "Andere",
-    "timeTBC": "Uhrzeit folgt"
+    "timeTBC": "Uhrzeit folgt",
+    "verifiedAt": "Verifiziert",
+    "viewOnSource": "Auf der Originalquelle ansehen",
+    "source": "Quelle"
   },
   "eventDetail": {
     "when": "Wann",
@@ -568,5 +571,63 @@
     "rugby": "Rugby",
     "acuaticos": "Wassersport",
     "artes_marciales": "Kampfsport"
+  },
+  "seo": {
+    "events": {
+      "title": "Kulturprogramm in Málaga — Was heute und in den kommenden Tagen los ist",
+      "description": "Kulturprogramm in Málaga: Konzerte, Theater, Ausstellungen, Kino, Gastronomie und Familienpläne."
+    },
+    "calendar": {
+      "title": "Málaga Veranstaltungskalender",
+      "description": "Kultur- und Sportkalender in Málaga nach Tag, Woche und Monat."
+    },
+    "map": {
+      "title": "Karte der Veranstaltungen und Apotheken in Málaga",
+      "description": "Interaktive Karte mit Kulturveranstaltungen, Sport und Notdienstapotheken in Málaga."
+    },
+    "venues": {
+      "title": "Sportstätten in Málaga",
+      "description": "Verzeichnis der Sportstätten, Hallen und Stadien der Provinz Málaga."
+    },
+    "sports": {
+      "title": "Sport in Málaga — Aktivitäten, Wettkämpfe und Sportstätten",
+      "description": "Sportkalender Málaga: Spiele, Wettkämpfe, Aktivitäten und offizielle Sportstätten."
+    },
+    "profile": {
+      "title": "Mein Profil — MalagaEvents",
+      "description": "Verwalte Konto, Favoriten, Tickets und Sprache in MalagaEvents."
+    },
+    "submit": {
+      "title": "Veranstaltung in Málaga einreichen",
+      "description": "Reiche eine Kultur- oder Sportveranstaltung zur Prüfung durch MalagaEvents ein."
+    },
+    "tickets": {
+      "title": "Meine Tickets — MalagaEvents",
+      "description": "Deine gespeicherten Tickets in MalagaEvents ansehen und verwalten."
+    },
+    "addTicket": {
+      "title": "Ticket hinzufügen — MalagaEvents",
+      "description": "Füge deiner Sammlung ein Ticket hinzu."
+    },
+    "pharmacies": {
+      "title": "Notdienstapotheken in Málaga heute",
+      "description": "Offizielle Notdienstapotheken in Málaga und Informationsverzeichnis nach Gemeinde."
+    },
+    "auth": {
+      "title": "Bei MalagaEvents anmelden",
+      "description": "Melde dich an oder erstelle ein Konto, um Favoriten, Tickets und Einstellungen zu speichern."
+    },
+    "reset": {
+      "title": "Passwort zurücksetzen — MalagaEvents",
+      "description": "Wähle ein neues Passwort für dein Konto."
+    },
+    "admin": {
+      "title": "Admin — MalagaEvents",
+      "description": "Internes Verwaltungspanel."
+    },
+    "notFound": {
+      "title": "Seite nicht gefunden — MalagaEvents",
+      "description": "Die angeforderte Seite existiert nicht oder wurde verschoben."
+    }
   }
 }

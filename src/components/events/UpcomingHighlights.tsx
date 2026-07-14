@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import { Sparkles, Pause, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EventImage from '@/components/events/EventImage';
@@ -146,7 +146,8 @@ interface HighlightCardProps {
 }
 
 const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = getDateLocale(i18n.language);
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
 
@@ -154,10 +155,10 @@ const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCard
     ? t('events.today', 'Hoy')
     : isTomorrow(startDate)
       ? t('events.tomorrow', 'Mañana')
-      : format(startDate, 'EEE d MMM', { locale: es });
+      : format(startDate, 'EEE d MMM', { locale });
 
   const timeLabel = showTime
-    ? format(startDate, 'HH:mm', { locale: es })
+    ? format(startDate, 'HH:mm', { locale })
     : t('events.timeTBC', 'Hora por confirmar');
 
   const title = sanitizeText(event.title) || t('events.untitled', 'Sin título');

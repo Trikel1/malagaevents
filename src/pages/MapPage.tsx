@@ -207,8 +207,8 @@ const MapPage = () => {
   return (
     <div className="min-h-screen bg-gradient-warm relative">
       <SEO
-        title="Mapa de eventos y farmacias en Málaga"
-        description="Mapa interactivo de Málaga con eventos, recintos y farmacias de guardia cercanas. Encuentra qué hay cerca de ti en tiempo real."
+        title={t('seo.map.title')}
+        description={t('seo.map.description')}
         path="/map"
       />
 

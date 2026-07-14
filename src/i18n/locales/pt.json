@@ -310,7 +310,10 @@
     "theaters": "Teatros",
     "halls": "Salas",
     "otherVenues": "Outros",
-    "timeTBC": "Horário a confirmar"
+    "timeTBC": "Horário a confirmar",
+    "verifiedAt": "Verificado",
+    "viewOnSource": "Ver na fonte original",
+    "source": "Fonte"
   },
   "eventDetail": {
     "when": "Quando",
@@ -568,5 +571,63 @@
     "rugby": "Rugby",
     "acuaticos": "Desportos aquáticos",
     "artes_marciales": "Artes marciais"
+  },
+  "seo": {
+    "events": {
+      "title": "Agenda cultural de Málaga — O que fazer hoje e nos próximos dias",
+      "description": "Agenda cultural de Málaga: concertos, teatro, exposições, cinema, gastronomia e planos para a família."
+    },
+    "calendar": {
+      "title": "Calendário de eventos em Málaga",
+      "description": "Calendário cultural e desportivo de Málaga por dia, semana e mês."
+    },
+    "map": {
+      "title": "Mapa de eventos e farmácias em Málaga",
+      "description": "Mapa interativo com eventos culturais, desportivos e farmácias de serviço em Málaga."
+    },
+    "venues": {
+      "title": "Recintos desportivos de Málaga",
+      "description": "Diretório de recintos, pavilhões e estádios desportivos da província de Málaga."
+    },
+    "sports": {
+      "title": "Desporto em Málaga — Atividades, competições e recintos",
+      "description": "Agenda desportiva de Málaga: jogos, competições, atividades e recintos oficiais."
+    },
+    "profile": {
+      "title": "O meu perfil — MalagaEvents",
+      "description": "Faz a gestão da conta, favoritos, bilhetes e idioma no MalagaEvents."
+    },
+    "submit": {
+      "title": "Enviar um evento de Málaga",
+      "description": "Envia um evento cultural ou desportivo para revisão pela equipa MalagaEvents."
+    },
+    "tickets": {
+      "title": "Os meus bilhetes — MalagaEvents",
+      "description": "Consulta e organiza os teus bilhetes guardados no MalagaEvents."
+    },
+    "addTicket": {
+      "title": "Adicionar bilhete — MalagaEvents",
+      "description": "Adiciona um bilhete à tua coleção pessoal."
+    },
+    "pharmacies": {
+      "title": "Farmácias de serviço em Málaga hoje",
+      "description": "Farmácias de serviço oficiais em Málaga e diretório informativo por município."
+    },
+    "auth": {
+      "title": "Entrar em MalagaEvents",
+      "description": "Inicia sessão ou cria uma conta para guardar favoritos, bilhetes e preferências."
+    },
+    "reset": {
+      "title": "Redefinir palavra-passe — MalagaEvents",
+      "description": "Escolhe uma nova palavra-passe para a tua conta."
+    },
+    "admin": {
+      "title": "Admin — MalagaEvents",
+      "description": "Painel de administração interno."
+    },
+    "notFound": {
+      "title": "Página não encontrada — MalagaEvents",
+      "description": "A página solicitada não existe ou foi movida."
+    }
   }
 }

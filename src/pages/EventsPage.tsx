@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, X, AlertTriangle, Navigation, CalendarDays } from 'lucide-react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,8 @@ const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: strin
 // ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = getDateLocale(i18n.language);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthContext();
@@ -244,8 +245,8 @@ const CultureEventsPage = () => {
       });
     }
     if (filters.dateFrom || filters.dateTo) {
-      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale: es }) : '…';
-      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale: es }) : '…';
+      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale }) : '…';
+      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale }) : '…';
       chips.push({
         key: 'daterange',
         label: `${from} – ${to}`,
@@ -348,7 +349,7 @@ const CultureEventsPage = () => {
 
   // Human-readable "range" summary shown in the header
   const rangeSummary = useMemo(() => {
-    const today = format(new Date(), "EEEE d 'de' MMMM", { locale: es });
+    const today = format(new Date(), 'PPPP', { locale });
     const nice = today.charAt(0).toUpperCase() + today.slice(1);
     if (filters.datePreset === 'today') return nice;
     if (filters.datePreset === 'tomorrow') return t('events.tomorrow', 'Mañana');
@@ -361,8 +362,8 @@ const CultureEventsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Agenda cultural de Málaga — Qué hacer hoy y los próximos días"
-        description="Agenda cultural en Málaga: conciertos, teatro, exposiciones y festivales para hoy, mañana, este finde y los próximos 30 días."
+        title={t('seo.events.title')}
+        description={t('seo.events.description')}
         path="/events"
         jsonLd={
           displayedEvents && displayedEvents.length > 0

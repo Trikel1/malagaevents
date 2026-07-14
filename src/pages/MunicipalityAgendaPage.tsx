@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, ExternalLink, CalendarX2, Compass } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMunicipalityBySlug, useMunicipalities } from '@/hooks/useMunicipalities';
@@ -259,6 +260,8 @@ const MunicipalityAgendaPage = () => {
  * link on top of the standard EventCard, without altering the shared card.
  */
 const EventCardWithVerified = ({ event }: { event: Event & { verified_at?: string | null; lifecycle_status?: string | null } }) => {
+  const { t, i18n } = useTranslation();
+  const locale = getDateLocale(i18n.language);
   const verifiedAt = (event as Event & { verified_at?: string | null }).verified_at;
   const lifecycle = (event as Event & { lifecycle_status?: string | null }).lifecycle_status;
   return (
@@ -269,7 +272,7 @@ const EventCardWithVerified = ({ event }: { event: Event & { verified_at?: strin
           {lifecycle && <LifecycleStatusBadge status={lifecycle as never} />}
           {verifiedAt && (
             <span className="text-[10px] text-muted-foreground">
-              Verificado {formatDistanceToNow(new Date(verifiedAt), { addSuffix: true, locale: es })}
+              {t('events.verifiedAt', 'Verificado')} {formatDistanceToNow(new Date(verifiedAt), { addSuffix: true, locale })}
             </span>
           )}
         </div>
@@ -279,9 +282,9 @@ const EventCardWithVerified = ({ event }: { event: Event & { verified_at?: strin
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"
-            aria-label="Ver en la fuente original"
+            aria-label={t('events.viewOnSource', 'Ver en la fuente original')}
           >
-            Fuente <ExternalLink className="h-3 w-3" />
+            {t('events.source', 'Fuente')} <ExternalLink className="h-3 w-3" />
           </a>
         )}
       </div>

@@ -119,7 +119,7 @@ const EventDetailPage = () => {
   }
 
   const showTime = hasExplicitTime(event.start_at);
-  const formattedDate = format(new Date(event.start_at), "EEEE d 'de' MMMM", { locale });
+  const formattedDate = format(new Date(event.start_at), 'PPPP', { locale });
   const formattedTime = showTime
     ? format(new Date(event.start_at), 'HH:mm', { locale })
     : t('events.timeTBC', 'Hora por confirmar');

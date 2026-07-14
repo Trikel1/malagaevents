@@ -60,8 +60,8 @@ const TicketsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Mis entradas — MalagaEvents"
-        description="Tus entradas guardadas para eventos en Málaga. Accede rápidamente a códigos QR y detalles de tus tickets."
+        title={t('seo.tickets.title')}
+        description={t('seo.tickets.description')}
         path="/tickets"
         noindex
       />

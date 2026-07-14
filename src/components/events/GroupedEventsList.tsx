@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
+import type { Locale } from 'date-fns';
 import EventCard from '@/components/events/EventCard';
 import type { Event } from '@/types';
 
@@ -31,7 +32,8 @@ const GroupedEventsList = ({
   isFavorite,
   onToggleFavorite,
 }: GroupedEventsListProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = getDateLocale(i18n.language);
 
   const buckets = useMemo<Bucket[]>(() => {
     const map = new Map<string, Bucket>();
@@ -43,7 +45,7 @@ const GroupedEventsList = ({
       if (!bucket) {
         bucket = {
           key,
-          label: labelFor(d, t),
+          label: labelFor(d, t, locale),
           date: new Date(d.getFullYear(), d.getMonth(), d.getDate()),
           items: [],
         };
@@ -52,7 +54,7 @@ const GroupedEventsList = ({
       bucket.items.push(event);
     }
     return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [events, t]);
+  }, [events, t, locale]);
 
   return (
     <div className="space-y-6">
@@ -92,10 +94,10 @@ const GroupedEventsList = ({
   );
 };
 
-function labelFor(d: Date, t: TFunction): string {
+function labelFor(d: Date, t: TFunction, locale: Locale): string {
   if (isToday(d)) return t('events.today', 'Hoy');
   if (isTomorrow(d)) return t('events.tomorrow', 'Mañana');
-  const label = format(d, "EEE d 'de' MMM", { locale: es });
+  const label = format(d, 'EEE d MMM', { locale });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 

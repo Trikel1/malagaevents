@@ -54,8 +54,8 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Mi perfil — MalagaEvents"
-        description="Gestiona tu cuenta, idioma, tema visual y preferencias en MalagaEvents."
+        title={t('seo.profile.title')}
+        description={t('seo.profile.description')}
         path="/profile"
         noindex
       />

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/common/SEO';
 
 const ResetPasswordPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [ready, setReady] = useState(false);
@@ -55,7 +57,7 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO title="Restablecer contraseña — MalagaEvents" description="Elige una nueva contraseña para tu cuenta." path="/auth/reset" noindex />
+      <SEO title={t('seo.reset.title')} description={t('seo.reset.description')} path="/auth/reset" noindex />
       <header className="p-4 flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/auth')}>
           <ArrowLeft className="h-5 w-5" />
