@@ -223,7 +223,7 @@ const Index = () => {
                     {t('home.sports.subtitle')}
                   </p>
                   <Button
-                    onClick={() => setAppMode('deportes')}
+                    onClick={() => navigate('/sports')}
                     className="mt-4 min-h-[44px] px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     {t('home.sports.cta')} <ChevronRight className="h-4 w-4 ml-1" />
