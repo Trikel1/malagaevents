@@ -19,15 +19,17 @@ import SportsEventsPage from '@/components/sports/SportsEventsPage';
 const wrap = (ui: React.ReactNode) => {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={qc}>
-      <I18nextProvider i18n={i18n}>
-        <MemoryRouter initialEntries={['/sports']}>
-          <Routes>
-            <Route path="/sports" element={ui} />
-          </Routes>
-        </MemoryRouter>
-      </I18nextProvider>
-    </QueryClientProvider>,
+    <HelmetProvider>
+      <QueryClientProvider client={qc}>
+        <I18nextProvider i18n={i18n}>
+          <MemoryRouter initialEntries={['/sports']}>
+            <Routes>
+              <Route path="/sports" element={ui} />
+            </Routes>
+          </MemoryRouter>
+        </I18nextProvider>
+      </QueryClientProvider>
+    </HelmetProvider>,
   );
 };
 
