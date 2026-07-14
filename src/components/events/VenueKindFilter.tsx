@@ -324,7 +324,9 @@ export function VenueKindFilter({
       ? t('events.venuesTitle2', 'Recintos')
       : openKind === 'salas'
         ? t('events.venueKind.hallsTitle', 'Salas')
-        : t('events.venueKind.theatersTitle', 'Teatros y auditorios')
+        : openKind === 'teatros'
+          ? t('events.venueKind.theatersTitle', 'Teatros y auditorios')
+          : t('events.venueKind.outdoorsTitle', 'Recintos y exteriores')
     : '';
 
   const applyLabel = (() => {
@@ -337,6 +339,8 @@ export function VenueKindFilter({
     // Empty draft → contextual "Mostrar all X"
     if (openKind === 'salas') return t('events.showAllHalls', 'Mostrar todas las salas');
     if (openKind === 'teatros') return t('events.showAllTheaters', 'Mostrar todos los teatros');
+    if (openKind === 'recintos')
+      return t('events.showAllOutdoors', 'Mostrar recintos y exteriores');
     return t('events.showAll', 'Mostrar todo');
   })();
 
