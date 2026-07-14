@@ -378,6 +378,7 @@ const EventImage = ({
   eventType,
   category,
 }: EventImageProps) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [unsplashError, setUnsplashError] = useState(false);
@@ -385,6 +386,7 @@ const EventImage = ({
   
   // Determine the event type for fallback styling
   const resolvedEventType: EventType = eventType || getEventTypeFromCategory(category);
+
 
   const finalAspectRatio = aspectRatio || ASPECT_RATIOS[variant];
   const isCompact = variant === 'compact';
