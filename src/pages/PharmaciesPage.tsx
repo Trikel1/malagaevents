@@ -446,10 +446,14 @@ const PharmaciesPage = () => {
         </div>
 
         {/* On-duty section */}
-        <section>
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-semibold">
+        <section aria-labelledby="on-duty-heading">
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <h2 id="on-duty-heading" className="text-base font-semibold flex items-center gap-2">
+              <Clock className="h-4 w-4 text-emerald-600" aria-hidden />
               {t('pharmacies.onDutyTitle', 'Farmacias de guardia')}
+              <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
+                {t('pharmacies.officialLabel', 'Oficial')}
+              </Badge>
             </h2>
             <span className="text-xs text-muted-foreground">
               {isToday
@@ -457,6 +461,7 @@ const PharmaciesPage = () => {
                 : `${t('pharmacies.guardDate', 'Guardia el')} ${formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}`}
             </span>
           </div>
+
 
           {isLoadingDuty ? (
             <div className="space-y-2">
