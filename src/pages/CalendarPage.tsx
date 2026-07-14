@@ -413,9 +413,11 @@ const CalendarPage = () => {
                     {format(selectedDate, 'PPPP', { locale })}
                   </h2>
                   <span className="text-xs text-muted-foreground">
-                    {(appMode === 'deportes' ? selectedDaySportEvents.length : selectedDayOccurrences.length)}{' '}
-                    {t('calendar.eventsShort', 'eventos')}
+                    {t('calendar.eventCount', {
+                      count: appMode === 'deportes' ? selectedDaySportEvents.length : selectedDayOccurrences.length,
+                    })}
                   </span>
+
                 </div>
                 {appMode === 'deportes' ? (
                   sportsLoading ? (
