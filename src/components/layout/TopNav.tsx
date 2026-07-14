@@ -65,7 +65,7 @@ const TopNav = () => {
         </nav>
 
         <div className="flex items-center gap-1">
-          <ThemeToggle />
+          <ThemeToggle variant="nav" />
           <LanguageSelector variant="compact" />
         </div>
       </div>
