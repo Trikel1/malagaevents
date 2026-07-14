@@ -1,14 +1,9 @@
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 import { Monitor, Sun, Moon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { SimpleSelect, type SimpleSelectOption } from '@/components/ui/adaptive';
 
 const themes = [
   { value: 'system', labelKey: 'theme.system', icon: Monitor },
@@ -39,44 +34,40 @@ export function ThemeToggle({ variant = 'hero', className }: ThemeToggleProps = 
     className ?? '',
   ].join(' ');
 
-  if (!mounted) {
-    return (
-      <Button variant="ghost" size="icon" className={btnClass}>
-        <Sun className="h-4 w-4" />
-      </Button>
-    );
-  }
+  const CurrentIcon = mounted
+    ? resolvedTheme === 'dark'
+      ? Moon
+      : Sun
+    : Sun;
 
-  const CurrentIcon = resolvedTheme === 'dark' ? Moon : Sun;
+  const ariaLabel = t('theme.toggle', 'Cambiar tema');
+
+  const options: SimpleSelectOption<string>[] = themes.map(({ value, labelKey, icon: Icon }) => ({
+    value,
+    label: t(labelKey),
+    leading: <Icon className="h-4 w-4" aria-hidden="true" />,
+  }));
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <SimpleSelect
+      value={theme ?? 'system'}
+      onValueChange={setTheme}
+      options={options}
+      title={ariaLabel}
+      ariaLabel={ariaLabel}
+      align="end"
+      trigger={({ open }) => (
         <Button
+          type="button"
           variant="ghost"
-          size="icon"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-label={ariaLabel}
           className={btnClass}
-          aria-label={t('theme.toggle', 'Cambiar tema')}
         >
-          <CurrentIcon className="h-4 w-4" />
+          <CurrentIcon className="h-4 w-4" aria-hidden="true" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-[140px]">
-        {themes.map((option) => {
-          const Icon = option.icon;
-          const isActive = theme === option.value;
-          return (
-            <DropdownMenuItem
-              key={option.value}
-              onClick={() => setTheme(option.value)}
-              className={isActive ? 'bg-accent' : ''}
-            >
-              <Icon className="mr-2 h-4 w-4" />
-              {t(option.labelKey)}
-            </DropdownMenuItem>
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      )}
+    />
   );
 }
