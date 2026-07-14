@@ -337,48 +337,68 @@ const SubmitEventPage = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="start_at">{t('submitEvent.startDate')} *</Label>
                   <Input
                     id="start_at"
                     type="datetime-local"
                     value={formData.start_at}
                     onChange={(e) => setFormData({ ...formData, start_at: e.target.value })}
-                    required
+                    onBlur={() => setFieldErrors((f) => ({ ...f, start_at: validate().start_at || '' }))}
+                    aria-invalid={!!fieldErrors.start_at}
+                    aria-describedby={fieldErrors.start_at ? 'start_at-error' : undefined}
+                    className="min-h-11"
                   />
+                  {fieldErrors.start_at && (
+                    <p id="start_at-error" role="alert" className="text-xs text-destructive">{fieldErrors.start_at}</p>
+                  )}
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="end_at">{t('submitEvent.endDate')}</Label>
                   <Input
                     id="end_at"
                     type="datetime-local"
                     value={formData.end_at}
                     onChange={(e) => setFormData({ ...formData, end_at: e.target.value })}
+                    className="min-h-11"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="venue_name">{t('submitEvent.venueName')} *</Label>
                 <Input
                   id="venue_name"
                   value={formData.venue_name}
                   onChange={(e) => setFormData({ ...formData, venue_name: e.target.value })}
-                  required
+                  onBlur={() => setFieldErrors((f) => ({ ...f, venue_name: validate().venue_name || '' }))}
+                  aria-invalid={!!fieldErrors.venue_name}
+                  aria-describedby={fieldErrors.venue_name ? 'venue_name-error' : undefined}
                   minLength={2}
+                  className="min-h-11"
                 />
+                {fieldErrors.venue_name && (
+                  <p id="venue_name-error" role="alert" className="text-xs text-destructive">{fieldErrors.venue_name}</p>
+                )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="address">{t('submitEvent.address')} *</Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  required
+                  onBlur={() => setFieldErrors((f) => ({ ...f, address: validate().address || '' }))}
+                  aria-invalid={!!fieldErrors.address}
+                  aria-describedby={fieldErrors.address ? 'address-error' : undefined}
                   minLength={5}
+                  className="min-h-11"
                 />
+                {fieldErrors.address && (
+                  <p id="address-error" role="alert" className="text-xs text-destructive">{fieldErrors.address}</p>
+                )}
               </div>
+
             </CardContent>
           </Card>
 
