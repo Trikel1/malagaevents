@@ -10,6 +10,8 @@ import { ThemeSelector } from '@/components/theme/ThemeSelector';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import SEO from '@/components/common/SEO';
+import { cn } from '@/lib/utils';
+
 
 const ProfilePage = () => {
   const { t } = useTranslation();
