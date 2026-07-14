@@ -31,7 +31,7 @@ import { getSportLabel, normalizeSportKey } from '@/lib/sports';
 
 const LANGS = ['es', 'en', 'de', 'fr', 'it', 'pt', 'ar', 'ja', 'zh', 'ru'] as const;
 type Lang = (typeof LANGS)[number];
-const RESOURCES: Record<Lang, unknown> = { es, en, de, fr, it, pt, ar, ja, zh, ru };
+const RESOURCES: Record<Lang, unknown> = { es, en, de, fr, it: itIT, pt, ar, ja, zh, ru };
 
 beforeEach(async () => {
   if (!i18n.isInitialized) {
