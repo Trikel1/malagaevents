@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAppMode } from '@/contexts/AppModeContext';
 import BottomNav from './BottomNav';
 import TopNav from './TopNav';
@@ -15,6 +15,12 @@ const MainLayout = () => {
   const { appMode } = useAppMode();
   const location = useLocation();
   const routeKey = useMemo(() => routeKeyFromPath(location.pathname), [location.pathname]);
+
+  // Restore scroll to top on real route change (ignore hash-only nav).
+  useEffect(() => {
+    if (location.hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
 
   return (
     <div
@@ -37,4 +43,3 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
-
