@@ -479,28 +479,71 @@ const PharmaciesPage = () => {
           )}
         </section>
 
-        {/* All pharmacies in locality */}
-        <section className="pt-2">
-          <h2 className="text-base font-semibold mb-2">
-            {t('pharmacies.allPharmaciesInLocation', 'Todas las farmacias en')} {municipality}
-          </h2>
+        {/* Separator to make the boundary between guardias and directorio unequivocal */}
+        <div role="separator" aria-hidden="true" className="h-px bg-border/70 my-3" />
+
+        {/* All pharmacies in locality — directorio informativo (sin badge oficial de guardia) */}
+        <section className="pt-1">
+          <div className="flex items-baseline justify-between mb-2 gap-3">
+            <h2 className="text-base font-semibold">
+              {t('pharmacies.allPharmaciesInLocation', 'Todas las farmacias en')} {municipality}
+            </h2>
+            {!isLoadingDir && dirPharmacies.length > 0 && (
+              <span className="text-xs text-muted-foreground" aria-live="polite" data-testid="pharmacy-dir-count">
+                {t('pharmacies.showingCount', {
+                  defaultValue: 'Mostrando {{shown}} de {{total}}',
+                  shown: visibleDirPharmacies.length,
+                  total: dirPharmacies.length,
+                })}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-muted-foreground mb-2">
+            {t(
+              'pharmacies.directoryDisclaimer',
+              'Listado informativo. La condición de guardia solo se muestra en la sección superior con datos oficiales.',
+            )}
+          </p>
 
           {isLoadingDir ? (
-            <div className="space-y-2">
+            <div className="space-y-2" aria-hidden="true">
               <PharmacyCardSkeleton />
               <PharmacyCardSkeleton />
               <PharmacyCardSkeleton />
             </div>
           ) : dirPharmacies.length > 0 ? (
-            <div className="space-y-2">
-              {dirPharmacies.map((p: any) => (
-                <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
-              ))}
-            </div>
+            <>
+              <div className="space-y-2" data-testid="pharmacy-dir-list">
+                {visibleDirPharmacies.map((p: any) => (
+                  <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
+                ))}
+              </div>
+              {hasMoreDir && (
+                <div className="mt-3 flex justify-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="min-h-11 px-6 rounded-full"
+                    onClick={() => setVisibleCount((c) => c + 24)}
+                    aria-label={t('pharmacies.showMoreAria', {
+                      defaultValue: 'Mostrar más farmacias ({{remaining}} pendientes)',
+                      remaining: dirPharmacies.length - visibleDirPharmacies.length,
+                    })}
+                    data-testid="pharmacy-show-more"
+                  >
+                    {t('pharmacies.showMore', 'Mostrar más')}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      +{Math.min(24, dirPharmacies.length - visibleDirPharmacies.length)}
+                    </span>
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <EmptyState
               icon={AlertTriangle}
               title={t('pharmacies.noPharmaciesFound', 'Sin resultados')}
+
               description={t(
                 'pharmacies.directoryEmpty',
                 'No hay farmacias listadas en esta localidad. Prueba con otra.'
