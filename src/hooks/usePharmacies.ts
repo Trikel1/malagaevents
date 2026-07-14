@@ -40,41 +40,9 @@ export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
 
       const { data, error } = await q;
       if (error) throw error;
-      const rows = (data || []) as (Pharmacy & { municipality?: string })[];
-      if (rows.length > 0 || !municipality) return rows;
-
-      // Fallback: pick rotating subset from directory for that municipality
-      const { data: dir } = await (supabase as any)
-        .from('pharmacies_directory')
-        .select('*')
-        .eq('municipality', municipality)
-        .order('name', { ascending: true });
-
-      const list = (dir ?? []) as any[];
-      if (list.length === 0) return [];
-
-      // deterministic pick by day-of-year
-      const dayIdx = Math.floor(
-        (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000
-      );
-      const take = Math.min(Math.max(1, Math.ceil(list.length / 7)), 5);
-      const start = dayIdx % list.length;
-      const picked: any[] = [];
-      for (let i = 0; i < take; i++) picked.push(list[(start + i) % list.length]);
-
-      return picked.map((p) => ({
-        id: `fallback-${p.id}`,
-        name: p.name,
-        address: p.address,
-        phone: p.phone ?? null,
-        lat: p.lat ?? null,
-        lng: p.lng ?? null,
-        municipality: p.municipality,
-        date_from: dateStr,
-        date_to: dateStr,
-        source_ref: 'fallback-rotation',
-        __fallback: true,
-      })) as any;
+      // Only return officially-sourced rows. If there are none for this date+municipality,
+      // return an empty list — never fabricate a duty rotation from the directory.
+      return (data || []) as (Pharmacy & { municipality?: string })[];
     },
   });
 };

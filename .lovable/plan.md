@@ -1,68 +1,73 @@
 ## Objetivo
 
-Cobertura i18n al 100% en los 9 idiomas soportados (ES/EN/DE/FR/IT/PT/RU/ZH/JA/AR) para todo el trabajo hecho hasta ahora, sin romper nada.
+Eliminar cualquier generación sintética de turnos de guardia de farmacias. La app solo debe mostrar guardias respaldadas por datos oficiales; si no hay datos, se muestra un aviso claro y no se inventan turnos.
 
-## Estado actual detectado
+Alcance: farmacias únicamente. No se tocan eventos, deportes, mapa, auth, i18n ni el esquema de base de datos.
 
-- ES y EN están al día (443 claves).
-- DE, FR, IT, PT, RU, ZH, JA, AR: faltan 11 claves de `map.*`.
-- Índice de textos aún hardcodeados en español (no cableados a `t()`):
-  - `src/pages/Index.tsx`: `DISCOVER_CARDS` (6 tarjetas), `INSTITUTIONAL_CARDS` (6 tarjetas), `QUICK_ACTIONS` (Hoy / Este finde / Infantil / Cerca / Familia / Gratis), placeholder del buscador, títulos de sección ("Descubre por categoría", "Nuestra ciudad", municipios, etc.).
-  - Otros archivos con literales sueltos que iré recorriendo con `rg` (VenueFilter, LocationFilter, FilterDrawer, admin panels menores).
+## Cambios por archivo
 
-## Plan de trabajo
+### 1. `supabase/functions/scrape-pharmacies/index.ts`
+- Eliminar la constante `FALLBACK_PHARMACIES`.
+- Eliminar la función `generateDutySchedule()`.
+- En el bloque de GUARDIA:
+  - Si Firecrawl + Jina+AI devuelven `< 5` farmacias con `duty_date` válida, **no** borrar las filas existentes de `pharmacies_guard` y **no** insertar nada.
+  - Devolver un JSON explícito: `success: true` (parcial), `source_status: "official_data_unavailable"`, `guardia_inserted: 0`, `guardia_scraped: 0`, `guardia_source: "none"`, más el resultado del directorio.
+  - Cuando sí haya datos, exigir `duty_date` explícita en cada fila (descartar las que no la traigan); solo entonces se procede al `delete` de filas futuras y al `insert` batch.
+- En el bloque de DIRECTORIO:
+  - Mantener el orden Overpass (OSM) → Firecrawl → Jina+AI.
+  - Eliminar el fallback final que usaba `FALLBACK_PHARMACIES` para poblar `pharmacies_directory`. Si todas las fuentes fallan, no insertar nada y reportar `directory_source: "none"`, `directory_upserted: 0`.
+- Añadir `source_status` al payload de respuesta en éxito y en fallo.
 
-### 1. Auditoría automática
-- Script `node`/`python` que recorre `src/**` y lista literales JSX en español no cubiertos por `t()`, agrupados por archivo. Se usa solo como guía interna, no se commitea.
+### 2. `src/hooks/usePharmacies.ts`
+- Eliminar el bloque de rotación determinista dentro de `usePharmaciesOnDuty` (todo el fallback que consulta `pharmacies_directory`, calcula `dayIdx`, genera `id: fallback-*` y `source_ref: 'fallback-rotation'`, y marca `__fallback: true`).
+- Si `pharmacies_guard` no devuelve filas para la fecha y municipio, devolver `[]` directamente.
+- `usePharmacyDirectory` y `usePharmacyMunicipalities` no cambian.
 
-### 2. Nuevas claves canónicas en ES y EN
-Añadir en `src/i18n/locales/es.json` y `en.json`, agrupadas por dominio:
+### 3. `src/pages/PharmaciesPage.tsx`
+- Quitar la lógica y el banner `dutyFallback` (`{dutyFallback && …}`) y todas las referencias a `__fallback` en la carta y en el sort.
+- Quitar la prop `fallback` de `PharmacyCard` (y su Badge ámbar). El badge se muestra en verde siempre, porque cualquier fila ya es oficial.
+- Reemplazar el mensaje vacío actual por:
+  > "No hay datos oficiales verificados de farmacias de guardia para esta fecha y localidad. Consulta la fuente oficial antes de desplazarte."
+  Traducible con clave `pharmacies.noOfficialData`.
+- La sección "Todas las farmacias en {municipio}" (directorio) sigue tal cual — sigue apoyándose en OSM y se mantiene visualmente separada.
 
+### 4. Pruebas (`src/test/pharmacies-no-fallback.test.ts` — nuevo)
+- Test unitario sobre `usePharmaciesOnDuty`: con `pharmacies_guard` vacío y `pharmacies_directory` con filas, el hook debe devolver `[]` (mock del cliente supabase).
+- Test que verifica que no se generan ids con prefijo `fallback-` ni `source_ref` con valor `fallback-rotation` bajo ninguna combinación.
+- Ejecutar `bunx vitest run` y la build.
+
+### 5. Diagnóstico previo (SOLO preparado, NO ejecutado)
+
+Se dejarán en la respuesta al usuario, sin lanzarlas contra la base:
+
+```sql
+-- (a) Turnos sintéticos ya guardados
+SELECT source_ref, COUNT(*) AS filas
+FROM public.pharmacies_guard
+WHERE source_ref IN ('fallback', 'fallback-rotation')
+GROUP BY source_ref;
+
+-- (b) Filas del directorio que coinciden con nombres de FALLBACK_PHARMACIES
+SELECT id, name, municipality, source_ref
+FROM public.pharmacies_directory
+WHERE name IN (
+  'Farmacia Alameda Principal','Farmacia Larios','Farmacia El Corte Inglés',
+  'Farmacia Huelin','Farmacia Teatinos','Farmacia Torremolinos Centro',
+  'Farmacia Benalmádena Pueblo','Farmacia Fuengirola Centro','Farmacia Marbella Centro',
+  'Farmacia Estepona','Farmacia Ronda','Farmacia Antequera','Farmacia Vélez-Málaga',
+  'Farmacia Nerja','Farmacia Coín','Farmacia Alhaurín de la Torre','Farmacia Mijas Costa',
+  'Farmacia Rincón de la Victoria','Farmacia Cártama','Farmacia Torrox'
+)
+ORDER BY municipality, name;
 ```
-home.hero.title
-home.hero.subtitle
-home.search.placeholder
-home.quickActions.today | weekend | family | nearby | kids | free
-home.discover.title
-home.discover.cards.music.{label,copy}
-home.discover.cards.theater.{label,copy}
-… (festivals, museums, markets, outdoor)
-home.institutional.title
-home.institutional.cards.agenda.{label,copy}
-… (family, pharmacies, map, province, sports)
-home.city.title
-home.city.zones.* / home.city.municipalities.*
-```
-(las claves de `events.upcomingHighlights`, `events.play`, `events.pause`, `events.today`, `events.tomorrow`, `common.free` ya existen).
 
-### 3. Cableado en componentes
-Sustituir literales por `t('...')` en:
-- `src/pages/Index.tsx` (bloque principal).
-- Cualquier otro archivo detectado por la auditoría con literales visibles al usuario final. No se toca lógica ni estilos.
-
-Los arrays de tarjetas se convierten en `useMemo` que resuelven `label`/`copy` con `t()` para no romper claves estables.
-
-### 4. Traducción a 8 idiomas restantes
-- Rellenar las mismas claves nuevas en DE, FR, IT, PT, RU, ZH, JA, AR.
-- Completar también las 11 claves `map.*` que faltan hoy.
-- Traducciones de calidad humana, no marcadores tipo `TODO`. Mantengo nombres propios (Málaga, Cervantes, Soho, Echegaray) sin traducir.
-
-### 5. QA
-- `tsgo` (typecheck) para asegurar que no queda `t('clave.inexistente')`.
-- Script de validación: para cada locale, contar claves y verificar 0 diffs respecto a ES.
-- Playwright rápido: abrir `/`, cambiar a EN, FR y AR, screenshot y comprobar visualmente que no aparece español residual ni claves crudas tipo `home.hero.title`.
+No se propone eliminación de datos hasta revisar el diagnóstico contigo.
 
 ## Fuera de alcance
+- No se tocan `events`, `sports_events`, mapas, tickets, auth, i18n global, ni migraciones de esquema.
+- No se elimina ninguna fila de base de datos en esta fase.
 
-- No se toca contenido dinámico proveniente de BD (títulos de eventos, venues, categorías): esos vienen normalizados por los adaptadores.
-- No se rediseña el selector de idioma ni la lógica de detección.
-- No se traducen las páginas de `/admin` (uso interno).
-- No se cambia la fuente ni el layout del hero (el logo ya está revertido).
-
-## Notas técnicas
-
-- Se respeta el patrón `t('clave', 'Fallback en español')` ya usado en el proyecto.
-- AR mantiene dirección RTL heredada del sistema; no se añade CSS nuevo.
-- Los tests existentes (`src/test/*`) no dependen de textos localizados, así que no requieren cambios.
-
-¿Confirmas y ejecuto?
+## Verificación
+- `bunx vitest run` (nuevo archivo de test verde).
+- Build limpio.
+- Reporte final con: archivos modificados, salida de tests, y las dos consultas SQL de diagnóstico listas para que las apruebes antes de un eventual borrado.
