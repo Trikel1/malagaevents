@@ -134,10 +134,45 @@ function IconTeatros({ className, size = 22 }: IconProps) {
   );
 }
 
+/** Palm trees + sun over horizon — "recintos y exteriores". */
+function IconRecintos({ className, size = 22 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      {/* sun */}
+      <circle cx="17" cy="7.5" r="2.4" fill="currentColor" stroke="none" opacity="0.9" />
+      {/* horizon / ground */}
+      <path d="M2.5 19 h19" />
+      {/* left palm */}
+      <path d="M8 19 V11.5" />
+      <path d="M8 11.5 c -2 -0.8 -3.6 -0.4 -4.8 1" opacity="0.9" />
+      <path d="M8 11.5 c -1.2 -1.6 -1.6 -3.2 -0.8 -5.2" opacity="0.9" />
+      <path d="M8 11.5 c 1.8 -1 3.4 -1 5 0" opacity="0.9" />
+      <path d="M8 11.5 c 0.6 -1.9 2 -3.1 4.2 -3.5" opacity="0.9" />
+      {/* right palm — shorter */}
+      <path d="M14.5 19 V14" />
+      <path d="M14.5 14 c -1.4 -0.6 -2.5 -0.3 -3.4 0.8" opacity="0.85" />
+      <path d="M14.5 14 c 1.4 -0.6 2.6 -0.3 3.6 0.7" opacity="0.85" />
+      <path d="M14.5 14 c -0.6 -1.4 -0.4 -2.6 0.6 -3.6" opacity="0.85" />
+    </svg>
+  );
+}
+
 const KIND_META: Record<Kind, { Icon: (p: IconProps) => JSX.Element; labelKey: string; labelFallback: string }> = {
   all: { Icon: IconTodo, labelKey: 'events.venueKind.all', labelFallback: 'Todo' },
   salas: { Icon: IconSalas, labelKey: 'events.venueKind.halls', labelFallback: 'Salas' },
   teatros: { Icon: IconTeatros, labelKey: 'events.venueKind.theaters', labelFallback: 'Teatros' },
+  recintos: { Icon: IconRecintos, labelKey: 'events.venueKind.outdoors', labelFallback: 'Recintos' },
 };
 
 // ────────────────────────────────────────────────────────────────────────────
