@@ -468,7 +468,7 @@ const CalendarPage = () => {
           <div className="space-y-4">
             {selectedDate && (
               <h3 className="font-semibold capitalize">
-                {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
+                {format(selectedDate, 'PPPP', { locale })}
               </h3>
             )}
             {appMode === 'deportes' ? (() => {
