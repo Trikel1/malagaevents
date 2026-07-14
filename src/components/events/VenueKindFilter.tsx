@@ -610,26 +610,17 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       title={label}
       aria-pressed={active}
       className={cn(
-        'group relative flex items-center justify-center h-14 w-full',
-        'rounded-2xl border transition-all duration-150',
-        'bg-gradient-to-b from-background/90 to-background/60 backdrop-blur-md',
-        'border-border/70 hover:border-primary/50 hover:shadow-sm',
+        'flex items-center justify-center h-14 w-full rounded-2xl border transition-all duration-150',
+        'bg-background/60 backdrop-blur-sm',
+        'border-border/60 hover:border-primary/50 hover:text-primary',
         'active:scale-[0.98] motion-reduce:active:scale-100',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-        active && 'border-primary/70 shadow-md ring-1 ring-primary/30',
+        active
+          ? 'border-primary text-primary bg-primary/5'
+          : 'text-muted-foreground',
       )}
     >
-      <span
-        className={cn(
-          'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
-          'bg-gradient-to-br from-primary/15 to-primary/5',
-          'text-primary transition-colors',
-          'group-hover:from-primary/25 group-hover:to-primary/10',
-          active && 'from-primary/30 to-primary/15',
-        )}
-      >
-        <Icon size={28} />
-      </span>
+      <Icon size={28} />
     </button>
   );
 }
