@@ -16,20 +16,33 @@ const themes = [
   { value: 'dark', labelKey: 'theme.dark', icon: Moon },
 ] as const;
 
-export function ThemeToggle() {
+export interface ThemeToggleProps {
+  variant?: 'hero' | 'nav';
+  className?: string;
+}
+
+export function ThemeToggle({ variant = 'hero', className }: ThemeToggleProps = {}) {
   const { t } = useTranslation();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const isHero = variant === 'hero';
+  const btnClass = [
+    'h-11 w-11 min-h-[44px] min-w-[44px] rounded-full',
+    isHero
+      ? 'bg-white/20 hover:bg-white/30 text-white'
+      : 'bg-muted hover:bg-muted/80 text-foreground',
+    className ?? '',
+  ].join(' ');
+
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-white/20 hover:bg-white/30">
-        <Sun className="h-4 w-4 text-white" />
+      <Button variant="ghost" size="icon" className={btnClass}>
+        <Sun className="h-4 w-4" />
       </Button>
     );
   }
@@ -39,20 +52,19 @@ export function ThemeToggle() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-9 w-9 rounded-full bg-white/20 hover:bg-white/30"
+        <Button
+          variant="ghost"
+          size="icon"
+          className={btnClass}
           aria-label={t('theme.toggle', 'Cambiar tema')}
         >
-          <CurrentIcon className="h-4 w-4 text-white" />
+          <CurrentIcon className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px]">
         {themes.map((option) => {
           const Icon = option.icon;
           const isActive = theme === option.value;
-          
           return (
             <DropdownMenuItem
               key={option.value}
