@@ -531,7 +531,9 @@
     "savePreferences": "保存偏好设置",
     "loginRequired": "登录以访问",
     "loginRequiredDesc": "您需要一个账户才能使用此功能",
-    "guestTitle": "访客"
+    "guestTitle": "访客",
+    "user": "用户",
+    "adminPanel": "管理面板"
   },
   "theme": {
     "system": "系统",

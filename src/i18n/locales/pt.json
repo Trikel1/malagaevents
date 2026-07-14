@@ -531,7 +531,9 @@
     "savePreferences": "Guardar preferências",
     "loginRequired": "Inicie sessão para aceder",
     "loginRequiredDesc": "Precisa de uma conta para usar esta funcionalidade",
-    "guestTitle": "Convidado"
+    "guestTitle": "Convidado",
+    "user": "Utilizador",
+    "adminPanel": "Painel de administração"
   },
   "theme": {
     "system": "Sistema",

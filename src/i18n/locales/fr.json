@@ -531,7 +531,9 @@
     "savePreferences": "Enregistrer les préférences",
     "loginRequired": "Connectez-vous pour y accéder",
     "loginRequiredDesc": "Vous avez besoin d'un compte pour utiliser cette fonctionnalité.",
-    "guestTitle": "Invité"
+    "guestTitle": "Invité",
+    "user": "Utilisateur",
+    "adminPanel": "Panneau d'administration"
   },
   "theme": {
     "system": "Système",

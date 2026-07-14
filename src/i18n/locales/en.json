@@ -531,7 +531,9 @@
     "savePreferences": "Save preferences",
     "loginRequired": "Login required",
     "loginRequiredDesc": "You need an account to use this feature",
-    "guestTitle": "Guest"
+    "guestTitle": "Guest",
+    "user": "User",
+    "adminPanel": "Admin panel"
   },
   "theme": {
     "system": "System",

@@ -531,7 +531,9 @@
     "savePreferences": "حفظ التفضيلات",
     "loginRequired": "يتطلب تسجيل الدخول للوصول",
     "loginRequiredDesc": "تحتاج إلى حساب لاستخدام هذه الميزة",
-    "guestTitle": "زائر"
+    "guestTitle": "زائر",
+    "user": "مستخدم",
+    "adminPanel": "لوحة الإدارة"
   },
   "theme": {
     "system": "النظام",

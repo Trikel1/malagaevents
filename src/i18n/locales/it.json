@@ -531,7 +531,9 @@
     "savePreferences": "Salva preferenze",
     "loginRequired": "Accedi per continuare",
     "loginRequiredDesc": "È necessario un account per usare questa funzione",
-    "guestTitle": "Ospite"
+    "guestTitle": "Ospite",
+    "user": "Utente",
+    "adminPanel": "Pannello di amministrazione"
   },
   "theme": {
     "system": "Sistema",
