@@ -24,9 +24,10 @@ interface EventCardProps {
   compact?: boolean;
   dense?: boolean;
   priority?: boolean;
+  variant?: 'default' | 'dense' | 'compact' | 'home';
 }
 
-const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority }, ref) => {
+const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority, variant }, ref) => {
   const { t, i18n } = useTranslation();
   const locale = locales[i18n.language] || es;
 
