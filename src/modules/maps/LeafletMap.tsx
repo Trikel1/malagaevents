@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import type { MapMarker } from './types';
+
 
 interface LeafletMapProps {
   markers: MapMarker[];
@@ -19,16 +23,17 @@ const MALAGA_CENTER = { lat: 36.7213, lng: -4.4214 };
 const buildPinIcon = (color: string) =>
   L.divIcon({
     className: '',
-    html: `<div style="position:relative;width:28px;height:36px;transform:translate(-14px,-36px);">
-      <svg viewBox="0 0 28 36" width="28" height="36" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));">
+    html: `<div style="position:relative;width:44px;height:52px;display:flex;align-items:flex-start;justify-content:center;">
+      <svg viewBox="0 0 28 36" width="32" height="41" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,.35));margin-top:5px;">
         <path d="M14 0C6.27 0 0 6.27 0 14c0 9.5 12.4 21 13 21.5.3.3.7.3 1 0 .6-.5 14-12 14-21.5C28 6.27 21.73 0 14 0z" fill="${color}"/>
         <circle cx="14" cy="14" r="5.5" fill="#ffffff"/>
       </svg>
     </div>`,
-    iconSize: [28, 36],
-    iconAnchor: [14, 36],
-    popupAnchor: [0, -32],
+    iconSize: [44, 52],
+    iconAnchor: [22, 46],
+    popupAnchor: [0, -42],
   });
+
 
 const KIND_COLORS: Record<string, string> = {
   event: 'hsl(173, 80%, 38%)',
@@ -64,7 +69,7 @@ export const LeafletMap = ({
 }: LeafletMapProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const layerRef = useRef<L.LayerGroup | null>(null);
+  const layerRef = useRef<any>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
 
   // Init map once
@@ -85,7 +90,14 @@ export const LeafletMap = ({
       }
     ).addTo(map);
     L.control.zoom({ position: 'topright' }).addTo(map);
-    layerRef.current = L.layerGroup().addTo(map);
+    layerRef.current = (L as any).markerClusterGroup({
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      disableClusteringAtZoom: 17,
+      maxClusterRadius: 50,
+    });
+    map.addLayer(layerRef.current);
+
     mapRef.current = map;
 
     map.on('moveend', () => {
