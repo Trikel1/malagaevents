@@ -19,7 +19,7 @@ import es from '@/i18n/locales/es.json';
 import en from '@/i18n/locales/en.json';
 import de from '@/i18n/locales/de.json';
 import fr from '@/i18n/locales/fr.json';
-import it from '@/i18n/locales/it.json';
+import itIT from '@/i18n/locales/it.json';
 import pt from '@/i18n/locales/pt.json';
 import ar from '@/i18n/locales/ar.json';
 import ja from '@/i18n/locales/ja.json';
