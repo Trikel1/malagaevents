@@ -447,7 +447,7 @@ const MapPage = () => {
       )}
 
       <MarkerSheet marker={selected} onClose={() => setSelected(null)} />
-    </div>
+    </main>
   );
 };
 
