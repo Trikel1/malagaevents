@@ -400,10 +400,11 @@ const CultureEventsPage = () => {
                 <span className="tabular-nums">
                   {isLoadingEvents ? '…' : totalCount}
                 </span>{' '}
-                {totalCount === 1
-                  ? t('events.eventSingular', 'evento')
-                  : t('events.eventPlural', 'eventos')}
+                {isLoadingEvents
+                  ? t('events.eventCount', { count: 0 }).replace(/^\d+\s*/, '').trim()
+                  : t('events.eventCount', { count: totalCount }).replace(/^\d+\s*/, '').trim()}
               </p>
+
             </div>
           </div>
 
