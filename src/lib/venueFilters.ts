@@ -68,6 +68,7 @@ export function kindToCategory(
     case 'teatro':
       return 'teatros';
     case 'sala':
+    case 'live_music_bar':
       return 'salas';
     case 'museo':
       return 'museos';
@@ -116,37 +117,93 @@ export function mergeVenues(dbVenues: Venue[]): MergedVenue[] {
   }
 
   // Overlay DB venues.
-  for (const v of dbVenues as Array<Venue & { is_featured?: boolean }>) {
+  for (const v of dbVenues as Array<
+    Venue & {
+      is_featured?: boolean;
+      status?: string | null;
+      is_publicly_visible?: boolean | null;
+      canonical_venue_id?: string | null;
+      former_names?: string[] | null;
+      short_name?: string | null;
+      venue_type?: string | null;
+    }
+  >) {
     if (!v?.name) continue;
     const lower = v.name.toLowerCase();
     if (lower.includes('sin sala')) continue;
     // Reject obvious noise (addresses / broken names)
     if (/^[¿?¡!]/.test(v.name.trim())) continue;
     if (/^(c\/|avda\.|calle |avenida |plaza de |paseo )/i.test(v.name.trim())) continue;
+    // Hide venues explicitly marked non-public, closed, renamed, inactive, or pending.
+    const status = (v.status ?? 'active').toString();
+    const publiclyVisible = v.is_publicly_visible !== false;
+    const hiddenStatuses = new Set(['closed', 'renamed', 'inactive', 'pending_verification']);
+    if (!publiclyVisible || hiddenStatuses.has(status)) continue;
+    // If this is a duplicate that points to a canonical venue, hide it (canonical is shown instead).
+    if (v.canonical_venue_id) continue;
 
     const city = v.city ?? 'Málaga';
     const key = `${normalize(v.name)}|${normalize(city)}`;
+
+    const former = (v.former_names ?? []).map(normalize).filter(Boolean);
 
     const existing = map.get(key);
     if (existing) {
       // DB match found → this venue has real events.
       existing.id = v.id;
       existing.hasEvents = true;
-      existing.searchTokens.push(normalize(v.name), v.normalized_name || '');
-    } else if (v.is_featured) {
-      // Only surface non-catalog DB venues if they're curated (is_featured).
-      const zone: VenueZone = isMalagaCity(v.city) ? 'malaga-ciudad' : 'costa-occidental';
-      map.set(key, {
-        id: v.id,
-        slug: v.normalized_name || normalize(v.name),
-        name: v.name,
-        city: v.city || 'Málaga',
-        zone,
-        kind: 'espacio',
-        extraKinds: [],
-        hasEvents: true,
-        searchTokens: [normalize(v.name), normalize(v.city || ''), v.normalized_name || ''],
-      });
+      existing.searchTokens.push(normalize(v.name), v.normalized_name || '', ...former);
+    } else {
+      // Try to match by former_names against catalog names (e.g. Velvet → Sala Core).
+      let mergedInto: MergedVenue | null = null;
+      if (former.length > 0) {
+        for (const entry of map.values()) {
+          if (former.some((f) => entry.searchTokens.includes(f))) {
+            mergedInto = entry;
+            break;
+          }
+        }
+      }
+      if (mergedInto) {
+        mergedInto.id = v.id;
+        mergedInto.hasEvents = true;
+        mergedInto.searchTokens.push(normalize(v.name), v.normalized_name || '', ...former);
+      } else if (v.is_featured) {
+        // Only surface non-catalog DB venues if they're curated (is_featured).
+        const zone: VenueZone = isMalagaCity(v.city) ? 'malaga-ciudad' : 'costa-occidental';
+        // Map DB venue_type → catalog kind (best effort).
+        const dbType = (v.venue_type ?? '').toString();
+        const kind: VenueKind =
+          dbType === 'theater'
+            ? 'teatro'
+            : dbType === 'concert_hall'
+              ? 'sala'
+              : dbType === 'live_music_bar'
+                ? 'live_music_bar'
+                : dbType === 'multidisciplinary_venue'
+                  ? 'espacio'
+                  : dbType === 'large_event_venue'
+                    ? 'ferial'
+                    : dbType === 'seasonal_outdoor'
+                      ? 'exterior'
+                      : 'espacio';
+        map.set(key, {
+          id: v.id,
+          slug: v.normalized_name || normalize(v.name),
+          name: v.name,
+          city: v.city || 'Málaga',
+          zone,
+          kind,
+          extraKinds: [],
+          hasEvents: true,
+          searchTokens: [
+            normalize(v.name),
+            normalize(v.city || ''),
+            v.normalized_name || '',
+            ...former,
+          ],
+        });
+      }
     }
   }
 
@@ -207,6 +264,7 @@ export function filterMerged(all: MergedVenue[], opts: FilterOptions): MergedVen
 export type CapitalGroupKey =
   | 'teatros-auditorios'
   | 'salas'
+  | 'bares-musica'
   | 'centros-culturales'
   | 'museos'
   | 'recintos-exteriores'
@@ -221,9 +279,11 @@ export interface CapitalGroupDef {
 
 export const CAPITAL_GROUPS: CapitalGroupDef[] = [
   { key: 'teatros-auditorios', label: 'Teatros y auditorios', kinds: ['teatro', 'auditorio'] },
-  { key: 'salas', label: 'Salas y música en vivo', kinds: ['sala', 'espacio'] },
+  { key: 'salas', label: 'Salas de conciertos', kinds: ['sala'] },
+  { key: 'bares-musica', label: 'Bares con música en directo', kinds: ['live_music_bar'] },
+  { key: 'centros-culturales', label: 'Espacios culturales', kinds: ['espacio'] },
   { key: 'museos', label: 'Museos', kinds: ['museo'] },
-  { key: 'recintos-exteriores', label: 'Recintos y exteriores', kinds: ['exterior', 'ferial'] },
+  { key: 'recintos-exteriores', label: 'Grandes recintos y exteriores', kinds: ['exterior', 'ferial'] },
   { key: 'festivales', label: 'Festivales y grandes citas', kinds: ['festival'] },
 ];
 
@@ -271,6 +331,7 @@ export function groupIntoSections(list: MergedVenue[], category: VenueCategory):
       'teatro',
       'auditorio',
       'sala',
+      'live_music_bar',
       'museo',
       'espacio',
       'ferial',

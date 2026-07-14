@@ -1496,10 +1496,17 @@ export type Database = {
         Row: {
           accessibility_data: Json | null
           address: string | null
+          canonical_venue_id: string | null
           city: string | null
           created_at: string
+          events_frequency: string | null
+          former_names: string[]
           id: string
+          instagram_handle: string | null
+          instagram_url: string | null
           is_featured: boolean | null
+          is_publicly_visible: boolean
+          last_verified_at: string | null
           lat: number | null
           lng: number | null
           locality_or_district: string | null
@@ -1507,16 +1514,27 @@ export type Database = {
           name: string
           normalized_name: string
           official_url: string | null
+          primary_source_type: string | null
+          short_name: string | null
+          status: string
           venue_type: string | null
+          verification_confidence: string | null
           website: string | null
         }
         Insert: {
           accessibility_data?: Json | null
           address?: string | null
+          canonical_venue_id?: string | null
           city?: string | null
           created_at?: string
+          events_frequency?: string | null
+          former_names?: string[]
           id?: string
+          instagram_handle?: string | null
+          instagram_url?: string | null
           is_featured?: boolean | null
+          is_publicly_visible?: boolean
+          last_verified_at?: string | null
           lat?: number | null
           lng?: number | null
           locality_or_district?: string | null
@@ -1524,16 +1542,27 @@ export type Database = {
           name: string
           normalized_name: string
           official_url?: string | null
+          primary_source_type?: string | null
+          short_name?: string | null
+          status?: string
           venue_type?: string | null
+          verification_confidence?: string | null
           website?: string | null
         }
         Update: {
           accessibility_data?: Json | null
           address?: string | null
+          canonical_venue_id?: string | null
           city?: string | null
           created_at?: string
+          events_frequency?: string | null
+          former_names?: string[]
           id?: string
+          instagram_handle?: string | null
+          instagram_url?: string | null
           is_featured?: boolean | null
+          is_publicly_visible?: boolean
+          last_verified_at?: string | null
           lat?: number | null
           lng?: number | null
           locality_or_district?: string | null
@@ -1541,10 +1570,21 @@ export type Database = {
           name?: string
           normalized_name?: string
           official_url?: string | null
+          primary_source_type?: string | null
+          short_name?: string | null
+          status?: string
           venue_type?: string | null
+          verification_confidence?: string | null
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "venues_canonical_venue_id_fkey"
+            columns: ["canonical_venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "venues_municipality_id_fkey"
             columns: ["municipality_id"]
