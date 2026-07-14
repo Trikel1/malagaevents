@@ -146,6 +146,8 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'igualeja', name: 'Igualeja', zone: 'serrania-ronda' },
   { slug: 'gaucin', name: 'Gaucín', zone: 'serrania-ronda', aliases: ['gaucin'] },
   { slug: 'cortes-de-la-frontera', name: 'Cortes de la Frontera', zone: 'serrania-ronda' },
+  { slug: 'benarraba', name: 'Benarrabá', zone: 'serrania-ronda', aliases: ['benarraba'] },
+  { slug: 'montecorto', name: 'Montecorto', zone: 'serrania-ronda' },
 
   // Guadalteba e interior
   { slug: 'ardales', name: 'Ardales', zone: 'guadalteba' },
