@@ -48,29 +48,10 @@ const DIRECTORY_SCHEMA = {
   required: ['pharmacies'],
 };
 
-// Fallback pharmacies data for Málaga province
-const FALLBACK_PHARMACIES = [
-  { name: 'Farmacia Alameda Principal', address: 'Alameda Principal, 9, 29001 Málaga', municipality: 'Málaga', phone: '952 21 24 45', lat: 36.7196, lng: -4.4214 },
-  { name: 'Farmacia Larios', address: 'C/ Marqués de Larios, 3, 29005 Málaga', municipality: 'Málaga', phone: '952 22 14 56', lat: 36.7212, lng: -4.4236 },
-  { name: 'Farmacia El Corte Inglés', address: 'Av. de Andalucía, 4, 29007 Málaga', municipality: 'Málaga', phone: '952 30 00 00', lat: 36.7146, lng: -4.4312 },
-  { name: 'Farmacia Huelin', address: 'Paseo Antonio Machado, 12, 29002 Málaga', municipality: 'Málaga', phone: '952 35 12 67', lat: 36.7098, lng: -4.4456 },
-  { name: 'Farmacia Teatinos', address: 'Av. de Plutarco, 15, 29010 Málaga', municipality: 'Málaga', phone: '952 61 45 23', lat: 36.7156, lng: -4.4678 },
-  { name: 'Farmacia Torremolinos Centro', address: 'C/ San Miguel, 22, 29620 Torremolinos', municipality: 'Torremolinos', phone: '952 38 12 34' },
-  { name: 'Farmacia Benalmádena Pueblo', address: 'Av. Juan Luis Peralta, 5, 29639 Benalmádena', municipality: 'Benalmádena', phone: '952 44 56 78' },
-  { name: 'Farmacia Fuengirola Centro', address: 'Av. Ramón y Cajal, 8, 29640 Fuengirola', municipality: 'Fuengirola', phone: '952 47 89 01' },
-  { name: 'Farmacia Marbella Centro', address: 'Av. Ricardo Soriano, 15, 29601 Marbella', municipality: 'Marbella', phone: '952 77 23 45' },
-  { name: 'Farmacia Estepona', address: 'Av. España, 30, 29680 Estepona', municipality: 'Estepona', phone: '952 80 12 34' },
-  { name: 'Farmacia Ronda', address: 'C/ Virgen de la Paz, 10, 29400 Ronda', municipality: 'Ronda', phone: '952 87 45 67' },
-  { name: 'Farmacia Antequera', address: 'C/ Infante Don Fernando, 25, 29200 Antequera', municipality: 'Antequera', phone: '952 84 23 45' },
-  { name: 'Farmacia Vélez-Málaga', address: 'C/ Canalejas, 12, 29700 Vélez-Málaga', municipality: 'Vélez-Málaga', phone: '952 50 34 56' },
-  { name: 'Farmacia Nerja', address: 'C/ Pintada, 8, 29780 Nerja', municipality: 'Nerja', phone: '952 52 12 34' },
-  { name: 'Farmacia Coín', address: 'C/ Real, 15, 29100 Coín', municipality: 'Coín', phone: '952 45 67 89' },
-  { name: 'Farmacia Alhaurín de la Torre', address: 'C/ Real, 20, 29130 Alhaurín de la Torre', municipality: 'Alhaurín de la Torre', phone: '952 41 23 45' },
-  { name: 'Farmacia Mijas Costa', address: 'Av. de las Palmeras, 5, 29651 Mijas Costa', municipality: 'Mijas', phone: '952 58 34 56' },
-  { name: 'Farmacia Rincón de la Victoria', address: 'Av. del Mediterráneo, 18, 29730 Rincón de la Victoria', municipality: 'Rincón de la Victoria', phone: '952 40 12 34' },
-  { name: 'Farmacia Cártama', address: 'Av. de la Estación, 3, 29570 Cártama', municipality: 'Cártama', phone: '952 42 56 78' },
-  { name: 'Farmacia Torrox', address: 'C/ Alta, 7, 29770 Torrox', municipality: 'Torrox', phone: '952 53 89 01' },
-];
+// NOTE: A hard-coded FALLBACK_PHARMACIES list previously existed here and was used to
+// synthesize duty rotations when official sources failed. It has been removed on purpose:
+// a citizen-facing app must never present invented or estimated pharmacy guard shifts.
+
 
 function normalizeText(text: string): string {
   return text
