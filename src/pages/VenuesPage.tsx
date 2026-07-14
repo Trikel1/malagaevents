@@ -11,6 +11,8 @@ import { SPORT_CATEGORIES, type SportCategory } from '@/types/sports';
 import SportIcon from '@/components/sports/SportIcon';
 import { Trophy } from 'lucide-react';
 import SEO from '@/components/common/SEO';
+import PageHero from '@/components/common/PageHero';
+import { getSportLabel } from '@/lib/sports';
 
 const VenuesPage = () => {
   const { t } = useTranslation();
