@@ -92,6 +92,7 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
 
   // Valle del Guadalhorce
   { slug: 'alhaurin-de-la-torre', name: 'Alhaurín de la Torre', zone: 'guadalhorce', aliases: ['alhaurin-de-la-torre'], priority: 85 },
+  { slug: 'almogia', name: 'Almogía', zone: 'guadalhorce', aliases: ['almogia'] },
   { slug: 'alhaurin-el-grande', name: 'Alhaurín el Grande', zone: 'guadalhorce', aliases: ['alhaurin-el-grande'] },
   { slug: 'coin', name: 'Coín', zone: 'guadalhorce', aliases: ['coin'], priority: 85 },
   { slug: 'cartama', name: 'Cártama', zone: 'guadalhorce', aliases: ['cartama'] },
