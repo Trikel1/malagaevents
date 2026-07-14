@@ -25,10 +25,7 @@ const MainLayout = () => {
       <LiquidGlassBackdrop />
       <TopNav />
       <main
-        className="relative z-[1]"
-        style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
-        }}
+        className="relative z-[1] pb-[calc(env(safe-area-inset-bottom,0px)+96px)] lg:pb-8"
       >
         <div key={routeKey} className="liquid-page-shell">
           <Outlet />
