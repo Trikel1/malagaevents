@@ -176,7 +176,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="min-h-dvh bg-background pb-24 lg:pb-8">
+    <main className="min-h-dvh bg-background pb-24 lg:pb-8">
       <SEO
         title={`${event.title.slice(0, 42)} — MalagaEvents`}
         description={(event.description?.replace(/\s+/g, ' ').trim().slice(0, 155) || `${event.title} en Málaga el ${formattedDate}. Detalles, ubicación y entradas.`)}
