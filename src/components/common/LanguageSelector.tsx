@@ -55,7 +55,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
         </SelectTrigger>
         <SelectContent className="bg-popover z-50 min-w-[200px]" dir="ltr">
           {languages.map((lang) => {
-            const active = lang.code === i18n.language;
+            const active = lang.code === activeCode;
             return (
               <SelectItem key={lang.code} value={lang.code} className="pr-8">
                 <span className="flex items-center gap-2.5">
