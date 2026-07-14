@@ -378,188 +378,108 @@ END:VCALENDAR`;
         </div>
 
 
-      {/* Content */}
-      <main className="p-4 space-y-6">
-        {/* Title & Category */}
-        <div>
-          <Badge variant="secondary" className="mb-2">
-            {t(`categories.${event.category}`)}
-          </Badge>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">{event.title}</h1>
-        </div>
+        {/* Long-form content — full-width inside container */}
+        <div className="mt-8 lg:mt-10 space-y-6 max-w-3xl">
+          <div>
+            <h2 className="font-display text-lg font-semibold mb-2">{t('eventDetail.when')}</h2>
+            <p className="text-muted-foreground whitespace-pre-line leading-relaxed">{event.description}</p>
+          </div>
 
-        {/* Quick Info — ficha 2x2 */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                <Calendar className="h-4 w-4 text-primary" />
+          {(event.price_info || event.age_restriction || event.accessibility_info || event.capacity_info) && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                {event.price_info && (
+                  <div className="flex items-start gap-3">
+                    <Euro className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden />
+                    <div>
+                      <p className="text-sm font-medium">{t('eventDetail.price')}</p>
+                      <p className="text-sm text-muted-foreground">{event.price_info}</p>
+                    </div>
+                  </div>
+                )}
+                {event.age_restriction && (
+                  <div className="flex items-start gap-3">
+                    <Baby className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden />
+                    <div>
+                      <p className="text-sm font-medium">{t('eventDetail.age')}</p>
+                      <p className="text-sm text-muted-foreground">{event.age_restriction}</p>
+                    </div>
+                  </div>
+                )}
+                {event.accessibility_info && (
+                  <div className="flex items-start gap-3">
+                    <Accessibility className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden />
+                    <div>
+                      <p className="text-sm font-medium">{t('eventDetail.accessibility')}</p>
+                      <p className="text-sm text-muted-foreground">{event.accessibility_info}</p>
+                    </div>
+                  </div>
+                )}
+                {event.capacity_info && (
+                  <div className="flex items-start gap-3">
+                    <Users className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden />
+                    <div>
+                      <p className="text-sm font-medium">{t('eventDetail.capacity')}</p>
+                      <p className="text-sm text-muted-foreground">{event.capacity_info}</p>
+                    </div>
+                  </div>
+                )}
+                {event.source_url && (
+                  <div className="flex items-start gap-3">
+                    <ExternalLink className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden />
+                    <div>
+                      <p className="text-sm font-medium">{t('eventDetail.source', 'Fuente')}</p>
+                      <a
+                        href={event.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary hover:underline break-all"
+                      >
+                        {event.source_url}
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.date', 'Fecha')}</p>
-                <p className="text-sm font-semibold capitalize leading-snug">{formattedDate}</p>
-              </div>
-            </CardContent>
-          </Card>
+            </>
+          )}
 
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                <Calendar className="h-4 w-4 text-primary" />
+          {event.tags && event.tags.length > 0 && (
+            <>
+              <Separator />
+              <div className="flex flex-wrap gap-2">
+                {event.tags.map((tag) => (
+                  <Badge key={tag} variant="outline">
+                    {tag}
+                  </Badge>
+                ))}
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.time', 'Hora')}</p>
-                <p className="text-sm font-semibold leading-snug">
-                  {formattedTime}{formattedEndTime && ` – ${formattedEndTime}`}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-soft col-span-2">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-secondary/10 shrink-0">
-                <MapPin className="h-4 w-4 text-secondary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.place', 'Lugar')}</p>
-                <p className="text-sm font-semibold break-words leading-snug" style={{ overflowWrap: 'anywhere' }}>{event.venue_name}</p>
-                <p className="text-xs text-muted-foreground break-words mt-0.5" style={{ overflowWrap: 'anywhere' }}>{event.address}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {(event.is_free || event.price_info) && (
-            <Card className="rounded-2xl shadow-soft col-span-2">
-              <CardContent className="p-3 flex items-start gap-3">
-                <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                  <Euro className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.price', 'Precio')}</p>
-                  <p className="text-sm font-semibold leading-snug">
-                    {event.is_free ? t('common.free', 'Gratis') : event.price_info}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            </>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button onClick={handleAddToCalendar} variant="outline" className="flex-1">
-            <Calendar className="h-4 w-4 mr-2" />
-            {t('eventDetail.addToCalendar')}
-          </Button>
-          <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
-            <Navigation className="h-4 w-4 mr-2" />
-            {t('eventDetail.howToGet')}
-          </Button>
-        </div>
-
-        {event.ticket_url && (
-          <Button 
-            className="w-full" 
-            size="lg"
-            onClick={() => window.open(event.ticket_url, '_blank')}
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            {t('eventDetail.buyTickets')}
-          </Button>
-        )}
-
-        <Separator />
-
-        {/* Description */}
-        <div>
-          <h2 className="font-semibold mb-2">{t('eventDetail.when')}</h2>
-          <p className="text-muted-foreground whitespace-pre-line">{event.description}</p>
-        </div>
-
-        {/* Additional Info */}
-        {(event.price_info || event.age_restriction || event.accessibility_info || event.capacity_info) && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              {event.price_info && (
-                <div className="flex items-center gap-3">
-                  <Euro className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{t('eventDetail.price')}</p>
-                    <p className="text-sm text-muted-foreground">{event.price_info}</p>
-                  </div>
-                </div>
-              )}
-              {event.age_restriction && (
-                <div className="flex items-center gap-3">
-                  <Baby className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{t('eventDetail.age')}</p>
-                    <p className="text-sm text-muted-foreground">{event.age_restriction}</p>
-                  </div>
-                </div>
-              )}
-              {event.accessibility_info && (
-                <div className="flex items-center gap-3">
-                  <Accessibility className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{t('eventDetail.accessibility')}</p>
-                    <p className="text-sm text-muted-foreground">{event.accessibility_info}</p>
-                  </div>
-                </div>
-              )}
-              {event.capacity_info && (
-                <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{t('eventDetail.capacity')}</p>
-                    <p className="text-sm text-muted-foreground">{event.capacity_info}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Tags */}
-        {event.tags && event.tags.length > 0 && (
-          <>
-            <Separator />
-            <div className="flex flex-wrap gap-2">
-              {event.tags.map((tag) => (
-                <Badge key={tag} variant="outline">
-                  {tag}
-                </Badge>
+        {/* Similar events */}
+        {similarEvents && similarEvents.length > 0 && (
+          <section className="mt-10">
+            <h2 className="font-display text-xl font-semibold mb-4">{t('events.similarEvents')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {similarEvents.slice(0, 6).map((evt) => (
+                <EventCard key={evt.id} event={evt} compact />
               ))}
             </div>
-          </>
+          </section>
         )}
+      </div>
 
-        {/* Similar Events */}
-        {similarEvents && similarEvents.length > 0 && (
-          <>
-            <Separator />
-            <div>
-              <h2 className="font-semibold mb-3">{t('events.similarEvents')}</h2>
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                {similarEvents.map((evt) => (
-                  <div key={evt.id} className="min-w-[240px] max-w-[240px]">
-                    <EventCard event={evt} compact />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+      {/* Sticky bottom CTA — mobile & tablet only */}
+      <div
+        className={cn(
+          'lg:hidden fixed bottom-[calc(env(safe-area-inset-bottom,0px)+80px)] left-0 right-0 z-40 px-4 transition-transform duration-300 ease-out pointer-events-none',
+          ctaHidden ? 'translate-y-[130%]' : 'translate-y-0',
         )}
-      </main>
-
-      {/* Sticky bottom CTA */}
-      <div className={cn(
-        "fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border/60 px-4 py-3 pb-safe shadow-soft transition-transform duration-300 ease-out",
-        ctaHidden ? "translate-y-full" : "translate-y-0"
-      )}>
-        <div className="max-w-lg mx-auto flex gap-2">
+      >
+        <div className="pointer-events-auto mx-auto max-w-lg bg-card/95 backdrop-blur-xl border border-border/60 rounded-2xl shadow-lift p-2 flex gap-2">
           <Button
             variant="outline"
             size="lg"
@@ -567,16 +487,17 @@ END:VCALENDAR`;
             disabled={toggleFavorite.isPending}
             className="flex-shrink-0"
             aria-label={isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Guardar')}
+            aria-pressed={isFavorite}
           >
-            <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
+            <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} aria-hidden />
           </Button>
           {event.ticket_url ? (
             <Button
               size="lg"
               className="flex-1 shadow-lift"
-              onClick={() => window.open(event.ticket_url, '_blank')}
+              onClick={() => window.open(event.ticket_url, '_blank', 'noopener,noreferrer')}
             >
-              <ExternalLink className="h-4 w-4 mr-2" />
+              <ExternalLink className="h-4 w-4 mr-2" aria-hidden />
               {t('eventDetail.buyTickets')}
             </Button>
           ) : (
@@ -586,7 +507,7 @@ END:VCALENDAR`;
               className="flex-1"
               onClick={handleAddToCalendar}
             >
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="h-4 w-4 mr-2" aria-hidden />
               {t('eventDetail.addToCalendar')}
             </Button>
           )}
@@ -595,5 +516,30 @@ END:VCALENDAR`;
     </div>
   );
 };
+
+interface FactCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+}
+
+const FactCard = ({ icon, label, value, className }: FactCardProps) => (
+  <Card className={cn('rounded-2xl shadow-soft', className)}>
+    <CardContent className="p-3 flex items-start gap-3">
+      <div className="p-2 rounded-full bg-primary/10 shrink-0" aria-hidden>
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
+          {label}
+        </p>
+        <p className="text-sm font-semibold leading-snug break-words" style={{ overflowWrap: 'anywhere' }}>
+          {value}
+        </p>
+      </div>
+    </CardContent>
+  </Card>
+);
 
 export default EventDetailPage;
