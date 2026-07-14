@@ -210,8 +210,14 @@ const SubmitEventPage = () => {
       />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border sticky top-0 bg-background z-40">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={guardedBack}
+          className="h-11 w-11"
+          aria-label={t('common.back', 'Volver')}
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden />
         </Button>
         <div>
           <h1 className="text-xl font-bold">{t('submitEvent.title')}</h1>
@@ -220,13 +226,36 @@ const SubmitEventPage = () => {
       </header>
 
       <main className="p-4">
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('submitEvent.error')}</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+        {(error || Object.keys(fieldErrors).length > 0) && (
+          <div ref={errorSummaryRef} role="alert" aria-live="assertive">
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" aria-hidden />
+              <AlertTitle>{t('submitEvent.error')}</AlertTitle>
+              <AlertDescription>
+                {error}
+                {Object.keys(fieldErrors).length > 0 && (
+                  <ul className="mt-2 list-disc pl-5 text-sm">
+                    {Object.entries(fieldErrors).map(([field, msg]) => (
+                      <li key={field}>
+                        <a
+                          href={`#${field}`}
+                          onClick={(ev) => {
+                            ev.preventDefault();
+                            document.getElementById(field)?.focus();
+                          }}
+                          className="underline underline-offset-2"
+                        >
+                          {msg}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </AlertDescription>
+            </Alert>
+          </div>
         )}
+
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
