@@ -75,7 +75,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
   }
 
   return (
-    <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
+    <Select value={activeCode} onValueChange={handleChange}>
       <SelectTrigger className="w-[220px] h-11" aria-label={t('profile.language', 'Idioma')}>
         <SelectValue>
           <span className="inline-flex items-center gap-2">
