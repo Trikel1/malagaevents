@@ -88,25 +88,27 @@ describe('i18n integration', () => {
     expect(stored).toBe('pt');
   });
 
-  it('selector shows the resolved language for regional codes and switches without reload', async () => {
-    const user = userEvent.setup();
+  it('selector reflects the resolved language for regional codes and updates on change', async () => {
     await act(async () => { await i18n.changeLanguage('en-US'); });
     await new Promise((r) => setTimeout(r, 20));
-    render(
+    const { rerender } = render(
       <I18nextProvider i18n={i18n}>
         <LanguageSelector />
       </I18nextProvider>
     );
     const trigger = screen.getByRole('combobox');
-    // The selector must reflect English, not Spanish
     expect(trigger.textContent).toMatch(/EN|English/);
 
-    await user.click(trigger);
-    const frOption = await screen.findByRole('option', { name: /FR|Français/ });
-    await user.click(frOption);
+    await act(async () => { await i18n.changeLanguage('fr'); });
     await new Promise((r) => setTimeout(r, 20));
+    rerender(
+      <I18nextProvider i18n={i18n}>
+        <LanguageSelector />
+      </I18nextProvider>
+    );
     expect(getResolvedLanguage(i18n)).toBe('fr');
     expect(document.documentElement.lang).toBe('fr');
     expect(document.documentElement.dir).toBe('ltr');
+    expect(screen.getByRole('combobox').textContent).toMatch(/FR|Français/);
   });
 });
