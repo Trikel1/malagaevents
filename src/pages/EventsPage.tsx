@@ -245,8 +245,8 @@ const CultureEventsPage = () => {
       });
     }
     if (filters.dateFrom || filters.dateTo) {
-      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale: es }) : '…';
-      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale: es }) : '…';
+      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale }) : '…';
+      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale }) : '…';
       chips.push({
         key: 'daterange',
         label: `${from} – ${to}`,
