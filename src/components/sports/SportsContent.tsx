@@ -42,7 +42,14 @@ function getWeekendDates(): { from: string; to: string } {
   };
 }
 
-const SportsContent = () => {
+interface SportsContentProps {
+  /** Optional search string coming from a parent hero. */
+  externalSearch?: string;
+  /** Optional callback to clear the parent-owned search from empty states. */
+  onClearExternalSearch?: () => void;
+}
+
+const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentProps = {}) => {
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [selectedVenueNames, setSelectedVenueNames] = useState<string[]>([]);
