@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield, Palette } from 'lucide-react';
+import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield, Palette, ChevronRight, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -9,6 +10,8 @@ import { ThemeSelector } from '@/components/theme/ThemeSelector';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import SEO from '@/components/common/SEO';
+import { cn } from '@/lib/utils';
+
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -73,21 +76,27 @@ const ProfilePage = () => {
             </div>
           </div>
         ) : (
-          <Card className="bg-white/10 border-0">
-            <CardContent className="p-4 text-center">
-              <User className="h-12 w-12 mx-auto mb-3 opacity-80" />
-              <p className="mb-3 text-sm">{t('profile.loginRequiredDesc')}</p>
-              <div className="flex gap-2 justify-center">
-                <Button asChild variant="secondary" size="sm">
-                  <Link to="/auth">{t('profile.login')}</Link>
+          <Card className="bg-white/10 border-white/15 text-white">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                <User className="h-6 w-6" aria-hidden />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold leading-tight">{t('profile.guestTitle', 'Invitado')}</p>
+                <p className="text-xs text-white/85 mt-0.5">{t('profile.loginRequiredDesc')}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                <Button asChild variant="secondary" size="sm" className="min-h-11">
+                  <Link to="/auth" aria-label={t('profile.login')}>{t('profile.login')}</Link>
                 </Button>
-                <Button asChild variant="outline" size="sm" className="bg-transparent border-white/30 hover:bg-white/10">
-                  <Link to="/auth?mode=signup">{t('profile.signup')}</Link>
+                <Button asChild variant="outline" size="sm" className="min-h-11 bg-transparent border-white/40 text-white hover:bg-white/10">
+                  <Link to="/auth?mode=signup" aria-label={t('profile.signup')}>{t('profile.signup')}</Link>
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
+
       </header>
 
       <main className="p-4 -mt-6 space-y-4">
@@ -120,47 +129,53 @@ const ProfilePage = () => {
         {/* Menu Items */}
         <Card className="rounded-2xl shadow-soft">
           <CardContent className="p-0">
-            {menuItems.map((item, index) => (
-              <div key={item.to}>
-                {item.requiresAuth && !isAuthenticated ? (
+            {menuItems.map((item, index) => {
+              const needsLogin = item.requiresAuth && !isAuthenticated;
+              return (
+                <div key={item.to}>
                   <Link
-                    to="/auth"
-                    className="flex items-center gap-3 p-4 hover:bg-muted transition-colors"
+                    to={needsLogin ? '/auth' : item.to}
+                    className="flex items-center gap-3 p-4 min-h-[56px] hover:bg-muted focus-visible:bg-muted focus-visible:outline-none transition-colors"
+                    aria-label={needsLogin ? `${item.label} — ${t('profile.loginRequired')}` : item.label}
                   >
-                    <item.icon className="h-5 w-5 text-muted-foreground" />
-                    <span>{item.label}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {t('profile.loginRequired')}
+                    <span className={cn(
+                      'h-9 w-9 rounded-full flex items-center justify-center shrink-0',
+                      needsLogin ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'
+                    )}>
+                      <item.icon className="h-4 w-4" aria-hidden />
                     </span>
+                    <span className="font-medium">{item.label}</span>
+                    {needsLogin ? (
+                      <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 rounded-full px-2 py-1">
+                        <Lock className="h-3 w-3" aria-hidden />
+                        {t('profile.loginRequired')}
+                      </span>
+                    ) : (
+                      <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground" aria-hidden />
+                    )}
                   </Link>
-                ) : (
-                  <Link
-                    to={item.to}
-                    className="flex items-center gap-3 p-4 hover:bg-muted transition-colors"
-                  >
-                    <item.icon className="h-5 w-5 text-muted-foreground" />
-                    <span>{item.label}</span>
-                  </Link>
-                )}
-                {index < menuItems.length - 1 && <Separator />}
-              </div>
-            ))}
+                  {index < menuItems.length - 1 && <Separator />}
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
 
         {/* Logout */}
         {isAuthenticated && (
-          <Button 
-            variant="outline" 
-            className="w-full text-destructive hover:text-destructive"
+          <Button
+            variant="outline"
+            className="w-full min-h-11 text-destructive hover:text-destructive"
             onClick={handleLogout}
+            aria-label={t('profile.logout')}
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-4 w-4 mr-2" aria-hidden />
             {t('profile.logout')}
           </Button>
         )}
       </main>
     </div>
+
   );
 };
 

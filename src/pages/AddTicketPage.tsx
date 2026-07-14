@@ -70,63 +70,84 @@ const AddTicketPage = () => {
       <SEO title="Añadir entrada — MalagaEvents" description="Añade una entrada a tu colección personal." path="/tickets/add" noindex />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+          className="h-11 w-11"
+          aria-label={t('common.back', 'Volver')}
+        >
+          <ArrowLeft className="h-5 w-5" aria-hidden />
         </Button>
         <h1 className="text-xl font-bold">{t('tickets.addTicket')}</h1>
       </header>
 
+
       <main className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <p className="text-sm text-muted-foreground mb-4">
+          {t('tickets.addIntro', 'Añade una entrada indicando su título, y adjunta un archivo (PDF/imagen) o un código QR. La fecha y las notas son opcionales.')}
+        </p>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           {/* Title */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="title">{t('tickets.ticketTitle')} *</Label>
             <Input
               id="title"
               placeholder="Ej: Concierto de verano"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              aria-invalid={!formData.title.trim() && formData.title !== ''}
+              aria-describedby="title-help"
               required
+              className="min-h-11"
             />
+            <p id="title-help" className="text-xs text-muted-foreground">
+              {t('tickets.help.title', 'Identifica la entrada en tu lista.')}
+            </p>
           </div>
 
           {/* File Upload */}
-          <div className="space-y-2">
-            <Label>{t('tickets.uploadFile')}</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="ticket-file">{t('tickets.uploadFile')}</Label>
             <Card className="border-dashed">
               <CardContent className="p-6">
-                <label className="flex flex-col items-center gap-3 cursor-pointer">
+                <label htmlFor="ticket-file" className="flex flex-col items-center gap-3 cursor-pointer">
                   <div className="p-3 rounded-full bg-muted">
-                    <Upload className="h-6 w-6 text-muted-foreground" />
+                    <Upload className="h-6 w-6 text-muted-foreground" aria-hidden />
                   </div>
                   {selectedFile ? (
                     <p className="text-sm font-medium">{selectedFile.name}</p>
                   ) : (
                     <p className="text-sm text-muted-foreground text-center">
-                      Haz clic para seleccionar PDF o imagen
+                      {t('tickets.help.file', 'Haz clic para seleccionar PDF o imagen (máx. 10 MB)')}
                     </p>
                   )}
                   <input
+                    id="ticket-file"
                     type="file"
                     accept=".pdf,image/*"
                     onChange={handleFileChange}
-                    className="hidden"
+                    className="sr-only"
+                    aria-describedby="file-help"
                   />
                 </label>
               </CardContent>
             </Card>
+            <p id="file-help" className="text-xs text-muted-foreground">
+              {t('tickets.help.fileOrQR', 'Puedes adjuntar el archivo, un QR o ambos.')}
+            </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4" role="separator" aria-orientation="horizontal">
             <Separator className="flex-1" />
             <span className="text-sm text-muted-foreground">{t('tickets.orAddQR')}</span>
             <Separator className="flex-1" />
           </div>
 
           {/* QR Code */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="qr_text" className="flex items-center gap-2">
-              <QrCode className="h-4 w-4" />
+              <QrCode className="h-4 w-4" aria-hidden />
               {t('tickets.qrCode')}
             </Label>
             <Input
@@ -134,24 +155,26 @@ const AddTicketPage = () => {
               placeholder="Ej: TICKET-12345-ABCDE"
               value={formData.qr_text}
               onChange={(e) => setFormData({ ...formData, qr_text: e.target.value })}
+              className="min-h-11"
             />
           </div>
 
           <Separator />
 
           {/* Event Date */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="event_date">{t('tickets.eventDate')}</Label>
             <Input
               id="event_date"
               type="datetime-local"
               value={formData.event_date}
               onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
+              className="min-h-11"
             />
           </div>
 
           {/* Notes */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="note">{t('tickets.ticketNote')}</Label>
             <Textarea
               id="note"
@@ -163,15 +186,17 @@ const AddTicketPage = () => {
           </div>
 
           {/* Submit */}
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={createTicket.isPending || !formData.title}
+          <Button
+            type="submit"
+            className="w-full min-h-11"
+            disabled={createTicket.isPending || !formData.title.trim()}
+            aria-busy={createTicket.isPending}
           >
             {createTicket.isPending ? t('common.loading') : t('common.save')}
           </Button>
         </form>
       </main>
+
     </div>
   );
 };

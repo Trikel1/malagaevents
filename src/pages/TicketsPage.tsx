@@ -27,7 +27,7 @@ const TicketsPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
-  const { data: tickets, isLoading } = useTickets();
+  const { data: tickets, isLoading, isError, refetch } = useTickets();
   const deleteTicket = useDeleteTicket();
 
   // Redirect to auth if not logged in
@@ -69,23 +69,33 @@ const TicketsPage = () => {
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 p-4 shadow-soft">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold tracking-tight">{t('tickets.title')}</h1>
-          <Button asChild size="sm">
-            <Link to="/tickets/add">
-              <Plus className="h-4 w-4 mr-1" />
+          <Button asChild size="sm" className="min-h-11">
+            <Link to="/tickets/add" aria-label={t('tickets.addTicket')}>
+              <Plus className="h-4 w-4 mr-1" aria-hidden />
               {t('tickets.addTicket')}
             </Link>
           </Button>
+
         </div>
       </header>
 
       {/* Content */}
       <main className="p-4">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-3" aria-busy="true">
             <EventCardSkeleton />
             <EventCardSkeleton />
           </div>
+        ) : isError ? (
+          <EmptyState
+            icon={Ticket}
+            title={t('tickets.errorTitle', 'No se pudieron cargar tus entradas')}
+            description={t('tickets.errorDesc', 'Comprueba tu conexión e inténtalo de nuevo.')}
+            actionLabel={t('common.retry', 'Reintentar')}
+            onAction={() => refetch()}
+          />
         ) : tickets && tickets.length > 0 ? (
+
           <div className="space-y-3">
             {tickets.map((ticket) => {
               const Icon = getTicketIcon(ticket);
@@ -126,9 +136,15 @@ const TicketsPage = () => {
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                                <Trash2 className="h-4 w-4" />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-11 w-11 text-destructive"
+                                aria-label={`${t('common.delete', 'Eliminar')} ${ticket.title}`}
+                              >
+                                <Trash2 className="h-4 w-4" aria-hidden />
                               </Button>
+
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
