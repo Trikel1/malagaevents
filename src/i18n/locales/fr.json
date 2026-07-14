@@ -629,5 +629,16 @@
       "title": "Page introuvable — MalagaEvents",
       "description": "La page demandée n'existe pas ou a été déplacée."
     }
+  },
+  "auth": {
+    "resetTitle": "Réinitialiser le mot de passe",
+    "newPassword": "Nouveau mot de passe",
+    "newPasswordHelp": "Saisissez votre nouveau mot de passe.",
+    "verifyingLink": "Vérification du lien de récupération…",
+    "confirmPassword": "Confirmer le mot de passe",
+    "saving": "Enregistrement…",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe"
   }
 }

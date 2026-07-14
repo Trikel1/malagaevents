@@ -629,5 +629,16 @@
       "title": "الصفحة غير موجودة — MalagaEvents",
       "description": "الصفحة المطلوبة غير موجودة أو تم نقلها."
     }
+  },
+  "auth": {
+    "resetTitle": "إعادة تعيين كلمة المرور",
+    "newPassword": "كلمة مرور جديدة",
+    "newPasswordHelp": "أدخل كلمة المرور الجديدة.",
+    "verifyingLink": "جارٍ التحقق من رابط الاسترداد…",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "saving": "جارٍ الحفظ…",
+    "updatePassword": "تحديث كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
   }
 }
