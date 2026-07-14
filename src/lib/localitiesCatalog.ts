@@ -85,9 +85,14 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'archez', name: 'Árchez', zone: 'axarquia', aliases: ['archez'] },
   { slug: 'alfarnate', name: 'Alfarnate', zone: 'axarquia' },
   { slug: 'alfarnatejo', name: 'Alfarnatejo', zone: 'axarquia' },
+  { slug: 'arenas', name: 'Arenas', zone: 'axarquia' },
+  { slug: 'benamargosa', name: 'Benamargosa', zone: 'axarquia' },
+  { slug: 'cutar', name: 'Cútar', zone: 'axarquia', aliases: ['cutar'] },
+  { slug: 'vinuela', name: 'Viñuela', zone: 'axarquia', aliases: ['vinuela'] },
 
   // Valle del Guadalhorce
   { slug: 'alhaurin-de-la-torre', name: 'Alhaurín de la Torre', zone: 'guadalhorce', aliases: ['alhaurin-de-la-torre'], priority: 85 },
+  { slug: 'almogia', name: 'Almogía', zone: 'guadalhorce', aliases: ['almogia'] },
   { slug: 'alhaurin-el-grande', name: 'Alhaurín el Grande', zone: 'guadalhorce', aliases: ['alhaurin-el-grande'] },
   { slug: 'coin', name: 'Coín', zone: 'guadalhorce', aliases: ['coin'], priority: 85 },
   { slug: 'cartama', name: 'Cártama', zone: 'guadalhorce', aliases: ['cartama'] },
@@ -116,6 +121,9 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'villanueva-de-tapia', name: 'Villanueva de Tapia', zone: 'antequera' },
   { slug: 'villanueva-de-algaidas', name: 'Villanueva de Algaidas', zone: 'antequera' },
   { slug: 'casabermeja', name: 'Casabermeja', zone: 'antequera' },
+  { slug: 'cuevas-bajas', name: 'Cuevas Bajas', zone: 'antequera' },
+  { slug: 'cuevas-de-san-marcos', name: 'Cuevas de San Marcos', zone: 'antequera' },
+  { slug: 'valle-de-abdalajis', name: 'Valle de Abdalajís', zone: 'antequera', aliases: ['valle-de-abdalajis'] },
 
   // Serranía de Ronda
   { slug: 'ronda', name: 'Ronda', zone: 'serrania-ronda', priority: 90 },
@@ -138,6 +146,8 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'igualeja', name: 'Igualeja', zone: 'serrania-ronda' },
   { slug: 'gaucin', name: 'Gaucín', zone: 'serrania-ronda', aliases: ['gaucin'] },
   { slug: 'cortes-de-la-frontera', name: 'Cortes de la Frontera', zone: 'serrania-ronda' },
+  { slug: 'benarraba', name: 'Benarrabá', zone: 'serrania-ronda', aliases: ['benarraba'] },
+  { slug: 'montecorto', name: 'Montecorto', zone: 'serrania-ronda' },
 
   // Guadalteba e interior
   { slug: 'ardales', name: 'Ardales', zone: 'guadalteba' },
@@ -145,6 +155,8 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'canete-la-real', name: 'Cañete la Real', zone: 'guadalteba', aliases: ['canete-la-real'] },
   { slug: 'cuevas-del-becerro', name: 'Cuevas del Becerro', zone: 'guadalteba' },
   { slug: 'carratraca', name: 'Carratraca', zone: 'guadalteba' },
+  { slug: 'almargen', name: 'Almargen', zone: 'guadalteba' },
+  { slug: 'serrato', name: 'Serrato', zone: 'guadalteba' },
 ];
 
 // Slug -> entry
