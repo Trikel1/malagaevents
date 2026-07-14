@@ -181,12 +181,17 @@ export function MultiSelect<V extends string = string>({
                         'disabled:pointer-events-none disabled:opacity-50',
                       )}
                     >
-                      <Checkbox
-                        checked={isChecked}
-                        tabIndex={-1}
+                      <span
                         aria-hidden="true"
-                        className="pointer-events-none"
-                      />
+                        className={cn(
+                          'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] border-2 transition-colors',
+                          isChecked
+                            ? 'bg-primary border-primary text-primary-foreground'
+                            : 'border-input bg-card',
+                        )}
+                      >
+                        {isChecked && <Check className="h-3.5 w-3.5" />}
+                      </span>
                       <span className="flex-1 min-w-0 truncate">{opt.label}</span>
                       {opt.hint && (
                         <span className="text-xs text-muted-foreground shrink-0">{opt.hint}</span>
