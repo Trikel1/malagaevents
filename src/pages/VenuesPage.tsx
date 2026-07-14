@@ -45,8 +45,8 @@ const VenuesPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Recintos deportivos de Málaga"
-        description="Directorio de instalaciones y recintos deportivos en Málaga: estadios, polideportivos, piscinas y centros de entrenamiento."
+        title={t('seo.venues.title')}
+        description={t('seo.venues.description')}
         path="/venues"
         jsonLd={filtered.length > 0 ? {
           "@context": "https://schema.org",

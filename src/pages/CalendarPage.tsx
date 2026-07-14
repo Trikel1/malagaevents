@@ -184,8 +184,8 @@ const CalendarPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Calendario de eventos en Málaga"
-        description="Calendario mensual con todos los eventos, conciertos y planes en Málaga capital y provincia. Filtra por día y descubre qué hacer."
+        title={t('seo.calendar.title')}
+        description={t('seo.calendar.description')}
         path="/calendar"
       />
       {/* Header — editorial */}

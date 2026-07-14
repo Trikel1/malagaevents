@@ -270,7 +270,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO title="Admin — MalagaEvents" description="Panel de administración interno." path="/admin" noindex />
+      <SEO title={t('seo.admin.title')} description={t('seo.admin.description')} path="/admin" noindex />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border sticky top-0 bg-background z-40">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

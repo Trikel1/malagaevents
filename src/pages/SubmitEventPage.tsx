@@ -204,8 +204,8 @@ const SubmitEventPage = () => {
   return (
     <div className="min-h-screen bg-background pb-8">
       <SEO
-        title="Enviar un evento de Málaga"
-        description="¿Organizas un evento en Málaga? Envíanos los detalles y lo añadimos a la agenda tras revisarlo. Gratuito y abierto a la comunidad."
+        title={t('seo.submit.title')}
+        description={t('seo.submit.description')}
         path="/submit-event"
       />
       {/* Header */}

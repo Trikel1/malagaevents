@@ -67,7 +67,7 @@ const AddTicketPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO title="Añadir entrada — MalagaEvents" description="Añade una entrada a tu colección personal." path="/tickets/add" noindex />
+      <SEO title={t('seo.addTicket.title')} description={t('seo.addTicket.description')} path="/tickets/add" noindex />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border">
         <Button

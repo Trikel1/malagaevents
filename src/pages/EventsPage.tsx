@@ -362,8 +362,8 @@ const CultureEventsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Agenda cultural de Málaga — Qué hacer hoy y los próximos días"
-        description="Agenda cultural en Málaga: conciertos, teatro, exposiciones y festivales para hoy, mañana, este finde y los próximos 30 días."
+        title={t('seo.events.title')}
+        description={t('seo.events.description')}
         path="/events"
         jsonLd={
           displayedEvents && displayedEvents.length > 0

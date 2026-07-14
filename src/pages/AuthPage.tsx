@@ -124,8 +124,8 @@ const AuthPage = () => {
       </div>
       <div className="relative">
         <SEO
-          title="Acceder a MalagaEvents"
-          description="Inicia sesión o crea una cuenta para guardar favoritos, gestionar entradas y recibir alertas de eventos en Málaga."
+          title={t('seo.auth.title')}
+          description={t('seo.auth.description')}
           path="/auth"
           noindex
         />

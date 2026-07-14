@@ -312,8 +312,8 @@ const PharmaciesPage = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <SEO
-        title="Farmacias de guardia en Málaga hoy"
-        description="Consulta las farmacias de guardia abiertas hoy en Málaga capital y provincia. Direcciones, teléfonos y horario actualizado a diario."
+        title={t('seo.pharmacies.title')}
+        description={t('seo.pharmacies.description')}
         path="/pharmacies"
         jsonLd={[
           {
