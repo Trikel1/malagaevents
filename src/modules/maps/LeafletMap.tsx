@@ -90,7 +90,14 @@ export const LeafletMap = ({
       }
     ).addTo(map);
     L.control.zoom({ position: 'topright' }).addTo(map);
-    layerRef.current = L.layerGroup().addTo(map);
+    layerRef.current = (L as any).markerClusterGroup({
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      disableClusteringAtZoom: 17,
+      maxClusterRadius: 50,
+    });
+    map.addLayer(layerRef.current);
+
     mapRef.current = map;
 
     map.on('moveend', () => {
