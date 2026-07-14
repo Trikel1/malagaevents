@@ -257,6 +257,19 @@ const PharmaciesPage = () => {
     [dirAll, search, userLoc]
   );
 
+  // Reset progressive pagination when filters change (Sprint UI 7)
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [municipality, search, userLoc]);
+
+  const visibleDirPharmacies = useMemo(
+    () => dirPharmacies.slice(0, visibleCount),
+    [dirPharmacies, visibleCount]
+  );
+  const hasMoreDir = dirPharmacies.length > visibleCount;
+
+
+
   
 
   const isToday =
