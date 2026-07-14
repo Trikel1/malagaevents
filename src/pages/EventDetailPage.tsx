@@ -425,18 +425,18 @@ END:VCALENDAR`;
                     </div>
                   </div>
                 )}
-                {event.source_url && (
+                {event.source_ref && (
                   <div className="flex items-start gap-3">
                     <ExternalLink className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden />
                     <div>
                       <p className="text-sm font-medium">{t('eventDetail.source', 'Fuente')}</p>
                       <a
-                        href={event.source_url}
+                        href={event.source_ref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-primary hover:underline break-all"
                       >
-                        {event.source_url}
+                        {event.source_ref}
                       </a>
                     </div>
                   </div>
