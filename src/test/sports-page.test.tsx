@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { I18nextProvider } from 'react-i18next';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
+import i18n from '@/i18n';
 
 // Mock sports hooks to control loading / empty / populated states without Supabase.
 const useSportsEventsMock = vi.fn();
