@@ -57,7 +57,7 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEO title="Restablecer contraseña — MalagaEvents" description="Elige una nueva contraseña para tu cuenta." path="/auth/reset" noindex />
+      <SEO title={t('seo.reset.title')} description={t('seo.reset.description')} path="/auth/reset" noindex />
       <header className="p-4 flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/auth')}>
           <ArrowLeft className="h-5 w-5" />
