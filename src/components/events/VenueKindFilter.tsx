@@ -52,7 +52,7 @@ interface IconProps {
   size?: number;
 }
 
-/** Three rounded tiles + spark — "all / discovery". */
+/** Four rounded tiles — "all / discovery", editorial grid. */
 function IconTodo({ className, size = 22 }: IconProps) {
   return (
     <svg
@@ -61,21 +61,21 @@ function IconTodo({ className, size = 22 }: IconProps) {
       height={size}
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.9}
+      strokeWidth={1.25}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       aria-hidden
     >
-      <rect x="3" y="3.5" width="7.5" height="7.5" rx="2" />
-      <rect x="13.5" y="3.5" width="7.5" height="7.5" rx="2" />
-      <rect x="3" y="14" width="7.5" height="7.5" rx="2" />
-      <path d="M17.25 15.5 l0.9 1.8 l1.8 0.9 l-1.8 0.9 l-0.9 1.8 l-0.9 -1.8 l-1.8 -0.9 l1.8 -0.9 z" fill="currentColor" stroke="none" />
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.6" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.6" opacity="0.55" />
     </svg>
   );
 }
 
-/** Rounded stage with mic + two soundwaves — "salas / live". */
+/** Slim microphone with soft base — "salas / live". */
 function IconSalas({ className, size = 22 }: IconProps) {
   return (
     <svg
@@ -84,27 +84,27 @@ function IconSalas({ className, size = 22 }: IconProps) {
       height={size}
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.9}
+      strokeWidth={1.25}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       aria-hidden
     >
-      {/* stage arch */}
-      <path d="M3.5 18 V12 a8.5 8.5 0 0 1 17 0 v6" />
-      <path d="M2.5 18 h19" />
       {/* mic capsule */}
-      <rect x="10.25" y="8.5" width="3.5" height="6" rx="1.75" />
-      <path d="M8.5 12.75 a3.5 3.5 0 0 0 7 0" />
-      <path d="M12 16.25 V18" />
-      {/* soundwaves */}
-      <path d="M6 11.5 c0.8 -0.8 0.8 -2 0 -2.8" opacity="0.85" />
-      <path d="M18 11.5 c-0.8 -0.8 -0.8 -2 0 -2.8" opacity="0.85" />
+      <rect x="9.75" y="3" width="4.5" height="10" rx="2.25" />
+      {/* cradle */}
+      <path d="M6.5 12 a5.5 5.5 0 0 0 11 0" />
+      {/* stem + base */}
+      <path d="M12 17.5 V21" />
+      <path d="M9 21 h6" />
+      {/* subtle waves */}
+      <path d="M4.5 10.5 c0.6 -0.9 0.6 -2.1 0 -3" opacity="0.55" />
+      <path d="M19.5 10.5 c-0.6 -0.9 -0.6 -2.1 0 -3" opacity="0.55" />
     </svg>
   );
 }
 
-/** Proscenium curtain with two drapes + stage base — "teatros". */
+/** Elegant proscenium — pelmet, two arched drapes, stage line. */
 function IconTeatros({ className, size = 22 }: IconProps) {
   return (
     <svg
@@ -113,7 +113,7 @@ function IconTeatros({ className, size = 22 }: IconProps) {
       height={size}
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.9}
+      strokeWidth={1.25}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
@@ -121,20 +121,20 @@ function IconTeatros({ className, size = 22 }: IconProps) {
     >
       {/* pelmet */}
       <path d="M3.5 5 h17" />
-      <path d="M3.5 5 v1.5 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 a2 2 0 0 0 2 2 a2 2 0 0 0 2 -2 V5" />
+      <path d="M4 5 c 1 1.6 3 1.6 4 0 c 1 1.6 3 1.6 4 0 c 1 1.6 3 1.6 4 0 c 1 1.6 3 1.6 4 0" />
       {/* left drape */}
-      <path d="M5 9 C 5 13, 6.5 16, 7.5 18.5" />
-      <path d="M7.5 9 C 8 13, 8.75 16.5, 9 19" />
+      <path d="M5.5 6.5 C 5.5 11, 7 15, 8.5 19" />
       {/* right drape */}
-      <path d="M19 9 C 19 13, 17.5 16, 16.5 18.5" />
-      <path d="M16.5 9 C 16 13, 15.25 16.5, 15 19" />
+      <path d="M18.5 6.5 C 18.5 11, 17 15, 15.5 19" />
       {/* stage base */}
-      <path d="M4 20 h16" />
+      <path d="M4 20.5 h16" />
+      {/* soft center tie */}
+      <path d="M12 6.5 V11" opacity="0.4" />
     </svg>
   );
 }
 
-/** Palm trees + sun over horizon — "recintos y exteriores". */
+/** Two slender palms + sun on horizon — "recintos y exteriores". */
 function IconRecintos({ className, size = 22 }: IconProps) {
   return (
     <svg
@@ -143,30 +143,32 @@ function IconRecintos({ className, size = 22 }: IconProps) {
       height={size}
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.9}
+      strokeWidth={1.25}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       aria-hidden
     >
       {/* sun */}
-      <circle cx="17" cy="7.5" r="2.4" fill="currentColor" stroke="none" opacity="0.9" />
-      {/* horizon / ground */}
-      <path d="M2.5 19 h19" />
-      {/* left palm */}
-      <path d="M8 19 V11.5" />
-      <path d="M8 11.5 c -2 -0.8 -3.6 -0.4 -4.8 1" opacity="0.9" />
-      <path d="M8 11.5 c -1.2 -1.6 -1.6 -3.2 -0.8 -5.2" opacity="0.9" />
-      <path d="M8 11.5 c 1.8 -1 3.4 -1 5 0" opacity="0.9" />
-      <path d="M8 11.5 c 0.6 -1.9 2 -3.1 4.2 -3.5" opacity="0.9" />
+      <circle cx="17.5" cy="7" r="2" />
+      {/* horizon */}
+      <path d="M3 20 h18" />
+      {/* left palm — trunk */}
+      <path d="M8 20 Q 7.5 15, 8.5 10.5" />
+      {/* left palm — fronds */}
+      <path d="M8.5 10.5 c -1.8 -0.4 -3.2 0.2 -4.2 1.4" opacity="0.8" />
+      <path d="M8.5 10.5 c -1 -1.6 -1.2 -3.2 -0.4 -4.8" opacity="0.8" />
+      <path d="M8.5 10.5 c 1.6 -0.8 3 -0.6 4.4 0.4" opacity="0.8" />
+      <path d="M8.5 10.5 c 0.6 -1.8 1.8 -2.8 3.6 -3.2" opacity="0.8" />
       {/* right palm — shorter */}
-      <path d="M14.5 19 V14" />
-      <path d="M14.5 14 c -1.4 -0.6 -2.5 -0.3 -3.4 0.8" opacity="0.85" />
-      <path d="M14.5 14 c 1.4 -0.6 2.6 -0.3 3.6 0.7" opacity="0.85" />
-      <path d="M14.5 14 c -0.6 -1.4 -0.4 -2.6 0.6 -3.6" opacity="0.85" />
+      <path d="M14.5 20 Q 14.2 16.5, 15 13.5" />
+      <path d="M15 13.5 c -1.3 -0.4 -2.3 0 -3.2 0.8" opacity="0.7" />
+      <path d="M15 13.5 c 1.3 -0.4 2.4 -0.1 3.4 0.7" opacity="0.7" />
+      <path d="M15 13.5 c -0.5 -1.2 -0.3 -2.2 0.6 -3.1" opacity="0.7" />
     </svg>
   );
 }
+
 
 const KIND_META: Record<Kind, { Icon: (p: IconProps) => JSX.Element; labelKey: string; labelFallback: string }> = {
   all: { Icon: IconTodo, labelKey: 'events.venueKind.all', labelFallback: 'Todo' },
