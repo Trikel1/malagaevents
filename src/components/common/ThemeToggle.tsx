@@ -32,9 +32,9 @@ export function ThemeToggle({ variant = 'hero', className }: ThemeToggleProps = 
 
   const isHero = variant === 'hero';
   const btnClass = [
-    'h-11 w-11 min-h-[44px] min-w-[44px] rounded-full',
+    'min-h-[44px] min-w-[44px] h-11 w-11 rounded-full',
     isHero
-      ? 'bg-white/20 hover:bg-white/30 text-white'
+      ? 'bg-foreground/10 hover:bg-foreground/15 text-foreground dark:bg-white/15 dark:hover:bg-white/25 dark:text-white'
       : 'bg-muted hover:bg-muted/80 text-foreground',
     className ?? '',
   ].join(' ');
