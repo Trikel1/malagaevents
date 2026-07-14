@@ -10,6 +10,7 @@ import { ThemeSelector } from '@/components/theme/ThemeSelector';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import SEO from '@/components/common/SEO';
+import PageHero from '@/components/common/PageHero';
 import { cn } from '@/lib/utils';
 
 
