@@ -32,7 +32,8 @@ const GroupedEventsList = ({
   isFavorite,
   onToggleFavorite,
 }: GroupedEventsListProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = getDateLocale(i18n.language);
 
   const buckets = useMemo<Bucket[]>(() => {
     const map = new Map<string, Bucket>();
@@ -44,7 +45,7 @@ const GroupedEventsList = ({
       if (!bucket) {
         bucket = {
           key,
-          label: labelFor(d, t),
+          label: labelFor(d, t, locale),
           date: new Date(d.getFullYear(), d.getMonth(), d.getDate()),
           items: [],
         };
@@ -53,7 +54,7 @@ const GroupedEventsList = ({
       bucket.items.push(event);
     }
     return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [events, t]);
+  }, [events, t, locale]);
 
   return (
     <div className="space-y-6">
