@@ -127,17 +127,25 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
 
         <div className="mt-3 flex gap-2">
           {pharmacy.phone && (
-            <Button asChild size="sm" className="flex-1">
-              <a href={`tel:${formatPhoneForLink(pharmacy.phone)}`}>
-                <Phone className="h-4 w-4 mr-1.5" />
+            <Button asChild size="sm" className="flex-1 min-h-11">
+              <a
+                href={`tel:${formatPhoneForLink(pharmacy.phone)}`}
+                aria-label={`${t('pharmacies.call', 'Llamar')} ${pharmacy.name} · ${pharmacy.phone}`}
+              >
+                <Phone className="h-4 w-4 mr-1.5" aria-hidden />
                 {t('pharmacies.call', 'Llamar')}
               </a>
             </Button>
           )}
           {pharmacy.address && (
-            <Button asChild size="sm" variant="outline" className="flex-1">
-              <a href={getMapsUrl(pharmacy)} target="_blank" rel="noreferrer">
-                <Navigation className="h-4 w-4 mr-1.5" />
+            <Button asChild size="sm" variant="outline" className="flex-1 min-h-11">
+              <a
+                href={getMapsUrl(pharmacy)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${t('pharmacies.directions', 'Cómo llegar')} · ${pharmacy.name}, ${pharmacy.address}`}
+              >
+                <Navigation className="h-4 w-4 mr-1.5" aria-hidden />
                 {t('pharmacies.directions', 'Cómo llegar')}
               </a>
             </Button>
@@ -147,6 +155,7 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
     </Card>
   );
 };
+
 
 interface LocalitySelectorProps {
   value: string;
