@@ -43,11 +43,6 @@ const TIMEZONE = 'Europe/Madrid';
 
 
 
-// Month names for the selector
-const MONTHS = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-];
 
 const CalendarPage = () => {
   const { t, i18n } = useTranslation();
