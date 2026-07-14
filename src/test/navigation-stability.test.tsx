@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
@@ -6,6 +6,10 @@ import i18n from '@/i18n';
 import BottomNav from '@/components/layout/BottomNav';
 import TopNav from '@/components/layout/TopNav';
 import { AppModeProvider } from '@/contexts/AppModeContext';
+
+beforeAll(async () => {
+  await i18n.changeLanguage('es');
+});
 
 const renderAt = (path: string, ui: React.ReactNode) =>
   render(
