@@ -24,6 +24,7 @@ import { juntaAndaluciaCulturaAdapter } from "../adapters/junta-andalucia-cultur
 import { visitCostaDelSolAdapter } from "../adapters/visit-costa-del-sol.ts";
 import { axarquiaCostaDelSolAdapter } from "../adapters/axarquia-costa-del-sol.ts";
 import { serraniaDeRondaAdapter } from "../adapters/serrania-de-ronda.ts";
+import { fycmaAdapter } from "../adapters/fycma.ts";
 
 const REGISTRY = new Map<string, SourceAdapter>();
 
