@@ -169,6 +169,16 @@ const BottomNav = () => {
               onPointerMove={onPointerMove}
               onPointerUp={(e) => endPointer(e, i)}
               onPointerCancel={(e) => endPointer(e, i)}
+              onClick={() => {
+                // Handles keyboard activation (Enter/Space) and any click
+                // not preceded by a pointer sequence. Pointer-driven taps
+                // already navigated in endPointer, so guard against double nav.
+                if (pointerIdRef.current !== null) return;
+                const target = navItems[i];
+                if (target && target.to !== location.pathname) {
+                  navigate(target.to);
+                }
+              }}
               className={cn(
                 'bottom-nav-item',
                 isActive ? 'bottom-nav-item-active' : 'bottom-nav-item-idle'
