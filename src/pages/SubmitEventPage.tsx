@@ -113,8 +113,19 @@ const SubmitEventPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return; // Block double submit
+
+    const errs = validate();
+    setFieldErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      setError(t('submitEvent.errors.reviewFields', 'Revisa los campos marcados para continuar.'));
+      focusFirstError(errs);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+
 
     try {
       // Parse tags
