@@ -332,7 +332,7 @@ const MapPage = () => {
                 className="shrink-0 self-center bg-primary/10 text-primary border-0 rounded-full px-3 min-h-[32px] flex items-center text-xs font-semibold"
                 aria-live="polite"
               >
-                {filteredMarkers.length} {t('map.points', 'puntos')}
+                {t('map.pointCount', { count: filteredMarkers.length })}
               </Badge>
             </div>
           </div>

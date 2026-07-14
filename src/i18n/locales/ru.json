@@ -30,7 +30,11 @@
     "remove": "Удалить",
     "confirm": "Подтвердить",
     "tryAgain": "Попробуйте ещё раз",
-    "loadingDots": "…"
+    "loadingDots": "…",
+    "pause": "Пауза",
+    "play": "Продолжить",
+    "clearOne": "Убрать",
+    "clearSearch": "Очистить поиск"
   },
   "notFound": {
     "title": "Страница не найдена",
@@ -313,7 +317,70 @@
     "timeTBC": "Время уточняется",
     "verifiedAt": "Проверено",
     "viewOnSource": "Открыть в оригинальном источнике",
-    "source": "Источник"
+    "source": "Источник",
+    "agendaKicker": "Культурная афиша · Малага",
+    "agendaTitle": "Культурная афиша",
+    "timeRange": "Диапазон дат",
+    "today": "Сегодня",
+    "tomorrow": "Завтра",
+    "thisWeek": "На этой неделе",
+    "thisWeekend": "В выходные",
+    "next30Days": "Ближайшие 30 дней",
+    "next30Short": "30 дней",
+    "searchPlaceholderShort": "Поиск…",
+    "eventCount_one": "{{count}} событие",
+    "eventCount_other": "{{count}} событий",
+    "allProvince": "Вся провинция",
+    "searchLocality": "Поиск населённого пункта",
+    "locationDefault": "Малага",
+    "clearLocality": "Сбросить местоположение",
+    "localityShort": "Населённый пункт",
+    "localitiesShort": "населённых пунктов",
+    "venueKind": {
+      "all": "Все",
+      "halls": "Залы",
+      "theaters": "Театры",
+      "outdoors": "Открытые площадки",
+      "hallsTitle": "Залы",
+      "theatersTitle": "Театры и аудитории",
+      "outdoorsTitle": "Открытые площадки"
+    },
+    "venuesTitle2": "Площадки",
+    "venuesSearchPlaceholder2": "Поиск площадки или города",
+    "venuesEmptyTitle": "Совпадений не найдено",
+    "venuesEmptyHint2": "Попробуйте другой запрос или категорию.",
+    "venueNoAgendaLong": "Программа отсутствует",
+    "venueHasAgenda": "Есть программа",
+    "sectionCapital": "Малага (город)",
+    "sectionProvincia": "Провинция Малага",
+    "showAll": "Показать всё",
+    "showAllHalls": "Показать все залы",
+    "showAllTheaters": "Показать все театры",
+    "showAllOutdoors": "Показать открытые площадки",
+    "showOneVenue": "Показать 1 площадку",
+    "showNVenues": "Показать {{count}} площадок",
+    "oneVenueSelected": "1 площадка",
+    "nVenuesSelected": "Выбрано {{count}} площадок",
+    "venuesShort": "площадок",
+    "clearVenues": "Сбросить площадки",
+    "upcomingHighlights": "Ближайшие события",
+    "pauseCarousel": "Пауза карусели",
+    "resumeCarousel": "Продолжить",
+    "pause": "Пауза",
+    "play": "Продолжить",
+    "noEventsWithFilters": "Событий по этим фильтрам нет",
+    "noEventsHint": "Попробуйте другую дату, местоположение или площадку.",
+    "familyKids": "Для детей и семьи",
+    "withTickets": "С билетами",
+    "outdoor": "На открытом воздухе",
+    "yearsShort": "лет",
+    "nearMe": "Рядом со мной",
+    "sortedByDistance": "Отсортировано по расстоянию",
+    "clearDistanceSort": "Сортировка по расстоянию отключена",
+    "locationUnsupported": "Ваш браузер не поддерживает геолокацию",
+    "locationPermissionDenied": "Доступ к местоположению запрещён. Включите его в настройках браузера.",
+    "locationError": "Не удалось определить местоположение",
+    "imagePlaceholder": "Иллюстрация"
   },
   "eventDetail": {
     "when": "Когда",
@@ -337,7 +404,17 @@
     "allEvents": "Все события",
     "myFavorites": "Мои избранные",
     "exportEvent": "Экспортировать событие",
-    "noEventsDay": "В этот день нет событий"
+    "noEventsDay": "В этот день нет событий",
+    "eventCount_one": "{{count}} событие",
+    "eventCount_other": "{{count}} событий",
+    "viewMonth": "Месяц",
+    "viewList": "Список",
+    "selectMonth": "Выберите месяц и год",
+    "prevMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц",
+    "prevYear": "Предыдущий год",
+    "nextYear": "Следующий год",
+    "months": "Месяцы"
   },
   "pharmacies": {
     "title": "Дежурные аптеки",
@@ -379,7 +456,13 @@
     "locationUnsupported": "Геолокация не поддерживается",
     "locationError": "Не удалось получить местоположение",
     "distanceAway": "в пути",
-    "fallbackNotice": "Ориентировочное дежурство (нет официальных данных)."
+    "fallbackNotice": "Ориентировочное дежурство (нет официальных данных).",
+    "officialLabel": "Официально",
+    "showingCount": "Показано {{shown}} из {{total}}",
+    "directoryDisclaimer": "Информационный список. Дежурный статус отображается только в верхней части по официальным данным.",
+    "noOfficialData": "Нет проверенных официальных данных о дежурных аптеках для этой даты и населённого пункта. Проверьте официальный источник.",
+    "showMore": "Показать ещё",
+    "showMoreAria": "Показать ещё аптеки (осталось {{remaining}})"
   },
   "tickets": {
     "title": "Мои билеты",
@@ -447,7 +530,8 @@
     "quietTo": "До",
     "savePreferences": "Сохранить настройки",
     "loginRequired": "Войдите, чтобы получить доступ",
-    "loginRequiredDesc": "Для использования этой функции требуется учетная запись"
+    "loginRequiredDesc": "Для использования этой функции требуется учетная запись",
+    "guestTitle": "Гость"
   },
   "theme": {
     "system": "Системная",
@@ -504,7 +588,11 @@
     "useMyLocation": "Моё местоположение",
     "viewEvent": "Открыть событие",
     "viewList": "Список",
-    "viewMap": "Карта"
+    "viewMap": "Карта",
+    "pointCount_one": "{{count}} точка",
+    "pointCount_other": "{{count}} точек",
+    "loading": "Загрузка точек…",
+    "errorLoading": "Не удалось загрузить данные."
   },
   "sports": {
     "title": "Спорт",
@@ -554,7 +642,9 @@
       "today": "Сегодня нет спортивных мероприятий.",
       "weekend": "Нет спортивных мероприятий на этих выходных.",
       "results": "Мы не нашли мероприятий по этим фильтрам.",
-      "venuesSoon": "Мы скоро добавим спортивные объекты."
+      "venuesSoon": "Мы скоро добавим спортивные объекты.",
+      "expandDates": "Расширить период",
+      "seeUpcoming": "Ближайшие события"
     },
     "filter": {
       "free": "Бесплатно",
@@ -570,7 +660,31 @@
     "voleibol": "Волейбол",
     "rugby": "Регби",
     "acuaticos": "Водный спорт",
-    "artes_marciales": "Боевые искусства"
+    "artes_marciales": "Боевые искусства",
+    "pageTitle": "Спорт в Малаге",
+    "pageSubtitle": "Соревнования, тренировки и спортивные площадки Малаги и её провинции.",
+    "heroSearchPlaceholder": "Поиск вида спорта, команды, турнира или площадки",
+    "categories": {
+      "football": "Футбол",
+      "basketball": "Баскетбол",
+      "tennis": "Теннис",
+      "triathlon": "Триатлон",
+      "running": "Бег",
+      "cycling": "Велоспорт",
+      "swimming": "Плавание",
+      "padel": "Падел",
+      "handball": "Гандбол",
+      "futsal": "Мини-футбол",
+      "athletics": "Лёгкая атлетика",
+      "motor": "Автоспорт",
+      "volleyball": "Волейбол",
+      "rugby": "Регби",
+      "hiking": "Пешие походы",
+      "fitness": "Фитнес",
+      "water_sports": "Водные виды спорта",
+      "martial_arts": "Боевые искусства",
+      "other": "Другое"
+    }
   },
   "seo": {
     "events": {
@@ -640,5 +754,21 @@
     "updatePassword": "Обновить пароль",
     "showPassword": "Показать пароль",
     "hidePassword": "Скрыть пароль"
+  },
+  "agenda": {
+    "notFoundTitle": "Муниципалитет не найден",
+    "notFoundDesc": "Запрошенный муниципалитет отсутствует в реестре провинции.",
+    "backToEvents": "Назад к событиям",
+    "verifiedSources": "Проверенная культурная афиша · официальные источники",
+    "inMunicipality": "В {{name}}",
+    "loadingEvents": "Загрузка событий…",
+    "noEventsTitle": "Подтверждённых событий нет",
+    "noEventsDesc": "В {{name}} пока нет опубликованных культурных событий. См. варианты поблизости ниже.",
+    "nearHeading": "Рядом с {{name}}",
+    "searchRadius": "Радиус поиска",
+    "nearDisclaimer": "Эти события <strong>не проходят в {{name}}</strong>. Они отсортированы по удалённости от центра муниципалитета.",
+    "noNearby": "Проверенных событий в радиусе {{radius}} км нет.",
+    "seoTitle": "Культурная афиша {{name}} | MalagaEvents",
+    "seoDescription": "Подтверждённые культурные события в {{name}} ({{comarca}}) и окрестностях."
   }
 }

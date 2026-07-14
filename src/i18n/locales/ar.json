@@ -30,7 +30,11 @@
     "remove": "إزالة",
     "confirm": "تأكيد",
     "tryAgain": "حاول مرة أخرى",
-    "loadingDots": "..."
+    "loadingDots": "...",
+    "pause": "إيقاف مؤقت",
+    "play": "استئناف",
+    "clearOne": "إزالة",
+    "clearSearch": "مسح البحث"
   },
   "notFound": {
     "title": "الصفحة غير موجودة",
@@ -313,7 +317,70 @@
     "timeTBC": "الوقت قيد التأكيد",
     "verifiedAt": "مُتحقق",
     "viewOnSource": "عرض في المصدر الأصلي",
-    "source": "المصدر"
+    "source": "المصدر",
+    "agendaKicker": "الأجندة الثقافية · مالقة",
+    "agendaTitle": "الأجندة الثقافية",
+    "timeRange": "النطاق الزمني",
+    "today": "اليوم",
+    "tomorrow": "غدًا",
+    "thisWeek": "هذا الأسبوع",
+    "thisWeekend": "نهاية الأسبوع",
+    "next30Days": "الـ 30 يومًا القادمة",
+    "next30Short": "30 يومًا",
+    "searchPlaceholderShort": "بحث…",
+    "eventCount_one": "حدث واحد {{count}}",
+    "eventCount_other": "{{count}} حدثًا",
+    "allProvince": "المقاطعة بأكملها",
+    "searchLocality": "ابحث عن بلدية",
+    "locationDefault": "مالقة",
+    "clearLocality": "مسح البلدية",
+    "localityShort": "بلدية",
+    "localitiesShort": "بلديات",
+    "venueKind": {
+      "all": "الكل",
+      "halls": "قاعات",
+      "theaters": "مسارح",
+      "outdoors": "مواقع خارجية",
+      "hallsTitle": "قاعات",
+      "theatersTitle": "مسارح وقاعات",
+      "outdoorsTitle": "مواقع خارجية"
+    },
+    "venuesTitle2": "الأماكن",
+    "venuesSearchPlaceholder2": "ابحث عن مكان أو مدينة",
+    "venuesEmptyTitle": "لا توجد أماكن مطابقة",
+    "venuesEmptyHint2": "جرّب بحثًا أو فئة أخرى.",
+    "venueNoAgendaLong": "لا يوجد جدول متاح",
+    "venueHasAgenda": "يوجد جدول",
+    "sectionCapital": "مدينة مالقة",
+    "sectionProvincia": "مقاطعة مالقة",
+    "showAll": "عرض الكل",
+    "showAllHalls": "عرض كل القاعات",
+    "showAllTheaters": "عرض كل المسارح",
+    "showAllOutdoors": "عرض المواقع الخارجية",
+    "showOneVenue": "عرض مكان واحد",
+    "showNVenues": "عرض {{count}} أماكن",
+    "oneVenueSelected": "مكان واحد",
+    "nVenuesSelected": "تم اختيار {{count}} من الأماكن",
+    "venuesShort": "أماكن",
+    "clearVenues": "مسح الأماكن",
+    "upcomingHighlights": "أبرز الأحداث القادمة",
+    "pauseCarousel": "إيقاف مؤقت للعرض",
+    "resumeCarousel": "استئناف العرض",
+    "pause": "إيقاف",
+    "play": "استئناف",
+    "noEventsWithFilters": "لا توجد أحداث مطابقة",
+    "noEventsHint": "جرّب تاريخًا أو بلدية أو مكانًا آخر.",
+    "familyKids": "أطفال / عائلة",
+    "withTickets": "مع تذاكر",
+    "outdoor": "في الهواء الطلق",
+    "yearsShort": "سنوات",
+    "nearMe": "بالقرب مني",
+    "sortedByDistance": "مُرتَّب حسب المسافة",
+    "clearDistanceSort": "تم إيقاف الترتيب حسب المسافة",
+    "locationUnsupported": "متصفحك لا يدعم تحديد الموقع",
+    "locationPermissionDenied": "تم رفض إذن الموقع. فعّله من إعدادات المتصفح.",
+    "locationError": "تعذّر الحصول على موقعك",
+    "imagePlaceholder": "صورة توضيحية"
   },
   "eventDetail": {
     "when": "متى",
@@ -337,7 +404,17 @@
     "allEvents": "جميع الفعاليات",
     "myFavorites": "مفضلاتي",
     "exportEvent": "تصدير الفعالية",
-    "noEventsDay": "لا توجد فعاليات في هذا اليوم"
+    "noEventsDay": "لا توجد فعاليات في هذا اليوم",
+    "eventCount_one": "حدث واحد {{count}}",
+    "eventCount_other": "{{count}} حدثًا",
+    "viewMonth": "عرض الشهر",
+    "viewList": "عرض قائمة",
+    "selectMonth": "اختر الشهر والسنة",
+    "prevMonth": "الشهر السابق",
+    "nextMonth": "الشهر التالي",
+    "prevYear": "السنة السابقة",
+    "nextYear": "السنة التالية",
+    "months": "الأشهر"
   },
   "pharmacies": {
     "title": "صيدليات المناوبة",
@@ -379,7 +456,13 @@
     "locationUnsupported": "الجهاز لا يدعم تحديد الموقع",
     "locationError": "تعذّر تحديد موقعك",
     "distanceAway": "المسافة",
-    "fallbackNotice": "الوردية تقديرية (البيانات الرسمية غير متاحة)."
+    "fallbackNotice": "الوردية تقديرية (البيانات الرسمية غير متاحة).",
+    "officialLabel": "رسمي",
+    "showingCount": "عرض {{shown}} من {{total}}",
+    "directoryDisclaimer": "قائمة معلوماتية. تُعرض حالة المناوبة فقط في القسم العلوي بالبيانات الرسمية.",
+    "noOfficialData": "لا توجد بيانات رسمية موثّقة عن الصيدليات المناوبة لهذا التاريخ وهذه البلدية. راجع المصدر الرسمي قبل الذهاب.",
+    "showMore": "عرض المزيد",
+    "showMoreAria": "عرض المزيد من الصيدليات ({{remaining}} متبقية)"
   },
   "tickets": {
     "title": "تذاكري",
@@ -447,7 +530,8 @@
     "quietTo": "إلى",
     "savePreferences": "حفظ التفضيلات",
     "loginRequired": "يتطلب تسجيل الدخول للوصول",
-    "loginRequiredDesc": "تحتاج إلى حساب لاستخدام هذه الميزة"
+    "loginRequiredDesc": "تحتاج إلى حساب لاستخدام هذه الميزة",
+    "guestTitle": "زائر"
   },
   "theme": {
     "system": "النظام",
@@ -504,7 +588,11 @@
     "useMyLocation": "استخدم موقعي",
     "viewEvent": "عرض الفعالية",
     "viewList": "عرض القائمة",
-    "viewMap": "عرض الخريطة"
+    "viewMap": "عرض الخريطة",
+    "pointCount_one": "نقطة واحدة {{count}}",
+    "pointCount_other": "{{count}} نقطة",
+    "loading": "جارٍ تحميل النقاط…",
+    "errorLoading": "تعذّر تحميل البيانات."
   },
   "sports": {
     "title": "الرياضات",
@@ -554,7 +642,9 @@
       "today": "لا توجد أنشطة رياضية اليوم.",
       "weekend": "لا توجد أنشطة رياضية نهاية هذا الأسبوع.",
       "results": "لم نجد أنشطة بهذه الفلاتر.",
-      "venuesSoon": "نحن بصدد إضافة أماكن رياضية."
+      "venuesSoon": "نحن بصدد إضافة أماكن رياضية.",
+      "expandDates": "توسيع التواريخ",
+      "seeUpcoming": "عرض الأحداث القادمة"
     },
     "filter": {
       "free": "مجاني",
@@ -570,7 +660,31 @@
     "voleibol": "كرة الطائرة",
     "rugby": "الركبي",
     "acuaticos": "الرياضات المائية",
-    "artes_marciales": "الفنون القتالية"
+    "artes_marciales": "الفنون القتالية",
+    "pageTitle": "الرياضة في مالقة",
+    "pageSubtitle": "المسابقات والأنشطة والتدريبات والمرافق الرياضية في مالقة ومقاطعتها.",
+    "heroSearchPlaceholder": "ابحث عن رياضة أو فريق أو مسابقة أو مكان",
+    "categories": {
+      "football": "كرة القدم",
+      "basketball": "كرة السلة",
+      "tennis": "تنس",
+      "triathlon": "ترياثلون",
+      "running": "الجري",
+      "cycling": "ركوب الدراجات",
+      "swimming": "السباحة",
+      "padel": "بادل",
+      "handball": "كرة اليد",
+      "futsal": "كرة القدم للصالات",
+      "athletics": "ألعاب القوى",
+      "motor": "رياضة السيارات",
+      "volleyball": "الكرة الطائرة",
+      "rugby": "الرغبي",
+      "hiking": "المشي لمسافات طويلة",
+      "fitness": "اللياقة البدنية",
+      "water_sports": "الرياضات المائية",
+      "martial_arts": "الفنون القتالية",
+      "other": "أخرى"
+    }
   },
   "seo": {
     "events": {
@@ -640,5 +754,21 @@
     "updatePassword": "تحديث كلمة المرور",
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور"
+  },
+  "agenda": {
+    "notFoundTitle": "البلدية غير موجودة",
+    "notFoundDesc": "البلدية المطلوبة غير موجودة في السجل الإقليمي.",
+    "backToEvents": "العودة إلى الأحداث",
+    "verifiedSources": "أجندة ثقافية موثّقة · مصادر رسمية",
+    "inMunicipality": "في {{name}}",
+    "loadingEvents": "جارٍ تحميل الأحداث…",
+    "noEventsTitle": "لا توجد أحداث مؤكّدة",
+    "noEventsDesc": "لا توجد أحداث ثقافية منشورة في {{name}} بعد. راجع الخيارات القريبة أدناه.",
+    "nearHeading": "بالقرب من {{name}}",
+    "searchRadius": "نطاق البحث",
+    "nearDisclaimer": "هذه الأحداث <strong>لا تُقام في {{name}}</strong>. تُدرج حسب القرب من مركز البلدية.",
+    "noNearby": "لا توجد أحداث موثّقة في نطاق {{radius}} كم.",
+    "seoTitle": "الأجندة الثقافية في {{name}} | MalagaEvents",
+    "seoDescription": "اكتشف الأحداث الثقافية المؤكّدة في {{name}} ({{comarca}}) وما حولها."
   }
 }

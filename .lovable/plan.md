@@ -1,95 +1,80 @@
-# Sprint UI 2 — Sistema adaptativo de desplegables
+# Sprint de calidad 1 — UI sin mezclas de idioma
 
-## 1. Primitivas nuevas (en `src/components/ui/adaptive/`)
+## Objetivo
+Asegurar que las 14 rutas públicas se muestran íntegramente traducidas en los 10 idiomas (es, en, de, fr, it, pt, ar, ja, zh, ru), corrigiendo los literales españoles observados en la preview inglesa y normalizando pluralización, fechas y taxonomías deportivas.
 
-Cuatro componentes reutilizables que resuelven en un solo lugar el comportamiento responsive (bottom sheet en móvil, popover en escritorio), la altura máxima, el retorno de foco, ARIA y estados vacíos/error/carga.
+## Auditoría rápida (literales detectados)
 
-### `AdaptivePopover` (base interna)
-Wrapper compartido que decide, según un breakpoint (`useIsMobile`, `< 768px`):
-- **Móvil**: renderiza `Sheet` inferior (side=bottom) con `max-h-[85dvh]`, `pb-[env(safe-area-inset-bottom)]`, drag handle, cabecera sticky, footer sticky.
-- **Escritorio**: renderiza `Popover` anclado, `w-[min(420px,calc(100vw-24px))]`, `collisionPadding`, `avoidCollisions`.
-- Devuelve foco al trigger al cerrar (comportamiento nativo Radix).
-- `Escape`, clic exterior, botón cerrar en cabecera.
-- Nunca se abre fuera del viewport, respeta el dock inferior mediante `collisionPadding` y `sideOffset`.
+| Ruta | Componente | Literal actual |
+|---|---|---|
+| /events | `LocationFilter` | "Toda la provincia" |
+| /events | `EventsPage` chips fecha | "Hoy", "Mañana", "Este finde", "30 días" |
+| /events | `VenueKindFilter` | "Salas", "Teatros", "Recintos" |
+| /events | `UpcomingHighlights` / control audio | "Reanudar" / "Pausar" |
+| /sports | `SportsHero` / `SportsContent` | Título+subtítulo ES, "Ver próximos eventos" |
+| /sports, /venues | Chips categoría | valores crudos `football`, `tennis`, `triathlon`, `basketball`, `running` |
+| /calendar | `CalendarPage` | Cabecera semana `D L M X J V S`, "N eventos" sin plural |
+| /map | `MapPage` / `LeafletMap` | "N puntos" |
+| /pharmacies | `PharmaciesPage` | "OFICIAL", "Mostrando X de Y", aviso directorio en ES |
+| /profile | `ProfilePage` | "Invitado" |
+| Cards evento | `EventImage` placeholder | "IMAGEN ILUSTRATIVA" |
+| /agenda/:slug | `MunicipalityAgendaPage` | Multiples strings ES (empty states, "Cerca de", radio, "Fuente"…) |
 
-### `SimpleSelect<T>`
-- Trigger de 44 px de altura mínima con label + valor + chevron.
-- Lista de opciones planas, filas ≥ 44 px, `role="option"`, `aria-selected`.
-- Ideal para idioma, tema, orden.
-- Selección inmediata, cierra al elegir.
+## Ficheros a modificar
 
-### `SearchableSelect<T>`
-- Como SimpleSelect + input de búsqueda visible al abrir (autofocus en escritorio, sin autofocus en móvil para evitar teclado).
-- Grupos con cabecera sticky.
-- Estados: `loading`, `empty`, `error` con mensaje traducible.
-- Selección única, cierra al elegir.
+### Traducciones (10 JSON — mismas claves)
+`src/i18n/locales/{es,en,de,fr,it,pt,ar,ja,zh,ru}.json`
+Añadir/asegurar:
+- `events.filters.allProvince`
+- `events.filters.today|tomorrow|weekend|next30d`
+- `events.venueKind.{halls,theaters,venues}`
+- `events.count` con plurales i18next (`_one`, `_other`, y para ar/ru/ja/zh las formas requeridas o `_other` como default).
+- `events.imagePlaceholder` → "Illustrative image" / "Imagen ilustrativa" / …
+- `map.pointsCount` con plural
+- `map.resume`, `map.pause` (o `common.pause/resume`)
+- `pharmacies.official`, `pharmacies.showingOfTotal` (interpolado `{{shown}}/{{total}}`), `pharmacies.directoryNotice`
+- `profile.guest`
+- `sports.hero.title|subtitle`, `sports.viewUpcoming`
+- `sports.categories.{football,basketball,tennis,triathlon,running,…}` (clave central)
+- `calendar.weekdaysShort` (array de 7)
+- `agenda.*` para MunicipalityAgendaPage
 
-### `MultiSelect<T>`
-- Selección en borrador local (no aplica hasta pulsar "Aplicar").
-- Chips o filas con checkbox de 20 × 20.
-- Contador de seleccionados en el trigger (`Recintos · 3`).
-- Footer sticky con `Limpiar` (secundario, deshabilitado si vacío) y `Aplicar` (primario, siempre visible).
-- Escape descarta el borrador.
+### Componentes / páginas
+- `src/components/events/LocationFilter.tsx` — usar `t('events.filters.allProvince')`.
+- `src/components/events/VenueKindFilter.tsx` — traducir 3 labels.
+- `src/pages/EventsPage.tsx` — chips fecha con `t()`.
+- `src/components/events/UpcomingHighlights.tsx` — botón resume/pause y contador plural.
+- `src/components/events/EventImage.tsx` — placeholder “IMAGEN ILUSTRATIVA”.
+- `src/components/sports/SportsHero.tsx`, `SportsContent.tsx`, `SportsEventsPage.tsx`, `SportsPage.tsx` — títulos y CTA.
+- `src/components/sports/SportIcon` alrededores + `VenuesPage.tsx` — usar helper `getSportLabel(t, sport)` centralizado en `src/lib/sports.ts`. Reemplazar `t(\`sports.${cat}\`, cat)` (fallback crudo) por helper con clave `sports.categories.<cat>` y garantía de existencia.
+- `src/pages/CalendarPage.tsx` — usar `date-fns` `format(..., 'EEEEEE', { locale })` para weekdays; contador con `t('events.count', { count })`.
+- `src/pages/MapPage.tsx` (y `LeafletMap` si aplica) — “N puntos” → `t('map.pointsCount', { count })`.
+- `src/pages/PharmaciesPage.tsx` — "OFICIAL", "Mostrando X de Y", aviso.
+- `src/pages/ProfilePage.tsx` — “Invitado”.
+- `src/pages/MunicipalityAgendaPage.tsx` — traducir todos los literales ES.
 
-### `FilterSheet`
-- Composición explícita para filtros complejos (FilterDrawer, ficha de farmacias):
-  - `FilterSheet.Header` — título, subtítulo, botón cerrar.
-  - `FilterSheet.ActiveSummary` — chips de filtros activos con botón "Quitar".
-  - `FilterSheet.Body` — scroll único.
-  - `FilterSheet.Footer` — `Limpiar todo` + `Aplicar (N)` sticky.
+### Helpers
+- `src/lib/sports.ts` — nueva función `getSportLabel(t, sport)` que resuelva `sports.categories.<sport>`.
+- Confirmar que `getDateLocale` se usa en todos los `format()` (auditar EventsPage, GroupedEventsList, CalendarPage, MunicipalityAgendaPage) — ya centralizado; eliminar mapas duplicados si aparecen.
 
-## 2. Migración
+### Tests nuevos (`src/test/i18n-sprint-quality1.test.tsx`)
+- Paridad de claves y ausencia de vacíos (delegar a test existente `i18n-locales-parity`; añadir smoke).
+- Render en `en` de EventsPage/SportsPage/CalendarPage/MapPage/PharmaciesPage/ProfilePage y aserción de que **ninguno** de los literales ES enumerados aparece en el DOM.
+- Pluralización: `t('events.count', { count: 0|1|2 })` en es/en/ru/ar.
+- Fechas: `format(new Date('2026-01-05'), 'EEEE', { locale: getDateLocale(lang) })` para es/en/de/ar/ru.
+- `html[lang]` y `html[dir]` correctos tras `i18n.changeLanguage('ar')`.
+- Taxonomía deportiva: `getSportLabel(t, 'football')` distinto de `'football'` en los 10 idiomas.
 
-| Archivo | Primitiva |
-|---|---|
-| `src/components/common/LanguageSelector.tsx` | `SimpleSelect` con `collisionPadding` para no chocar con el dock inferior |
-| `src/components/common/ThemeToggle.tsx` | `SimpleSelect` en variante icon-only |
-| `src/components/events/LocationFilter.tsx` | `SearchableSelect` (municipios) |
-| `src/components/events/VenueFilter.tsx` | `SearchableSelect` (recintos) |
-| `src/components/events/VenueGroupDropdown.tsx` | `MultiSelect` con grupos |
-| `src/components/events/VenueKindFilter.tsx` | `MultiSelect` |
-| `src/components/sports/SportsVenuesDropdown.tsx` | `MultiSelect` (arregla el desplegable que salía fuera de pantalla) |
-| `src/components/events/FilterDrawer.tsx` | `FilterSheet` |
-| `src/pages/CalendarPage.tsx` (selector mes/año) | `SimpleSelect` × 2 en popover conjunto |
-| `src/pages/PharmaciesPage.tsx` (selector municipio) | `SearchableSelect` |
-| Selects públicos de formularios (`SubmitEventPage`, `AddTicketPage`) | `SimpleSelect` |
+## Verificación
+- `bunx vitest run`
+- `bun run build`
+- Revisión manual EN de /events /sports /calendar /map /pharmacies /venues /profile.
+- Revisión DE en una ruta y AR (RTL) en otra.
 
-## 3. Correcciones específicas
+## Fuera de alcance / permanece en su idioma
+- Títulos de eventos, nombres de recintos, municipios, direcciones y descripciones provenientes de scrapers/BBDD.
+- Contenido oficial farmacéutico devuelto por la fuente.
+- Textos administrativos internos (`/admin`).
 
-- **Desplegable deportivo fuera de pantalla**: eliminado al usar `AdaptivePopover` con `collisionPadding={16}` y bottom sheet en móvil.
-- **Selector de idioma tapado por el dock**: `collisionPadding={{ bottom: 96 }}` y en móvil bottom sheet propio (no cae bajo el dock).
-- **Trigger que muestra "Málaga" con "Toda la provincia" seleccionada**: normalizar el `getDisplayLabel` en `LocationFilter` para que el trigger derive siempre del `value` real, con etiqueta única "Toda la provincia" cuando `value === null | 'all'`.
-- **Controles de 32–40 px**: todas las primitivas fuerzan `min-h-[44px]` en trigger y filas.
-
-## 4. Detalles técnicos
-
-- `AdaptivePopover` reutiliza `Sheet` y `Popover` (ya opacos tras Sprint UI 1). No introduce nueva dependencia.
-- Breakpoint móvil: `useIsMobile()` existente (`< 768px`).
-- `sideOffset={8}` y `collisionPadding={{ top: 72, bottom: 96, left: 12, right: 12 }}` por defecto para respetar TopNav y BottomNav.
-- Anuncio ARIA: `role="listbox"`/`role="dialog"` según variante, `aria-multiselectable`, `aria-expanded`, `aria-controls` en el trigger.
-- Retorno de foco: gestionado por Radix; para el bottom sheet, `onCloseAutoFocus` reenvía al trigger.
-- Solo un `overflow-y-auto` interno por primitiva (evita scroll anidado).
-
-## 5. Tests nuevos (`src/test/adaptive-*.test.tsx`)
-
-- `adaptive-simple-select.test.tsx` — apertura/cierre teclado, Escape, selección con Enter, foco vuelve al trigger.
-- `adaptive-searchable-select.test.tsx` — filtrado por texto, estado vacío, selección por teclado.
-- `adaptive-multiselect.test.tsx` — borrador, Aplicar, Limpiar, contador, Escape descarta.
-- `adaptive-responsive.test.tsx` — mock de `useIsMobile` para verificar que en móvil se abre Sheet y en escritorio Popover.
-- `location-filter-label.test.tsx` — regresión del bug "Málaga / Toda la provincia".
-
-## 6. Fuera de alcance
-
-- No se toca lógica de datos, hooks, Supabase, rutas ni traducciones existentes (solo se leen claves ya presentes).
-- No se rediseña el contenido de los filtros, solo su contenedor y comportamiento.
-- Si algún filtro depende de un patrón muy específico (draft-selection ya implementado), se preserva su API pública.
-
-## 7. Verificación final
-
-- Comprobación manual en 375, 768, 1024, 1280 px.
-- Ningún control interactivo < 44 × 44.
-- Nunca fuera de viewport ni bajo el dock.
-- Tests, `tsgo --noEmit` y build limpios.
-- Informe final con archivos modificados y correcciones aplicadas.
-
-¿Apruebas el plan para implementar?
+## Entrega
+Lista final de archivos modificados, claves añadidas por sección, salida de vitest y `bun run build`, y nota de textos que se dejan en idioma original por ser datos externos.

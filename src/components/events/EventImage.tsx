@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles, Image as ImageIcon, Palette, Baby, Trophy, Wrench, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+
 
 // Extended event types for category-specific fallbacks
 export type EventType = 'dance' | 'music' | 'theater' | 'comedy' | 'festival' | 'nightlife' | 'exhibitions' | 'kids' | 'sports' | 'workshops' | 'conferences' | 'other';
@@ -376,6 +378,7 @@ const EventImage = ({
   eventType,
   category,
 }: EventImageProps) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [unsplashError, setUnsplashError] = useState(false);
@@ -383,6 +386,7 @@ const EventImage = ({
   
   // Determine the event type for fallback styling
   const resolvedEventType: EventType = eventType || getEventTypeFromCategory(category);
+
 
   const finalAspectRatio = aspectRatio || ASPECT_RATIOS[variant];
   const isCompact = variant === 'compact';
@@ -435,6 +439,21 @@ const EventImage = ({
     
     const config = CATEGORY_FALLBACKS[resolvedEventType];
     const IconComponent = config.icon;
+    const catKeyMap: Record<EventType, string> = {
+      dance: 'categories.other',
+      music: 'categories.music',
+      theater: 'categories.theater',
+      comedy: 'categories.other',
+      festival: 'categories.festivals',
+      nightlife: 'categories.nightlife',
+      exhibitions: 'categories.exhibitions',
+      kids: 'categories.kids',
+      sports: 'categories.sports',
+      workshops: 'categories.workshops',
+      conferences: 'categories.conferences',
+      other: 'categories.other',
+    };
+    const translatedLabel = t(catKeyMap[resolvedEventType]);
     
     return (
       <div className={cn(
@@ -443,7 +462,7 @@ const EventImage = ({
       )}>
         <IconComponent className="h-12 w-12 text-foreground/70 mb-2" />
         <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">
-          {config.label}
+          {translatedLabel}
         </span>
       </div>
     );
@@ -453,10 +472,11 @@ const EventImage = ({
   const UnsplashIndicator = () => (
     <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm px-2 py-0.5">
       <span className="text-[9px] text-white/70 font-medium tracking-wide uppercase">
-        Imagen ilustrativa
+        {t('events.imagePlaceholder')}
       </span>
     </div>
   );
+
 
   // Loading skeleton
   const LoadingSkeleton = () => (

@@ -334,14 +334,19 @@ const CalendarPage = () => {
             {/* Calendar Grid — reserve height while loading to avoid layout jumps */}
             <Card className="mb-4">
               <CardContent className="p-2">
-                {/* Day headers */}
+                {/* Day headers — localised weekday initials (respects lang + RTL) */}
                 <div className="grid grid-cols-7 mb-2">
-                  {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day, i) => (
-                    <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
-                      {day}
-                    </div>
-                  ))}
+                  {Array.from({ length: 7 }, (_, i) => {
+                    // Sunday = 0 (matches startOfWeek weekStartsOn: 0)
+                    const sample = new Date(2024, 0, 7 + i); // 2024-01-07 is a Sunday
+                    return (
+                      <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
+                        {format(sample, 'EEEEEE', { locale })}
+                      </div>
+                    );
+                  })}
                 </div>
+
 
                 {/* Days */}
                 <div
@@ -362,7 +367,7 @@ const CalendarPage = () => {
                       <button
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
-                        aria-label={format(day, 'PPPP', { locale }) + (hasEvents ? `, ${eventCount} ${t('calendar.eventsShort', 'eventos')}` : '')}
+                        aria-label={format(day, 'PPPP', { locale }) + (hasEvents ? `, ${t('calendar.eventCount', { count: eventCount })}` : '')}
                         aria-pressed={!!isSelected}
                         aria-current={dayIsToday ? 'date' : undefined}
                         className={cn(
@@ -408,9 +413,11 @@ const CalendarPage = () => {
                     {format(selectedDate, 'PPPP', { locale })}
                   </h2>
                   <span className="text-xs text-muted-foreground">
-                    {(appMode === 'deportes' ? selectedDaySportEvents.length : selectedDayOccurrences.length)}{' '}
-                    {t('calendar.eventsShort', 'eventos')}
+                    {t('calendar.eventCount', {
+                      count: appMode === 'deportes' ? selectedDaySportEvents.length : selectedDayOccurrences.length,
+                    })}
                   </span>
+
                 </div>
                 {appMode === 'deportes' ? (
                   sportsLoading ? (
