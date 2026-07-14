@@ -524,7 +524,7 @@ const CultureEventsPage = () => {
                     'shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium border transition-all whitespace-nowrap',
                     active
                       ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-transparent text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground',
+                      : 'bg-muted/60 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground',
                   )}
                 >
                   {shortLabel}
