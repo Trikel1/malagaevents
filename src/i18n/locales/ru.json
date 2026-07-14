@@ -629,5 +629,16 @@
       "title": "Страница не найдена — MalagaEvents",
       "description": "Запрошенная страница не существует или была перемещена."
     }
+  },
+  "auth": {
+    "resetTitle": "Сброс пароля",
+    "newPassword": "Новый пароль",
+    "newPasswordHelp": "Введите новый пароль.",
+    "verifyingLink": "Проверка ссылки восстановления…",
+    "confirmPassword": "Подтвердите пароль",
+    "saving": "Сохранение…",
+    "updatePassword": "Обновить пароль",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль"
   }
 }

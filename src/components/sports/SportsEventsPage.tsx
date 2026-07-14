@@ -9,7 +9,7 @@ const SportsEventsPage = () => {
   const [search, setSearch] = useState('');
 
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       <SEO
         title={t('sports.seo.title', 'Deporte en Málaga · Agenda, competiciones y recintos')}
         description={t(
@@ -27,7 +27,7 @@ const SportsEventsPage = () => {
           onClearExternalSearch={() => setSearch('')}
         />
       </div>
-    </div>
+    </main>
   );
 };
 

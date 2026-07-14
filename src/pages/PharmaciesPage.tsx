@@ -310,7 +310,7 @@ const PharmaciesPage = () => {
 
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-dvh bg-background pb-24">
       <SEO
         title={t('seo.pharmacies.title')}
         description={t('seo.pharmacies.description')}

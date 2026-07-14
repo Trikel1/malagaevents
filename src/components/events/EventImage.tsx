@@ -534,9 +534,10 @@ const EventImage = ({
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
+                className="absolute top-4 right-4 z-10 min-h-11 min-w-11 text-white hover:bg-white/20"
+                aria-label="Cerrar"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </Button>
             </DialogClose>
             <div className="flex items-center justify-center min-h-[50vh] max-h-[90vh] p-4">

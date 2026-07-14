@@ -629,5 +629,16 @@
       "title": "ページが見つかりません — MalagaEvents",
       "description": "要求されたページは存在しないか、移動されました。"
     }
+  },
+  "auth": {
+    "resetTitle": "パスワードをリセット",
+    "newPassword": "新しいパスワード",
+    "newPasswordHelp": "新しいパスワードを入力してください。",
+    "verifyingLink": "リカバリーリンクを確認中…",
+    "confirmPassword": "パスワードの確認",
+    "saving": "保存中…",
+    "updatePassword": "パスワードを更新",
+    "showPassword": "パスワードを表示",
+    "hidePassword": "パスワードを非表示"
   }
 }

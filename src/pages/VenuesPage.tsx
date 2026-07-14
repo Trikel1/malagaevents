@@ -43,7 +43,7 @@ const VenuesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEO
         title={t('seo.venues.title')}
         description={t('seo.venues.description')}

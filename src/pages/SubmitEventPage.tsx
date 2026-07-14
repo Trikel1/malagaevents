@@ -186,7 +186,7 @@ const SubmitEventPage = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-dvh bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
@@ -202,7 +202,7 @@ const SubmitEventPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-dvh bg-background pb-8">
       <SEO
         title={t('seo.submit.title')}
         description={t('seo.submit.description')}

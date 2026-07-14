@@ -360,7 +360,7 @@ const CultureEventsPage = () => {
   }, [filters.datePreset, t]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEO
         title={t('seo.events.title')}
         description={t('seo.events.description')}

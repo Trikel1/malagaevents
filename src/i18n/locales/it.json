@@ -629,5 +629,16 @@
       "title": "Pagina non trovata — MalagaEvents",
       "description": "La pagina richiesta non esiste o è stata spostata."
     }
+  },
+  "auth": {
+    "resetTitle": "Reimposta password",
+    "newPassword": "Nuova password",
+    "newPasswordHelp": "Inserisci la tua nuova password.",
+    "verifyingLink": "Verifica del link di recupero…",
+    "confirmPassword": "Conferma password",
+    "saving": "Salvataggio…",
+    "updatePassword": "Aggiorna password",
+    "showPassword": "Mostra password",
+    "hidePassword": "Nascondi password"
   }
 }
