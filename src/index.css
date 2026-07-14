@@ -4,34 +4,34 @@
 
 @layer base {
   :root {
-    /* Málaga Mediterranean Theme - Warm, sunny, coastal */
-    --background: 45 33% 97%;
-    --foreground: 220 25% 15%;
+    /* Editorial Mediterranean — light */
+    --background: 43 45% 96%;        /* #FAF7F0 */
+    --foreground: 220 39% 15%;       /* #172033 */
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 15%;
+    --card-foreground: 220 39% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 15%;
+    --popover-foreground: 220 39% 15%;
 
-    --primary: 24 95% 53%;
+    --primary: 200 90% 27%;          /* #075985 Mediterranean blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 199 89% 48%;
+    --secondary: 21 90% 40%;         /* #C2410C terracotta CTA */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 45 20% 92%;
-    --muted-foreground: 220 15% 45%;
+    --muted: 40 27% 91%;             /* #F1ECE2 */
+    --muted-foreground: 217 12% 40%; /* #5B6472 */
 
-    --accent: 339 76% 59%;
+    --accent: 32 90% 37%;            /* #B45309 sol */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 20% 88%;
-    --input: 45 20% 88%;
-    --ring: 24 95% 53%;
+    --border: 38 24% 83%;            /* #DED7CA */
+    --input: 38 24% 83%;
+    --ring: 200 90% 27%;
 
     --radius: 0.75rem;
 
@@ -50,100 +50,102 @@
     --category-markets: 35 80% 50%;
     --category-other: 220 15% 50%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-background: 43 45% 96%;
+    --sidebar-foreground: 220 39% 15%;
+    --sidebar-primary: 200 90% 27%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 20% 95%;
-    --sidebar-accent-foreground: 220 25% 15%;
-    --sidebar-border: 45 20% 90%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-accent: 40 27% 91%;
+    --sidebar-accent-foreground: 220 39% 15%;
+    --sidebar-border: 38 24% 83%;
+    --sidebar-ring: 200 90% 27%;
 
     /* Editorial surfaces & shadows */
-    --surface: 45 40% 99%;
+    --surface: 43 45% 98%;
     --surface-elevated: 0 0% 100%;
-    --shadow-soft: 0 1px 2px hsl(220 25% 15% / 0.04), 0 2px 8px hsl(220 25% 15% / 0.04);
-    --shadow-card: 0 4px 16px hsl(220 25% 15% / 0.06);
-    --shadow-lift: 0 10px 30px hsl(24 95% 53% / 0.18);
+    --shadow-soft: 0 1px 2px hsl(220 39% 15% / 0.04), 0 2px 8px hsl(220 39% 15% / 0.05);
+    --shadow-card: 0 4px 14px hsl(220 39% 15% / 0.07);
+    --shadow-lift: 0 10px 30px hsl(21 90% 40% / 0.14);
 
-    /* Warm Mediterranean gradients */
-    --gradient-warm: linear-gradient(180deg, hsl(24 90% 96%) 0%, hsl(45 33% 97%) 100%);
-    --gradient-hero: linear-gradient(160deg, hsl(199 89% 48%) 0%, hsl(24 95% 53%) 100%);
-    --gradient-hero-sports: linear-gradient(160deg, hsl(142 71% 35%) 0%, hsl(199 70% 40%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(339 76% 59%) 0%, hsl(24 95% 53%) 100%);
+    /* Mediterranean gradients */
+    --gradient-warm: linear-gradient(180deg, hsl(43 45% 98%) 0%, hsl(43 45% 96%) 100%);
+    --gradient-hero: radial-gradient(120% 90% at 90% 100%, hsl(21 90% 55% / 0.35) 0%, transparent 60%),
+                     linear-gradient(160deg, hsl(200 90% 22%) 0%, hsl(190 75% 38%) 100%);
+    --gradient-hero-sports: linear-gradient(160deg, hsl(160 70% 25%) 0%, hsl(190 75% 38%) 100%);
+    --gradient-sunset: linear-gradient(135deg, hsl(21 90% 45%) 0%, hsl(32 90% 40%) 100%);
 
     /* Liquid glass tokens */
-    --glass-background: 0 0% 100% / 0.62;
-    --glass-surface: 0 0% 100% / 0.55;
-    --glass-surface-strong: 0 0% 100% / 0.78;
-    --glass-border: 220 30% 90% / 0.6;
+    --glass-background: 0 0% 100% / 0.7;
+    --glass-surface: 0 0% 100% / 0.62;
+    --glass-surface-strong: 0 0% 100% / 0.85;
+    --glass-border: 38 24% 78% / 0.6;
     --glass-highlight: 0 0% 100% / 0.7;
     --glass-shadow: 220 40% 20% / 0.08;
-    --glass-blur: 22px;
+    --glass-blur: 20px;
     --liquid-radius: 1rem;
     --liquid-radius-lg: 1.5rem;
-    --liquid-transition: 320ms cubic-bezier(0.22, 1, 0.36, 1);
-    --liquid-ring: 24 95% 53% / 0.35;
+    --liquid-transition: 200ms cubic-bezier(0.22, 1, 0.36, 1);
+    --liquid-ring: 200 90% 27% / 0.35;
   }
 
 
   .dark {
-    --background: 220 25% 10%;
-    --foreground: 45 20% 95%;
+    --background: 219 47% 10%;       /* #0E1726 */
+    --foreground: 44 55% 95%;        /* #F8F4EA */
 
-    --card: 220 25% 13%;
-    --card-foreground: 45 20% 95%;
+    --card: 219 42% 15%;             /* #162235 */
+    --card-foreground: 44 55% 95%;
 
-    --popover: 220 25% 13%;
-    --popover-foreground: 45 20% 95%;
+    --popover: 219 42% 15%;
+    --popover-foreground: 44 55% 95%;
 
-    --primary: 24 95% 55%;
-    --primary-foreground: 220 25% 10%;
+    --primary: 199 92% 60%;          /* #38BDF8 */
+    --primary-foreground: 219 47% 10%;
 
-    --secondary: 199 70% 45%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 25 96% 61%;         /* #FB923C */
+    --secondary-foreground: 219 47% 10%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 45 15% 60%;
+    --muted: 217 31% 21%;            /* #253247 */
+    --muted-foreground: 215 18% 73%; /* #AEB8C7 */
 
-    --accent: 339 70% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 32 85% 55%;
+    --accent-foreground: 219 47% 10%;
 
-    --destructive: 0 62% 45%;
+    --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 24 95% 55%;
+    --border: 215 25% 27%;           /* #334155 */
+    --input: 215 25% 27%;
+    --ring: 199 92% 60%;
 
-    --sidebar-background: 220 25% 12%;
-    --sidebar-foreground: 45 20% 90%;
-    --sidebar-primary: 24 95% 55%;
-    --sidebar-primary-foreground: 220 25% 10%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 45 20% 90%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 24 95% 55%;
+    --sidebar-background: 219 42% 13%;
+    --sidebar-foreground: 44 55% 95%;
+    --sidebar-primary: 199 92% 60%;
+    --sidebar-primary-foreground: 219 47% 10%;
+    --sidebar-accent: 217 31% 21%;
+    --sidebar-accent-foreground: 44 55% 95%;
+    --sidebar-border: 215 25% 27%;
+    --sidebar-ring: 199 92% 60%;
 
     /* Editorial surfaces & shadows (dark) */
-    --surface: 220 25% 12%;
-    --surface-elevated: 220 25% 15%;
+    --surface: 219 42% 13%;
+    --surface-elevated: 219 42% 17%;
     --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.3), 0 2px 8px hsl(0 0% 0% / 0.25);
     --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.35);
-    --shadow-lift: 0 10px 30px hsl(24 95% 53% / 0.28);
+    --shadow-lift: 0 10px 30px hsl(25 96% 55% / 0.22);
 
-    --gradient-warm: linear-gradient(180deg, hsl(220 25% 13%) 0%, hsl(220 25% 10%) 100%);
-    --gradient-hero: linear-gradient(160deg, hsl(199 60% 25%) 0%, hsl(24 70% 30%) 100%);
-    --gradient-hero-sports: linear-gradient(160deg, hsl(142 50% 20%) 0%, hsl(199 50% 25%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(339 50% 35%) 0%, hsl(24 70% 35%) 100%);
+    --gradient-warm: linear-gradient(180deg, hsl(219 42% 15%) 0%, hsl(219 47% 10%) 100%);
+    --gradient-hero: radial-gradient(120% 90% at 90% 100%, hsl(25 96% 55% / 0.3) 0%, transparent 60%),
+                     linear-gradient(160deg, hsl(200 60% 20%) 0%, hsl(190 55% 28%) 100%);
+    --gradient-hero-sports: linear-gradient(160deg, hsl(160 50% 20%) 0%, hsl(200 55% 25%) 100%);
+    --gradient-sunset: linear-gradient(135deg, hsl(21 70% 40%) 0%, hsl(32 75% 40%) 100%);
 
     /* Liquid glass tokens (dark) */
-    --glass-background: 220 25% 18% / 0.55;
-    --glass-surface: 220 25% 20% / 0.5;
-    --glass-surface-strong: 220 25% 18% / 0.78;
-    --glass-border: 220 20% 60% / 0.18;
-    --glass-highlight: 45 20% 95% / 0.08;
-    --glass-shadow: 0 0% 0% / 0.45;
+    --glass-background: 219 42% 18% / 0.72;
+    --glass-surface: 219 42% 20% / 0.6;
+    --glass-surface-strong: 219 42% 18% / 0.85;
+    --glass-border: 215 20% 55% / 0.28;
+    --glass-highlight: 44 55% 95% / 0.06;
+    --glass-shadow: 0 0% 0% / 0.5;
   }
 
 
@@ -159,8 +161,13 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-feature-settings: 'cv11', 'ss01';
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 16px;
+    font-feature-settings: 'ss01';
+  }
+  .font-display, .font-serif {
+    font-family: 'Newsreader', ui-serif, Georgia, serif;
+    font-optical-sizing: auto;
   }
 }
 
@@ -355,10 +362,19 @@
 
 /* ===================== Liquid Motion System ===================== */
 :root {
-  --liquid-motion-fast: 220ms;
-  --liquid-motion-normal: 520ms;
-  --liquid-motion-slow: 900ms;
+  --liquid-motion-fast: 160ms;
+  --liquid-motion-normal: 220ms;
+  --liquid-motion-slow: 480ms;
   --liquid-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Aurora mesh backdrop — soft, non-invasive layered radial gradients.
