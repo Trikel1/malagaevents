@@ -23,14 +23,9 @@ interface UpcomingHighlightsProps {
  */
 const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
   const { t } = useTranslation();
-  // Sprint UI 5: avoid aggressive auto-motion. Default to paused; also
-  // start paused when the user prefers reduced motion. The Pause/Play
-  // toggle stays available so users can opt in to the marquee if they want.
-  const prefersReduced =
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const [paused, setPaused] = useState(true || prefersReduced);
+  // Sprint UI 5: no aggressive auto-motion. The strip renders as a swipeable
+  // list by default; the Pause/Play toggle lets users opt into the marquee.
+  const [paused, setPaused] = useState(true);
   const trackRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
