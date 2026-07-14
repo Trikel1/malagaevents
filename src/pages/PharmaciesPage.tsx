@@ -154,111 +154,42 @@ interface LocalitySelectorProps {
 
 const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState('');
 
-  const filteredGroups = useMemo(() => {
-    const nq = stripDiacritics(q.trim());
-    if (!nq) return PHARMACY_LOCALITY_GROUPS;
-    return PHARMACY_LOCALITY_GROUPS
-      .map((g) => ({
-        ...g,
-        entries: g.entries.filter((e) => stripDiacritics(e.name).includes(nq)),
-      }))
-      .filter((g) => g.entries.length > 0);
-  }, [q]);
+  const options: SearchableSelectOption<string>[] = useMemo(() => {
+    const list: SearchableSelectOption<string>[] = [];
+    for (const g of PHARMACY_LOCALITY_GROUPS) {
+      for (const e of g.entries) {
+        list.push({
+          value: e.name,
+          label: e.name,
+          group: g.label,
+          aliases: [e.slug],
+        });
+      }
+    }
+    return list;
+  }, []);
 
-  const handlePick = (name: string) => {
-    onChange(name);
-    setOpen(false);
-    setQ('');
-  };
+  const isAll = value === ALL_PROVINCE_LABEL;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="w-full justify-between rounded-xl h-11 bg-card"
-          aria-haspopup="listbox"
-          aria-expanded={open}
-        >
-          <span className="flex items-center gap-2 min-w-0">
-            <MapPin className="h-4 w-4 text-primary shrink-0" />
-            <span className="truncate font-medium">{value}</span>
-          </span>
-          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="p-0 w-[min(360px,calc(100vw-2rem))] z-50 h-[70vh] flex flex-col"
-        align="start"
-        sideOffset={6}
-        collisionPadding={16}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <div className="p-2 border-b">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t('events.searchLocality', 'Buscar localidad')}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="pl-8 h-9"
-            />
-          </div>
-        </div>
-        <ScrollArea className="flex-1 min-h-0 overscroll-contain [-webkit-overflow-scrolling:touch]">
-          <div className="p-1.5">
-            {/* Toda la provincia */}
-            <button
-              type="button"
-              onClick={() => handlePick(ALL_PROVINCE_LABEL)}
-              className={cn(
-                'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm hover:bg-accent transition min-h-[44px]',
-                value === ALL_PROVINCE_LABEL && 'bg-accent/60 font-semibold'
-              )}
-            >
-              <span className="truncate">{t('pharmacies.allProvince', 'Toda la provincia')}</span>
-              {value === ALL_PROVINCE_LABEL && <Check className="h-4 w-4 text-primary shrink-0" />}
-            </button>
-
-            {filteredGroups.length === 0 ? (
-              <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-                {t('common.noResults', 'Sin resultados')}
-              </div>
-            ) : (
-              filteredGroups.map((group) => (
-                <div key={group.zone} className="mt-2">
-                  <div className="sticky top-0 z-10 bg-popover/95 backdrop-blur-sm px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {group.label}
-                  </div>
-                  {group.entries.map((e) => {
-                    const selected = value === e.name;
-                    return (
-                      <button
-                        key={e.slug}
-                        type="button"
-                        onClick={() => handlePick(e.name)}
-                        className={cn(
-                          'w-full flex items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm hover:bg-accent transition min-h-[44px]',
-                          selected && 'bg-accent/60 font-semibold'
-                        )}
-                      >
-                        <span className="truncate">{e.name}</span>
-                        {selected && <Check className="h-4 w-4 text-primary shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              ))
-            )}
-          </div>
-        </ScrollArea>
-      </PopoverContent>
-    </Popover>
+    <SearchableSelect
+      value={isAll ? null : value}
+      onValueChange={(v) => onChange(v ?? ALL_PROVINCE_LABEL)}
+      options={options}
+      title={t('events.searchLocality', 'Buscar localidad')}
+      ariaLabel={t('events.searchLocality', 'Buscar localidad')}
+      searchPlaceholder={t('events.searchLocality', 'Buscar localidad')}
+      clearLabel={t('pharmacies.allProvince', 'Toda la provincia')}
+      allowClear
+      triggerActive={!isAll}
+      triggerIcon={<MapPin className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />}
+      triggerLabel={value}
+      className="w-full justify-between h-11 bg-card"
+    />
   );
 };
+
 
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
