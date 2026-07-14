@@ -113,6 +113,7 @@ const BottomNav = () => {
   const endPointer = (e: React.PointerEvent<HTMLButtonElement>, tapIndex: number) => {
     if (pointerIdRef.current !== e.pointerId) return;
     pointerIdRef.current = null;
+    handledByPointerRef.current = true;
     const wasDrag = dragStartedRef.current;
     dragStartedRef.current = false;
     startPointRef.current = null;
