@@ -221,8 +221,7 @@ export interface CapitalGroupDef {
 
 export const CAPITAL_GROUPS: CapitalGroupDef[] = [
   { key: 'teatros-auditorios', label: 'Teatros y auditorios', kinds: ['teatro', 'auditorio'] },
-  { key: 'salas', label: 'Salas y música en vivo', kinds: ['sala'] },
-  { key: 'centros-culturales', label: 'Centros culturales', kinds: ['espacio'] },
+  { key: 'salas', label: 'Salas y música en vivo', kinds: ['sala', 'espacio'] },
   { key: 'museos', label: 'Museos', kinds: ['museo'] },
   { key: 'recintos-exteriores', label: 'Recintos y exteriores', kinds: ['exterior', 'ferial'] },
   { key: 'festivales', label: 'Festivales y grandes citas', kinds: ['festival'] },
