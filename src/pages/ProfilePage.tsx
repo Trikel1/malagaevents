@@ -46,7 +46,7 @@ const ProfilePage = () => {
     },
     ...(isAdmin ? [{
       icon: Shield,
-      label: 'Panel de administración',
+      label: t('profile.adminPanel', 'Panel de administración'),
       to: '/admin',
       requiresAuth: true,
     }] : []),
@@ -60,47 +60,49 @@ const ProfilePage = () => {
         path="/profile"
         noindex
       />
-      {/* Header */}
-      <header className="bg-gradient-hero text-white p-6 pb-10 rounded-b-3xl shadow-card">
-        <h1 className="text-2xl font-bold tracking-tight mb-4">{t('profile.title')}</h1>
-        
+      <PageHero
+        variant="compact"
+        icon={<User className="h-5 w-5" aria-hidden />}
+        title={t('profile.title')}
+      >
         {isLoading ? (
-          <div className="h-20 animate-pulse bg-white/10 rounded-lg" />
+          <div className="h-20 animate-pulse bg-muted rounded-2xl" />
         ) : isAuthenticated && user ? (
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-              <User className="h-8 w-8" />
+          <div className="flex items-center gap-4 rounded-2xl bg-card border border-border shadow-sm p-4">
+            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <User className="h-7 w-7 text-primary" aria-hidden />
             </div>
-            <div>
-              <p className="font-semibold">{user.user_metadata?.display_name || 'Usuario'}</p>
-              <p className="text-sm opacity-80">{user.email}</p>
+            <div className="min-w-0">
+              <p className="font-display font-semibold text-lg tracking-tight truncate">
+                {user.user_metadata?.display_name || t('profile.user', 'Usuario')}
+              </p>
+              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
             </div>
           </div>
         ) : (
-          <Card className="bg-white/10 border-white/15 text-white">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-white/15 flex items-center justify-center shrink-0">
-                <User className="h-6 w-6" aria-hidden />
+          <Card className="rounded-2xl bg-card border border-border shadow-sm">
+            <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <User className="h-6 w-6 text-primary" aria-hidden />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold leading-tight">{t('profile.guestTitle', 'Invitado')}</p>
-                <p className="text-xs text-white/85 mt-0.5">{t('profile.loginRequiredDesc')}</p>
+                <p className="font-display font-semibold text-base leading-tight">{t('profile.guestTitle', 'Invitado')}</p>
+                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{t('profile.loginRequiredDesc')}</p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-                <Button asChild variant="secondary" size="sm" className="min-h-11">
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <Button asChild className="min-h-11 font-semibold">
                   <Link to="/auth" aria-label={t('profile.login')}>{t('profile.login')}</Link>
                 </Button>
-                <Button asChild variant="outline" size="sm" className="min-h-11 bg-transparent border-white/40 text-white hover:bg-white/10">
+                <Button asChild variant="outline" className="min-h-11">
                   <Link to="/auth?mode=signup" aria-label={t('profile.signup')}>{t('profile.signup')}</Link>
                 </Button>
               </div>
             </CardContent>
           </Card>
         )}
+      </PageHero>
 
-      </header>
-
-      <main className="p-4 -mt-6 space-y-4">
+      <main className="mx-auto w-full max-w-[840px] px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         {/* Appearance - Theme */}
         <Card className="rounded-2xl shadow-soft">
           <CardHeader className="pb-3">
