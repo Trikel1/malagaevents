@@ -28,7 +28,7 @@ import type { VenueKind } from '@/lib/venuesCatalog';
  *          with sticky Limpiar / Mostrar footer.
  */
 
-type Kind = 'all' | 'salas' | 'teatros';
+type Kind = 'all' | 'salas' | 'teatros' | 'recintos';
 
 interface VenueKindFilterProps {
   selectedVenueIds: string[];
@@ -40,6 +40,7 @@ const KIND_TO_KINDS: Record<Kind, VenueKind[] | 'all'> = {
   all: 'all',
   salas: ['sala', 'espacio'],
   teatros: ['teatro', 'auditorio'],
+  recintos: ['exterior', 'ferial'],
 };
 
 // ────────────────────────────────────────────────────────────────────────────
