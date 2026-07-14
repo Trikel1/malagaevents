@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/common/SEO';
 
 const ResetPasswordPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [ready, setReady] = useState(false);
