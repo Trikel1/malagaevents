@@ -362,10 +362,19 @@
 
 /* ===================== Liquid Motion System ===================== */
 :root {
-  --liquid-motion-fast: 220ms;
-  --liquid-motion-normal: 520ms;
-  --liquid-motion-slow: 900ms;
+  --liquid-motion-fast: 160ms;
+  --liquid-motion-normal: 220ms;
+  --liquid-motion-slow: 480ms;
   --liquid-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Aurora mesh backdrop — soft, non-invasive layered radial gradients.
