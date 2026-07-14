@@ -27,7 +27,7 @@ const TicketsPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
-  const { data: tickets, isLoading } = useTickets();
+  const { data: tickets, isLoading, isError, refetch } = useTickets();
   const deleteTicket = useDeleteTicket();
 
   // Redirect to auth if not logged in
