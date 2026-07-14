@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MapPin, Heart, Calendar, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,10 +12,6 @@ import EventImage from '@/components/events/EventImage';
 import { sanitizeText, generateAltText } from '@/lib/sanitize';
 import { hasExplicitTime } from '@/lib/eventTime';
 import type { Event } from '@/types';
-
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
-};
 
 interface EventCardProps {
   event: Event;
@@ -29,7 +25,7 @@ interface EventCardProps {
 
 const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority, variant }, ref) => {
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
 
   const showTime = hasExplicitTime(event.start_at);
   const timeConfirmLabel = t('events.timeTBC', 'Hora por confirmar');

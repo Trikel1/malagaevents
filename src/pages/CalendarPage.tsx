@@ -14,7 +14,7 @@ import {
   setYear,
 } from 'date-fns';
 import SEO from '@/components/common/SEO';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,9 +40,8 @@ import SportEventCard from '@/components/sports/SportEventCard';
 
 const TIMEZONE = 'Europe/Madrid';
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
-};
+
+
 
 // Month names for the selector
 const MONTHS = [
@@ -53,7 +52,7 @@ const MONTHS = [
 const CalendarPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
   const { appMode } = useAppMode();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());

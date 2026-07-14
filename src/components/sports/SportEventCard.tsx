@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Clock, ExternalLink, Navigation, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,17 +14,13 @@ import {
   buildDirectionsUrl,
 } from '@/lib/sports';
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
-};
-
 interface SportEventCardProps {
   event: SportEvent & { price_info?: string | null; address?: string | null; source_url?: string | null };
 }
 
 const SportEventCard = ({ event }: SportEventCardProps) => {
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
   const formattedDate = format(new Date(event.start_at), 'EEE d MMM · HH:mm', { locale });
   const sportCat = event.sport as SportCategory;
   const label = t(`sports.${sportCat}`, event.sport);

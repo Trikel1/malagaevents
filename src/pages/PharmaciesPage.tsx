@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import {
   Phone, MapPin, Calendar as CalendarIcon, Clock, AlertTriangle,
   Search, ChevronDown, Check, Navigation, X, Pill, LocateFixed, Info,
@@ -23,9 +23,6 @@ import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib
 import { haversineKm, formatDistance } from '@/lib/distance';
 import { cn } from '@/lib/utils';
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
-};
 
 const TIMEZONE = 'Europe/Madrid';
 const DEFAULT_MUNICIPALITY = 'Málaga';
@@ -265,7 +262,7 @@ const LocalitySelector = ({ value, onChange }: LocalitySelectorProps) => {
 
 const PharmaciesPage = () => {
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = getDateLocale(i18n.language);
 
   const { toast } = useToast();
 
