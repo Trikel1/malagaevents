@@ -79,7 +79,7 @@ const AddTicketPage = () => {
         >
           <ArrowLeft className="h-5 w-5" aria-hidden />
         </Button>
-        <h1 className="text-xl font-bold">{t('tickets.addTicket')}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">{t('tickets.addTicket')}</h1>
       </header>
 
 

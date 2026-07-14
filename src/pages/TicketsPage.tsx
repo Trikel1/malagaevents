@@ -68,7 +68,7 @@ const TicketsPage = () => {
       {/* Header */}
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 p-4 shadow-soft">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold tracking-tight">{t('tickets.title')}</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">{t('tickets.title')}</h1>
           <Button asChild size="sm" className="min-h-11">
             <Link to="/tickets/add" aria-label={t('tickets.addTicket')}>
               <Plus className="h-4 w-4 mr-1" aria-hidden />

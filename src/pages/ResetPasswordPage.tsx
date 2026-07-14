@@ -62,7 +62,7 @@ const ResetPasswordPage = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate('/auth')} aria-label={t('common.back', 'Volver')}>
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </Button>
-        <h1 className="text-xl font-bold">{t('auth.resetTitle', 'Restablecer contraseña')}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-tight">{t('auth.resetTitle', 'Restablecer contraseña')}</h1>
       </header>
       <main className="p-4 max-w-md mx-auto">
         <Card>
