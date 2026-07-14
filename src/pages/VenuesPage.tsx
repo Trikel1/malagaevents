@@ -72,88 +72,102 @@ const VenuesPage = () => {
           })),
         } : undefined}
       />
-      <header className="bg-card border-b border-border sticky top-0 z-40 p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-bold">{t('sports.venuesTitle')}</h1>
-        </div>
+      <PageHero
+        variant="compact"
+        icon={<Building2 className="h-5 w-5" aria-hidden />}
+        title={t('sports.venuesTitle')}
+        description={t('sports.venuesSubtitle', 'Recintos e instalaciones deportivas de Málaga y su provincia.')}
+      >
+        <div className="space-y-3">
+          <div className="relative max-w-xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden />
+            <Input
+              placeholder={t('sports.searchVenues')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-11 h-12 rounded-2xl bg-background border-border/70 shadow-sm"
+              aria-label={t('sports.searchVenues')}
+            />
+          </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t('sports.searchVenues')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 scrollbar-hide">
+            <button
+              onClick={() => setSelectedSport('all')}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
+                selectedSport === 'all'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+              aria-pressed={selectedSport === 'all'}
+            >
+              <Trophy className="h-4 w-4" aria-hidden="true" />
+              {t('sports.all', 'Todos')}
+            </button>
+            {SPORT_CATEGORIES.map((cat) => {
+              const active = selectedSport === cat;
+              const label = getSportLabel(t, cat);
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedSport(cat)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-card border-border text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                  aria-pressed={active}
+                  aria-label={label}
+                >
+                  <SportIcon sport={cat} className="h-4 w-4" />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </PageHero>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          <button
-            onClick={() => setSelectedSport('all')}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
-              selectedSport === 'all'
-                ? 'bg-primary/10 text-primary border-primary/30'
-                : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20'
-            )}
-          >
-            <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
-            {t('sports.all', 'Todos')}
-          </button>
-          {SPORT_CATEGORIES.map((cat) => {
-            const active = selectedSport === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedSport(cat)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
-                  active
-                    ? 'bg-primary/10 text-primary border-primary/30'
-                    : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20'
-                )}
-              >
-                <SportIcon sport={cat} className={cn('h-3.5 w-3.5', active ? 'text-primary' : 'text-muted-foreground')} />
-                {t(`sports.${cat}`, cat)}
-              </button>
-            );
-          })}
-        </div>
-      </header>
-
-      <main className="p-4">
+      <main className="mx-auto w-full max-w-[1240px] px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-32 rounded-2xl bg-muted/50 animate-pulse" />
+            ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <Building2 className="h-10 w-10 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t('sports.noVenues', 'No se encontraron recintos')}</p>
+          <div className="text-center py-16 text-muted-foreground rounded-2xl border border-dashed border-border bg-card/50">
+            <Building2 className="h-10 w-10 mx-auto mb-3 opacity-50" />
+            <p className="text-sm font-medium">{t('sports.noVenues', 'No se encontraron recintos')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((venue) => (
-              <Card key={venue.id} className="hover:border-primary/30 transition-colors">
-                <CardContent className="p-3 flex flex-col gap-2">
+              <Card
+                key={venue.id}
+                className="group h-full rounded-2xl bg-card border border-border shadow-sm hover:shadow-md hover:border-primary/40 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5"
+              >
+                <CardContent className="p-4 flex flex-col gap-3 h-full">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-full bg-primary/10 shrink-0 mt-0.5">
+                    <div className="h-11 w-11 shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center">
                       <Building2 className="h-5 w-5 text-primary" aria-hidden />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm break-words leading-snug">{venue.name}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5 break-words" style={{ overflowWrap: 'anywhere' }}>
+                      <h3 className="font-display font-semibold text-[15px] leading-snug tracking-tight break-words">
+                        {venue.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1 break-words leading-relaxed" style={{ overflowWrap: 'anywhere' }}>
                         {venue.city}{venue.address ? ` · ${venue.address}` : ''}
                       </p>
                     </div>
                   </div>
                   {venue.sports?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {venue.sports.map((s) => (
-                        <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+                        <Badge key={s} variant="outline" className="text-[11px] px-2 py-0.5 gap-1 rounded-full">
                           <SportIcon sport={s} className="h-3 w-3" />
-                          {t(`sports.${s}`, s)}
+                          {getSportLabel(t, s)}
                         </Badge>
                       ))}
                     </div>
@@ -161,11 +175,11 @@ const VenuesPage = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="self-start text-xs"
+                    className="self-start min-h-[44px] rounded-full mt-auto"
                     onClick={() => openMap(venue)}
                     aria-label={`${t('sports.map', 'Mapa')} — ${venue.name}`}
                   >
-                    <MapPin className="h-3 w-3 mr-1" aria-hidden />
+                    <MapPin className="h-4 w-4 mr-1.5" aria-hidden />
                     {t('sports.map', 'Mapa')}
                   </Button>
                 </CardContent>
