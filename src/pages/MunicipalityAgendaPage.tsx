@@ -250,7 +250,7 @@ const MunicipalityAgendaPage = () => {
             </div>
           )}
         </section>
-      </div>
+      </main>
     </>
   );
 };
