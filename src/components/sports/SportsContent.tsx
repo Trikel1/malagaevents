@@ -92,8 +92,11 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
     }
     if (venueSet.size > 0) f.venueNames = Array.from(venueSet);
 
+    const q = (externalSearch || '').trim();
+    if (q) f.q = q;
+
     return f;
-  }, [selectedSport, timeFilter, selectedVenueNames, municipalityVenueNames]);
+  }, [selectedSport, timeFilter, selectedVenueNames, municipalityVenueNames, externalSearch]);
 
   const { data: events = [], isLoading, isError } = useSportsEvents(filters);
 
