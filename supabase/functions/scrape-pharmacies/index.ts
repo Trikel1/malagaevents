@@ -332,6 +332,9 @@ Deno.serve(async (req) => {
       directory_upserted: 0,
       guardia_source: 'none',
       directory_source: 'none',
+      source_status: 'official_data_unavailable' as
+        | 'official_data_unavailable'
+        | 'official_data_available',
       errors: [] as string[],
     };
 
@@ -380,87 +383,64 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Generate duty schedule from scraped data or fallback
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    // Build duty entries ONLY from officially-scraped data. Every row must include a
+    // real duty_date; otherwise it is discarded. If nothing verifiable remains we do NOT
+    // delete existing rows and we do NOT insert anything.
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const todayStr = todayDate.toISOString().split('T')[0];
 
-    let dutyEntries: any[];
-    if (guardiaPharmacies.length > 5) {
-      // Use scraped guardia data directly if it has dates
-      dutyEntries = guardiaPharmacies.map(p => ({
+    const dutyEntries = guardiaPharmacies
+      .filter((p: any) => typeof p?.duty_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.duty_date))
+      .map((p: any) => ({
         name: p.name,
         address: p.address,
         phone: p.phone || null,
         lat: null,
         lng: null,
         municipality: p.municipality || 'Málaga',
-        date_from: p.duty_date || todayStr,
-        date_to: p.duty_date || todayStr,
+        date_from: p.duty_date,
+        date_to: p.duty_date,
         source_ref: p.source_ref,
       }));
-    } else {
-      console.log('Using fallback duty rotation schedule');
-      results.guardia_source = 'fallback';
-      dutyEntries = generateDutySchedule(FALLBACK_PHARMACIES, today);
-    }
-
-    // Clear future entries and insert new ones
-    const { error: deleteError } = await supabase
-      .from('pharmacies_guard')
-      .delete()
-      .gte('date_from', todayStr);
-
-    if (deleteError) {
-      console.error('Error deleting old guard entries:', deleteError.message);
-      results.errors.push(`guard_delete: ${deleteError.message}`);
-    }
 
     const batchSize = 50;
-    for (let i = 0; i < dutyEntries.length; i += batchSize) {
-      const batch = dutyEntries.slice(i, i + batchSize);
-      const { error } = await supabase
+
+    if (dutyEntries.length >= 5) {
+      results.source_status = 'official_data_available';
+
+      // Only touch pharmacies_guard when we have verifiable official data.
+      const { error: deleteError } = await supabase
         .from('pharmacies_guard')
-        .insert(batch);
+        .delete()
+        .gte('date_from', todayStr);
 
-      if (error) {
-        console.error(`Guard batch insert error:`, error.message);
-        results.errors.push(`guard_batch: ${error.message}`);
-      } else {
-        results.guardia_inserted += batch.length;
+      if (deleteError) {
+        console.error('Error deleting old guard entries:', deleteError.message);
+        results.errors.push(`guard_delete: ${deleteError.message}`);
       }
-    }
 
-    // ── 2. FULL DIRECTORY ──
-    let directoryPharmacies: any[] = [];
+      for (let i = 0; i < dutyEntries.length; i += batchSize) {
+        const batch = dutyEntries.slice(i, i + batchSize);
+        const { error } = await supabase
+          .from('pharmacies_guard')
+          .insert(batch);
 
-    // PRIMARY: OpenStreetMap Overpass — exhaustive (>700 pharmacies in Málaga province)
-    const overpassPharmacies = await scrapeFromOverpass();
-    if (overpassPharmacies.length > 50) {
-      directoryPharmacies = overpassPharmacies;
-      results.directory_scraped = directoryPharmacies.length;
-      results.directory_source = 'overpass-osm';
-      console.log(`Using Overpass directory: ${directoryPharmacies.length} pharmacies`);
-    }
-
-    // Try Firecrawl for directory (with timeout) — only if Overpass failed
-    if (firecrawlKey && directoryPharmacies.length < 50) {
-      const dirResult = await scrapeWithFirecrawl(
-        'https://icofma.es/listado-farmacias-provincia-malaga',
-        firecrawlKey,
-        DIRECTORY_SCHEMA,
-        'Extract ALL pharmacies listed on this page. This is the full directory of pharmacies in Málaga province. For each pharmacy get: name, address, municipality/town, and phone number.',
-        20000
+        if (error) {
+          console.error(`Guard batch insert error:`, error.message);
+          results.errors.push(`guard_batch: ${error.message}`);
+        } else {
+          results.guardia_inserted += batch.length;
+        }
+      }
+    } else {
+      console.warn(
+        'Official guardia data unavailable — preserving existing rows, inserting nothing.'
       );
-
-      if (dirResult?.success && dirResult?.data?.json?.pharmacies?.length > 5) {
-        directoryPharmacies = dirResult.data.json.pharmacies;
-        results.directory_scraped = directoryPharmacies.length;
-        results.directory_source = 'firecrawl';
-        console.log(`Scraped ${directoryPharmacies.length} directory pharmacies via Firecrawl`);
-      } else {
-        console.log('Firecrawl directory returned insufficient data, trying Jina+AI...');
-      }
+      results.guardia_source = 'none';
+      results.guardia_scraped = 0;
+      results.guardia_inserted = 0;
+    }
     }
 
     // Jina+AI fallback for directory
@@ -477,11 +457,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Use fallback if both scrapers failed
+    // If every directory source failed, do NOT insert placeholder data.
     if (directoryPharmacies.length < 5) {
-      directoryPharmacies = FALLBACK_PHARMACIES;
-      results.directory_source = 'fallback';
-      results.directory_scraped = directoryPharmacies.length;
+      console.warn('Directory sources unavailable — no directory rows will be upserted.');
+      directoryPharmacies = [];
+      results.directory_source = 'none';
+      results.directory_scraped = 0;
     }
 
     // Upsert into pharmacies_directory
