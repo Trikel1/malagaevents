@@ -176,7 +176,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-24 lg:pb-8">
       <SEO
         title={`${event.title.slice(0, 42)} — MalagaEvents`}
         description={(event.description?.replace(/\s+/g, ' ').trim().slice(0, 155) || `${event.title} en Málaga el ${formattedDate}. Detalles, ubicación y entradas.`)}
@@ -230,60 +230,153 @@ END:VCALENDAR`;
           },
         ]}
       />
-      {/* Hero Image */}
-      <div className="relative">
-        <EventImage
-          src={event.image_url}
-          alt={event.title}
-          variant="detail"
-          category={event.category}
-          showLightbox={!!event.image_url}
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-        
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 bg-background/80 hover:bg-background"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
 
-        {/* Actions */}
-        <div className="absolute top-4 right-4 flex gap-2">
+      {/* Top action bar — always visible; separate from hero image */}
+      <div className="sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border/60">
+        <div className="mx-auto w-full max-w-[1180px] px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleShare}
-            className="bg-background/80 hover:bg-background"
+            onClick={() => navigate(-1)}
+            aria-label={t('common.back', 'Volver')}
+            className="rounded-full"
           >
-            <Share2 className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5" aria-hidden />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleToggleFavorite}
-            disabled={toggleFavorite.isPending}
-            className="bg-background/80 hover:bg-background"
-          >
-            {toggleFavorite.isPending ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShare}
+              aria-label={t('common.share', 'Compartir')}
+              className="rounded-full"
+            >
+              <Share2 className="h-5 w-5" aria-hidden />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleToggleFavorite}
+              disabled={toggleFavorite.isPending}
+              aria-label={
+                isFavorite
+                  ? t('events.removeFromFavorites', 'Quitar de favoritos')
+                  : t('events.addToFavorites', 'Guardar')
+              }
+              aria-pressed={isFavorite}
+              className="rounded-full"
+            >
+              {toggleFavorite.isPending ? (
+                <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+              ) : (
+                <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} aria-hidden />
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Editorial two-column layout */}
+      <div className="mx-auto w-full max-w-[1180px] px-4 lg:px-8 pt-4 lg:pt-6 pb-6">
+        <div className="grid gap-6 lg:gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-start">
+          {/* Media column */}
+          <div className="relative order-1 lg:order-1">
+            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-muted aspect-[4/3] sm:aspect-[16/10] lg:aspect-[4/3] max-h-[520px]">
+              <EventImage
+                src={event.image_url}
+                alt={event.title}
+                variant="detail"
+                category={event.category}
+                showLightbox={!!event.image_url}
+                priority
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {event.is_free && (
+                <Badge className="absolute bottom-3 left-3 bg-green-500 hover:bg-green-500 text-white shadow-sm">
+                  {t('common.free', 'Gratis')}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          {/* Info column */}
+          <div className="order-2 lg:order-2 space-y-5 min-w-0">
+            <div>
+              <Badge variant="secondary" className="mb-2">
+                {t(`categories.${event.category}`)}
+              </Badge>
+              <h1 className="font-display text-2xl sm:text-3xl lg:text-[34px] font-semibold tracking-tight leading-tight text-foreground break-words">
+                {event.title}
+              </h1>
+            </div>
+
+            {/* Key facts */}
+            <div className="grid grid-cols-2 gap-3">
+              <FactCard
+                icon={<Calendar className="h-4 w-4 text-primary" />}
+                label={t('eventDetail.date', 'Fecha')}
+                value={<span className="capitalize">{formattedDate}</span>}
+              />
+              <FactCard
+                icon={<Calendar className="h-4 w-4 text-primary" />}
+                label={t('eventDetail.time', 'Hora')}
+                value={`${formattedTime}${formattedEndTime ? ` – ${formattedEndTime}` : ''}`}
+              />
+              <FactCard
+                className="col-span-2"
+                icon={<MapPin className="h-4 w-4 text-secondary" />}
+                label={t('eventDetail.place', 'Lugar')}
+                value={
+                  <>
+                    <span className="break-words" style={{ overflowWrap: 'anywhere' }}>
+                      {event.venue_name}
+                    </span>
+                    {event.address && (
+                      <span
+                        className="block text-xs text-muted-foreground break-words mt-0.5"
+                        style={{ overflowWrap: 'anywhere' }}
+                      >
+                        {event.address}
+                      </span>
+                    )}
+                  </>
+                }
+              />
+              {(event.is_free || event.price_info) && (
+                <FactCard
+                  className="col-span-2"
+                  icon={<Euro className="h-4 w-4 text-primary" />}
+                  label={t('eventDetail.price', 'Precio')}
+                  value={event.is_free ? t('common.free', 'Gratis') : event.price_info}
+                />
+              )}
+            </div>
+
+            {/* Primary CTA — Tickets. Desktop-visible; mobile also has sticky CTA below. */}
+            {event.ticket_url && (
+              <Button
+                size="lg"
+                className="w-full shadow-lift hidden lg:inline-flex"
+                onClick={() => window.open(event.ticket_url, '_blank', 'noopener,noreferrer')}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" aria-hidden />
+                {t('eventDetail.buyTickets')}
+              </Button>
             )}
-          </Button>
+
+            <div className="flex gap-2">
+              <Button onClick={handleAddToCalendar} variant="outline" className="flex-1">
+                <Calendar className="h-4 w-4 mr-2" aria-hidden />
+                {t('eventDetail.addToCalendar')}
+              </Button>
+              <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
+                <Navigation className="h-4 w-4 mr-2" aria-hidden />
+                {t('eventDetail.howToGet')}
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Free badge */}
-        {event.is_free && (
-          <Badge className="absolute bottom-4 left-4 bg-green-500 hover:bg-green-500 text-white">
-            {t('common.free')}
-          </Badge>
-        )}
-      </div>
 
       {/* Content */}
       <main className="p-4 space-y-6">
