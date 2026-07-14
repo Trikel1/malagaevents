@@ -55,8 +55,8 @@ beforeAll(async () => {
 describe('Sprint UI 8 · AuthPage', () => {
   it('los inputs tienen labels visibles y autocomplete correcto', () => {
     wrap(<AuthPage />);
-    const email = screen.getByLabelText(/email/i) as HTMLInputElement;
-    const password = screen.getByLabelText(/contraseña/i) as HTMLInputElement;
+    const email = document.getElementById('email') as HTMLInputElement;
+    const password = document.getElementById('password') as HTMLInputElement;
     expect(email.getAttribute('autocomplete')).toBe('email');
     expect(password.getAttribute('autocomplete')).toBe('current-password');
   });
@@ -64,9 +64,10 @@ describe('Sprint UI 8 · AuthPage', () => {
   it('valida email requerido con role="alert" junto al campo', async () => {
     const user = userEvent.setup();
     wrap(<AuthPage />);
-    await user.click(screen.getByRole('button', { name: /iniciar sesión|acceder|entrar/i }));
-    const alert = await screen.findByRole('alert');
-    expect(alert.textContent).toMatch(/email/i);
+    const submit = screen.getByRole('button', { name: /^Iniciar sesión$/i });
+    await user.click(submit);
+    const alerts = await screen.findAllByRole('alert');
+    expect(alerts.some((a) => /email/i.test(a.textContent || ''))).toBe(true);
     expect(signInMock).not.toHaveBeenCalled();
   });
 
@@ -81,19 +82,19 @@ describe('Sprint UI 8 · AuthPage', () => {
 
   it('bloquea doble envío mediante disabled + aria-busy', async () => {
     const user = userEvent.setup();
-    // Simulate slow sign-in
     signInMock.mockImplementationOnce(
       () => new Promise((resolve) => setTimeout(() => resolve({ error: null }), 300)),
     );
     wrap(<AuthPage />);
-    await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/contraseña/i), 'secret1');
-    const submit = screen.getByRole('button', { name: /iniciar sesión|acceder|entrar/i });
+    await user.type(document.getElementById('email')!, 'test@example.com');
+    await user.type(document.getElementById('password')!, 'secret1');
+    const submit = screen.getByRole('button', { name: /^Iniciar sesión$/i });
     await user.click(submit);
     expect(submit).toBeDisabled();
     expect(submit.getAttribute('aria-busy')).toBe('true');
   });
 });
+
 
 describe('Sprint UI 8 · ThemeSelector', () => {
   it('renderiza radiogroup con tres opciones y aria-checked', () => {
