@@ -23,7 +23,9 @@ interface UpcomingHighlightsProps {
  */
 const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
   const { t } = useTranslation();
-  const [paused, setPaused] = useState(false);
+  // Sprint UI 5: no aggressive auto-motion. The strip renders as a swipeable
+  // list by default; the Pause/Play toggle lets users opt into the marquee.
+  const [paused, setPaused] = useState(true);
   const trackRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
