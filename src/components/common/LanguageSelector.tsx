@@ -63,6 +63,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
           <Button
             type="button"
             variant="ghost"
+            role="combobox"
             aria-haspopup="listbox"
             aria-expanded={open}
             aria-label={ariaLabel}
