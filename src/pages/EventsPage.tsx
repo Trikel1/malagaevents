@@ -40,7 +40,8 @@ const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: strin
 // ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = getDateLocale(i18n.language);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthContext();
