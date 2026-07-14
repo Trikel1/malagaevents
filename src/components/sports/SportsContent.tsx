@@ -243,7 +243,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : todayEvents.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {todayEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
@@ -267,7 +267,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : weekendEvents.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {weekendEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
@@ -356,7 +356,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             </CardContent>
           </Card>
         ) : events.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {events.map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
