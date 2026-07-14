@@ -87,3 +87,72 @@ export const MALAGA_MUNICIPALITIES = [
 ] as const;
 
 export type MalagaMunicipality = (typeof MALAGA_MUNICIPALITIES)[number];
+
+/**
+ * Normalize free-form sport values (from scrapers, DB or user input) to the
+ * canonical i18n key used under `sports.categories.<key>`. Supports both the
+ * curated Spanish taxonomy (`futbol`, `baloncesto`…) and common English/other
+ * aliases (`football`, `tennis`, `basketball`, `triathlon`, `running`, …).
+ */
+export function normalizeSportKey(raw: string | null | undefined): string {
+  if (!raw) return "other";
+  const s = String(raw).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const map: Record<string, string> = {
+    // canonical ES → i18n key
+    futbol: "football",
+    baloncesto: "basketball",
+    tenis: "tennis",
+    atletismo: "athletics",
+    triatlon: "triathlon",
+    ciclismo: "cycling",
+    natacion: "swimming",
+    padel: "padel",
+    balonmano: "handball",
+    voleibol: "volleyball",
+    senderismo: "hiking",
+    acuaticos: "water_sports",
+    "artes marciales": "martial_arts",
+    artes_marciales: "martial_arts",
+    // English aliases
+    football: "football",
+    soccer: "football",
+    basketball: "basketball",
+    tennis: "tennis",
+    athletics: "athletics",
+    "track and field": "athletics",
+    triathlon: "triathlon",
+    running: "running",
+    cycling: "cycling",
+    swimming: "swimming",
+    handball: "handball",
+    volleyball: "volleyball",
+    hiking: "hiking",
+    fitness: "fitness",
+    rugby: "rugby",
+    futsal: "futsal",
+    motor: "motor",
+    motorsport: "motor",
+    otros: "other",
+    other: "other",
+  };
+  return map[s] ?? "other";
+}
+
+/**
+ * Localised label for a sport value using the central taxonomy under
+ * `sports.categories.<key>`. Never returns the raw slug — falls back to the
+ * "other" bucket if the value is unknown.
+ */
+export function getSportLabel(
+  t: (key: string, options?: unknown) => string,
+  raw: string | null | undefined,
+): string {
+  const key = normalizeSportKey(raw);
+  const localized = t(`sports.categories.${key}`);
+  // If i18next returns the key unchanged (missing), fall back to "other".
+  if (localized === `sports.categories.${key}`) {
+    return t("sports.categories.other");
+  }
+  return localized;
+}
+
