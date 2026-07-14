@@ -150,7 +150,7 @@ const MunicipalityAgendaPage = () => {
         path={`/agenda/${municipality.slug}`}
       />
 
-      <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
             <Link to="/events" aria-label="Volver">
