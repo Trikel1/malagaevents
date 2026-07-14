@@ -42,7 +42,14 @@ function getWeekendDates(): { from: string; to: string } {
   };
 }
 
-const SportsContent = () => {
+interface SportsContentProps {
+  /** Optional search string coming from a parent hero. */
+  externalSearch?: string;
+  /** Optional callback to clear the parent-owned search from empty states. */
+  onClearExternalSearch?: () => void;
+}
+
+const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentProps = {}) => {
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [selectedVenueNames, setSelectedVenueNames] = useState<string[]>([]);
@@ -85,8 +92,11 @@ const SportsContent = () => {
     }
     if (venueSet.size > 0) f.venueNames = Array.from(venueSet);
 
+    const q = (externalSearch || '').trim();
+    if (q) f.q = q;
+
     return f;
-  }, [selectedSport, timeFilter, selectedVenueNames, municipalityVenueNames]);
+  }, [selectedSport, timeFilter, selectedVenueNames, municipalityVenueNames, externalSearch]);
 
   const { data: events = [], isLoading, isError } = useSportsEvents(filters);
 
@@ -117,11 +127,42 @@ const SportsContent = () => {
     { key: 'upcoming', label: t('sports.upcoming') },
   ];
 
-  const renderEmpty = (msg: string) => (
+  const hasActiveFilters =
+    selectedSport !== 'all' ||
+    selectedVenueNames.length > 0 ||
+    selectedMunicipality !== 'all' ||
+    Boolean((externalSearch || '').trim());
+
+  const clearAll = () => {
+    setSelectedSport('all');
+    setSelectedVenueNames([]);
+    setSelectedMunicipality('all');
+    setTimeFilter('upcoming');
+    onClearExternalSearch?.();
+  };
+
+  const renderEmpty = (msg: string, opts?: { showActions?: boolean }) => (
     <Card className="bg-muted/50 border-dashed">
-      <CardContent className="py-8 text-center text-muted-foreground">
-        <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
+      <CardContent className="py-6 text-center text-muted-foreground space-y-3">
+        <Calendar className="h-9 w-9 mx-auto opacity-50" aria-hidden />
         <p className="text-sm">{msg}</p>
+        {opts?.showActions && (
+          <div className="flex flex-wrap justify-center gap-2 pt-1">
+            {hasActiveFilters && (
+              <Button size="sm" variant="secondary" onClick={clearAll}>
+                {t('events.clearFilters', 'Quitar filtros')}
+              </Button>
+            )}
+            {timeFilter !== 'upcoming' && (
+              <Button size="sm" variant="outline" onClick={() => setTimeFilter('upcoming')}>
+                {t('sports.empty.expandDates', 'Ampliar fechas')}
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={() => setTimeFilter('upcoming')}>
+              {t('sports.empty.seeUpcoming', 'Ver próximos eventos')}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -202,7 +243,7 @@ const SportsContent = () => {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : todayEvents.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {todayEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
@@ -226,7 +267,7 @@ const SportsContent = () => {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : weekendEvents.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {weekendEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
@@ -315,13 +356,13 @@ const SportsContent = () => {
             </CardContent>
           </Card>
         ) : events.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {events.map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
           </div>
         ) : (
-          renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'))
+          renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'), { showActions: true })
         )}
       </section>
 
