@@ -131,17 +131,18 @@ const MunicipalityAgendaPage = () => {
       <div className="container max-w-2xl mx-auto py-12 px-4">
         <EmptyState
           icon={MapPin}
-          title="Municipio no encontrado"
-          description="El municipio solicitado no está en el registro provincial."
+          title={t('agenda.notFoundTitle')}
+          description={t('agenda.notFoundDesc')}
         />
         <div className="mt-4 flex justify-center">
           <Button asChild variant="outline">
-            <Link to="/events">Volver a eventos</Link>
+            <Link to="/events">{t('agenda.backToEvents')}</Link>
           </Button>
         </div>
       </div>
     );
   }
+
 
   return (
     <>
