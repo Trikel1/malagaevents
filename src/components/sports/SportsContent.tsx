@@ -127,11 +127,42 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
     { key: 'upcoming', label: t('sports.upcoming') },
   ];
 
-  const renderEmpty = (msg: string) => (
+  const hasActiveFilters =
+    selectedSport !== 'all' ||
+    selectedVenueNames.length > 0 ||
+    selectedMunicipality !== 'all' ||
+    Boolean((externalSearch || '').trim());
+
+  const clearAll = () => {
+    setSelectedSport('all');
+    setSelectedVenueNames([]);
+    setSelectedMunicipality('all');
+    setTimeFilter('upcoming');
+    onClearExternalSearch?.();
+  };
+
+  const renderEmpty = (msg: string, opts?: { showActions?: boolean }) => (
     <Card className="bg-muted/50 border-dashed">
-      <CardContent className="py-8 text-center text-muted-foreground">
-        <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
+      <CardContent className="py-6 text-center text-muted-foreground space-y-3">
+        <Calendar className="h-9 w-9 mx-auto opacity-50" aria-hidden />
         <p className="text-sm">{msg}</p>
+        {opts?.showActions && (
+          <div className="flex flex-wrap justify-center gap-2 pt-1">
+            {hasActiveFilters && (
+              <Button size="sm" variant="secondary" onClick={clearAll}>
+                {t('events.clearFilters', 'Quitar filtros')}
+              </Button>
+            )}
+            {timeFilter !== 'upcoming' && (
+              <Button size="sm" variant="outline" onClick={() => setTimeFilter('upcoming')}>
+                {t('sports.empty.expandDates', 'Ampliar fechas')}
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={() => setTimeFilter('upcoming')}>
+              {t('sports.empty.seeUpcoming', 'Ver próximos eventos')}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
