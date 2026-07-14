@@ -24,19 +24,24 @@ const MainLayout = () => {
 
   return (
     <div
-      className="min-h-screen bg-background relative"
+      className="min-h-dvh bg-background relative"
       data-mode={appMode}
       data-route={routeKey}
     >
       <LiquidGlassBackdrop />
       <TopNav />
-      <main
+      {/*
+        The page component itself renders the single <main> landmark so we
+        keep exactly one per route (see a11y guidance). This wrapper only
+        reserves layout space for the fixed bottom nav.
+      */}
+      <div
         className="relative z-[1] pb-[calc(env(safe-area-inset-bottom,0px)+96px)] lg:pb-8"
       >
         <div key={routeKey} className="liquid-page-shell">
           <Outlet />
         </div>
-      </main>
+      </div>
       <BottomNav />
     </div>
   );
