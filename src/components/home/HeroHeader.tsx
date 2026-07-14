@@ -27,13 +27,15 @@ const HeroHeader = () => {
       )}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-white/[0.08] blur-3xl" />
+        {/* geometric ambient shapes */}
+        <div className="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-accent/25 blur-3xl" />
+        <div className="absolute top-1/3 right-1/3 h-40 w-40 rounded-2xl rotate-12 bg-secondary/20 blur-2xl" />
       </div>
 
-      <div className="relative mx-auto w-full max-w-[1180px] px-4 lg:px-8 pt-5 pb-14">
+      <div className="relative mx-auto w-full max-w-[1240px] px-4 lg:px-8 pt-5 pb-16 lg:pb-20 min-h-[380px] lg:min-h-[520px] flex flex-col">
         {/* Top controls */}
-        <div className="flex items-center justify-between gap-2 mb-7 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-8 min-w-0">
           <div className="glass-button relative flex p-0.5 min-w-0 shrink overflow-hidden">
             <span
               aria-hidden
@@ -77,29 +79,32 @@ const HeroHeader = () => {
           </div>
         </div>
 
-        {/* Editorial title */}
-        <div className="relative">
-          <h1 className="font-display text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] font-semibold tracking-tight max-w-2xl">
+        {/* Display title */}
+        <div className="relative flex-1 flex flex-col justify-center max-w-3xl">
+          <h1
+            className="font-display font-bold tracking-[-0.02em] leading-[1.02]"
+            style={{ fontSize: 'clamp(2.4rem, 5vw, 4.75rem)' }}
+          >
             {t('home.hero.title')}
           </h1>
-          <p className="text-[15px] sm:text-base lg:text-lg text-white/90 mt-3 max-w-xl leading-relaxed">
+          <p className="text-[15px] sm:text-base lg:text-lg text-white/90 mt-4 max-w-xl leading-relaxed">
             {t('home.hero.subtitle')}
           </p>
-        </div>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="relative mt-5 max-w-2xl" role="search">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" aria-hidden="true" />
-          <label htmlFor="home-search" className="sr-only">{t('home.hero.searchAria')}</label>
-          <Input
-            id="home-search"
-            type="search"
-            placeholder={t('home.hero.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 h-14 bg-card text-foreground border border-border/70 shadow-card focus-visible:ring-2 focus-visible:ring-white/70 placeholder:text-muted-foreground"
-          />
-        </form>
+          {/* Search */}
+          <form onSubmit={handleSearch} className="relative mt-6 max-w-2xl" role="search">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" aria-hidden="true" />
+            <label htmlFor="home-search" className="sr-only">{t('home.hero.searchAria')}</label>
+            <Input
+              id="home-search"
+              type="search"
+              placeholder={t('home.hero.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 h-14 rounded-2xl bg-card text-foreground border border-border/70 shadow-floating focus-visible:ring-2 focus-visible:ring-white/70 placeholder:text-muted-foreground text-base"
+            />
+          </form>
+        </div>
       </div>
     </header>
   );
