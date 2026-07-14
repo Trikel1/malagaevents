@@ -78,10 +78,9 @@ interface PharmacyCardProps {
   };
   onDuty?: boolean;
   distanceKm?: number | null;
-  fallback?: boolean;
 }
 
-const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm, fallback }: PharmacyCardProps) => {
+const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProps) => {
   const { t } = useTranslation();
   return (
     <Card className={cn(
@@ -102,12 +101,7 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm, fallback }: Pharma
             </div>
           </div>
           {onDuty && (
-            <Badge className={cn(
-              'shrink-0 text-white',
-              fallback
-                ? 'bg-amber-500 hover:bg-amber-500'
-                : 'bg-emerald-500 hover:bg-emerald-500'
-            )}>
+            <Badge className="shrink-0 text-white bg-emerald-500 hover:bg-emerald-500">
               <Clock className="h-3 w-3 mr-1" />
               {t('pharmacies.onDutyToday', 'De guardia hoy')}
             </Badge>
@@ -322,7 +316,7 @@ const PharmaciesPage = () => {
     [dirAll, search, userLoc]
   );
 
-  const dutyFallback = (dutyAll ?? []).some((p: any) => p?.__fallback);
+  
 
   const isToday =
     formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd') ===
@@ -504,13 +498,6 @@ const PharmaciesPage = () => {
             </span>
           </div>
 
-          {dutyFallback && (
-            <div className="mb-2 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-300">
-              <Info className="h-4 w-4 mt-0.5 shrink-0" />
-              <span>{t('pharmacies.fallbackNotice', 'Mostrando guardia estimada (datos oficiales no disponibles para esta fecha).')}</span>
-            </div>
-          )}
-
           {isLoadingDuty ? (
             <div className="space-y-2">
               <PharmacyCardSkeleton />
@@ -523,7 +510,6 @@ const PharmaciesPage = () => {
                   key={p.id}
                   pharmacy={{ ...p, municipality: p.municipality }}
                   onDuty
-                  fallback={!!p.__fallback}
                   distanceKm={p._distance}
                 />
               ))}
@@ -531,7 +517,10 @@ const PharmaciesPage = () => {
           ) : (
             <Card className="p-5 text-center text-sm text-muted-foreground rounded-2xl border-dashed">
               <AlertTriangle className="h-6 w-6 mx-auto mb-2 opacity-60" />
-              {t('pharmacies.noOnDutyPharmacies', 'No hay farmacias de guardia disponibles para esta fecha y localidad.')}
+              {t(
+                'pharmacies.noOfficialData',
+                'No hay datos oficiales verificados de farmacias de guardia para esta fecha y localidad. Consulta la fuente oficial antes de desplazarte.'
+              )}
             </Card>
           )}
         </section>

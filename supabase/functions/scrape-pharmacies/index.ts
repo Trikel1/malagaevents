@@ -48,29 +48,10 @@ const DIRECTORY_SCHEMA = {
   required: ['pharmacies'],
 };
 
-// Fallback pharmacies data for Málaga province
-const FALLBACK_PHARMACIES = [
-  { name: 'Farmacia Alameda Principal', address: 'Alameda Principal, 9, 29001 Málaga', municipality: 'Málaga', phone: '952 21 24 45', lat: 36.7196, lng: -4.4214 },
-  { name: 'Farmacia Larios', address: 'C/ Marqués de Larios, 3, 29005 Málaga', municipality: 'Málaga', phone: '952 22 14 56', lat: 36.7212, lng: -4.4236 },
-  { name: 'Farmacia El Corte Inglés', address: 'Av. de Andalucía, 4, 29007 Málaga', municipality: 'Málaga', phone: '952 30 00 00', lat: 36.7146, lng: -4.4312 },
-  { name: 'Farmacia Huelin', address: 'Paseo Antonio Machado, 12, 29002 Málaga', municipality: 'Málaga', phone: '952 35 12 67', lat: 36.7098, lng: -4.4456 },
-  { name: 'Farmacia Teatinos', address: 'Av. de Plutarco, 15, 29010 Málaga', municipality: 'Málaga', phone: '952 61 45 23', lat: 36.7156, lng: -4.4678 },
-  { name: 'Farmacia Torremolinos Centro', address: 'C/ San Miguel, 22, 29620 Torremolinos', municipality: 'Torremolinos', phone: '952 38 12 34' },
-  { name: 'Farmacia Benalmádena Pueblo', address: 'Av. Juan Luis Peralta, 5, 29639 Benalmádena', municipality: 'Benalmádena', phone: '952 44 56 78' },
-  { name: 'Farmacia Fuengirola Centro', address: 'Av. Ramón y Cajal, 8, 29640 Fuengirola', municipality: 'Fuengirola', phone: '952 47 89 01' },
-  { name: 'Farmacia Marbella Centro', address: 'Av. Ricardo Soriano, 15, 29601 Marbella', municipality: 'Marbella', phone: '952 77 23 45' },
-  { name: 'Farmacia Estepona', address: 'Av. España, 30, 29680 Estepona', municipality: 'Estepona', phone: '952 80 12 34' },
-  { name: 'Farmacia Ronda', address: 'C/ Virgen de la Paz, 10, 29400 Ronda', municipality: 'Ronda', phone: '952 87 45 67' },
-  { name: 'Farmacia Antequera', address: 'C/ Infante Don Fernando, 25, 29200 Antequera', municipality: 'Antequera', phone: '952 84 23 45' },
-  { name: 'Farmacia Vélez-Málaga', address: 'C/ Canalejas, 12, 29700 Vélez-Málaga', municipality: 'Vélez-Málaga', phone: '952 50 34 56' },
-  { name: 'Farmacia Nerja', address: 'C/ Pintada, 8, 29780 Nerja', municipality: 'Nerja', phone: '952 52 12 34' },
-  { name: 'Farmacia Coín', address: 'C/ Real, 15, 29100 Coín', municipality: 'Coín', phone: '952 45 67 89' },
-  { name: 'Farmacia Alhaurín de la Torre', address: 'C/ Real, 20, 29130 Alhaurín de la Torre', municipality: 'Alhaurín de la Torre', phone: '952 41 23 45' },
-  { name: 'Farmacia Mijas Costa', address: 'Av. de las Palmeras, 5, 29651 Mijas Costa', municipality: 'Mijas', phone: '952 58 34 56' },
-  { name: 'Farmacia Rincón de la Victoria', address: 'Av. del Mediterráneo, 18, 29730 Rincón de la Victoria', municipality: 'Rincón de la Victoria', phone: '952 40 12 34' },
-  { name: 'Farmacia Cártama', address: 'Av. de la Estación, 3, 29570 Cártama', municipality: 'Cártama', phone: '952 42 56 78' },
-  { name: 'Farmacia Torrox', address: 'C/ Alta, 7, 29770 Torrox', municipality: 'Torrox', phone: '952 53 89 01' },
-];
+// NOTE: A hard-coded FALLBACK_PHARMACIES list previously existed here and was used to
+// synthesize duty rotations when official sources failed. It has been removed on purpose:
+// a citizen-facing app must never present invented or estimated pharmacy guard shifts.
+
 
 function normalizeText(text: string): string {
   return text
@@ -327,36 +308,9 @@ out center tags;`;
   return [];
 }
 
-function generateDutySchedule(pharmacies: any[], startDate: Date): any[] {
-  const dutySchedule: any[] = [];
-  const count = pharmacies.length;
-  if (count === 0) return dutySchedule;
+// NOTE: generateDutySchedule() has been intentionally removed. Duty shifts must come
+// exclusively from verifiable official sources (farmaciasguardia.farmaceuticos.com).
 
-  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(currentDate.getDate() + dayOffset);
-    const dateStr = currentDate.toISOString().split('T')[0];
-
-    const perDay = 2 + (dayOffset % 2);
-    for (let i = 0; i < perDay; i++) {
-      const idx = (dayOffset * perDay + i) % count;
-      const pharmacy = pharmacies[idx];
-      dutySchedule.push({
-        name: pharmacy.name,
-        address: pharmacy.address,
-        phone: pharmacy.phone || null,
-        lat: pharmacy.lat || null,
-        lng: pharmacy.lng || null,
-        municipality: pharmacy.municipality || 'Málaga',
-        date_from: dateStr,
-        date_to: dateStr,
-        source_ref: pharmacy.source_ref || 'fallback',
-      });
-    }
-  }
-
-  return dutySchedule;
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -378,6 +332,9 @@ Deno.serve(async (req) => {
       directory_upserted: 0,
       guardia_source: 'none',
       directory_source: 'none',
+      source_status: 'official_data_unavailable' as
+        | 'official_data_unavailable'
+        | 'official_data_available',
       errors: [] as string[],
     };
 
@@ -426,87 +383,64 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Generate duty schedule from scraped data or fallback
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    // Build duty entries ONLY from officially-scraped data. Every row must include a
+    // real duty_date; otherwise it is discarded. If nothing verifiable remains we do NOT
+    // delete existing rows and we do NOT insert anything.
+    const todayDate = new Date();
+    todayDate.setHours(0, 0, 0, 0);
+    const todayStr = todayDate.toISOString().split('T')[0];
 
-    let dutyEntries: any[];
-    if (guardiaPharmacies.length > 5) {
-      // Use scraped guardia data directly if it has dates
-      dutyEntries = guardiaPharmacies.map(p => ({
+    const dutyEntries = guardiaPharmacies
+      .filter((p: any) => typeof p?.duty_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.duty_date))
+      .map((p: any) => ({
         name: p.name,
         address: p.address,
         phone: p.phone || null,
         lat: null,
         lng: null,
         municipality: p.municipality || 'Málaga',
-        date_from: p.duty_date || todayStr,
-        date_to: p.duty_date || todayStr,
+        date_from: p.duty_date,
+        date_to: p.duty_date,
         source_ref: p.source_ref,
       }));
-    } else {
-      console.log('Using fallback duty rotation schedule');
-      results.guardia_source = 'fallback';
-      dutyEntries = generateDutySchedule(FALLBACK_PHARMACIES, today);
-    }
-
-    // Clear future entries and insert new ones
-    const { error: deleteError } = await supabase
-      .from('pharmacies_guard')
-      .delete()
-      .gte('date_from', todayStr);
-
-    if (deleteError) {
-      console.error('Error deleting old guard entries:', deleteError.message);
-      results.errors.push(`guard_delete: ${deleteError.message}`);
-    }
 
     const batchSize = 50;
-    for (let i = 0; i < dutyEntries.length; i += batchSize) {
-      const batch = dutyEntries.slice(i, i + batchSize);
-      const { error } = await supabase
+
+    if (dutyEntries.length >= 5) {
+      results.source_status = 'official_data_available';
+
+      // Only touch pharmacies_guard when we have verifiable official data.
+      const { error: deleteError } = await supabase
         .from('pharmacies_guard')
-        .insert(batch);
+        .delete()
+        .gte('date_from', todayStr);
 
-      if (error) {
-        console.error(`Guard batch insert error:`, error.message);
-        results.errors.push(`guard_batch: ${error.message}`);
-      } else {
-        results.guardia_inserted += batch.length;
+      if (deleteError) {
+        console.error('Error deleting old guard entries:', deleteError.message);
+        results.errors.push(`guard_delete: ${deleteError.message}`);
       }
-    }
 
-    // ── 2. FULL DIRECTORY ──
-    let directoryPharmacies: any[] = [];
+      for (let i = 0; i < dutyEntries.length; i += batchSize) {
+        const batch = dutyEntries.slice(i, i + batchSize);
+        const { error } = await supabase
+          .from('pharmacies_guard')
+          .insert(batch);
 
-    // PRIMARY: OpenStreetMap Overpass — exhaustive (>700 pharmacies in Málaga province)
-    const overpassPharmacies = await scrapeFromOverpass();
-    if (overpassPharmacies.length > 50) {
-      directoryPharmacies = overpassPharmacies;
-      results.directory_scraped = directoryPharmacies.length;
-      results.directory_source = 'overpass-osm';
-      console.log(`Using Overpass directory: ${directoryPharmacies.length} pharmacies`);
-    }
-
-    // Try Firecrawl for directory (with timeout) — only if Overpass failed
-    if (firecrawlKey && directoryPharmacies.length < 50) {
-      const dirResult = await scrapeWithFirecrawl(
-        'https://icofma.es/listado-farmacias-provincia-malaga',
-        firecrawlKey,
-        DIRECTORY_SCHEMA,
-        'Extract ALL pharmacies listed on this page. This is the full directory of pharmacies in Málaga province. For each pharmacy get: name, address, municipality/town, and phone number.',
-        20000
+        if (error) {
+          console.error(`Guard batch insert error:`, error.message);
+          results.errors.push(`guard_batch: ${error.message}`);
+        } else {
+          results.guardia_inserted += batch.length;
+        }
+      }
+    } else {
+      console.warn(
+        'Official guardia data unavailable — preserving existing rows, inserting nothing.'
       );
-
-      if (dirResult?.success && dirResult?.data?.json?.pharmacies?.length > 5) {
-        directoryPharmacies = dirResult.data.json.pharmacies;
-        results.directory_scraped = directoryPharmacies.length;
-        results.directory_source = 'firecrawl';
-        console.log(`Scraped ${directoryPharmacies.length} directory pharmacies via Firecrawl`);
-      } else {
-        console.log('Firecrawl directory returned insufficient data, trying Jina+AI...');
-      }
+      results.guardia_source = 'none';
+      results.guardia_scraped = 0;
+      results.guardia_inserted = 0;
+    }
     }
 
     // Jina+AI fallback for directory
@@ -523,11 +457,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Use fallback if both scrapers failed
+    // If every directory source failed, do NOT insert placeholder data.
     if (directoryPharmacies.length < 5) {
-      directoryPharmacies = FALLBACK_PHARMACIES;
-      results.directory_source = 'fallback';
-      results.directory_scraped = directoryPharmacies.length;
+      console.warn('Directory sources unavailable — no directory rows will be upserted.');
+      directoryPharmacies = [];
+      results.directory_source = 'none';
+      results.directory_scraped = 0;
     }
 
     // Upsert into pharmacies_directory
