@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import {
   Phone, MapPin, Calendar as CalendarIcon, Clock, AlertTriangle,
   Search, ChevronDown, Check, Navigation, X, Pill, LocateFixed, Info,
