@@ -94,10 +94,10 @@ const GroupedEventsList = ({
   );
 };
 
-function labelFor(d: Date, t: TFunction): string {
+function labelFor(d: Date, t: TFunction, locale: Locale): string {
   if (isToday(d)) return t('events.today', 'Hoy');
   if (isTomorrow(d)) return t('events.tomorrow', 'Mañana');
-  const label = format(d, "EEE d 'de' MMM", { locale: es });
+  const label = format(d, 'EEE d MMM', { locale });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
