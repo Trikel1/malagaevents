@@ -147,16 +147,16 @@ const MunicipalityAgendaPage = () => {
   return (
     <>
       <SEO
-        title={`Agenda cultural de ${municipality.name} | MalagaEvents`}
-        description={`Descubre los eventos culturales confirmados en ${municipality.name} (${municipality.comarca}) y sus alrededores.`}
+        title={t('agenda.seoTitle', { name: municipality.name })}
+        description={t('agenda.seoDescription', { name: municipality.name, comarca: municipality.comarca })}
         path={`/agenda/${municipality.slug}`}
       />
 
       <main className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/events" aria-label={t('common.back', 'Volver')}>
-              <ArrowLeft className="h-4 w-4 mr-1" /> {t('common.back', 'Volver')}
+            <Link to="/events" aria-label={t('common.back')}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> {t('common.back')}
             </Link>
           </Button>
         </div>
@@ -168,7 +168,7 @@ const MunicipalityAgendaPage = () => {
           </div>
           <h1 className="text-3xl font-bold tracking-tight">{municipality.name}</h1>
           <p className="text-muted-foreground">
-            Agenda cultural verificada · fuentes oficiales
+            {t('agenda.verifiedSources')}
           </p>
         </header>
 
@@ -176,18 +176,18 @@ const MunicipalityAgendaPage = () => {
         <section aria-labelledby="local-heading" className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 id="local-heading" className="text-xl font-semibold">
-              En {municipality.name}
+              {t('agenda.inMunicipality', { name: municipality.name })}
             </h2>
             <Badge variant="secondary">{localEvents.length}</Badge>
           </div>
 
           {loadingEvents ? (
-            <div className="text-sm text-muted-foreground">Cargando eventos…</div>
+            <div className="text-sm text-muted-foreground">{t('agenda.loadingEvents')}</div>
           ) : localEvents.length === 0 ? (
             <EmptyState
               icon={CalendarX2}
-              title="Sin eventos confirmados"
-              description={`Todavía no hay eventos culturales publicados en ${municipality.name}. Mira las opciones cercanas abajo.`}
+              title={t('agenda.noEventsTitle')}
+              description={t('agenda.noEventsDesc', { name: municipality.name })}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -202,9 +202,9 @@ const MunicipalityAgendaPage = () => {
         <section aria-labelledby="nearby-heading" className="space-y-3 pt-4 border-t border-border">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="nearby-heading" className="text-xl font-semibold">
-              Cerca de {municipality.name}
+              {t('agenda.nearHeading', { name: municipality.name })}
             </h2>
-            <div className="flex gap-1" role="radiogroup" aria-label="Radio de búsqueda">
+            <div className="flex gap-1" role="radiogroup" aria-label={t('agenda.searchRadius')}>
               {NEARBY_RADII_KM.map((r) => (
                 <Button
                   key={r}
@@ -220,14 +220,16 @@ const MunicipalityAgendaPage = () => {
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Estos eventos <strong>no ocurren en {municipality.name}</strong>. Se listan por proximidad
-            desde el centro del municipio.
-          </p>
+          <p
+            className="text-xs text-muted-foreground"
+            dangerouslySetInnerHTML={{
+              __html: t('agenda.nearDisclaimer', { name: municipality.name }),
+            }}
+          />
 
           {nearby.length === 0 ? (
             <div className="text-sm text-muted-foreground">
-              No hay eventos verificados en un radio de {radiusKm} km.
+              {t('agenda.noNearby', { radius: radiusKm })}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -253,6 +255,7 @@ const MunicipalityAgendaPage = () => {
           )}
         </section>
       </main>
+
     </>
   );
 };
