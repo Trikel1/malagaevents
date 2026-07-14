@@ -36,7 +36,7 @@ const TopNav = () => {
           <span className="font-display text-2xl font-semibold tracking-tight text-foreground">
             Málaga
           </span>
-          <span className="text-sm text-muted-foreground">
+          <span className="hidden xl:inline text-sm text-muted-foreground">
             {t('home.hero.subtitle')}
           </span>
         </NavLink>
