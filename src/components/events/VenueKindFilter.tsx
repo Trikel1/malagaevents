@@ -610,7 +610,7 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       title={label}
       aria-pressed={active}
       className={cn(
-        'flex items-center justify-center h-14 w-full rounded-2xl border transition-all duration-150',
+        'flex items-center justify-center h-16 w-full rounded-2xl border transition-all duration-150',
         'bg-background/60 backdrop-blur-sm',
         'border-border/60 hover:border-primary/50 hover:text-primary',
         'active:scale-[0.98] motion-reduce:active:scale-100',
