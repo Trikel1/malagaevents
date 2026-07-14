@@ -1,30 +1,36 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router-dom';
-import { Home, Sparkles, Calendar, Map, User, Building2 } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Home, Sparkles, Calendar, Map, User, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAppMode } from '@/contexts/AppModeContext';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 const TopNav = () => {
   const { t } = useTranslation();
-  const { appMode } = useAppMode();
+  const location = useLocation();
 
-  const navItems = useMemo(() => {
-    const base = [
+  // Stable desktop nav. Events and Sports are separate destinations.
+  const navItems = useMemo(
+    () => [
       { to: '/', icon: Home, label: t('nav.home'), end: true },
-      { to: '/events', icon: Sparkles, label: t('nav.events') },
-      { to: '/calendar', icon: Calendar, label: t('nav.calendar') },
-    ];
-    if (appMode === 'deportes') {
-      base.push({ to: '/venues', icon: Building2, label: t('nav.venues'), end: false });
-    } else {
-      base.push({ to: '/map', icon: Map, label: t('nav.map', 'Mapa'), end: false });
-    }
-    base.push({ to: '/profile', icon: User, label: t('nav.profile'), end: false });
-    return base;
-  }, [appMode, t]);
+      { to: '/events', icon: Sparkles, label: t('nav.events'), end: false },
+      { to: '/sports', icon: Trophy, label: t('nav.sports', 'Deportes'), end: false },
+      { to: '/calendar', icon: Calendar, label: t('nav.calendar'), end: false },
+      { to: '/map', icon: Map, label: t('nav.map', 'Mapa'), end: false },
+      { to: '/profile', icon: User, label: t('nav.profile'), end: false },
+    ],
+    [t],
+  );
+
+  // On /sports and /venues, keep the Events tab visually inactive but flag
+  // the Sports destination as current — provides continuity for users.
+  const isCurrent = (to: string) => {
+    const p = location.pathname;
+    if (to === '/sports' && (p === '/venues' || p.startsWith('/venues'))) return true;
+    if (to === '/') return p === '/';
+    return p === to || p.startsWith(to + '/');
+  };
 
   return (
     <header
@@ -42,26 +48,28 @@ const TopNav = () => {
         </NavLink>
 
         <nav className="flex items-center gap-1" aria-label={t('nav.primary', 'Navegación principal')}>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                cn(
+          {navItems.map((item) => {
+            const current = isCurrent(item.to);
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={cn(
                   'inline-flex items-center gap-2 h-11 px-3 rounded-full text-sm font-medium transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  isActive
+                  current
                     ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                )
-              }
-              aria-label={item.label}
-            >
-              <item.icon className="h-4 w-4" aria-hidden />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                )}
+                aria-label={item.label}
+                aria-current={current ? 'page' : undefined}
+              >
+                <item.icon className="h-4 w-4" aria-hidden />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-1">

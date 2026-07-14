@@ -20,16 +20,11 @@ import { useEventsOptimized } from '@/hooks/useEventsOptimized';
 import { useFavorites, useToggleFavorite, useFavoriteEvents } from '@/hooks/useFavorites';
 import { useLocations } from '@/hooks/useLocations';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { useAppMode } from '@/contexts/AppModeContext';
-import SportsEventsPage from '@/components/sports/SportsEventsPage';
 import type { EventCategory } from '@/types';
 import SEO from '@/components/common/SEO';
 
-const EventsPage = () => {
-  const { appMode } = useAppMode();
-  if (appMode === 'deportes') return <SportsEventsPage />;
-  return <CultureEventsPage />;
-};
+// /events is always the cultural agenda. Sports live at /sports.
+const EventsPage = () => <CultureEventsPage />;
 
 // ────────────────────────────────────────────────────────────────────────────
 // Header preset chips — 4 primary temporal filters

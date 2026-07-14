@@ -26,6 +26,7 @@ const AdminPage = lazy(() => import("./pages/AdminPage"));
 const VenuesPage = lazy(() => import("./pages/VenuesPage"));
 const MapPage = lazy(() => import("./pages/MapPage"));
 const MunicipalityAgendaPage = lazy(() => import("./pages/MunicipalityAgendaPage"));
+const SportsPage = lazy(() => import("./pages/SportsPage"));
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Index />} />
                   <Route path="/events" element={<EventsPage />} />
+                  <Route path="/sports" element={<SportsPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/pharmacies" element={<PharmaciesPage />} />
                   <Route path="/profile" element={<ProfilePage />} />

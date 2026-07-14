@@ -1,36 +1,35 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Sparkles, Calendar, Map, User, Building2 } from 'lucide-react';
+import { Home, Sparkles, Calendar, Map, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAppMode } from '@/contexts/AppModeContext';
 
 const BottomNav = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const { appMode } = useAppMode();
 
-  const navItems = useMemo(() => {
-    const base = [
+  // Stable 5-item mobile nav. Never mutates with app mode or route.
+  const navItems = useMemo(
+    () => [
       { to: '/', icon: Home, label: t('nav.home') },
       { to: '/events', icon: Sparkles, label: t('nav.events') },
       { to: '/calendar', icon: Calendar, label: t('nav.calendar') },
-    ];
-    if (appMode === 'deportes') {
-      base.push({ to: '/venues', icon: Building2, label: t('nav.venues') });
-    } else {
-      base.push({ to: '/map', icon: Map, label: t('nav.map', 'Mapa') });
-    }
-    base.push({ to: '/profile', icon: User, label: t('nav.profile') });
-    return base;
-  }, [appMode, t]);
+      { to: '/map', icon: Map, label: t('nav.map', 'Mapa') },
+      { to: '/profile', icon: User, label: t('nav.profile') },
+    ],
+    [t],
+  );
 
   const activeIndex = useMemo(() => {
+    // /sports and /venues keep the Events tab visually active.
+    const path = location.pathname;
+    if (path === '/sports' || path.startsWith('/sports') || path === '/venues' || path.startsWith('/venues')) {
+      return navItems.findIndex((i) => i.to === '/events');
+    }
     const idx = navItems.findIndex(
       (item) =>
-        location.pathname === item.to ||
-        (item.to !== '/' && location.pathname.startsWith(item.to))
+        path === item.to || (item.to !== '/' && path.startsWith(item.to))
     );
     return idx === -1 ? 0 : idx;
   }, [location.pathname, navItems]);
