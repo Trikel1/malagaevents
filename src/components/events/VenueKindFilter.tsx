@@ -471,13 +471,13 @@ export function VenueKindFilter({
 
   return (
     <div className="space-y-2">
-      {/* Three icon buttons */}
+      {/* Four icon buttons */}
       <div
-        className="grid grid-cols-3 gap-2"
+        className="grid grid-cols-4 gap-2"
         role="toolbar"
         aria-label={t('events.venuesTitle2', 'Recintos')}
       >
-        {(['all', 'salas', 'teatros'] as Kind[]).map((k) => {
+        {(['all', 'salas', 'teatros', 'recintos'] as Kind[]).map((k) => {
           const { Icon, labelKey, labelFallback } = KIND_META[k];
           const isActive = openKind === k;
           return (
