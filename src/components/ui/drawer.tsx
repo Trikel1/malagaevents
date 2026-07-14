@@ -31,7 +31,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[24px] glass-modal",
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[20px] border-t border-border/70 bg-card text-card-foreground shadow-card",
         // iOS scroll bounce support
         "[-webkit-overflow-scrolling:touch]",
         className,
