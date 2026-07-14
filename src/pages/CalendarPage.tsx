@@ -14,7 +14,7 @@ import {
   setYear,
 } from 'date-fns';
 import SEO from '@/components/common/SEO';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { getDateLocale } from '@/i18n/dateLocale';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
