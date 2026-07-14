@@ -439,6 +439,21 @@ const EventImage = ({
     
     const config = CATEGORY_FALLBACKS[resolvedEventType];
     const IconComponent = config.icon;
+    const catKeyMap: Record<EventType, string> = {
+      dance: 'categories.other',
+      music: 'categories.music',
+      theater: 'categories.theater',
+      comedy: 'categories.other',
+      festival: 'categories.festivals',
+      nightlife: 'categories.nightlife',
+      exhibitions: 'categories.exhibitions',
+      kids: 'categories.kids',
+      sports: 'categories.sports',
+      workshops: 'categories.workshops',
+      conferences: 'categories.conferences',
+      other: 'categories.other',
+    };
+    const translatedLabel = t(catKeyMap[resolvedEventType]);
     
     return (
       <div className={cn(
@@ -447,7 +462,7 @@ const EventImage = ({
       )}>
         <IconComponent className="h-12 w-12 text-foreground/70 mb-2" />
         <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">
-          {config.label}
+          {translatedLabel}
         </span>
       </div>
     );
@@ -457,10 +472,11 @@ const EventImage = ({
   const UnsplashIndicator = () => (
     <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm px-2 py-0.5">
       <span className="text-[9px] text-white/70 font-medium tracking-wide uppercase">
-        Imagen ilustrativa
+        {t('events.imagePlaceholder')}
       </span>
     </div>
   );
+
 
   // Loading skeleton
   const LoadingSkeleton = () => (
