@@ -161,13 +161,40 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+      'Noto Sans Arabic', 'Noto Naskh Arabic', 'Hiragino Sans', 'Yu Gothic', 'Meiryo',
+      'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei',
+      'Noto Sans', sans-serif;
     font-size: 16px;
     font-feature-settings: 'ss01';
+  }
+  /* Arabic script: prefer a Naskh/Noto Arabic family with legible fallbacks. */
+  :root[lang="ar"] body {
+    font-family: 'Noto Naskh Arabic', 'Noto Sans Arabic', 'Amiri', 'Segoe UI', system-ui, sans-serif;
+  }
+  /* Japanese */
+  :root[lang="ja"] body {
+    font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo',
+      'Noto Sans JP', system-ui, sans-serif;
+  }
+  /* Simplified Chinese */
+  :root[lang="zh"] body {
+    font-family: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', 'Hiragino Sans GB',
+      system-ui, sans-serif;
+  }
+  /* Cyrillic (Russian) — Public Sans covers Cyrillic; keep readable fallbacks. */
+  :root[lang="ru"] body {
+    font-family: 'Public Sans', 'Noto Sans', 'Segoe UI', system-ui, sans-serif;
   }
   .font-display, .font-serif {
     font-family: 'Newsreader', ui-serif, Georgia, serif;
     font-optical-sizing: auto;
+  }
+  /* Non-Latin scripts: keep the sans stack for headings — the serif family has no glyph coverage. */
+  :root[lang="ar"] .font-display, :root[lang="ar"] .font-serif,
+  :root[lang="ja"] .font-display, :root[lang="ja"] .font-serif,
+  :root[lang="zh"] .font-display, :root[lang="zh"] .font-serif {
+    font-family: inherit;
   }
 }
 
