@@ -85,6 +85,10 @@ export const LOCALITIES_CATALOG: LocalityEntry[] = [
   { slug: 'archez', name: 'Árchez', zone: 'axarquia', aliases: ['archez'] },
   { slug: 'alfarnate', name: 'Alfarnate', zone: 'axarquia' },
   { slug: 'alfarnatejo', name: 'Alfarnatejo', zone: 'axarquia' },
+  { slug: 'arenas', name: 'Arenas', zone: 'axarquia' },
+  { slug: 'benamargosa', name: 'Benamargosa', zone: 'axarquia' },
+  { slug: 'cutar', name: 'Cútar', zone: 'axarquia', aliases: ['cutar'] },
+  { slug: 'vinuela', name: 'Viñuela', zone: 'axarquia', aliases: ['vinuela'] },
 
   // Valle del Guadalhorce
   { slug: 'alhaurin-de-la-torre', name: 'Alhaurín de la Torre', zone: 'guadalhorce', aliases: ['alhaurin-de-la-torre'], priority: 85 },
