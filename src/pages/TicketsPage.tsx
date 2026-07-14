@@ -33,7 +33,7 @@ const TicketsPage = () => {
   // Redirect to auth if not logged in
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-dvh bg-background p-4">
         <EmptyState
           icon={Ticket}
           title={t('profile.loginRequired')}
@@ -58,7 +58,7 @@ const TicketsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEO
         title={t('seo.tickets.title')}
         description={t('seo.tickets.description')}

@@ -90,7 +90,7 @@ const EventDetailPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background">
         <EventImageSkeleton variant="detail" />
         <div className="p-4 space-y-4">
           <div className="h-8 w-3/4 bg-muted animate-pulse rounded" />
@@ -103,7 +103,7 @@ const EventDetailPage = () => {
 
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-dvh bg-background p-4">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="mb-4" aria-label={t('common.back', 'Volver')}>
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </Button>
@@ -176,7 +176,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 lg:pb-8">
+    <div className="min-h-dvh bg-background pb-24 lg:pb-8">
       <SEO
         title={`${event.title.slice(0, 42)} — MalagaEvents`}
         description={(event.description?.replace(/\s+/g, ' ').trim().slice(0, 155) || `${event.title} en Málaga el ${formattedDate}. Detalles, ubicación y entradas.`)}

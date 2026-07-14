@@ -182,7 +182,7 @@ const CalendarPage = () => {
   const currentMonth = currentDate.getMonth();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <SEO
         title={t('seo.calendar.title')}
         description={t('seo.calendar.description')}

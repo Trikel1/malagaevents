@@ -31,7 +31,7 @@ const SportsPage = lazy(() => import("./pages/SportsPage"));
 const queryClient = new QueryClient();
 
 const RouteFallback = () => (
-  <div className="min-h-screen w-full flex items-center justify-center bg-background">
+  <div className="min-h-dvh w-full flex items-center justify-center bg-background">
     <div
       className="h-8 w-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin"
       role="status"
