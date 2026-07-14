@@ -78,10 +78,9 @@ interface PharmacyCardProps {
   };
   onDuty?: boolean;
   distanceKm?: number | null;
-  fallback?: boolean;
 }
 
-const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm, fallback }: PharmacyCardProps) => {
+const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProps) => {
   const { t } = useTranslation();
   return (
     <Card className={cn(
@@ -102,12 +101,7 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm, fallback }: Pharma
             </div>
           </div>
           {onDuty && (
-            <Badge className={cn(
-              'shrink-0 text-white',
-              fallback
-                ? 'bg-amber-500 hover:bg-amber-500'
-                : 'bg-emerald-500 hover:bg-emerald-500'
-            )}>
+            <Badge className="shrink-0 text-white bg-emerald-500 hover:bg-emerald-500">
               <Clock className="h-3 w-3 mr-1" />
               {t('pharmacies.onDutyToday', 'De guardia hoy')}
             </Badge>
@@ -322,7 +316,7 @@ const PharmaciesPage = () => {
     [dirAll, search, userLoc]
   );
 
-  const dutyFallback = (dutyAll ?? []).some((p: any) => p?.__fallback);
+  
 
   const isToday =
     formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd') ===
