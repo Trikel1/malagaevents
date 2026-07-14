@@ -398,12 +398,12 @@ const CultureEventsPage = () => {
                 <span className="capitalize">{rangeSummary}</span>
                 <span className="mx-1.5 opacity-40">·</span>
                 <span className="tabular-nums">
-                  {isLoadingEvents ? '…' : totalCount}
-                </span>{' '}
-                {isLoadingEvents
-                  ? t('events.eventCount', { count: 0 }).replace(/^\d+\s*/, '').trim()
-                  : t('events.eventCount', { count: totalCount }).replace(/^\d+\s*/, '').trim()}
+                  {isLoadingEvents
+                    ? '…'
+                    : t('events.eventCount', { count: totalCount })}
+                </span>
               </p>
+
 
             </div>
           </div>
