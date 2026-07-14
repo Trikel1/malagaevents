@@ -26,6 +26,7 @@ const AdminPage = lazy(() => import("./pages/AdminPage"));
 const VenuesPage = lazy(() => import("./pages/VenuesPage"));
 const MapPage = lazy(() => import("./pages/MapPage"));
 const MunicipalityAgendaPage = lazy(() => import("./pages/MunicipalityAgendaPage"));
+const SportsPage = lazy(() => import("./pages/SportsPage"));
 
 const queryClient = new QueryClient();
 
