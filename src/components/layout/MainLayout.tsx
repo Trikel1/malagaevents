@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useAppMode } from '@/contexts/AppModeContext';
 import BottomNav from './BottomNav';
+import TopNav from './TopNav';
 import LiquidGlassBackdrop from './LiquidGlassBackdrop';
 
 const routeKeyFromPath = (pathname: string): string => {
@@ -22,6 +23,7 @@ const MainLayout = () => {
       data-route={routeKey}
     >
       <LiquidGlassBackdrop />
+      <TopNav />
       <main
         className="relative z-[1]"
         style={{
@@ -38,3 +40,4 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
+
