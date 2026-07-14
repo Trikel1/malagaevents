@@ -613,14 +613,13 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       aria-pressed={active}
       className={cn(
         'flex items-center justify-center h-16 w-full rounded-2xl border transition-all duration-150',
-        'bg-background/60 backdrop-blur-sm',
-        'border-border/60 hover:border-primary/50 hover:text-primary',
+        'bg-orange-500/15 backdrop-blur-sm text-orange-600 dark:text-orange-400',
+        'border-orange-500/40 hover:bg-orange-500/25 hover:border-orange-500/70',
         'active:scale-[0.98] motion-reduce:active:scale-100',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-        active
-          ? 'border-primary text-primary bg-primary/5'
-          : 'text-muted-foreground',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50',
+        active && 'border-orange-500 bg-orange-500/30 text-orange-700 dark:text-orange-300 shadow-sm',
       )}
+
     >
       <Icon size={44} />
     </button>
