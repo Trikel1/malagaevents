@@ -501,24 +501,43 @@ const SubmitEventPage = () => {
               <CardDescription>Te enviaremos un email cuando se publique el evento</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="email">{t('submitEvent.email')} *</Label>
                 <Input
                   id="email"
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
+                  onBlur={() => setFieldErrors((f) => ({ ...f, email: validate().email || '' }))}
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? 'email-error' : 'email-help'}
+                  className="min-h-11"
                 />
+                {fieldErrors.email
+                  ? <p id="email-error" role="alert" className="text-xs text-destructive">{fieldErrors.email}</p>
+                  : <p id="email-help" className="text-xs text-muted-foreground">{t('submitEvent.help.email', 'Solo para avisarte cuando se publique.')}</p>}
               </div>
             </CardContent>
           </Card>
 
           {/* Submit */}
-          <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-            <Send className="h-4 w-4 mr-2" />
+          <Button
+            type="submit"
+            className="w-full min-h-11"
+            size="lg"
+            disabled={isLoading}
+            aria-busy={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden />
+            ) : (
+              <Send className="h-4 w-4 mr-2" aria-hidden />
+            )}
             {isLoading ? t('submitEvent.submitting') : t('submitEvent.submit')}
           </Button>
+
         </form>
       </main>
     </div>
