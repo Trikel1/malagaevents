@@ -308,36 +308,9 @@ out center tags;`;
   return [];
 }
 
-function generateDutySchedule(pharmacies: any[], startDate: Date): any[] {
-  const dutySchedule: any[] = [];
-  const count = pharmacies.length;
-  if (count === 0) return dutySchedule;
+// NOTE: generateDutySchedule() has been intentionally removed. Duty shifts must come
+// exclusively from verifiable official sources (farmaciasguardia.farmaceuticos.com).
 
-  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(currentDate.getDate() + dayOffset);
-    const dateStr = currentDate.toISOString().split('T')[0];
-
-    const perDay = 2 + (dayOffset % 2);
-    for (let i = 0; i < perDay; i++) {
-      const idx = (dayOffset * perDay + i) % count;
-      const pharmacy = pharmacies[idx];
-      dutySchedule.push({
-        name: pharmacy.name,
-        address: pharmacy.address,
-        phone: pharmacy.phone || null,
-        lat: pharmacy.lat || null,
-        lng: pharmacy.lng || null,
-        municipality: pharmacy.municipality || 'Málaga',
-        date_from: dateStr,
-        date_to: dateStr,
-        source_ref: pharmacy.source_ref || 'fallback',
-      });
-    }
-  }
-
-  return dutySchedule;
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
