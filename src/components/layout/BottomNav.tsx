@@ -172,10 +172,13 @@ const BottomNav = () => {
               onPointerUp={(e) => endPointer(e, i)}
               onPointerCancel={(e) => endPointer(e, i)}
               onClick={() => {
-                // Handles keyboard activation (Enter/Space) and any click
-                // not preceded by a pointer sequence. Pointer-driven taps
-                // already navigated in endPointer, so guard against double nav.
-                if (pointerIdRef.current !== null) return;
+                // Handles keyboard activation (Enter/Space) and clicks not
+                // preceded by a pointer sequence. Pointer taps already
+                // navigated in endPointer, so guard against double nav.
+                if (handledByPointerRef.current) {
+                  handledByPointerRef.current = false;
+                  return;
+                }
                 const target = navItems[i];
                 if (target && target.to !== location.pathname) {
                   navigate(target.to);
