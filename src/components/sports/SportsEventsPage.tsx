@@ -125,16 +125,16 @@ const SportsEventsPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-gradient-to-br from-slate-950 via-slate-900 to-primary/80 text-white border-b border-slate-800 sticky top-0 z-40">
+      <header className="bg-gradient-to-br from-emerald-950 via-teal-900 to-emerald-700 text-white border-b border-emerald-800 sticky top-0 z-40">
         <div className="p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-200">Agenda deportiva</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-200">Agenda deportiva</p>
               <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">Deporte en Málaga</h1>
               <p className="mt-1 text-xs text-slate-300">Competiciones, actividad local y recintos de toda la provincia.</p>
             </div>
             <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 text-xs text-slate-200">
-              <Activity className="h-4 w-4 text-cyan-200" aria-hidden="true" />
+              <Activity className="h-4 w-4 text-emerald-200" aria-hidden="true" />
               <span>En movimiento</span>
             </div>
           </div>
@@ -234,7 +234,7 @@ const SportsEventsPage = () => {
                 key={name}
                 onClick={() => setSelectedMunicipality(selectedMunicipality === name ? 'all' : name)}
                 aria-pressed={selectedMunicipality === name}
-                className={cn('inline-flex items-center min-h-[44px] px-3 rounded-full text-xs font-medium whitespace-nowrap border transition-colors', selectedMunicipality === name ? 'bg-cyan-300 text-slate-950 border-cyan-200' : 'bg-white/10 text-slate-100 border-white/20 hover:bg-white/15')}
+                className={cn('inline-flex items-center min-h-[44px] px-3 rounded-full text-xs font-medium whitespace-nowrap border transition-colors', selectedMunicipality === name ? 'bg-emerald-300 text-emerald-950 border-emerald-200' : 'bg-white/10 text-emerald-50 border-white/20 hover:bg-white/15')}
               >
                 {name}
               </button>
