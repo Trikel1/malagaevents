@@ -16,8 +16,8 @@ const NotFound = () => {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <SEO
-        title={t('seo.notFound.title')}
-        description={t('seo.notFound.description')}
+        title="Página no encontrada — MalagaEvents"
+        description="La página que buscas no existe. Vuelve al inicio para descubrir eventos y planes en Málaga."
         path={location.pathname}
         noindex
       />

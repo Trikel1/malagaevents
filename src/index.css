@@ -4,41 +4,36 @@
 
 @layer base {
   :root {
-    /* Málaga Events — Mediterranean warm light
-       Sandstone background, ink-blue text, sea-blue primary,
-       terracotta secondary, solar accent. */
-    --background: 43 43% 96%;        /* #FAF7F0 sandstone */
-    --foreground: 220 34% 15%;       /* #172033 ink blue */
+    /* Málaga Mediterranean Theme - Warm, sunny, coastal */
+    --background: 45 33% 97%;
+    --foreground: 220 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 34% 15%;
+    --card-foreground: 220 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 34% 15%;
+    --popover-foreground: 220 25% 15%;
 
-    --primary: 200 89% 27%;          /* #075985 Mediterranean sea */
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 19 82% 40%;         /* #C2410C terracotta */
+    --secondary: 199 89% 48%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 39 33% 92%;             /* #F1ECE2 warm sand */
-    --muted-foreground: 220 15% 38%;
+    --muted: 45 20% 92%;
+    --muted-foreground: 220 15% 45%;
 
-    --accent: 34 93% 36%;            /* #B45309 solar amber */
+    --accent: 339 76% 59%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 158 64% 40%;
-    --warning: 38 92% 50%;
+    --border: 45 20% 88%;
+    --input: 45 20% 88%;
+    --ring: 24 95% 53%;
 
-    --border: 38 27% 83%;            /* #DED7CA warm border */
-    --input: 38 27% 83%;
-    --ring: 200 89% 27%;
-
-    --radius: 0.875rem;
+    --radius: 0.75rem;
 
     /* Category colors */
     --category-music: 262 83% 58%;
@@ -55,132 +50,100 @@
     --category-markets: 35 80% 50%;
     --category-other: 220 15% 50%;
 
-    --sidebar-background: 43 43% 96%;
-    --sidebar-foreground: 220 34% 15%;
-    --sidebar-primary: 200 89% 27%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 39 33% 92%;
-    --sidebar-accent-foreground: 220 34% 15%;
-    --sidebar-border: 38 27% 83%;
-    --sidebar-ring: 200 89% 27%;
+    --sidebar-accent: 45 20% 95%;
+    --sidebar-accent-foreground: 220 25% 15%;
+    --sidebar-border: 45 20% 90%;
+    --sidebar-ring: 24 95% 53%;
 
-    /* Surfaces */
-    --surface: 0 0% 100%;
+    /* Editorial surfaces & shadows */
+    --surface: 45 40% 99%;
     --surface-elevated: 0 0% 100%;
+    --shadow-soft: 0 1px 2px hsl(220 25% 15% / 0.04), 0 2px 8px hsl(220 25% 15% / 0.04);
+    --shadow-card: 0 4px 16px hsl(220 25% 15% / 0.06);
+    --shadow-lift: 0 10px 30px hsl(24 95% 53% / 0.18);
 
-    /* Four elevation levels — reduced floating intensity */
-    --shadow-xs:        0 1px 2px hsl(220 34% 15% / 0.05);
-    --shadow-sm:        0 2px 6px hsl(220 34% 15% / 0.06), 0 1px 2px hsl(220 34% 15% / 0.04);
-    --shadow-md:        0 8px 24px -8px hsl(220 34% 15% / 0.10), 0 2px 6px hsl(220 34% 15% / 0.05);
-    --shadow-floating:  0 16px 40px -18px hsl(220 34% 20% / 0.16), 0 3px 10px hsl(220 34% 15% / 0.06);
+    /* Warm Mediterranean gradients */
+    --gradient-warm: linear-gradient(180deg, hsl(24 90% 96%) 0%, hsl(45 33% 97%) 100%);
+    --gradient-hero: linear-gradient(160deg, hsl(199 89% 48%) 0%, hsl(24 95% 53%) 100%);
+    --gradient-hero-sports: linear-gradient(160deg, hsl(142 71% 35%) 0%, hsl(199 70% 40%) 100%);
+    --gradient-sunset: linear-gradient(135deg, hsl(339 76% 59%) 0%, hsl(24 95% 53%) 100%);
 
-    /* Legacy aliases (kept for existing consumers) */
-    --shadow-soft: var(--shadow-sm);
-    --shadow-card: var(--shadow-md);
-    --shadow-lift: var(--shadow-floating);
-
-    /* Brand gradients — Mediterranean: sea → turquoise → terracotta */
-    --gradient-warm: linear-gradient(180deg, hsl(43 45% 98%) 0%, hsl(43 43% 96%) 100%);
-    --gradient-brand: linear-gradient(120deg,
-                       hsl(200 89% 27%) 0%,
-                       hsl(190 75% 38%) 40%,
-                       hsl(178 65% 45%) 65%,
-                       hsl(19 82% 55%) 100%);
-    --gradient-hero: radial-gradient(120% 90% at 88% 8%, hsl(34 93% 62% / 0.42) 0%, transparent 55%),
-                     radial-gradient(90% 80% at 8% 100%, hsl(178 70% 55% / 0.42) 0%, transparent 60%),
-                     linear-gradient(140deg, hsl(200 89% 22%) 0%, hsl(210 70% 18%) 100%);
-    --gradient-hero-sports: linear-gradient(160deg, hsl(160 60% 24%) 0%, hsl(200 75% 26%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(19 82% 50%) 0%, hsl(34 93% 44%) 100%);
-
-    /* Liquid glass */
-    --glass-background: 0 0% 100% / 0.75;
-    --glass-surface: 43 40% 98% / 0.65;
-    --glass-surface-strong: 0 0% 100% / 0.9;
-    --glass-border: 38 27% 78% / 0.6;
+    /* Liquid glass tokens */
+    --glass-background: 0 0% 100% / 0.62;
+    --glass-surface: 0 0% 100% / 0.55;
+    --glass-surface-strong: 0 0% 100% / 0.78;
+    --glass-border: 220 30% 90% / 0.6;
     --glass-highlight: 0 0% 100% / 0.7;
-    --glass-shadow: 220 34% 15% / 0.10;
+    --glass-shadow: 220 40% 20% / 0.08;
     --glass-blur: 22px;
     --liquid-radius: 1rem;
-    --liquid-radius-lg: 1.25rem;
-    --liquid-transition: 200ms cubic-bezier(0.22, 1, 0.36, 1);
-    --liquid-ring: 200 89% 27% / 0.35;
+    --liquid-radius-lg: 1.5rem;
+    --liquid-transition: 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    --liquid-ring: 24 95% 53% / 0.35;
   }
 
 
   .dark {
-    /* Málaga Events — Mediterranean night
-       Deep navy, warm-tinted text, luminous sky primary,
-       warm-orange secondary. */
-    --background: 218 47% 10%;       /* #0E1726 */
-    --foreground: 42 45% 95%;        /* #F8F4EA warm off-white */
+    --background: 220 25% 10%;
+    --foreground: 45 20% 95%;
 
-    --card: 217 37% 15%;             /* #162235 */
-    --card-foreground: 42 45% 95%;
+    --card: 220 25% 13%;
+    --card-foreground: 45 20% 95%;
 
-    --popover: 217 37% 15%;
-    --popover-foreground: 42 45% 95%;
+    --popover: 220 25% 13%;
+    --popover-foreground: 45 20% 95%;
 
-    --primary: 199 92% 60%;          /* #38BDF8 luminous sky */
-    --primary-foreground: 218 47% 10%;
+    --primary: 24 95% 55%;
+    --primary-foreground: 220 25% 10%;
 
-    --secondary: 25 95% 61%;         /* #FB923C warm orange */
-    --secondary-foreground: 218 47% 10%;
+    --secondary: 199 70% 45%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 30% 21%;            /* #253247 */
-    --muted-foreground: 215 20% 72%;
+    --muted: 220 20% 18%;
+    --muted-foreground: 45 15% 60%;
 
-    --accent: 34 93% 62%;            /* solar */
-    --accent-foreground: 218 47% 10%;
+    --accent: 339 70% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 68% 55%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 158 60% 55%;
-    --warning: 38 92% 60%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 24 95% 55%;
 
-    --border: 215 25% 27%;           /* #334155 */
-    --input: 215 25% 27%;
-    --ring: 199 92% 60%;
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 45 20% 90%;
+    --sidebar-primary: 24 95% 55%;
+    --sidebar-primary-foreground: 220 25% 10%;
+    --sidebar-accent: 220 20% 18%;
+    --sidebar-accent-foreground: 45 20% 90%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 24 95% 55%;
 
-    --sidebar-background: 217 37% 13%;
-    --sidebar-foreground: 42 45% 95%;
-    --sidebar-primary: 199 92% 60%;
-    --sidebar-primary-foreground: 218 47% 10%;
-    --sidebar-accent: 217 30% 21%;
-    --sidebar-accent-foreground: 42 45% 95%;
-    --sidebar-border: 215 25% 27%;
-    --sidebar-ring: 199 92% 60%;
+    /* Editorial surfaces & shadows (dark) */
+    --surface: 220 25% 12%;
+    --surface-elevated: 220 25% 15%;
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.3), 0 2px 8px hsl(0 0% 0% / 0.25);
+    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.35);
+    --shadow-lift: 0 10px 30px hsl(24 95% 53% / 0.28);
 
-    --surface: 217 37% 15%;
-    --surface-elevated: 217 32% 19%;
+    --gradient-warm: linear-gradient(180deg, hsl(220 25% 13%) 0%, hsl(220 25% 10%) 100%);
+    --gradient-hero: linear-gradient(160deg, hsl(199 60% 25%) 0%, hsl(24 70% 30%) 100%);
+    --gradient-hero-sports: linear-gradient(160deg, hsl(142 50% 20%) 0%, hsl(199 50% 25%) 100%);
+    --gradient-sunset: linear-gradient(135deg, hsl(339 50% 35%) 0%, hsl(24 70% 35%) 100%);
 
-    --shadow-xs:        0 1px 2px hsl(0 0% 0% / 0.5);
-    --shadow-sm:        0 2px 8px hsl(0 0% 0% / 0.35), 0 1px 2px hsl(0 0% 0% / 0.4);
-    --shadow-md:        0 8px 24px -10px hsl(0 0% 0% / 0.5), 0 2px 6px hsl(0 0% 0% / 0.35);
-    --shadow-floating:  0 18px 45px -18px hsl(0 0% 0% / 0.55), 0 4px 12px hsl(0 0% 0% / 0.35);
-
-    --shadow-soft: var(--shadow-sm);
-    --shadow-card: var(--shadow-md);
-    --shadow-lift: var(--shadow-floating);
-
-    --gradient-warm: linear-gradient(180deg, hsl(217 37% 15%) 0%, hsl(218 47% 10%) 100%);
-    --gradient-brand: linear-gradient(120deg,
-                       hsl(199 92% 55%) 0%,
-                       hsl(190 65% 45%) 45%,
-                       hsl(178 55% 45%) 70%,
-                       hsl(25 90% 60%) 100%);
-    --gradient-hero: radial-gradient(120% 90% at 88% 8%, hsl(34 90% 55% / 0.28) 0%, transparent 55%),
-                     radial-gradient(90% 80% at 8% 100%, hsl(178 70% 40% / 0.30) 0%, transparent 60%),
-                     linear-gradient(140deg, hsl(218 55% 14%) 0%, hsl(218 47% 10%) 100%);
-    --gradient-hero-sports: linear-gradient(160deg, hsl(160 45% 18%) 0%, hsl(200 55% 22%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(19 82% 48%) 0%, hsl(34 88% 44%) 100%);
-
-    --glass-background: 217 37% 17% / 0.78;
-    --glass-surface: 217 32% 20% / 0.65;
-    --glass-surface-strong: 217 37% 15% / 0.9;
-    --glass-border: 215 20% 40% / 0.4;
-    --glass-highlight: 42 45% 95% / 0.06;
-    --glass-shadow: 0 0% 0% / 0.6;
+    /* Liquid glass tokens (dark) */
+    --glass-background: 220 25% 18% / 0.55;
+    --glass-surface: 220 25% 20% / 0.5;
+    --glass-surface-strong: 220 25% 18% / 0.78;
+    --glass-border: 220 20% 60% / 0.18;
+    --glass-highlight: 45 20% 95% / 0.08;
+    --glass-shadow: 0 0% 0% / 0.45;
   }
 
 
@@ -196,44 +159,9 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Manrope', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-      'Noto Sans Arabic', 'Noto Sans JP', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
-    font-size: 16px;
-    font-feature-settings: 'ss01', 'cv11';
-    line-height: 1.55;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
   }
-  /* Arabic script fallback */
-  :root[lang="ar"] body {
-    font-family: 'Noto Sans Arabic', 'Noto Naskh Arabic', 'Amiri', 'Segoe UI', system-ui, sans-serif;
-  }
-  /* Japanese */
-  :root[lang="ja"] body {
-    font-family: 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo',
-      system-ui, sans-serif;
-  }
-  /* Simplified Chinese */
-  :root[lang="zh"] body {
-    font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB',
-      system-ui, sans-serif;
-  }
-  /* Cyrillic (Russian) — Manrope covers Cyrillic */
-  :root[lang="ru"] body {
-    font-family: 'Manrope', 'Noto Sans', 'Segoe UI', system-ui, sans-serif;
-  }
-  .font-display, .font-serif {
-    font-family: 'Space Grotesk', 'Manrope', 'Noto Sans', system-ui, sans-serif;
-    font-feature-settings: 'ss02';
-    letter-spacing: -0.01em;
-  }
-  /* Non-Latin scripts: keep the sans stack for headings */
-  :root[lang="ar"] .font-display, :root[lang="ar"] .font-serif,
-  :root[lang="ja"] .font-display, :root[lang="ja"] .font-serif,
-  :root[lang="zh"] .font-display, :root[lang="zh"] .font-serif {
-    font-family: inherit;
-    letter-spacing: 0;
-  }
-  /* Tabular numerics on dates, prices, counters */
-  time, .tabular, [data-tabular] { font-variant-numeric: tabular-nums; }
 }
 
 /* Custom scrollbar */
@@ -427,19 +355,10 @@
 
 /* ===================== Liquid Motion System ===================== */
 :root {
-  --liquid-motion-fast: 160ms;
-  --liquid-motion-normal: 220ms;
-  --liquid-motion-slow: 480ms;
+  --liquid-motion-fast: 220ms;
+  --liquid-motion-normal: 520ms;
+  --liquid-motion-slow: 900ms;
   --liquid-ease: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
 }
 
 /* Aurora mesh backdrop — soft, non-invasive layered radial gradients.

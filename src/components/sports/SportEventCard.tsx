@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { getDateLocale } from '@/i18n/dateLocale';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Clock, ExternalLink, Navigation, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,8 +12,11 @@ import {
   isRegistrationUrl,
   isFreeEvent,
   buildDirectionsUrl,
-  getSportLabel,
 } from '@/lib/sports';
+
+const locales: Record<string, Locale> = {
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
+};
 
 interface SportEventCardProps {
   event: SportEvent & { price_info?: string | null; address?: string | null; source_url?: string | null };
@@ -21,10 +24,10 @@ interface SportEventCardProps {
 
 const SportEventCard = ({ event }: SportEventCardProps) => {
   const { t, i18n } = useTranslation();
-  const locale = getDateLocale(i18n.language);
+  const locale = locales[i18n.language] || es;
   const formattedDate = format(new Date(event.start_at), 'EEE d MMM · HH:mm', { locale });
   const sportCat = event.sport as SportCategory;
-  const label = getSportLabel(t, event.sport);
+  const label = t(`sports.${sportCat}`, event.sport);
   const SportLucide = getSportIcon(event.sport);
 
   const cleanTitle = cleanSportTitle(event.teams || event.title);
@@ -91,14 +94,14 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
         </div>
 
         {/* CTAs */}
-        <div className="flex gap-2 pt-1">
+        <div className="flex gap-1.5 pt-1">
           {ctaUrl && (
             <Button
               size="sm"
-              className="flex-1 min-h-[44px] text-sm"
+              className="flex-1 h-7 text-xs"
               onClick={() => window.open(ctaUrl, '_blank', 'noopener,noreferrer')}
             >
-              <ExternalLink className="h-4 w-4 mr-1.5" />
+              <ExternalLink className="h-3 w-3 mr-1" />
               {ctaLabel}
             </Button>
           )}
@@ -106,15 +109,14 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
             <Button
               size="sm"
               variant="outline"
-              className="min-h-[44px] min-w-[44px] text-sm px-3"
+              className="h-7 text-xs px-2"
               aria-label={t('sports.cta.directions', 'Cómo llegar')}
               onClick={() => window.open(directions, '_blank', 'noopener,noreferrer')}
             >
-              <Navigation className="h-4 w-4" />
+              <Navigation className="h-3 w-3" />
             </Button>
           )}
         </div>
-
       </CardContent>
     </Card>
   );

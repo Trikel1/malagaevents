@@ -46,15 +46,10 @@ const MapPage = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom?: number } | null>(null);
 
-  const { data: cultureEvents = [], isLoading: eventsLoading, isError: eventsError, refetch: refetchEvents } = useEvents({ limit: 200 });
-  const { data: sportsEvents = [], isLoading: sportsLoading, isError: sportsError, refetch: refetchSports } = useSportsEvents({});
-  const { data: venues = [], isLoading: venuesLoading, isError: venuesError, refetch: refetchVenues } = useVenues();
-  const { data: pharmacies = [], isLoading: pharmaLoading } = usePharmaciesOnDuty(new Date());
-
-  const isLoadingData = eventsLoading || sportsLoading || venuesLoading || pharmaLoading;
-  const hasError = eventsError || sportsError || venuesError;
-  const retryAll = () => { refetchEvents(); refetchSports(); refetchVenues(); };
-
+  const { data: cultureEvents = [] } = useEvents({ limit: 200 });
+  const { data: sportsEvents = [] } = useSportsEvents({});
+  const { data: venues = [] } = useVenues();
+  const { data: pharmacies = [] } = usePharmaciesOnDuty(new Date());
 
   const eventMarkers = useMemo<MapMarker[]>(() => {
     return cultureEvents.map((e: any) => {
@@ -205,10 +200,10 @@ const MapPage = () => {
   }, [filter]);
 
   return (
-    <main className="min-h-dvh bg-gradient-warm relative">
+    <div className="min-h-screen bg-gradient-warm relative">
       <SEO
-        title={t('seo.map.title')}
-        description={t('seo.map.description')}
+        title="Mapa de eventos y farmacias en Málaga"
+        description="Mapa interactivo de Málaga con eventos, recintos y farmacias de guardia cercanas. Encuentra qué hay cerca de ti en tiempo real."
         path="/map"
       />
 
@@ -218,20 +213,20 @@ const MapPage = () => {
         <div className="absolute top-6 -right-10 h-56 w-56 rounded-full bg-primary/25 blur-3xl" />
       </div>
 
-      {/* Hero + controls (glass) — compacto */}
-      <header className="relative px-3 pt-3 space-y-2">
-        <div className="glass-panel p-3 sm:p-4 space-y-2.5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-9 w-9 shrink-0 rounded-2xl bg-primary/12 flex items-center justify-center">
-                <MapPin className="h-4.5 w-4.5 text-primary" aria-hidden />
+      {/* Hero + controls (glass) */}
+      <header className="relative px-3 pt-3 space-y-3">
+        <div className="glass-panel p-4 sm:p-5 space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <div className="h-10 w-10 shrink-0 rounded-2xl bg-primary/12 flex items-center justify-center">
+                <MapPin className="h-5 w-5 text-primary" aria-hidden />
               </div>
               <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-bold tracking-tight leading-tight">
-                  {t('map.title', 'Mapa de Málaga')}
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-tight">
+                  Mapa de Málaga
                 </h1>
-                <p className="text-[11px] sm:text-xs text-muted-foreground leading-snug mt-0.5 line-clamp-1">
-                  {t('map.subtitle', 'Eventos, recintos y farmacias cerca de ti.')}
+                <p className="text-[12px] sm:text-[13px] text-muted-foreground leading-snug mt-0.5">
+                  Explora eventos, recintos, farmacias y puntos cercanos en la ciudad y la provincia.
                 </p>
               </div>
             </div>
@@ -239,34 +234,30 @@ const MapPage = () => {
             <div className="inline-flex glass-button p-0.5 text-xs shrink-0" role="tablist" aria-label={t('map.view', 'Vista')}>
               <button
                 type="button"
-                role="tab"
                 onClick={() => setView('map')}
                 aria-pressed={view === 'map'}
-                aria-selected={view === 'map'}
                 className={cn(
-                  'flex items-center gap-1 px-3 py-2 rounded-full transition min-h-[40px]',
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-full transition min-h-[32px]',
                   view === 'map'
                     ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                <MapIcon className="h-4 w-4" aria-hidden />
+                <MapIcon className="h-3.5 w-3.5" aria-hidden />
                 <span className="hidden sm:inline">{t('map.viewMap', 'Mapa')}</span>
               </button>
               <button
                 type="button"
-                role="tab"
                 onClick={() => setView('list')}
                 aria-pressed={view === 'list'}
-                aria-selected={view === 'list'}
                 className={cn(
-                  'flex items-center gap-1 px-3 py-2 rounded-full transition min-h-[40px]',
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-full transition min-h-[32px]',
                   view === 'list'
                     ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                <List className="h-4 w-4" aria-hidden />
+                <List className="h-3.5 w-3.5" aria-hidden />
                 <span className="hidden sm:inline">{t('map.viewList', 'Lista')}</span>
               </button>
             </div>
@@ -287,7 +278,7 @@ const MapPage = () => {
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground"
                 aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
               >
                 <X className="h-4 w-4" />
@@ -295,46 +286,35 @@ const MapPage = () => {
             )}
           </div>
 
-          {/* Filter chips — con fade edges y hit-area 44px */}
-          <div className="relative">
-            <div
-              className="flex gap-2 overflow-x-auto liquid-scroll pb-1"
-              role="toolbar"
-              aria-label={t('map.filters', 'Filtros')}
-              style={{
-                maskImage: 'linear-gradient(to right, transparent, black 12px, black calc(100% - 24px), transparent)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 12px, black calc(100% - 24px), transparent)',
-              }}
-            >
-              {FILTERS.map((f) => {
-                const active = filter === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => setFilter(f.id)}
-                    aria-pressed={active}
-                    className={cn(
-                      'glass-chip liquid-press shrink-0 text-xs px-4 min-h-[44px] rounded-full font-medium transition whitespace-nowrap',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                      active
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'text-foreground hover:bg-primary/5'
-                    )}
-                  >
-                    {t(f.key)}
-                  </button>
-                );
-              })}
-              <span className="shrink-0 self-center mx-1 h-4 w-px bg-border" aria-hidden />
-              <Badge
-                variant="secondary"
-                className="shrink-0 self-center bg-primary/10 text-primary border-0 rounded-full px-3 min-h-[32px] flex items-center text-xs font-semibold"
-                aria-live="polite"
-              >
-                {t('map.pointCount', { count: filteredMarkers.length })}
-              </Badge>
-            </div>
+          {/* Filter chips */}
+          <div
+            className="flex gap-2 overflow-x-auto liquid-scroll -mx-1 px-1 pb-0.5"
+            role="toolbar"
+            aria-label={t('map.filters', 'Filtros')}
+          >
+            {FILTERS.map((f) => {
+              const active = filter === f.id;
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFilter(f.id)}
+                  aria-pressed={active}
+                  className={cn(
+                    'glass-chip liquid-press shrink-0 text-xs px-3.5 h-8 rounded-full font-medium transition whitespace-nowrap',
+                    active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'text-foreground hover:bg-primary/5'
+                  )}
+                >
+                  {t(f.key)}
+                </button>
+              );
+            })}
+            <span className="shrink-0 self-center mx-1 h-4 w-px bg-border" aria-hidden />
+            <Badge variant="secondary" className="shrink-0 self-center bg-primary/10 text-primary border-0 rounded-full px-3 h-8 flex items-center text-xs font-semibold">
+              {filteredMarkers.length} {t('map.points', 'puntos')}
+            </Badge>
           </div>
         </div>
       </header>
@@ -342,10 +322,10 @@ const MapPage = () => {
       {/* Map / List body */}
       {view === 'map' ? (
         <div
-          className="relative px-3 mt-2"
+          className="relative px-3 mt-3"
           style={{
             height:
-              'calc(100dvh - 260px - env(safe-area-inset-bottom, 0px))',
+              'calc(100dvh - 320px - env(safe-area-inset-bottom, 0px))',
             minHeight: '340px',
           }}
         >
@@ -360,37 +340,12 @@ const MapPage = () => {
               flyTo={flyTo}
             />
 
-            {/* Loading overlay */}
-            {isLoadingData && !hasError && (
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[400] pointer-events-none">
-                <div className="glass-card px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
-                  {t('map.loading', 'Cargando puntos…')}
-                </div>
-              </div>
-            )}
-
-            {/* Error overlay with retry */}
-            {hasError && (
-              <div className="absolute inset-x-3 top-3 z-[400] flex justify-center">
-                <div className="glass-card px-4 py-3 flex items-center gap-3 shadow-md">
-                  <span className="text-sm text-foreground">{t('map.errorLoading', 'No se pudieron cargar los datos.')}</span>
-                  <Button size="sm" onClick={retryAll} className="h-9">
-                    {t('common.retry', 'Reintentar')}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Floating locate button — reserva espacio para el dock (BottomNav ≈ 64px) */}
-            <div
-              className="absolute left-3 right-3 z-[400] flex items-center justify-center pointer-events-none"
-              style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 84px)' }}
-            >
+            {/* Floating locate button */}
+            <div className="absolute bottom-3 left-3 right-3 z-[400] flex items-center justify-center pointer-events-none">
               <Button
                 size="sm"
                 onClick={handleMyLocation}
-                aria-label={t('map.useMyLocation', 'Usar mi ubicación')}
-                className="glass-button liquid-press pointer-events-auto rounded-full min-h-[44px] px-4 bg-card/95 text-foreground hover:bg-card border-border/60"
+                className="glass-button liquid-press pointer-events-auto rounded-full h-10 px-4 bg-card/90 text-foreground hover:bg-card border-border/60"
               >
                 <Locate className="h-4 w-4 mr-1.5" />
                 {t('map.useMyLocation', 'Mi ubicación')}
@@ -398,7 +353,6 @@ const MapPage = () => {
             </div>
           </div>
         </div>
-
       ) : (
         <div className="px-3 py-3 space-y-2.5">
           {filteredMarkers.length === 0 ? (
@@ -447,7 +401,7 @@ const MapPage = () => {
       )}
 
       <MarkerSheet marker={selected} onClose={() => setSelected(null)} />
-    </main>
+    </div>
   );
 };
 

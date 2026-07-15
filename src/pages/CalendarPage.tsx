@@ -14,7 +14,7 @@ import {
   setYear,
 } from 'date-fns';
 import SEO from '@/components/common/SEO';
-import { getDateLocale } from '@/i18n/dateLocale';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { ChevronLeft, ChevronRight, List, Grid3X3, Calendar, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,14 +40,20 @@ import SportEventCard from '@/components/sports/SportEventCard';
 
 const TIMEZONE = 'Europe/Madrid';
 
+const locales: Record<string, Locale> = {
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
+};
 
-
-
+// Month names for the selector
+const MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
 
 const CalendarPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const locale = getDateLocale(i18n.language);
+  const locale = locales[i18n.language] || es;
   const { appMode } = useAppMode();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
@@ -182,63 +188,52 @@ const CalendarPage = () => {
   const currentMonth = currentDate.getMonth();
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-screen bg-background">
       <SEO
-        title={t('seo.calendar.title')}
-        description={t('seo.calendar.description')}
+        title="Calendario de eventos en Málaga"
+        description="Calendario mensual con todos los eventos, conciertos y planes en Málaga capital y provincia. Filtra por día y descubre qué hacer."
         path="/calendar"
       />
-      {/* Header — editorial */}
-      <header className="bg-card border-b border-border sticky top-0 z-40 px-4 pt-4 pb-3">
-        <div className="max-w-5xl mx-auto space-y-3">
-          <div className="flex justify-between items-center gap-3">
-            <h1 className="font-serif text-2xl sm:text-3xl leading-tight tracking-tight">{t('calendar.title')}</h1>
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'month' | 'list')}>
-              <TabsList className="h-11">
-                <TabsTrigger value="month" className="px-3 h-9" aria-label={t('calendar.viewMonth', 'Vista mes')}>
-                  <Grid3X3 className="h-4 w-4" />
-                </TabsTrigger>
-                <TabsTrigger value="list" className="px-3 h-9" aria-label={t('calendar.viewList', 'Vista lista')}>
-                  <List className="h-4 w-4" />
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-
-          {/* Source selector */}
-          <Tabs value={eventSource} onValueChange={(v) => setEventSource(v as 'all' | 'favorites')}>
-            <TabsList className="w-full h-11">
-              <TabsTrigger value="all" className="flex-1 h-9">{t('calendar.allEvents')}</TabsTrigger>
-              <TabsTrigger value="favorites" className="flex-1 h-9">{t('calendar.myFavorites')}</TabsTrigger>
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-40 p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-xl font-bold">{t('calendar.title')}</h1>
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'month' | 'list')}>
+            <TabsList className="h-8">
+              <TabsTrigger value="month" className="px-2">
+                <Grid3X3 className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="list" className="px-2">
+                <List className="h-4 w-4" />
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
+
+        {/* Source selector */}
+        <Tabs value={eventSource} onValueChange={(v) => setEventSource(v as 'all' | 'favorites')}>
+          <TabsList className="w-full">
+            <TabsTrigger value="all" className="flex-1">{t('calendar.allEvents')}</TabsTrigger>
+            <TabsTrigger value="favorites" className="flex-1">{t('calendar.myFavorites')}</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </header>
 
-      <main className="max-w-5xl mx-auto p-4">
+      <main className="p-4">
         {viewMode === 'month' ? (
           <>
             {/* Month Navigation with Dropdown */}
-            <div className="flex items-center justify-between mb-4 gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={prevMonth}
-                className="h-11 w-11"
-                aria-label={t('calendar.prevMonth', 'Mes anterior')}
-              >
+            <div className="flex items-center justify-between mb-4">
+              <Button variant="ghost" size="icon" onClick={prevMonth}>
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-
+              
               {/* Month/Year Selector */}
               <Popover open={monthSelectorOpen} onOpenChange={setMonthSelectorOpen}>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="min-h-11 px-3 text-lg font-semibold capitalize gap-1 hover:bg-muted"
-                    aria-haspopup="dialog"
-                    aria-expanded={monthSelectorOpen}
-                    aria-label={t('calendar.selectMonth', 'Seleccionar mes y año')}
+                  <Button 
+                    variant="ghost" 
+                    className="text-lg font-semibold capitalize gap-1 hover:bg-muted"
                   >
                     {format(currentDate, 'MMMM yyyy', { locale })}
                     <ChevronDown className={cn(
@@ -247,8 +242,8 @@ const CalendarPage = () => {
                     )} />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="w-72 p-0 bg-popover z-50"
+                <PopoverContent 
+                  className="w-64 p-0 bg-popover z-50" 
                   align="center"
                   side="bottom"
                   sideOffset={4}
@@ -256,61 +251,51 @@ const CalendarPage = () => {
                   avoidCollisions={true}
                 >
                   {/* Year Navigation */}
-                  <div className="flex items-center justify-between p-2 border-b">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11"
+                  <div className="flex items-center justify-between p-3 border-b">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
                       onClick={() => handleYearChange(-1)}
-                      aria-label={t('calendar.prevYear', 'Año anterior')}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <span className="font-semibold text-base" aria-live="polite">{currentYear}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11"
+                    <span className="font-semibold">{currentYear}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
                       onClick={() => handleYearChange(1)}
-                      aria-label={t('calendar.nextYear', 'Año siguiente')}
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
-
-                  {/* Month Grid — locale-aware */}
-                  <ScrollArea className="h-auto max-h-72 overscroll-contain">
-                    <div
+                  
+                  {/* Month Grid */}
+                  <ScrollArea className="h-auto max-h-64 overscroll-contain">
+                    <div 
                       className="grid grid-cols-3 gap-1 p-2"
                       style={{ WebkitOverflowScrolling: 'touch' }}
-                      role="listbox"
-                      aria-label={t('calendar.months', 'Meses')}
                     >
-                      {Array.from({ length: 12 }, (_, index) => {
-                        const monthDate = setMonth(new Date(currentYear, 0, 1), index);
-                        const monthLabel = format(monthDate, 'MMM', { locale });
+                      {MONTHS.map((month, index) => {
                         const isSelected = index === currentMonth;
                         const isCurrentMonth = index === new Date().getMonth() && currentYear === new Date().getFullYear();
-
+                        
                         return (
                           <button
-                            key={index}
-                            role="option"
-                            aria-selected={isSelected}
+                            key={month}
                             onClick={() => handleMonthSelect(index)}
                             className={cn(
-                              "relative min-h-11 px-2 py-2 text-sm rounded-md capitalize transition-colors",
-                              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                              isSelected
-                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                : isCurrentMonth
-                                ? "bg-primary/10 font-medium hover:bg-primary/15"
-                                : "hover:bg-muted"
+                              "relative px-2 py-2.5 text-sm rounded-md transition-colors",
+                              "hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring",
+                              isSelected && "bg-primary text-primary-foreground hover:bg-primary/90",
+                              !isSelected && isCurrentMonth && "bg-primary/10 font-medium",
+                              !isSelected && !isCurrentMonth && "hover:bg-muted"
                             )}
                           >
-                            {monthLabel}
+                            {month.substring(0, 3)}
                             {isSelected && (
-                              <Check className="absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3" aria-hidden />
+                              <Check className="absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3" />
                             )}
                           </button>
                         );
@@ -319,84 +304,50 @@ const CalendarPage = () => {
                   </ScrollArea>
                 </PopoverContent>
               </Popover>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={nextMonth}
-                className="h-11 w-11"
-                aria-label={t('calendar.nextMonth', 'Mes siguiente')}
-              >
+              
+              <Button variant="ghost" size="icon" onClick={nextMonth}>
                 <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
 
-            {/* Calendar Grid — reserve height while loading to avoid layout jumps */}
+            {/* Calendar Grid */}
             <Card className="mb-4">
               <CardContent className="p-2">
-                {/* Day headers — localised weekday initials (respects lang + RTL) */}
+                {/* Day headers */}
                 <div className="grid grid-cols-7 mb-2">
-                  {Array.from({ length: 7 }, (_, i) => {
-                    // Sunday = 0 (matches startOfWeek weekStartsOn: 0)
-                    const sample = new Date(2024, 0, 7 + i); // 2024-01-07 is a Sunday
-                    return (
-                      <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
-                        {format(sample, 'EEEEEE', { locale })}
-                      </div>
-                    );
-                  })}
+                  {['D', 'L', 'M', 'X', 'J', 'V', 'S'].map((day, i) => (
+                    <div key={i} className="text-center text-xs font-medium text-muted-foreground py-2">
+                      {day}
+                    </div>
+                  ))}
                 </div>
 
-
                 {/* Days */}
-                <div
-                  className="grid grid-cols-7 gap-1"
-                  role="grid"
-                  aria-label={format(currentDate, 'MMMM yyyy', { locale })}
-                  aria-busy={isLoading || sportsLoading}
-                >
+                <div className="grid grid-cols-7 gap-1">
                   {allGridDays.map((day) => {
                     const dateKey = format(day, 'yyyy-MM-dd');
                     const eventCount = daysWithEvents.get(dateKey) || 0;
                     const isSelected = selectedDate && isSameDay(day, selectedDate);
                     const hasEvents = eventCount > 0;
-                    const inMonth = isSameMonth(day, currentDate);
-                    const dayIsToday = isToday(day);
 
                     return (
                       <button
                         key={day.toISOString()}
                         onClick={() => setSelectedDate(day)}
-                        aria-label={format(day, 'PPPP', { locale }) + (hasEvents ? `, ${t('calendar.eventCount', { count: eventCount })}` : '')}
-                        aria-pressed={!!isSelected}
-                        aria-current={dayIsToday ? 'date' : undefined}
                         className={cn(
-                          'relative aspect-square min-h-[44px] rounded-lg flex flex-col items-center justify-center text-sm transition-colors',
-                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                          !inMonth && 'text-muted-foreground/70',
-                          dayIsToday && !isSelected && 'ring-1 ring-primary/40 font-bold',
-                          isSelected && 'bg-primary text-primary-foreground font-semibold shadow-sm',
+                          'aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-colors relative',
+                          !isSameMonth(day, currentDate) && 'text-muted-foreground/80',
+                          isToday(day) && 'bg-primary/10 font-bold',
+                          isSelected && 'bg-primary text-primary-foreground',
                           !isSelected && 'hover:bg-muted'
                         )}
                       >
-                        <span className={cn('leading-none', hasEvents && 'mb-1')}>{format(day, 'd')}</span>
+                        {format(day, 'd')}
                         {hasEvents && (
-                          <span
-                            aria-hidden
-                            className={cn(
-                              'absolute bottom-1 flex items-center gap-0.5',
-                            )}
-                          >
-                            {Array.from({ length: Math.min(eventCount, 3) }).map((_, i) => (
-                              <span
-                                key={i}
-                                className={cn(
-                                  'w-1.5 h-1.5 rounded-full',
-                                  isSelected ? 'bg-primary-foreground' : 'bg-primary'
-                                )}
-                              />
-                            ))}
-                          </span>
+                          <span className={cn(
+                            'absolute bottom-1 w-1.5 h-1.5 rounded-full',
+                            isSelected ? 'bg-primary-foreground' : 'bg-primary'
+                          )} />
                         )}
                       </button>
                     );
@@ -407,75 +358,59 @@ const CalendarPage = () => {
 
             {/* Selected Day Events */}
             {selectedDate && (
-              <section className="space-y-3" aria-live="polite">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h2 className="font-serif text-xl capitalize leading-tight">
-                    {format(selectedDate, 'PPPP', { locale })}
-                  </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {t('calendar.eventCount', {
-                      count: appMode === 'deportes' ? selectedDaySportEvents.length : selectedDayOccurrences.length,
-                    })}
-                  </span>
-
-                </div>
+              <div className="space-y-4">
+                <h3 className="font-semibold capitalize">
+                  {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
+                </h3>
                 {appMode === 'deportes' ? (
-                  sportsLoading ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      <EventCardSkeleton />
-                      <EventCardSkeleton />
-                    </div>
-                  ) : selectedDaySportEvents.length > 0 ? (
+                  selectedDaySportEvents.length > 0 ? (
                     <div className="grid grid-cols-2 gap-3">
                       {selectedDaySportEvents.map(ev => (
                         <SportEventCard key={ev.id} event={ev} />
                       ))}
                     </div>
                   ) : (
-                    <Card className="bg-muted/40 border-dashed">
-                      <CardContent className="py-5 text-center text-sm text-muted-foreground">
+                    <Card className="bg-muted/50 border-dashed">
+                      <CardContent className="py-6 text-center text-muted-foreground">
                         {t('calendar.noEventsDay')}
                       </CardContent>
                     </Card>
                   )
                 ) : isLoading ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <EventCardSkeleton />
                     <EventCardSkeleton />
                   </div>
                 ) : selectedDayOccurrences.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedDayOccurrences.map((occ) => occ.event && (
-                      <EventCard
-                        key={occ.id}
-                        event={{
-                          ...occ.event,
-                          start_at: occ.start_datetime,
-                          end_at: occ.end_datetime,
-                        }}
-                        compact
-                        isFavorite={isFavorite(occ.event_id)}
-                        onToggleFavorite={handleToggleFavorite}
-                      />
-                    ))}
-                  </div>
+                  selectedDayOccurrences.map((occ) => occ.event && (
+                    <EventCard 
+                      key={occ.id} 
+                      event={{
+                        ...occ.event,
+                        start_at: occ.start_datetime,
+                        end_at: occ.end_datetime,
+                      }} 
+                      compact
+                      isFavorite={isFavorite(occ.event_id)}
+                      onToggleFavorite={handleToggleFavorite}
+                    />
+                  ))
                 ) : (
-                  <Card className="bg-muted/40 border-dashed">
-                    <CardContent className="py-5 text-center text-sm text-muted-foreground">
+                  <Card className="bg-muted/50 border-dashed">
+                    <CardContent className="py-6 text-center text-muted-foreground">
                       {t('calendar.noEventsDay')}
                     </CardContent>
                   </Card>
                 )}
-              </section>
+              </div>
             )}
           </>
         ) : (
-
           /* List View - respects selectedDate */
           <div className="space-y-4">
             {selectedDate && (
               <h3 className="font-semibold capitalize">
-                {format(selectedDate, 'PPPP', { locale })}
+                {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
               </h3>
             )}
             {appMode === 'deportes' ? (() => {

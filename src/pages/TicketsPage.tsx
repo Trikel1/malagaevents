@@ -27,13 +27,13 @@ const TicketsPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
-  const { data: tickets, isLoading, isError, refetch } = useTickets();
+  const { data: tickets, isLoading } = useTickets();
   const deleteTicket = useDeleteTicket();
 
   // Redirect to auth if not logged in
   if (!authLoading && !isAuthenticated) {
     return (
-      <div className="min-h-dvh bg-background p-4">
+      <div className="min-h-screen bg-background p-4">
         <EmptyState
           icon={Ticket}
           title={t('profile.loginRequired')}
@@ -58,44 +58,34 @@ const TicketsPage = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-screen bg-background">
       <SEO
-        title={t('seo.tickets.title')}
-        description={t('seo.tickets.description')}
+        title="Mis entradas — MalagaEvents"
+        description="Tus entradas guardadas para eventos en Málaga. Accede rápidamente a códigos QR y detalles de tus tickets."
         path="/tickets"
         noindex
       />
       {/* Header */}
       <header className="bg-card/90 backdrop-blur-xl border-b border-border/60 sticky top-0 z-40 p-4 shadow-soft">
         <div className="flex justify-between items-center">
-          <h1 className="font-display text-2xl font-bold tracking-tight">{t('tickets.title')}</h1>
-          <Button asChild size="sm" className="min-h-11">
-            <Link to="/tickets/add" aria-label={t('tickets.addTicket')}>
-              <Plus className="h-4 w-4 mr-1" aria-hidden />
+          <h1 className="text-xl font-bold tracking-tight">{t('tickets.title')}</h1>
+          <Button asChild size="sm">
+            <Link to="/tickets/add">
+              <Plus className="h-4 w-4 mr-1" />
               {t('tickets.addTicket')}
             </Link>
           </Button>
-
         </div>
       </header>
 
       {/* Content */}
       <main className="p-4">
         {isLoading ? (
-          <div className="space-y-3" aria-busy="true">
+          <div className="space-y-3">
             <EventCardSkeleton />
             <EventCardSkeleton />
           </div>
-        ) : isError ? (
-          <EmptyState
-            icon={Ticket}
-            title={t('tickets.errorTitle', 'No se pudieron cargar tus entradas')}
-            description={t('tickets.errorDesc', 'Comprueba tu conexión e inténtalo de nuevo.')}
-            actionLabel={t('common.retry', 'Reintentar')}
-            onAction={() => refetch()}
-          />
         ) : tickets && tickets.length > 0 ? (
-
           <div className="space-y-3">
             {tickets.map((ticket) => {
               const Icon = getTicketIcon(ticket);
@@ -136,15 +126,9 @@ const TicketsPage = () => {
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-11 w-11 text-destructive"
-                                aria-label={`${t('common.delete', 'Eliminar')} ${ticket.title}`}
-                              >
-                                <Trash2 className="h-4 w-4" aria-hidden />
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                                <Trash2 className="h-4 w-4" />
                               </Button>
-
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>

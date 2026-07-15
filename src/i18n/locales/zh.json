@@ -30,11 +30,7 @@
     "remove": "移除",
     "confirm": "确认",
     "tryAgain": "请再试一次",
-    "loadingDots": "…",
-    "pause": "暂停",
-    "play": "继续",
-    "clearOne": "移除",
-    "clearSearch": "清除搜索"
+    "loadingDots": "…"
   },
   "notFound": {
     "title": "页面未找到",
@@ -139,7 +135,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Events — 今日马拉加做什么",
+      "title": "Málaga Connect — 今日马拉加做什么",
       "description": "马拉加市民指南:马拉加市及全省的活动、家庭计划、值班药房、文化与体育。"
     },
     "hero": {
@@ -314,73 +310,7 @@
     "theaters": "剧院",
     "halls": "大厅",
     "otherVenues": "其他",
-    "timeTBC": "时间待定",
-    "verifiedAt": "已验证",
-    "viewOnSource": "在原始来源查看",
-    "source": "来源",
-    "agendaKicker": "文化议程 · 马拉加",
-    "agendaTitle": "文化议程",
-    "timeRange": "时间范围",
-    "today": "今天",
-    "tomorrow": "明天",
-    "thisWeek": "本周",
-    "thisWeekend": "本周末",
-    "next30Days": "未来30天",
-    "next30Short": "30天",
-    "searchPlaceholderShort": "搜索…",
-    "eventCount_one": "{{count}} 个活动",
-    "eventCount_other": "{{count}} 个活动",
-    "allProvince": "整个省",
-    "searchLocality": "搜索地区",
-    "locationDefault": "马拉加",
-    "clearLocality": "清除地区",
-    "localityShort": "地区",
-    "localitiesShort": "地区",
-    "venueKind": {
-      "all": "全部",
-      "halls": "展演厅",
-      "theaters": "剧院",
-      "outdoors": "户外场地",
-      "hallsTitle": "展演厅",
-      "theatersTitle": "剧院与礼堂",
-      "outdoorsTitle": "户外场地"
-    },
-    "venuesTitle2": "场地",
-    "venuesSearchPlaceholder2": "搜索场地或城市",
-    "venuesEmptyTitle": "没有匹配的场地",
-    "venuesEmptyHint2": "尝试其他搜索或类别。",
-    "venueNoAgendaLong": "暂无日程",
-    "venueHasAgenda": "有日程",
-    "sectionCapital": "马拉加市",
-    "sectionProvincia": "马拉加省",
-    "showAll": "显示全部",
-    "showAllHalls": "显示所有展演厅",
-    "showAllTheaters": "显示所有剧院",
-    "showAllOutdoors": "显示户外场地",
-    "showOneVenue": "显示 1 个场地",
-    "showNVenues": "显示 {{count}} 个场地",
-    "oneVenueSelected": "1 个场地",
-    "nVenuesSelected": "已选择 {{count}} 个场地",
-    "venuesShort": "场地",
-    "clearVenues": "清除场地",
-    "upcomingHighlights": "即将上演",
-    "pauseCarousel": "暂停轮播",
-    "resumeCarousel": "继续轮播",
-    "pause": "暂停",
-    "play": "继续",
-    "noEventsWithFilters": "没有符合筛选条件的活动",
-    "noEventsHint": "请尝试其他日期、地区或场地。",
-    "familyKids": "亲子活动",
-    "withTickets": "需购票",
-    "outdoor": "户外",
-    "yearsShort": "岁",
-    "nearMe": "我附近",
-    "sortedByDistance": "按距离排序",
-    "clearDistanceSort": "已关闭按距离排序",
-    "locationUnsupported": "您的浏览器不支持地理定位",
-    "locationPermissionDenied": "位置权限被拒绝。请在浏览器设置中开启。",
-    "locationError": "无法获取您的位置",
-    "imagePlaceholder": "示意图片"
+    "timeTBC": "时间待定"
   },
   "eventDetail": {
     "when": "何时",
@@ -404,17 +334,7 @@
     "allEvents": "所有活动",
     "myFavorites": "我的收藏",
     "exportEvent": "导出活动",
-    "noEventsDay": "本日无活动",
-    "eventCount_one": "{{count}} 个活动",
-    "eventCount_other": "{{count}} 个活动",
-    "viewMonth": "月视图",
-    "viewList": "列表视图",
-    "selectMonth": "选择月份和年份",
-    "prevMonth": "上一月",
-    "nextMonth": "下一月",
-    "prevYear": "上一年",
-    "nextYear": "下一年",
-    "months": "月份"
+    "noEventsDay": "本日无活动"
   },
   "pharmacies": {
     "title": "值班药店",
@@ -456,13 +376,7 @@
     "locationUnsupported": "设备不支持定位",
     "locationError": "无法获取您的位置",
     "distanceAway": "距离",
-    "fallbackNotice": "估算的值班药房(暂无官方数据)",
-    "officialLabel": "官方",
-    "showingCount": "显示 {{shown}} / {{total}}",
-    "directoryDisclaimer": "仅供参考。值班状态仅在上方官方数据部分显示。",
-    "noOfficialData": "该日期与地区暂无经核实的官方值班药店数据。出行前请查阅官方来源。",
-    "showMore": "显示更多",
-    "showMoreAria": "显示更多药店（还剩 {{remaining}} 个）"
+    "fallbackNotice": "估算的值班药房(暂无官方数据)"
   },
   "tickets": {
     "title": "我的门票",
@@ -530,10 +444,7 @@
     "quietTo": "到",
     "savePreferences": "保存偏好设置",
     "loginRequired": "登录以访问",
-    "loginRequiredDesc": "您需要一个账户才能使用此功能",
-    "guestTitle": "访客",
-    "user": "用户",
-    "adminPanel": "管理面板"
+    "loginRequiredDesc": "您需要一个账户才能使用此功能"
   },
   "theme": {
     "system": "系统",
@@ -590,11 +501,7 @@
     "useMyLocation": "使用我的位置",
     "viewEvent": "查看活动",
     "viewList": "列表",
-    "viewMap": "地图",
-    "pointCount_one": "{{count}} 个位置",
-    "pointCount_other": "{{count}} 个位置",
-    "loading": "正在加载位置…",
-    "errorLoading": "加载数据失败。"
+    "viewMap": "地图"
   },
   "sports": {
     "title": "体育",
@@ -644,9 +551,7 @@
       "today": "今天没有体育活动。",
       "weekend": "本周末没有体育活动。",
       "results": "我们没有找到符合这些筛选条件的活动。",
-      "venuesSoon": "我们正在添加体育场馆。",
-      "expandDates": "扩展日期",
-      "seeUpcoming": "查看即将举行的活动"
+      "venuesSoon": "我们正在添加体育场馆。"
     },
     "filter": {
       "free": "免费",
@@ -662,115 +567,6 @@
     "voleibol": "排球",
     "rugby": "橄榄球",
     "acuaticos": "水上运动",
-    "artes_marciales": "武术",
-    "pageTitle": "马拉加体育",
-    "pageSubtitle": "马拉加及其省份的赛事、活动、训练和体育场馆。",
-    "heroSearchPlaceholder": "搜索运动、球队、赛事或场地",
-    "categories": {
-      "football": "足球",
-      "basketball": "篮球",
-      "tennis": "网球",
-      "triathlon": "铁人三项",
-      "running": "跑步",
-      "cycling": "骑行",
-      "swimming": "游泳",
-      "padel": "板式网球",
-      "handball": "手球",
-      "futsal": "五人制足球",
-      "athletics": "田径",
-      "motor": "赛车",
-      "volleyball": "排球",
-      "rugby": "橄榄球",
-      "hiking": "徒步",
-      "fitness": "健身",
-      "water_sports": "水上运动",
-      "martial_arts": "武术",
-      "other": "其他"
-    }
-  },
-  "seo": {
-    "events": {
-      "title": "马拉加文化日程 — 今日与未来几天",
-      "description": "马拉加文化日程:音乐会、戏剧、展览、电影、美食及家庭活动。"
-    },
-    "calendar": {
-      "title": "马拉加活动日历",
-      "description": "马拉加文化和体育活动按日、周、月分类的日历。"
-    },
-    "map": {
-      "title": "马拉加活动与药店地图",
-      "description": "马拉加文化、体育活动及值班药店的互动地图。"
-    },
-    "venues": {
-      "title": "马拉加体育场馆",
-      "description": "马拉加省的体育场馆、体育馆和体育场目录。"
-    },
-    "sports": {
-      "title": "马拉加体育 — 活动、赛事与场馆",
-      "description": "马拉加体育日程:比赛、赛事、活动及官方场馆。"
-    },
-    "profile": {
-      "title": "我的资料 — Málaga Events",
-      "description": "在Málaga Events管理账户、收藏、门票和语言。"
-    },
-    "submit": {
-      "title": "提交马拉加活动",
-      "description": "提交文化或体育活动供Málaga Events团队审核。"
-    },
-    "tickets": {
-      "title": "我的门票 — Málaga Events",
-      "description": "查看并整理你在Málaga Events保存的门票。"
-    },
-    "addTicket": {
-      "title": "添加门票 — Málaga Events",
-      "description": "将门票加入你的个人收藏。"
-    },
-    "pharmacies": {
-      "title": "今日马拉加值班药店",
-      "description": "马拉加官方值班药店及按市镇的信息目录。"
-    },
-    "auth": {
-      "title": "登录Málaga Events",
-      "description": "登录或创建账户以保存收藏、门票及偏好。"
-    },
-    "reset": {
-      "title": "重置密码 — Málaga Events",
-      "description": "为你的账户选择新密码。"
-    },
-    "admin": {
-      "title": "Admin — Málaga Events",
-      "description": "内部管理面板。"
-    },
-    "notFound": {
-      "title": "页面未找到 — Málaga Events",
-      "description": "请求的页面不存在或已被移动。"
-    }
-  },
-  "auth": {
-    "resetTitle": "重置密码",
-    "newPassword": "新密码",
-    "newPasswordHelp": "请输入新密码。",
-    "verifyingLink": "正在验证恢复链接…",
-    "confirmPassword": "确认密码",
-    "saving": "保存中…",
-    "updatePassword": "更新密码",
-    "showPassword": "显示密码",
-    "hidePassword": "隐藏密码"
-  },
-  "agenda": {
-    "notFoundTitle": "未找到该市镇",
-    "notFoundDesc": "请求的市镇不在省级登记中。",
-    "backToEvents": "返回活动",
-    "verifiedSources": "经核实的文化议程 · 官方来源",
-    "inMunicipality": "在 {{name}}",
-    "loadingEvents": "正在加载活动…",
-    "noEventsTitle": "暂无确认的活动",
-    "noEventsDesc": "{{name}} 暂无已发布的文化活动。请查看下方附近的活动。",
-    "nearHeading": "{{name}} 附近",
-    "searchRadius": "搜索半径",
-    "nearDisclaimer": "这些活动 <strong>不在 {{name}} 举行</strong>。按距离市中心的远近排列。",
-    "noNearby": "{{radius}} 公里范围内没有已核实的活动。",
-    "seoTitle": "{{name}} 文化议程 | Málaga Events",
-    "seoDescription": "探索 {{name}}（{{comarca}}）及周边已确认的文化活动。"
+    "artes_marciales": "武术"
   }
 }

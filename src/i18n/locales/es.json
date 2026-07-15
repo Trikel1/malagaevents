@@ -30,11 +30,7 @@
     "remove": "Quitar",
     "confirm": "Confirmar",
     "tryAgain": "Inténtalo de nuevo",
-    "loadingDots": "…",
-    "pause": "Pausar",
-    "play": "Reanudar",
-    "clearOne": "Quitar",
-    "clearSearch": "Limpiar búsqueda"
+    "loadingDots": "…"
   },
   "notFound": {
     "title": "Página no encontrada",
@@ -139,7 +135,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Events — Qué hacer hoy en Málaga",
+      "title": "Málaga Connect — Qué hacer hoy en Málaga",
       "description": "La guía ciudadana de Málaga: eventos, planes familiares, farmacias de guardia, cultura y deporte en Málaga ciudad y provincia."
     },
     "hero": {
@@ -314,73 +310,7 @@
     "theaters": "Teatros",
     "halls": "Salas",
     "otherVenues": "Otros",
-    "timeTBC": "Hora por confirmar",
-    "verifiedAt": "Verificado",
-    "viewOnSource": "Ver en la fuente original",
-    "source": "Fuente",
-    "agendaKicker": "Agenda cultural · Málaga",
-    "agendaTitle": "Agenda cultural",
-    "timeRange": "Franja temporal",
-    "today": "Hoy",
-    "tomorrow": "Mañana",
-    "thisWeek": "Esta semana",
-    "thisWeekend": "Este finde",
-    "next30Days": "Próximos 30 días",
-    "next30Short": "30 días",
-    "searchPlaceholderShort": "Buscar…",
-    "eventCount_one": "{{count}} evento",
-    "eventCount_other": "{{count}} eventos",
-    "allProvince": "Toda la provincia",
-    "searchLocality": "Buscar localidad",
-    "locationDefault": "Málaga",
-    "clearLocality": "Limpiar localidad",
-    "localityShort": "Localidad",
-    "localitiesShort": "localidades",
-    "venueKind": {
-      "all": "Todo",
-      "halls": "Salas",
-      "theaters": "Teatros",
-      "outdoors": "Recintos",
-      "hallsTitle": "Salas",
-      "theatersTitle": "Teatros y auditorios",
-      "outdoorsTitle": "Recintos y exteriores"
-    },
-    "venuesTitle2": "Recintos",
-    "venuesSearchPlaceholder2": "Buscar recinto o ciudad",
-    "venuesEmptyTitle": "Sin recintos que coincidan",
-    "venuesEmptyHint2": "Prueba otra búsqueda o cambia de categoría.",
-    "venueNoAgendaLong": "Sin agenda disponible",
-    "venueHasAgenda": "Con agenda",
-    "sectionCapital": "Málaga capital",
-    "sectionProvincia": "Provincia de Málaga",
-    "showAll": "Mostrar todo",
-    "showAllHalls": "Mostrar todas las salas",
-    "showAllTheaters": "Mostrar todos los teatros",
-    "showAllOutdoors": "Mostrar recintos y exteriores",
-    "showOneVenue": "Mostrar 1 recinto",
-    "showNVenues": "Mostrar {{count}} recintos",
-    "oneVenueSelected": "1 recinto",
-    "nVenuesSelected": "{{count}} recintos seleccionados",
-    "venuesShort": "recintos",
-    "clearVenues": "Limpiar recintos",
-    "upcomingHighlights": "Destacados próximos",
-    "pauseCarousel": "Pausar carrusel",
-    "resumeCarousel": "Reanudar carrusel",
-    "pause": "Pausar",
-    "play": "Reanudar",
-    "noEventsWithFilters": "No hay eventos con estos filtros",
-    "noEventsHint": "Prueba otra fecha, localidad o recinto.",
-    "familyKids": "Infantil / Familiar",
-    "withTickets": "Con entradas",
-    "outdoor": "Al aire libre",
-    "yearsShort": "años",
-    "nearMe": "Cerca de mí",
-    "sortedByDistance": "Ordenado por cercanía",
-    "clearDistanceSort": "Orden por cercanía desactivado",
-    "locationUnsupported": "Tu navegador no soporta geolocalización",
-    "locationPermissionDenied": "Permiso de ubicación denegado. Actívalo en los ajustes del navegador.",
-    "locationError": "No pudimos obtener tu ubicación",
-    "imagePlaceholder": "Imagen ilustrativa"
+    "timeTBC": "Hora por confirmar"
   },
   "eventDetail": {
     "when": "Cuándo",
@@ -404,17 +334,7 @@
     "allEvents": "Todos los eventos",
     "myFavorites": "Mis favoritos",
     "exportEvent": "Exportar evento",
-    "noEventsDay": "No hay eventos este día",
-    "eventCount_one": "{{count}} evento",
-    "eventCount_other": "{{count}} eventos",
-    "viewMonth": "Vista mes",
-    "viewList": "Vista lista",
-    "selectMonth": "Seleccionar mes y año",
-    "prevMonth": "Mes anterior",
-    "nextMonth": "Mes siguiente",
-    "prevYear": "Año anterior",
-    "nextYear": "Año siguiente",
-    "months": "Meses"
+    "noEventsDay": "No hay eventos este día"
   },
   "pharmacies": {
     "title": "Farmacias de guardia",
@@ -456,13 +376,7 @@
     "locationUnsupported": "Tu dispositivo no soporta geolocalización",
     "locationError": "No pudimos obtener tu ubicación",
     "distanceAway": "de distancia",
-    "fallbackNotice": "Mostrando guardia estimada (datos oficiales no disponibles para esta fecha).",
-    "officialLabel": "Oficial",
-    "showingCount": "Mostrando {{shown}} de {{total}}",
-    "directoryDisclaimer": "Listado informativo. La condición de guardia solo se muestra en la sección superior con datos oficiales.",
-    "noOfficialData": "No hay datos oficiales verificados de farmacias de guardia para esta fecha y localidad. Consulta la fuente oficial antes de desplazarte.",
-    "showMore": "Mostrar más",
-    "showMoreAria": "Mostrar más farmacias ({{remaining}} pendientes)"
+    "fallbackNotice": "Mostrando guardia estimada (datos oficiales no disponibles para esta fecha)."
   },
   "tickets": {
     "title": "Mis entradas",
@@ -530,10 +444,7 @@
     "quietTo": "Hasta",
     "savePreferences": "Guardar preferencias",
     "loginRequired": "Inicia sesión para acceder",
-    "loginRequiredDesc": "Necesitas una cuenta para usar esta función",
-    "guestTitle": "Invitado",
-    "user": "Usuario",
-    "adminPanel": "Panel de administración"
+    "loginRequiredDesc": "Necesitas una cuenta para usar esta función"
   },
   "theme": {
     "system": "Sistema",
@@ -590,11 +501,7 @@
     "openDirections": "Cómo llegar",
     "viewVenueEvents": "Ver eventos",
     "onDuty": "De guardia",
-    "nearYou": "Cerca de ti",
-    "pointCount_one": "{{count}} punto",
-    "pointCount_other": "{{count}} puntos",
-    "loading": "Cargando puntos…",
-    "errorLoading": "No se pudieron cargar los datos."
+    "nearYou": "Cerca de ti"
   },
   "sports": {
     "title": "Deportes",
@@ -644,9 +551,7 @@
       "today": "Sin actividades deportivas hoy.",
       "weekend": "Sin actividades deportivas este fin de semana.",
       "results": "No encontramos actividades con estos filtros.",
-      "venuesSoon": "Estamos incorporando recintos deportivos.",
-      "expandDates": "Ampliar fechas",
-      "seeUpcoming": "Ver próximos eventos"
+      "venuesSoon": "Estamos incorporando recintos deportivos."
     },
     "filter": {
       "free": "Gratis",
@@ -662,115 +567,6 @@
     "voleibol": "Voleibol",
     "rugby": "Rugby",
     "acuaticos": "Deportes acuáticos",
-    "artes_marciales": "Artes marciales",
-    "pageTitle": "Deporte en Málaga",
-    "pageSubtitle": "Competiciones, actividades, entrenamientos y recintos deportivos en Málaga y su provincia.",
-    "heroSearchPlaceholder": "Buscar deporte, equipo, competición o recinto",
-    "categories": {
-      "football": "Fútbol",
-      "basketball": "Baloncesto",
-      "tennis": "Tenis",
-      "triathlon": "Triatlón",
-      "running": "Running",
-      "cycling": "Ciclismo",
-      "swimming": "Natación",
-      "padel": "Pádel",
-      "handball": "Balonmano",
-      "futsal": "Fútbol Sala",
-      "athletics": "Atletismo",
-      "motor": "Motor",
-      "volleyball": "Voleibol",
-      "rugby": "Rugby",
-      "hiking": "Senderismo",
-      "fitness": "Fitness",
-      "water_sports": "Deportes acuáticos",
-      "martial_arts": "Artes marciales",
-      "other": "Otros"
-    }
-  },
-  "seo": {
-    "events": {
-      "title": "Agenda cultural de Málaga — Qué hacer hoy y los próximos días",
-      "description": "Agenda cultural de Málaga: conciertos, teatro, exposiciones, cine, gastronomía y planes para toda la familia."
-    },
-    "calendar": {
-      "title": "Calendario de eventos en Málaga",
-      "description": "Calendario de eventos culturales y deportivos en Málaga por día, semana y mes."
-    },
-    "map": {
-      "title": "Mapa de eventos y farmacias en Málaga",
-      "description": "Mapa interactivo con eventos culturales, deportivos y farmacias de guardia en Málaga."
-    },
-    "venues": {
-      "title": "Recintos deportivos de Málaga",
-      "description": "Directorio de recintos, pabellones y estadios deportivos de la provincia de Málaga."
-    },
-    "sports": {
-      "title": "Deporte en Málaga — Actividades, competiciones y recintos",
-      "description": "Agenda deportiva de Málaga: partidos, competiciones, actividades y recintos oficiales."
-    },
-    "profile": {
-      "title": "Mi perfil — Málaga Events",
-      "description": "Gestiona tu cuenta, favoritos, entradas e idioma en Málaga Events."
-    },
-    "submit": {
-      "title": "Enviar un evento de Málaga",
-      "description": "Envía un evento cultural o deportivo para su revisión por el equipo de Málaga Events."
-    },
-    "tickets": {
-      "title": "Mis entradas — Málaga Events",
-      "description": "Consulta y organiza tus entradas guardadas en Málaga Events."
-    },
-    "addTicket": {
-      "title": "Añadir entrada — Málaga Events",
-      "description": "Añade una entrada a tu colección personal."
-    },
-    "pharmacies": {
-      "title": "Farmacias de guardia en Málaga hoy",
-      "description": "Farmacias de guardia oficiales de Málaga y directorio informativo por municipios."
-    },
-    "auth": {
-      "title": "Acceder a Málaga Events",
-      "description": "Inicia sesión o crea una cuenta para guardar favoritos, entradas y preferencias."
-    },
-    "reset": {
-      "title": "Restablecer contraseña — Málaga Events",
-      "description": "Elige una nueva contraseña para tu cuenta."
-    },
-    "admin": {
-      "title": "Admin — Málaga Events",
-      "description": "Panel de administración interno."
-    },
-    "notFound": {
-      "title": "Página no encontrada — Málaga Events",
-      "description": "La página solicitada no existe o ha sido movida."
-    }
-  },
-  "auth": {
-    "resetTitle": "Restablecer contraseña",
-    "newPassword": "Nueva contraseña",
-    "newPasswordHelp": "Introduce tu nueva contraseña.",
-    "verifyingLink": "Verificando el enlace de recuperación…",
-    "confirmPassword": "Confirmar contraseña",
-    "saving": "Guardando…",
-    "updatePassword": "Actualizar contraseña",
-    "showPassword": "Mostrar contraseña",
-    "hidePassword": "Ocultar contraseña"
-  },
-  "agenda": {
-    "notFoundTitle": "Municipio no encontrado",
-    "notFoundDesc": "El municipio solicitado no está en el registro provincial.",
-    "backToEvents": "Volver a eventos",
-    "verifiedSources": "Agenda cultural verificada · fuentes oficiales",
-    "inMunicipality": "En {{name}}",
-    "loadingEvents": "Cargando eventos…",
-    "noEventsTitle": "Sin eventos confirmados",
-    "noEventsDesc": "Todavía no hay eventos culturales publicados en {{name}}. Mira las opciones cercanas abajo.",
-    "nearHeading": "Cerca de {{name}}",
-    "searchRadius": "Radio de búsqueda",
-    "nearDisclaimer": "Estos eventos <strong>no ocurren en {{name}}</strong>. Se listan por proximidad desde el centro del municipio.",
-    "noNearby": "No hay eventos verificados en un radio de {{radius}} km.",
-    "seoTitle": "Agenda cultural de {{name}} | Málaga Events",
-    "seoDescription": "Descubre los eventos culturales confirmados en {{name}} ({{comarca}}) y sus alrededores."
+    "artes_marciales": "Artes marciales"
   }
 }

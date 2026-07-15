@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, X, AlertTriangle, Navigation, CalendarDays } from 'lucide-react';
 import { format } from 'date-fns';
-import { getDateLocale } from '@/i18n/dateLocale';
+import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,11 +20,16 @@ import { useEventsOptimized } from '@/hooks/useEventsOptimized';
 import { useFavorites, useToggleFavorite, useFavoriteEvents } from '@/hooks/useFavorites';
 import { useLocations } from '@/hooks/useLocations';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useAppMode } from '@/contexts/AppModeContext';
+import SportsEventsPage from '@/components/sports/SportsEventsPage';
 import type { EventCategory } from '@/types';
 import SEO from '@/components/common/SEO';
 
-// /events is always the cultural agenda. Sports live at /sports.
-const EventsPage = () => <CultureEventsPage />;
+const EventsPage = () => {
+  const { appMode } = useAppMode();
+  if (appMode === 'deportes') return <SportsEventsPage />;
+  return <CultureEventsPage />;
+};
 
 // ────────────────────────────────────────────────────────────────────────────
 // Header preset chips — 4 primary temporal filters
@@ -40,8 +45,7 @@ const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: strin
 // ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
-  const { t, i18n } = useTranslation();
-  const locale = getDateLocale(i18n.language);
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthContext();
@@ -245,8 +249,8 @@ const CultureEventsPage = () => {
       });
     }
     if (filters.dateFrom || filters.dateTo) {
-      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale }) : '…';
-      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale }) : '…';
+      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale: es }) : '…';
+      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale: es }) : '…';
       chips.push({
         key: 'daterange',
         label: `${from} – ${to}`,
@@ -349,7 +353,7 @@ const CultureEventsPage = () => {
 
   // Human-readable "range" summary shown in the header
   const rangeSummary = useMemo(() => {
-    const today = format(new Date(), 'PPPP', { locale });
+    const today = format(new Date(), "EEEE d 'de' MMMM", { locale: es });
     const nice = today.charAt(0).toUpperCase() + today.slice(1);
     if (filters.datePreset === 'today') return nice;
     if (filters.datePreset === 'tomorrow') return t('events.tomorrow', 'Mañana');
@@ -360,10 +364,10 @@ const CultureEventsPage = () => {
   }, [filters.datePreset, t]);
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-screen bg-background">
       <SEO
-        title={t('seo.events.title')}
-        description={t('seo.events.description')}
+        title="Agenda cultural de Málaga — Qué hacer hoy y los próximos días"
+        description="Agenda cultural en Málaga: conciertos, teatro, exposiciones y festivales para hoy, mañana, este finde y los próximos 30 días."
         path="/events"
         jsonLd={
           displayedEvents && displayedEvents.length > 0
@@ -382,33 +386,37 @@ const CultureEventsPage = () => {
         }
       />
 
-      {/* ── EDITORIAL HEADER ────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-md border-b border-border/60">
-        <div className="mx-auto w-full max-w-[1180px] px-4 lg:px-8 pt-4 pb-3 space-y-3">
-          {/* Editorial title block */}
-          <div className="flex items-end justify-between gap-4">
+      {/* ── HEADER ─────────────────────────────────────────────────────── */}
+      <header className="glass-nav sticky top-0 z-40 rounded-none border-b border-border/40">
+        <div className="px-4 pt-3 pb-2.5 sm:px-6 sm:pt-4 space-y-2.5">
+          {/* Title + count pill */}
+          <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground/85">
-                {t('events.agendaKicker', 'Agenda cultural · Málaga')}
-              </p>
-              <h1 className="mt-1 font-display text-[26px] sm:text-[32px] lg:text-[38px] font-semibold tracking-tight leading-[1.1] text-foreground">
-                {t('events.agendaTitle', 'Agenda cultural')}
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground capitalize-first">
-                <span className="capitalize">{rangeSummary}</span>
-                <span className="mx-1.5 opacity-40">·</span>
-                <span className="tabular-nums">
-                  {isLoadingEvents
-                    ? '…'
-                    : t('events.eventCount', { count: totalCount })}
+              <h1 className="flex items-baseline gap-0.5 text-[28px] sm:text-[34px] font-extrabold tracking-[-0.02em] leading-[1.1] pb-0.5">
+                <span className="agenda-title-gradient">
+                  {t('events.agendaTitle', 'Agenda')}
                 </span>
+                <span className="agenda-dot" aria-hidden="true" />
+              </h1>
+              <p
+                className="mt-1.5 text-[11px] sm:text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground/80"
+              >
+
+                {t('events.agendaKicker', 'Cultura · Málaga')}
               </p>
-
-
             </div>
+            <span
+              className="shrink-0 inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
+              aria-label={`${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`}
+            >
+              <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
+              <span className="text-[10px] uppercase tracking-wide opacity-80">
+                {totalCount === 1
+                  ? t('events.eventSingular', 'evento')
+                  : t('events.eventPlural', 'eventos')}
+              </span>
+            </span>
           </div>
-
-
 
 
           {/* Search + location + filter + near-me */}
@@ -436,7 +444,7 @@ const CultureEventsPage = () => {
                 placeholder={t('events.searchPlaceholderShort', 'Buscar…')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-9 h-11 rounded-full text-sm bg-background/70 border-border/60 focus-visible:ring-primary"
+                className="pl-9 pr-9 h-10 rounded-full text-sm bg-background/70 border-border/60 focus-visible:ring-primary"
               />
               {searchQuery && (
                 <Button
@@ -467,7 +475,7 @@ const CultureEventsPage = () => {
               aria-pressed={!!userCoords}
               aria-label={t('events.nearMe', 'Cerca de mí')}
               className={cn(
-                'h-11 w-11 min-h-[44px] min-w-[44px] rounded-full shrink-0 transition-colors',
+                'h-10 w-10 rounded-full shrink-0 transition-colors',
                 userCoords && 'bg-primary text-primary-foreground border-primary hover:bg-primary/90',
                 isRequestingLocation && 'opacity-60',
               )}
@@ -478,7 +486,7 @@ const CultureEventsPage = () => {
               variant="outline"
               size="icon"
               onClick={() => setIsFilterOpen(true)}
-              className="h-11 w-11 min-h-[44px] min-w-[44px] rounded-full relative shrink-0"
+              className="h-10 w-10 rounded-full relative shrink-0"
               aria-label={t('events.filters', 'Filtros')}
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -497,7 +505,7 @@ const CultureEventsPage = () => {
           <div
             role="tablist"
             aria-label={t('events.timeRange', 'Franja temporal')}
-            className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-1.5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {PRIMARY_PRESETS.map((p) => {
               const active = filters.datePreset === p.key;
@@ -513,12 +521,11 @@ const CultureEventsPage = () => {
                   aria-selected={active}
                   onClick={() => setPreset(p.key)}
                   className={cn(
-                    'shrink-0 min-h-[44px] px-4 rounded-full text-[13px] font-medium border transition-all whitespace-nowrap',
+                    'shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium border transition-all whitespace-nowrap',
                     active
                       ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                       : 'bg-muted/60 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground',
                   )}
-
                 >
                   {shortLabel}
                 </button>
@@ -545,7 +552,7 @@ const CultureEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="min-h-[44px] px-3 text-xs text-muted-foreground hover:text-foreground"
+                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
               >
                 {t('events.clearFilters', 'Limpiar')}
               </Button>
@@ -555,7 +562,7 @@ const CultureEventsPage = () => {
       </header>
 
       {/* ── BODY ───────────────────────────────────────────────────────── */}
-      <main className="mx-auto w-full max-w-[1180px] px-4 lg:px-8 py-6">
+      <main className="px-4 py-4 sm:px-6">
         <div className="mb-4">
           <VenueKindFilter
             selectedVenueIds={selectedVenueIds}

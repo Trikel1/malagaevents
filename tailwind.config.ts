@@ -72,25 +72,18 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['Manrope', 'Noto Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        display: ['Space Grotesk', 'Manrope', 'Noto Sans', 'system-ui', 'sans-serif'],
-        serif: ['Space Grotesk', 'Manrope', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
-        xs: 'var(--shadow-xs)',
-        sm: 'var(--shadow-sm)',
-        md: 'var(--shadow-md)',
-        floating: 'var(--shadow-floating)',
-        soft: 'var(--shadow-sm)',
-        card: 'var(--shadow-md)',
-        lift: 'var(--shadow-floating)',
+        soft: 'var(--shadow-soft)',
+        card: 'var(--shadow-card)',
+        lift: 'var(--shadow-lift)',
       },
       backgroundImage: {
         'gradient-warm': 'var(--gradient-warm)',
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-hero-sports': 'var(--gradient-hero-sports)',
         'gradient-sunset': 'var(--gradient-sunset)',
-        'gradient-brand': 'var(--gradient-brand)',
       },
       keyframes: {
         "accordion-down": {

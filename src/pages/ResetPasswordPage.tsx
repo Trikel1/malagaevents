@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,6 @@ import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/common/SEO';
 
 const ResetPasswordPage = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [ready, setReady] = useState(false);
@@ -56,57 +54,54 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
-      <SEO title={t('seo.reset.title')} description={t('seo.reset.description')} path="/auth/reset" noindex />
+    <div className="min-h-screen bg-background">
+      <SEO title="Restablecer contraseña — MalagaEvents" description="Elige una nueva contraseña para tu cuenta." path="/auth/reset" noindex />
       <header className="p-4 flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/auth')} aria-label={t('common.back', 'Volver')}>
-          <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+        <Button variant="ghost" size="icon" onClick={() => navigate('/auth')}>
+          <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{t('auth.resetTitle', 'Restablecer contraseña')}</h1>
+        <h1 className="text-xl font-bold">Restablecer contraseña</h1>
       </header>
       <main className="p-4 max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle>{t('auth.newPassword', 'Nueva contraseña')}</CardTitle>
+            <CardTitle>Nueva contraseña</CardTitle>
             <CardDescription>
-              {ready ? t('auth.newPasswordHelp', 'Introduce tu nueva contraseña.') : t('auth.verifyingLink', 'Verificando el enlace de recuperación…')}
+              {ready ? 'Introduce tu nueva contraseña.' : 'Verificando el enlace de recuperación…'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">{t('auth.newPassword', 'Nueva contraseña')}</Label>
+                <Label htmlFor="password">Nueva contraseña</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={show ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-9 pr-11"
+                    className="pl-9 pr-9"
                     required
                     minLength={6}
                     disabled={!ready}
-                    autoComplete="new-password"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full min-h-11 min-w-11 px-3"
+                    className="absolute right-0 top-0 h-full px-3"
                     onClick={() => setShow(!show)}
-                    aria-label={show ? t('auth.hidePassword', 'Ocultar contraseña') : t('auth.showPassword', 'Mostrar contraseña')}
-                    aria-pressed={show}
                   >
-                    {show ? <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" /> : <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
+                    {show ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm">{t('auth.confirmPassword', 'Confirmar contraseña')}</Label>
+                <Label htmlFor="confirm">Confirmar contraseña</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="confirm"
                     type={show ? 'text' : 'password'}
@@ -117,12 +112,11 @@ const ResetPasswordPage = () => {
                     required
                     minLength={6}
                     disabled={!ready}
-                    autoComplete="new-password"
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full min-h-11" disabled={!ready || loading}>
-                {loading ? t('auth.saving', 'Guardando…') : t('auth.updatePassword', 'Actualizar contraseña')}
+              <Button type="submit" className="w-full" disabled={!ready || loading}>
+                {loading ? 'Guardando…' : 'Actualizar contraseña'}
               </Button>
             </form>
           </CardContent>

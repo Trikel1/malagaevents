@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { getDateLocale } from '@/i18n/dateLocale';
+import { es } from 'date-fns/locale';
 import { Sparkles, Pause, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EventImage from '@/components/events/EventImage';
@@ -23,9 +23,7 @@ interface UpcomingHighlightsProps {
  */
 const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
   const { t } = useTranslation();
-  // Sprint UI 5: no aggressive auto-motion. The strip renders as a swipeable
-  // list by default; the Pause/Play toggle lets users opt into the marquee.
-  const [paused, setPaused] = useState(true);
+  const [paused, setPaused] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
@@ -85,25 +83,22 @@ const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
                 ? t('events.resumeCarousel', 'Reanudar carrusel')
                 : t('events.pauseCarousel', 'Pausar carrusel')
             }
-            className="inline-flex items-center gap-1.5 min-h-[44px] rounded-full border border-border/60 bg-background/70 backdrop-blur px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/70 backdrop-blur px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
           >
             {paused ? (
               <>
-                <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                <Play className="h-3 w-3" aria-hidden="true" />
                 {t('events.play', 'Reanudar')}
               </>
             ) : (
               <>
-                <Pause className="h-3.5 w-3.5" aria-hidden="true" />
+                <Pause className="h-3 w-3" aria-hidden="true" />
                 {t('events.pause', 'Pausar')}
               </>
             )}
           </button>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {t('events.eventCount', { count: items.length })}
-          </span>
+          <span className="text-[11px] text-muted-foreground">{items.length}</span>
         </div>
-
       </div>
 
       <div
@@ -149,8 +144,7 @@ interface HighlightCardProps {
 }
 
 const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
-  const { t, i18n } = useTranslation();
-  const locale = getDateLocale(i18n.language);
+  const { t } = useTranslation();
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
 
@@ -158,10 +152,10 @@ const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCard
     ? t('events.today', 'Hoy')
     : isTomorrow(startDate)
       ? t('events.tomorrow', 'Mañana')
-      : format(startDate, 'EEE d MMM', { locale });
+      : format(startDate, 'EEE d MMM', { locale: es });
 
   const timeLabel = showTime
-    ? format(startDate, 'HH:mm', { locale })
+    ? format(startDate, 'HH:mm', { locale: es })
     : t('events.timeTBC', 'Hora por confirmar');
 
   const title = sanitizeText(event.title) || t('events.untitled', 'Sin título');

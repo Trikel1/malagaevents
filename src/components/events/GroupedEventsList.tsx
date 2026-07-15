@@ -2,8 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { getDateLocale } from '@/i18n/dateLocale';
-import type { Locale } from 'date-fns';
+import { es } from 'date-fns/locale';
 import EventCard from '@/components/events/EventCard';
 import type { Event } from '@/types';
 
@@ -32,8 +31,7 @@ const GroupedEventsList = ({
   isFavorite,
   onToggleFavorite,
 }: GroupedEventsListProps) => {
-  const { t, i18n } = useTranslation();
-  const locale = getDateLocale(i18n.language);
+  const { t } = useTranslation();
 
   const buckets = useMemo<Bucket[]>(() => {
     const map = new Map<string, Bucket>();
@@ -45,7 +43,7 @@ const GroupedEventsList = ({
       if (!bucket) {
         bucket = {
           key,
-          label: labelFor(d, t, locale),
+          label: labelFor(d, t),
           date: new Date(d.getFullYear(), d.getMonth(), d.getDate()),
           items: [],
         };
@@ -54,7 +52,7 @@ const GroupedEventsList = ({
       bucket.items.push(event);
     }
     return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [events, t, locale]);
+  }, [events, t]);
 
   return (
     <div className="space-y-6">
@@ -68,10 +66,12 @@ const GroupedEventsList = ({
               >
                 {bucket.label}
               </h3>
-              <span className="text-[11px] text-muted-foreground font-medium tabular-nums">
-                {t('events.eventCount', { count: bucket.items.length })}
+              <span className="text-[11px] text-muted-foreground font-medium">
+                {bucket.items.length}{' '}
+                {bucket.items.length === 1
+                  ? t('events.eventSingular', 'evento')
+                  : t('events.eventPlural', 'eventos')}
               </span>
-
             </div>
             <div className="mt-1 h-px bg-gradient-to-r from-primary/40 via-border to-transparent" />
           </div>
@@ -92,10 +92,10 @@ const GroupedEventsList = ({
   );
 };
 
-function labelFor(d: Date, t: TFunction, locale: Locale): string {
+function labelFor(d: Date, t: TFunction): string {
   if (isToday(d)) return t('events.today', 'Hoy');
   if (isTomorrow(d)) return t('events.tomorrow', 'Mañana');
-  const label = format(d, 'EEE d MMM', { locale });
+  const label = format(d, "EEE d 'de' MMM", { locale: es });
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 

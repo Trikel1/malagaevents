@@ -30,11 +30,7 @@
     "remove": "Remover",
     "confirm": "Confirmar",
     "tryAgain": "Tente novamente",
-    "loadingDots": "…",
-    "pause": "Pausar",
-    "play": "Retomar",
-    "clearOne": "Remover",
-    "clearSearch": "Limpar pesquisa"
+    "loadingDots": "…"
   },
   "notFound": {
     "title": "Página não encontrada",
@@ -139,7 +135,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Events — O que fazer hoje em Málaga",
+      "title": "Málaga Connect — O que fazer hoje em Málaga",
       "description": "O guia cidadão de Málaga: eventos, planos em família, farmácias de plantão, cultura e esporte na cidade e na província."
     },
     "hero": {
@@ -314,73 +310,7 @@
     "theaters": "Teatros",
     "halls": "Salas",
     "otherVenues": "Outros",
-    "timeTBC": "Horário a confirmar",
-    "verifiedAt": "Verificado",
-    "viewOnSource": "Ver na fonte original",
-    "source": "Fonte",
-    "agendaKicker": "Agenda cultural · Málaga",
-    "agendaTitle": "Agenda cultural",
-    "timeRange": "Intervalo de tempo",
-    "today": "Hoje",
-    "tomorrow": "Amanhã",
-    "thisWeek": "Esta semana",
-    "thisWeekend": "Este fim de semana",
-    "next30Days": "Próximos 30 dias",
-    "next30Short": "30 dias",
-    "searchPlaceholderShort": "Buscar…",
-    "eventCount_one": "{{count}} evento",
-    "eventCount_other": "{{count}} eventos",
-    "allProvince": "Toda a província",
-    "searchLocality": "Buscar localidade",
-    "locationDefault": "Málaga",
-    "clearLocality": "Limpar localidade",
-    "localityShort": "Localidade",
-    "localitiesShort": "localidades",
-    "venueKind": {
-      "all": "Todos",
-      "halls": "Salas",
-      "theaters": "Teatros",
-      "outdoors": "Recintos",
-      "hallsTitle": "Salas",
-      "theatersTitle": "Teatros e auditórios",
-      "outdoorsTitle": "Recintos e exteriores"
-    },
-    "venuesTitle2": "Locais",
-    "venuesSearchPlaceholder2": "Buscar local ou cidade",
-    "venuesEmptyTitle": "Nenhum local encontrado",
-    "venuesEmptyHint2": "Tente outra busca ou categoria.",
-    "venueNoAgendaLong": "Sem agenda disponível",
-    "venueHasAgenda": "Com agenda",
-    "sectionCapital": "Málaga cidade",
-    "sectionProvincia": "Província de Málaga",
-    "showAll": "Mostrar todos",
-    "showAllHalls": "Mostrar todas as salas",
-    "showAllTheaters": "Mostrar todos os teatros",
-    "showAllOutdoors": "Mostrar recintos e exteriores",
-    "showOneVenue": "Mostrar 1 local",
-    "showNVenues": "Mostrar {{count}} locais",
-    "oneVenueSelected": "1 local",
-    "nVenuesSelected": "{{count}} locais selecionados",
-    "venuesShort": "locais",
-    "clearVenues": "Limpar locais",
-    "upcomingHighlights": "Destaques próximos",
-    "pauseCarousel": "Pausar carrossel",
-    "resumeCarousel": "Retomar carrossel",
-    "pause": "Pausar",
-    "play": "Retomar",
-    "noEventsWithFilters": "Nenhum evento com estes filtros",
-    "noEventsHint": "Tente outra data, localidade ou local.",
-    "familyKids": "Família / Infantil",
-    "withTickets": "Com ingressos",
-    "outdoor": "Ao ar livre",
-    "yearsShort": "anos",
-    "nearMe": "Perto de mim",
-    "sortedByDistance": "Ordenado por proximidade",
-    "clearDistanceSort": "Ordenação por distância desativada",
-    "locationUnsupported": "Seu navegador não suporta geolocalização",
-    "locationPermissionDenied": "Permissão de localização negada. Ative-a nas configurações do navegador.",
-    "locationError": "Não foi possível obter sua localização",
-    "imagePlaceholder": "Imagem ilustrativa"
+    "timeTBC": "Horário a confirmar"
   },
   "eventDetail": {
     "when": "Quando",
@@ -404,17 +334,7 @@
     "allEvents": "Todos os eventos",
     "myFavorites": "Os meus favoritos",
     "exportEvent": "Exportar evento",
-    "noEventsDay": "Não há eventos neste dia",
-    "eventCount_one": "{{count}} evento",
-    "eventCount_other": "{{count}} eventos",
-    "viewMonth": "Vista mês",
-    "viewList": "Vista lista",
-    "selectMonth": "Selecionar mês e ano",
-    "prevMonth": "Mês anterior",
-    "nextMonth": "Próximo mês",
-    "prevYear": "Ano anterior",
-    "nextYear": "Ano seguinte",
-    "months": "Meses"
+    "noEventsDay": "Não há eventos neste dia"
   },
   "pharmacies": {
     "title": "Farmácias de serviço",
@@ -456,13 +376,7 @@
     "locationUnsupported": "Geolocalização não suportada",
     "locationError": "Não foi possível obter sua localização",
     "distanceAway": "de distância",
-    "fallbackNotice": "Plantão estimado (dados oficiais indisponíveis).",
-    "officialLabel": "Oficial",
-    "showingCount": "Mostrando {{shown}} de {{total}}",
-    "directoryDisclaimer": "Listagem informativa. O status de plantão só é exibido na seção superior com dados oficiais.",
-    "noOfficialData": "Sem dados oficiais verificados de farmácias de plantão para esta data e localidade. Consulte a fonte oficial antes de sair.",
-    "showMore": "Mostrar mais",
-    "showMoreAria": "Mostrar mais farmácias ({{remaining}} restantes)"
+    "fallbackNotice": "Plantão estimado (dados oficiais indisponíveis)."
   },
   "tickets": {
     "title": "Os meus bilhetes",
@@ -530,10 +444,7 @@
     "quietTo": "Até",
     "savePreferences": "Guardar preferências",
     "loginRequired": "Inicie sessão para aceder",
-    "loginRequiredDesc": "Precisa de uma conta para usar esta funcionalidade",
-    "guestTitle": "Convidado",
-    "user": "Utilizador",
-    "adminPanel": "Painel de administração"
+    "loginRequiredDesc": "Precisa de uma conta para usar esta funcionalidade"
   },
   "theme": {
     "system": "Sistema",
@@ -590,11 +501,7 @@
     "useMyLocation": "Usar minha localização",
     "viewEvent": "Ver evento",
     "viewList": "Ver lista",
-    "viewMap": "Ver mapa",
-    "pointCount_one": "{{count}} ponto",
-    "pointCount_other": "{{count}} pontos",
-    "loading": "Carregando pontos…",
-    "errorLoading": "Falha ao carregar os dados."
+    "viewMap": "Ver mapa"
   },
   "sports": {
     "title": "Desporto",
@@ -644,9 +551,7 @@
       "today": "Sem atividades desportivas hoje.",
       "weekend": "Sem atividades desportivas este fim de semana.",
       "results": "Não encontramos atividades com estes filtros.",
-      "venuesSoon": "Estamos a incorporar recintos desportivos.",
-      "expandDates": "Ampliar datas",
-      "seeUpcoming": "Ver próximos eventos"
+      "venuesSoon": "Estamos a incorporar recintos desportivos."
     },
     "filter": {
       "free": "Grátis",
@@ -662,115 +567,6 @@
     "voleibol": "Voleibol",
     "rugby": "Rugby",
     "acuaticos": "Desportos aquáticos",
-    "artes_marciales": "Artes marciais",
-    "pageTitle": "Esporte em Málaga",
-    "pageSubtitle": "Competições, atividades, treinos e locais esportivos em Málaga e sua província.",
-    "heroSearchPlaceholder": "Buscar esporte, time, competição ou local",
-    "categories": {
-      "football": "Futebol",
-      "basketball": "Basquete",
-      "tennis": "Tênis",
-      "triathlon": "Triatlo",
-      "running": "Corrida",
-      "cycling": "Ciclismo",
-      "swimming": "Natação",
-      "padel": "Padel",
-      "handball": "Handebol",
-      "futsal": "Futsal",
-      "athletics": "Atletismo",
-      "motor": "Automobilismo",
-      "volleyball": "Vôlei",
-      "rugby": "Rugby",
-      "hiking": "Trilha",
-      "fitness": "Fitness",
-      "water_sports": "Esportes aquáticos",
-      "martial_arts": "Artes marciais",
-      "other": "Outros"
-    }
-  },
-  "seo": {
-    "events": {
-      "title": "Agenda cultural de Málaga — O que fazer hoje e nos próximos dias",
-      "description": "Agenda cultural de Málaga: concertos, teatro, exposições, cinema, gastronomia e planos para a família."
-    },
-    "calendar": {
-      "title": "Calendário de eventos em Málaga",
-      "description": "Calendário cultural e desportivo de Málaga por dia, semana e mês."
-    },
-    "map": {
-      "title": "Mapa de eventos e farmácias em Málaga",
-      "description": "Mapa interativo com eventos culturais, desportivos e farmácias de serviço em Málaga."
-    },
-    "venues": {
-      "title": "Recintos desportivos de Málaga",
-      "description": "Diretório de recintos, pavilhões e estádios desportivos da província de Málaga."
-    },
-    "sports": {
-      "title": "Desporto em Málaga — Atividades, competições e recintos",
-      "description": "Agenda desportiva de Málaga: jogos, competições, atividades e recintos oficiais."
-    },
-    "profile": {
-      "title": "O meu perfil — Málaga Events",
-      "description": "Faz a gestão da conta, favoritos, bilhetes e idioma no Málaga Events."
-    },
-    "submit": {
-      "title": "Enviar um evento de Málaga",
-      "description": "Envia um evento cultural ou desportivo para revisão pela equipa Málaga Events."
-    },
-    "tickets": {
-      "title": "Os meus bilhetes — Málaga Events",
-      "description": "Consulta e organiza os teus bilhetes guardados no Málaga Events."
-    },
-    "addTicket": {
-      "title": "Adicionar bilhete — Málaga Events",
-      "description": "Adiciona um bilhete à tua coleção pessoal."
-    },
-    "pharmacies": {
-      "title": "Farmácias de serviço em Málaga hoje",
-      "description": "Farmácias de serviço oficiais em Málaga e diretório informativo por município."
-    },
-    "auth": {
-      "title": "Entrar em Málaga Events",
-      "description": "Inicia sessão ou cria uma conta para guardar favoritos, bilhetes e preferências."
-    },
-    "reset": {
-      "title": "Redefinir palavra-passe — Málaga Events",
-      "description": "Escolhe uma nova palavra-passe para a tua conta."
-    },
-    "admin": {
-      "title": "Admin — Málaga Events",
-      "description": "Painel de administração interno."
-    },
-    "notFound": {
-      "title": "Página não encontrada — Málaga Events",
-      "description": "A página solicitada não existe ou foi movida."
-    }
-  },
-  "auth": {
-    "resetTitle": "Redefinir palavra-passe",
-    "newPassword": "Nova palavra-passe",
-    "newPasswordHelp": "Introduz a tua nova palavra-passe.",
-    "verifyingLink": "A verificar a ligação de recuperação…",
-    "confirmPassword": "Confirmar palavra-passe",
-    "saving": "A guardar…",
-    "updatePassword": "Atualizar palavra-passe",
-    "showPassword": "Mostrar palavra-passe",
-    "hidePassword": "Ocultar palavra-passe"
-  },
-  "agenda": {
-    "notFoundTitle": "Município não encontrado",
-    "notFoundDesc": "O município solicitado não está no registro provincial.",
-    "backToEvents": "Voltar aos eventos",
-    "verifiedSources": "Agenda cultural verificada · fontes oficiais",
-    "inMunicipality": "Em {{name}}",
-    "loadingEvents": "Carregando eventos…",
-    "noEventsTitle": "Sem eventos confirmados",
-    "noEventsDesc": "Ainda não há eventos culturais publicados em {{name}}. Veja opções próximas abaixo.",
-    "nearHeading": "Perto de {{name}}",
-    "searchRadius": "Raio de busca",
-    "nearDisclaimer": "Estes eventos <strong>não ocorrem em {{name}}</strong>. Estão listados por proximidade ao centro do município.",
-    "noNearby": "Sem eventos verificados num raio de {{radius}} km.",
-    "seoTitle": "Agenda cultural de {{name}} | Málaga Events",
-    "seoDescription": "Descubra os eventos culturais confirmados em {{name}} ({{comarca}}) e arredores."
+    "artes_marciales": "Artes marciais"
   }
 }

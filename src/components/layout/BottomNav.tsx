@@ -1,35 +1,36 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Sparkles, Calendar, Map, User } from 'lucide-react';
+import { Home, Sparkles, Calendar, Map, User, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAppMode } from '@/contexts/AppModeContext';
 
 const BottomNav = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { appMode } = useAppMode();
 
-  // Stable 5-item mobile nav. Never mutates with app mode or route.
-  const navItems = useMemo(
-    () => [
+  const navItems = useMemo(() => {
+    const base = [
       { to: '/', icon: Home, label: t('nav.home') },
       { to: '/events', icon: Sparkles, label: t('nav.events') },
       { to: '/calendar', icon: Calendar, label: t('nav.calendar') },
-      { to: '/map', icon: Map, label: t('nav.map', 'Mapa') },
-      { to: '/profile', icon: User, label: t('nav.profile') },
-    ],
-    [t],
-  );
+    ];
+    if (appMode === 'deportes') {
+      base.push({ to: '/venues', icon: Building2, label: t('nav.venues') });
+    } else {
+      base.push({ to: '/map', icon: Map, label: t('nav.map', 'Mapa') });
+    }
+    base.push({ to: '/profile', icon: User, label: t('nav.profile') });
+    return base;
+  }, [appMode, t]);
 
   const activeIndex = useMemo(() => {
-    // /sports and /venues keep the Events tab visually active.
-    const path = location.pathname;
-    if (path === '/sports' || path.startsWith('/sports') || path === '/venues' || path.startsWith('/venues')) {
-      return navItems.findIndex((i) => i.to === '/events');
-    }
     const idx = navItems.findIndex(
       (item) =>
-        path === item.to || (item.to !== '/' && path.startsWith(item.to))
+        location.pathname === item.to ||
+        (item.to !== '/' && location.pathname.startsWith(item.to))
     );
     return idx === -1 ? 0 : idx;
   }, [location.pathname, navItems]);
@@ -91,15 +92,22 @@ const BottomNav = () => {
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    // Drag no longer changes destination — navigation only via tap/click/Enter/Space.
     if (pointerIdRef.current !== e.pointerId) return;
     const start = startPointRef.current;
     if (!start) return;
     const dx = e.clientX - start.x;
     const dy = e.clientY - start.y;
-    if (!dragStartedRef.current && (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy))) {
+    if (!dragStartedRef.current) {
+      if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy)) return;
       dragStartedRef.current = true;
+      setDragging(true);
     }
+    const track = trackRef.current;
+    if (!track) return;
+    const tRect = track.getBoundingClientRect();
+    const localX = Math.max(0, Math.min(tRect.width, e.clientX - tRect.left));
+    setDragX(localX - bubble.w / 2);
+    setHoverIndex(indexFromX(localX));
   };
 
   const endPointer = (e: React.PointerEvent<HTMLButtonElement>, tapIndex: number) => {
@@ -109,10 +117,16 @@ const BottomNav = () => {
     const wasDrag = dragStartedRef.current;
     dragStartedRef.current = false;
     startPointRef.current = null;
-    if (wasDrag) return; // Ignore drag-only gestures; only taps navigate.
-    const target = navItems[tapIndex];
+    setDragging(false);
+    setDragX(null);
+    const targetIndex = wasDrag && hoverIndex != null ? hoverIndex : tapIndex;
+    setHoverIndex(null);
+    const target = navItems[targetIndex];
     if (target && target.to !== location.pathname) {
       navigate(target.to);
+    } else if (wasDrag) {
+      // Snap back visually via measure
+      measure();
     }
   };
 
@@ -120,7 +134,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed z-50 glass-nav bottom-nav-dock lg:hidden"
+      className="fixed z-50 glass-nav bottom-nav-dock"
       style={{
         bottom: 'max(12px, env(safe-area-inset-bottom, 0px) + 4px)',
         left: '50%',
@@ -171,7 +185,7 @@ const BottomNav = () => {
                 }
               }}
               className={cn(
-                'bottom-nav-item flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] px-1.5',
+                'bottom-nav-item',
                 isActive ? 'bottom-nav-item-active' : 'bottom-nav-item-idle'
               )}
               aria-label={item.label}
@@ -182,18 +196,10 @@ const BottomNav = () => {
               <span className="bottom-nav-icon-shell" aria-hidden>
                 <item.icon
                   className={cn(
-                    'h-[22px] w-[22px] shrink-0 transition-[transform,stroke-width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                    isActive && 'stroke-[2.4px] scale-[1.08]'
+                    'h-[24px] w-[24px] shrink-0 transition-[transform,stroke-width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                    isActive && 'stroke-[2.4px] scale-[1.12]'
                   )}
                 />
-              </span>
-              <span
-                className={cn(
-                  'text-[10.5px] leading-none font-medium tracking-tight transition-colors',
-                  isActive ? 'text-foreground' : 'text-muted-foreground'
-                )}
-              >
-                {item.label}
               </span>
             </button>
           );

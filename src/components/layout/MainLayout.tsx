@@ -1,8 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useAppMode } from '@/contexts/AppModeContext';
 import BottomNav from './BottomNav';
-import TopNav from './TopNav';
 import LiquidGlassBackdrop from './LiquidGlassBackdrop';
 
 const routeKeyFromPath = (pathname: string): string => {
@@ -16,32 +15,23 @@ const MainLayout = () => {
   const location = useLocation();
   const routeKey = useMemo(() => routeKeyFromPath(location.pathname), [location.pathname]);
 
-  // Restore scroll to top on real route change (ignore hash-only nav).
-  useEffect(() => {
-    if (location.hash) return;
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [location.pathname]);
-
   return (
     <div
-      className="min-h-dvh bg-background relative"
+      className="min-h-screen bg-background relative"
       data-mode={appMode}
       data-route={routeKey}
     >
       <LiquidGlassBackdrop />
-      <TopNav />
-      {/*
-        The page component itself renders the single <main> landmark so we
-        keep exactly one per route (see a11y guidance). This wrapper only
-        reserves layout space for the fixed bottom nav.
-      */}
-      <div
-        className="relative z-[1] pb-[calc(env(safe-area-inset-bottom,0px)+96px)] lg:pb-8"
+      <main
+        className="relative z-[1]"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
+        }}
       >
         <div key={routeKey} className="liquid-page-shell">
           <Outlet />
         </div>
-      </div>
+      </main>
       <BottomNav />
     </div>
   );

@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Send, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-
+import { ArrowLeft, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,8 +28,6 @@ const SubmitEventPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const errorSummaryRef = useRef<HTMLDivElement | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -51,81 +48,10 @@ const SubmitEventPage = () => {
     email: '',
   });
 
-  const isDirty = useMemo(() => {
-    return (
-      !!formData.title || !!formData.description || !!formData.category || !!formData.start_at ||
-      !!formData.venue_name || !!formData.address || !!formData.email || !!formData.tags ||
-      !!formData.ticket_url || !!formData.image_url || !!formData.price_info
-    );
-  }, [formData]);
-
-  // Warn on tab close / reload if there are unsaved changes
-  useEffect(() => {
-    if (!isDirty || submitted) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
-    };
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, [isDirty, submitted]);
-
-  const guardedBack = () => {
-    if (
-      isDirty &&
-      !submitted &&
-      !window.confirm(t('submitEvent.confirmDiscard', '¿Descartar los datos sin guardar?'))
-    ) {
-      return;
-    }
-    navigate(-1);
-  };
-
-  const validate = (): Record<string, string> => {
-    const errs: Record<string, string> = {};
-    if (!formData.title.trim() || formData.title.trim().length < 3)
-      errs.title = t('submitEvent.errors.titleShort', 'El título debe tener al menos 3 caracteres.');
-    if (!formData.description.trim() || formData.description.trim().length < 10)
-      errs.description = t('submitEvent.errors.descriptionShort', 'Describe el evento con más detalle (mín. 10 caracteres).');
-    if (!formData.category)
-      errs.category = t('submitEvent.errors.categoryRequired', 'Selecciona una categoría.');
-    if (!formData.start_at)
-      errs.start_at = t('submitEvent.errors.startRequired', 'Indica la fecha y hora de inicio.');
-    if (!formData.venue_name.trim())
-      errs.venue_name = t('submitEvent.errors.venueRequired', 'Indica el recinto o lugar.');
-    if (!formData.address.trim())
-      errs.address = t('submitEvent.errors.addressRequired', 'Indica la dirección.');
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      errs.email = t('submitEvent.errors.emailInvalid', 'Introduce un email de contacto válido.');
-    return errs;
-  };
-
-  const focusFirstError = (errs: Record<string, string>) => {
-    const first = Object.keys(errs)[0];
-    if (!first) return;
-    // small delay to ensure summary renders first (a11y)
-    requestAnimationFrame(() => {
-      errorSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      document.getElementById(first)?.focus();
-    });
-  };
-
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading) return; // Block double submit
-
-    const errs = validate();
-    setFieldErrors(errs);
-    if (Object.keys(errs).length > 0) {
-      setError(t('submitEvent.errors.reviewFields', 'Revisa los campos marcados para continuar.'));
-      focusFirstError(errs);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
-
 
     try {
       // Parse tags
@@ -186,7 +112,7 @@ const SubmitEventPage = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
@@ -202,60 +128,31 @@ const SubmitEventPage = () => {
   }
 
   return (
-    <div className="min-h-dvh bg-background pb-8">
+    <div className="min-h-screen bg-background pb-8">
       <SEO
-        title={t('seo.submit.title')}
-        description={t('seo.submit.description')}
+        title="Enviar un evento de Málaga"
+        description="¿Organizas un evento en Málaga? Envíanos los detalles y lo añadimos a la agenda tras revisarlo. Gratuito y abierto a la comunidad."
         path="/submit-event"
       />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border sticky top-0 bg-background z-40">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={guardedBack}
-          className="h-11 w-11"
-          aria-label={t('common.back', 'Volver')}
-        >
-          <ArrowLeft className="h-5 w-5" aria-hidden />
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">{t('submitEvent.title')}</h1>
+          <h1 className="text-xl font-bold">{t('submitEvent.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('submitEvent.subtitle')}</p>
         </div>
       </header>
 
       <main className="p-4">
-        {(error || Object.keys(fieldErrors).length > 0) && (
-          <div ref={errorSummaryRef} role="alert" aria-live="assertive">
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" aria-hidden />
-              <AlertTitle>{t('submitEvent.error')}</AlertTitle>
-              <AlertDescription>
-                {error}
-                {Object.keys(fieldErrors).length > 0 && (
-                  <ul className="mt-2 list-disc pl-5 text-sm">
-                    {Object.entries(fieldErrors).map(([field, msg]) => (
-                      <li key={field}>
-                        <a
-                          href={`#${field}`}
-                          onClick={(ev) => {
-                            ev.preventDefault();
-                            document.getElementById(field)?.focus();
-                          }}
-                          className="underline underline-offset-2"
-                        >
-                          {msg}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </AlertDescription>
-            </Alert>
-          </div>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{t('submitEvent.error')}</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Info */}
@@ -264,54 +161,39 @@ const SubmitEventPage = () => {
               <CardTitle className="text-lg">Información básica</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="title">{t('submitEvent.eventTitle')} *</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  onBlur={() => setFieldErrors((f) => ({ ...f, title: validate().title || '' }))}
-                  aria-invalid={!!fieldErrors.title}
-                  aria-describedby={fieldErrors.title ? 'title-error' : 'title-help'}
+                  required
                   minLength={3}
                   maxLength={200}
-                  className="min-h-11"
                 />
-                {fieldErrors.title
-                  ? <p id="title-error" role="alert" className="text-xs text-destructive">{fieldErrors.title}</p>
-                  : <p id="title-help" className="text-xs text-muted-foreground">{t('submitEvent.help.title', 'Nombre público del evento (3–200 caracteres).')}</p>}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="description">{t('submitEvent.eventDescription')} *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  onBlur={() => setFieldErrors((f) => ({ ...f, description: validate().description || '' }))}
-                  aria-invalid={!!fieldErrors.description}
-                  aria-describedby={fieldErrors.description ? 'description-error' : 'description-help'}
                   rows={4}
+                  required
                   minLength={10}
                   maxLength={2000}
                 />
-                {fieldErrors.description
-                  ? <p id="description-error" role="alert" className="text-xs text-destructive">{fieldErrors.description}</p>
-                  : <p id="description-help" className="text-xs text-muted-foreground">{t('submitEvent.help.description', 'Explica qué se hará, quién actúa y por qué asistir.')}</p>}
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="category-trigger">{t('submitEvent.eventCategory')} *</Label>
+              <div className="space-y-2">
+                <Label>{t('submitEvent.eventCategory')} *</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  required
                 >
-                  <SelectTrigger
-                    id="category-trigger"
-                    aria-invalid={!!fieldErrors.category}
-                    aria-describedby={fieldErrors.category ? 'category-error' : undefined}
-                    className="min-h-11"
-                  >
+                  <SelectTrigger>
                     <SelectValue placeholder={t('events.category')} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover z-50">
@@ -322,13 +204,9 @@ const SubmitEventPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                {fieldErrors.category && (
-                  <p id="category-error" role="alert" className="text-xs text-destructive">{fieldErrors.category}</p>
-                )}
               </div>
             </CardContent>
           </Card>
-
 
           {/* Date & Location */}
           <Card>
@@ -337,68 +215,48 @@ const SubmitEventPage = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label htmlFor="start_at">{t('submitEvent.startDate')} *</Label>
                   <Input
                     id="start_at"
                     type="datetime-local"
                     value={formData.start_at}
                     onChange={(e) => setFormData({ ...formData, start_at: e.target.value })}
-                    onBlur={() => setFieldErrors((f) => ({ ...f, start_at: validate().start_at || '' }))}
-                    aria-invalid={!!fieldErrors.start_at}
-                    aria-describedby={fieldErrors.start_at ? 'start_at-error' : undefined}
-                    className="min-h-11"
+                    required
                   />
-                  {fieldErrors.start_at && (
-                    <p id="start_at-error" role="alert" className="text-xs text-destructive">{fieldErrors.start_at}</p>
-                  )}
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <Label htmlFor="end_at">{t('submitEvent.endDate')}</Label>
                   <Input
                     id="end_at"
                     type="datetime-local"
                     value={formData.end_at}
                     onChange={(e) => setFormData({ ...formData, end_at: e.target.value })}
-                    className="min-h-11"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="venue_name">{t('submitEvent.venueName')} *</Label>
                 <Input
                   id="venue_name"
                   value={formData.venue_name}
                   onChange={(e) => setFormData({ ...formData, venue_name: e.target.value })}
-                  onBlur={() => setFieldErrors((f) => ({ ...f, venue_name: validate().venue_name || '' }))}
-                  aria-invalid={!!fieldErrors.venue_name}
-                  aria-describedby={fieldErrors.venue_name ? 'venue_name-error' : undefined}
+                  required
                   minLength={2}
-                  className="min-h-11"
                 />
-                {fieldErrors.venue_name && (
-                  <p id="venue_name-error" role="alert" className="text-xs text-destructive">{fieldErrors.venue_name}</p>
-                )}
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="address">{t('submitEvent.address')} *</Label>
                 <Input
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  onBlur={() => setFieldErrors((f) => ({ ...f, address: validate().address || '' }))}
-                  aria-invalid={!!fieldErrors.address}
-                  aria-describedby={fieldErrors.address ? 'address-error' : undefined}
+                  required
                   minLength={5}
-                  className="min-h-11"
                 />
-                {fieldErrors.address && (
-                  <p id="address-error" role="alert" className="text-xs text-destructive">{fieldErrors.address}</p>
-                )}
               </div>
-
             </CardContent>
           </Card>
 
@@ -501,43 +359,24 @@ const SubmitEventPage = () => {
               <CardDescription>Te enviaremos un email cuando se publique el evento</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <Label htmlFor="email">{t('submitEvent.email')} *</Label>
                 <Input
                   id="email"
                   type="email"
-                  inputMode="email"
-                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  onBlur={() => setFieldErrors((f) => ({ ...f, email: validate().email || '' }))}
-                  aria-invalid={!!fieldErrors.email}
-                  aria-describedby={fieldErrors.email ? 'email-error' : 'email-help'}
-                  className="min-h-11"
+                  required
                 />
-                {fieldErrors.email
-                  ? <p id="email-error" role="alert" className="text-xs text-destructive">{fieldErrors.email}</p>
-                  : <p id="email-help" className="text-xs text-muted-foreground">{t('submitEvent.help.email', 'Solo para avisarte cuando se publique.')}</p>}
               </div>
             </CardContent>
           </Card>
 
           {/* Submit */}
-          <Button
-            type="submit"
-            className="w-full min-h-11"
-            size="lg"
-            disabled={isLoading}
-            aria-busy={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden />
-            ) : (
-              <Send className="h-4 w-4 mr-2" aria-hidden />
-            )}
+          <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+            <Send className="h-4 w-4 mr-2" />
             {isLoading ? t('submitEvent.submitting') : t('submitEvent.submit')}
           </Button>
-
         </form>
       </main>
     </div>

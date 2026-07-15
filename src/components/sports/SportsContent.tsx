@@ -17,8 +17,7 @@ import { useSportsEvents, useSportsVenues } from '@/hooks/useSportsEvents';
 import { SPORT_CATEGORIES } from '@/types/sports';
 import type { SportCategory } from '@/types/sports';
 import SportIcon from '@/components/sports/SportIcon';
-import { MALAGA_MUNICIPALITIES, getSportLabel } from '@/lib/sports';
-
+import { MALAGA_MUNICIPALITIES } from '@/lib/sports';
 
 const TIMEZONE = 'Europe/Madrid';
 
@@ -43,14 +42,7 @@ function getWeekendDates(): { from: string; to: string } {
   };
 }
 
-interface SportsContentProps {
-  /** Optional search string coming from a parent hero. */
-  externalSearch?: string;
-  /** Optional callback to clear the parent-owned search from empty states. */
-  onClearExternalSearch?: () => void;
-}
-
-const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentProps = {}) => {
+const SportsContent = () => {
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [selectedVenueNames, setSelectedVenueNames] = useState<string[]>([]);
@@ -93,11 +85,8 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
     }
     if (venueSet.size > 0) f.venueNames = Array.from(venueSet);
 
-    const q = (externalSearch || '').trim();
-    if (q) f.q = q;
-
     return f;
-  }, [selectedSport, timeFilter, selectedVenueNames, municipalityVenueNames, externalSearch]);
+  }, [selectedSport, timeFilter, selectedVenueNames, municipalityVenueNames]);
 
   const { data: events = [], isLoading, isError } = useSportsEvents(filters);
 
@@ -128,42 +117,11 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
     { key: 'upcoming', label: t('sports.upcoming') },
   ];
 
-  const hasActiveFilters =
-    selectedSport !== 'all' ||
-    selectedVenueNames.length > 0 ||
-    selectedMunicipality !== 'all' ||
-    Boolean((externalSearch || '').trim());
-
-  const clearAll = () => {
-    setSelectedSport('all');
-    setSelectedVenueNames([]);
-    setSelectedMunicipality('all');
-    setTimeFilter('upcoming');
-    onClearExternalSearch?.();
-  };
-
-  const renderEmpty = (msg: string, opts?: { showActions?: boolean }) => (
+  const renderEmpty = (msg: string) => (
     <Card className="bg-muted/50 border-dashed">
-      <CardContent className="py-6 text-center text-muted-foreground space-y-3">
-        <Calendar className="h-9 w-9 mx-auto opacity-50" aria-hidden />
+      <CardContent className="py-8 text-center text-muted-foreground">
+        <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
         <p className="text-sm">{msg}</p>
-        {opts?.showActions && (
-          <div className="flex flex-wrap justify-center gap-2 pt-1">
-            {hasActiveFilters && (
-              <Button size="sm" variant="secondary" onClick={clearAll}>
-                {t('events.clearFilters', 'Quitar filtros')}
-              </Button>
-            )}
-            {timeFilter !== 'upcoming' && (
-              <Button size="sm" variant="outline" onClick={() => setTimeFilter('upcoming')}>
-                {t('sports.empty.expandDates', 'Ampliar fechas')}
-              </Button>
-            )}
-            <Button size="sm" variant="ghost" onClick={() => setTimeFilter('upcoming')}>
-              {t('sports.empty.seeUpcoming', 'Ver próximos eventos')}
-            </Button>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
@@ -193,43 +151,41 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
         <h2 className="text-lg font-semibold tracking-tight mb-3">
           {t('sports.exploreBySport', 'Explorar deportes')}
         </h2>
-        <div className="flex gap-2 overflow-x-auto pb-1 px-1 -mx-1 pr-4 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto pb-2 px-0.5 -mx-0.5 scrollbar-hide">
           <button
             onClick={() => setSelectedSport('all')}
             className={cn(
-              'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
+              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
               selectedSport === 'all'
-                ? 'bg-primary/12 text-primary border-primary/30'
+                ? 'bg-primary/10 text-primary border-primary/30'
                 : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
             )}
           >
-            <Trophy className="h-4 w-4" aria-hidden="true" />
+            <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
             {t('sports.all')}
           </button>
           {SPORT_CATEGORIES.map((cat) => {
             const active = selectedSport === cat;
-            const label = getSportLabel(t, cat);
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedSport(cat)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
                   active
-                    ? 'bg-primary/12 text-primary border-primary/30'
+                    ? 'bg-primary/10 text-primary border-primary/30'
                     : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
                 )}
               >
                 <SportIcon
                   sport={cat}
-                  className={cn('h-4 w-4', active ? 'text-primary' : 'text-muted-foreground')}
+                  className={cn('h-3.5 w-3.5', active ? 'text-primary' : 'text-muted-foreground')}
                 />
-                {label}
+                {t(`sports.${cat}`)}
               </button>
             );
           })}
         </div>
-
       </section>
 
       {/* Today highlights */}
@@ -246,7 +202,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : todayEvents.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {todayEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
@@ -270,7 +226,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : weekendEvents.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {weekendEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
@@ -285,17 +241,17 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
         <h2 className="text-lg font-semibold tracking-tight mb-3">
           {t('sports.exploreByMunicipality', 'Explorar por municipio')}
         </h2>
-        <div className="flex gap-2 overflow-x-auto pb-1 px-1 -mx-1 pr-4 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto pb-2 px-0.5 -mx-0.5 scrollbar-hide">
           <button
             onClick={() => setSelectedMunicipality('all')}
             className={cn(
-              'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
+              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
               selectedMunicipality === 'all'
-                ? 'bg-primary/12 text-primary border-primary/30'
+                ? 'bg-primary/10 text-primary border-primary/30'
                 : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
             )}
           >
-            <MapPin className="h-4 w-4" />
+            <MapPin className="h-3.5 w-3.5" />
             {t('sports.all')}
           </button>
           {MALAGA_MUNICIPALITIES.map((m) => {
@@ -305,19 +261,18 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
                 key={m}
                 onClick={() => setSelectedMunicipality(active ? 'all' : m)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
+                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
                   active
-                    ? 'bg-primary/12 text-primary border-primary/30'
+                    ? 'bg-primary/10 text-primary border-primary/30'
                     : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
                 )}
               >
-                <MapPin className="h-4 w-4" />
+                <MapPin className="h-3.5 w-3.5" />
                 {m}
               </button>
             );
           })}
         </div>
-
       </section>
 
       {/* Filtered results */}
@@ -338,9 +293,9 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
               key={f.key}
               onClick={() => setTimeFilter(f.key)}
               className={cn(
-                'px-4 min-h-[44px] rounded-full text-sm font-semibold transition-colors border',
+                'px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border',
                 timeFilter === f.key
-                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-background border-border text-muted-foreground hover:bg-muted',
               )}
             >
@@ -348,7 +303,6 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             </button>
           ))}
         </div>
-
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -361,13 +315,13 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             </CardContent>
           </Card>
         ) : events.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {events.map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
           </div>
         ) : (
-          renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'), { showActions: true })
+          renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'))
         )}
       </section>
 
@@ -399,7 +353,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
                       {v.sports.slice(0, 3).map((s) => (
                         <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
                           <SportIcon sport={s} className="h-3 w-3" />
-                          {getSportLabel(t, s)}
+                          {t(`sports.${s}`, s)}
                         </Badge>
                       ))}
                     </div>

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MapPin, Heart, Calendar, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { getDateLocale } from '@/i18n/dateLocale';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,10 @@ import { sanitizeText, generateAltText } from '@/lib/sanitize';
 import { hasExplicitTime } from '@/lib/eventTime';
 import type { Event } from '@/types';
 
+const locales: Record<string, Locale> = {
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
+};
+
 interface EventCardProps {
   event: Event;
   isFavorite?: boolean;
@@ -20,12 +24,11 @@ interface EventCardProps {
   compact?: boolean;
   dense?: boolean;
   priority?: boolean;
-  variant?: 'default' | 'dense' | 'compact' | 'home';
 }
 
-const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority, variant }, ref) => {
+const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority }, ref) => {
   const { t, i18n } = useTranslation();
-  const locale = getDateLocale(i18n.language);
+  const locale = locales[i18n.language] || es;
 
   const showTime = hasExplicitTime(event.start_at);
   const timeConfirmLabel = t('events.timeTBC', 'Hora por confirmar');
@@ -70,50 +73,6 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
   // Should we show the location row in normal mode? Hide if redundant with venue or just "Málaga" duplicate
   const showLocationRow = !!locationDisplay
     && (!venueDisplay || locationDisplay.toLowerCase() !== venueDisplay.toLowerCase());
-
-  // Home variant: opaque editorial card used only on the landing page rail/grid.
-  if (variant === 'home') {
-    return (
-      <Link
-        ref={ref}
-        to={`/events/${event.id}`}
-        aria-label={`${eventTitle}, ${formattedDate}, ${venueName}`}
-        className="block h-full animate-fade-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
-      >
-        <Card className="h-full overflow-hidden bg-card border border-border shadow-card hover:shadow-lift transition-[transform,box-shadow] duration-200 group hover:-translate-y-0.5">
-          <div className="relative overflow-hidden">
-            <EventImage
-              src={event.image_url}
-              alt={imageAlt}
-              variant="card"
-              category={event.category}
-              className="group-hover:scale-[1.03] transition-transform duration-300"
-              aspectRatio="16/9"
-              priority={priority}
-            />
-            <div className="absolute top-2 left-2 z-10 flex flex-col items-center justify-center bg-card/95 backdrop-blur-sm rounded-lg px-2 py-1 shadow-soft min-w-[40px]">
-              <span className="text-sm font-bold leading-none text-primary">{dayShort}</span>
-              <span className="text-[9px] font-semibold uppercase leading-none text-muted-foreground mt-0.5">{monthShort}</span>
-            </div>
-            {event.is_free && (
-              <Badge className="absolute top-2 right-2 z-10 bg-secondary text-secondary-foreground hover:bg-secondary text-[10px] px-1.5 py-0.5">
-                {t('common.free')}
-              </Badge>
-            )}
-          </div>
-          <CardContent className="p-3.5">
-            <h3 className="font-display text-base font-semibold leading-snug line-clamp-2 mb-1.5 text-foreground">
-              {eventTitle}
-            </h3>
-            <p className="text-[12px] text-muted-foreground leading-tight">
-              {timeShort}
-              {venueDisplay ? <> · <span className="text-foreground/80">{venueDisplay}</span></> : null}
-            </p>
-          </CardContent>
-        </Card>
-      </Link>
-    );
-  }
 
   // Dense mode: compact vertical card for 2-column grids
   if (dense) {

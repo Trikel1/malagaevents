@@ -121,7 +121,7 @@ const AdminPage = () => {
   // Loading state
   if (authLoading || adminLoading) {
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -130,7 +130,7 @@ const AdminPage = () => {
   // Not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
@@ -148,7 +148,7 @@ const AdminPage = () => {
   // Not admin
   if (!isAdmin) {
     return (
-      <div className="min-h-dvh bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6">
             <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
@@ -269,8 +269,8 @@ const AdminPage = () => {
   };
 
   return (
-    <div className="min-h-dvh bg-background">
-      <SEO title={t('seo.admin.title')} description={t('seo.admin.description')} path="/admin" noindex />
+    <div className="min-h-screen bg-background">
+      <SEO title="Admin — MalagaEvents" description="Panel de administración interno." path="/admin" noindex />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border sticky top-0 bg-background z-40">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

@@ -1,80 +1,73 @@
-# Sprint de calidad 1 — UI sin mezclas de idioma
-
 ## Objetivo
-Asegurar que las 14 rutas públicas se muestran íntegramente traducidas en los 10 idiomas (es, en, de, fr, it, pt, ar, ja, zh, ru), corrigiendo los literales españoles observados en la preview inglesa y normalizando pluralización, fechas y taxonomías deportivas.
 
-## Auditoría rápida (literales detectados)
+Eliminar cualquier generación sintética de turnos de guardia de farmacias. La app solo debe mostrar guardias respaldadas por datos oficiales; si no hay datos, se muestra un aviso claro y no se inventan turnos.
 
-| Ruta | Componente | Literal actual |
-|---|---|---|
-| /events | `LocationFilter` | "Toda la provincia" |
-| /events | `EventsPage` chips fecha | "Hoy", "Mañana", "Este finde", "30 días" |
-| /events | `VenueKindFilter` | "Salas", "Teatros", "Recintos" |
-| /events | `UpcomingHighlights` / control audio | "Reanudar" / "Pausar" |
-| /sports | `SportsHero` / `SportsContent` | Título+subtítulo ES, "Ver próximos eventos" |
-| /sports, /venues | Chips categoría | valores crudos `football`, `tennis`, `triathlon`, `basketball`, `running` |
-| /calendar | `CalendarPage` | Cabecera semana `D L M X J V S`, "N eventos" sin plural |
-| /map | `MapPage` / `LeafletMap` | "N puntos" |
-| /pharmacies | `PharmaciesPage` | "OFICIAL", "Mostrando X de Y", aviso directorio en ES |
-| /profile | `ProfilePage` | "Invitado" |
-| Cards evento | `EventImage` placeholder | "IMAGEN ILUSTRATIVA" |
-| /agenda/:slug | `MunicipalityAgendaPage` | Multiples strings ES (empty states, "Cerca de", radio, "Fuente"…) |
+Alcance: farmacias únicamente. No se tocan eventos, deportes, mapa, auth, i18n ni el esquema de base de datos.
 
-## Ficheros a modificar
+## Cambios por archivo
 
-### Traducciones (10 JSON — mismas claves)
-`src/i18n/locales/{es,en,de,fr,it,pt,ar,ja,zh,ru}.json`
-Añadir/asegurar:
-- `events.filters.allProvince`
-- `events.filters.today|tomorrow|weekend|next30d`
-- `events.venueKind.{halls,theaters,venues}`
-- `events.count` con plurales i18next (`_one`, `_other`, y para ar/ru/ja/zh las formas requeridas o `_other` como default).
-- `events.imagePlaceholder` → "Illustrative image" / "Imagen ilustrativa" / …
-- `map.pointsCount` con plural
-- `map.resume`, `map.pause` (o `common.pause/resume`)
-- `pharmacies.official`, `pharmacies.showingOfTotal` (interpolado `{{shown}}/{{total}}`), `pharmacies.directoryNotice`
-- `profile.guest`
-- `sports.hero.title|subtitle`, `sports.viewUpcoming`
-- `sports.categories.{football,basketball,tennis,triathlon,running,…}` (clave central)
-- `calendar.weekdaysShort` (array de 7)
-- `agenda.*` para MunicipalityAgendaPage
+### 1. `supabase/functions/scrape-pharmacies/index.ts`
+- Eliminar la constante `FALLBACK_PHARMACIES`.
+- Eliminar la función `generateDutySchedule()`.
+- En el bloque de GUARDIA:
+  - Si Firecrawl + Jina+AI devuelven `< 5` farmacias con `duty_date` válida, **no** borrar las filas existentes de `pharmacies_guard` y **no** insertar nada.
+  - Devolver un JSON explícito: `success: true` (parcial), `source_status: "official_data_unavailable"`, `guardia_inserted: 0`, `guardia_scraped: 0`, `guardia_source: "none"`, más el resultado del directorio.
+  - Cuando sí haya datos, exigir `duty_date` explícita en cada fila (descartar las que no la traigan); solo entonces se procede al `delete` de filas futuras y al `insert` batch.
+- En el bloque de DIRECTORIO:
+  - Mantener el orden Overpass (OSM) → Firecrawl → Jina+AI.
+  - Eliminar el fallback final que usaba `FALLBACK_PHARMACIES` para poblar `pharmacies_directory`. Si todas las fuentes fallan, no insertar nada y reportar `directory_source: "none"`, `directory_upserted: 0`.
+- Añadir `source_status` al payload de respuesta en éxito y en fallo.
 
-### Componentes / páginas
-- `src/components/events/LocationFilter.tsx` — usar `t('events.filters.allProvince')`.
-- `src/components/events/VenueKindFilter.tsx` — traducir 3 labels.
-- `src/pages/EventsPage.tsx` — chips fecha con `t()`.
-- `src/components/events/UpcomingHighlights.tsx` — botón resume/pause y contador plural.
-- `src/components/events/EventImage.tsx` — placeholder “IMAGEN ILUSTRATIVA”.
-- `src/components/sports/SportsHero.tsx`, `SportsContent.tsx`, `SportsEventsPage.tsx`, `SportsPage.tsx` — títulos y CTA.
-- `src/components/sports/SportIcon` alrededores + `VenuesPage.tsx` — usar helper `getSportLabel(t, sport)` centralizado en `src/lib/sports.ts`. Reemplazar `t(\`sports.${cat}\`, cat)` (fallback crudo) por helper con clave `sports.categories.<cat>` y garantía de existencia.
-- `src/pages/CalendarPage.tsx` — usar `date-fns` `format(..., 'EEEEEE', { locale })` para weekdays; contador con `t('events.count', { count })`.
-- `src/pages/MapPage.tsx` (y `LeafletMap` si aplica) — “N puntos” → `t('map.pointsCount', { count })`.
-- `src/pages/PharmaciesPage.tsx` — "OFICIAL", "Mostrando X de Y", aviso.
-- `src/pages/ProfilePage.tsx` — “Invitado”.
-- `src/pages/MunicipalityAgendaPage.tsx` — traducir todos los literales ES.
+### 2. `src/hooks/usePharmacies.ts`
+- Eliminar el bloque de rotación determinista dentro de `usePharmaciesOnDuty` (todo el fallback que consulta `pharmacies_directory`, calcula `dayIdx`, genera `id: fallback-*` y `source_ref: 'fallback-rotation'`, y marca `__fallback: true`).
+- Si `pharmacies_guard` no devuelve filas para la fecha y municipio, devolver `[]` directamente.
+- `usePharmacyDirectory` y `usePharmacyMunicipalities` no cambian.
 
-### Helpers
-- `src/lib/sports.ts` — nueva función `getSportLabel(t, sport)` que resuelva `sports.categories.<sport>`.
-- Confirmar que `getDateLocale` se usa en todos los `format()` (auditar EventsPage, GroupedEventsList, CalendarPage, MunicipalityAgendaPage) — ya centralizado; eliminar mapas duplicados si aparecen.
+### 3. `src/pages/PharmaciesPage.tsx`
+- Quitar la lógica y el banner `dutyFallback` (`{dutyFallback && …}`) y todas las referencias a `__fallback` en la carta y en el sort.
+- Quitar la prop `fallback` de `PharmacyCard` (y su Badge ámbar). El badge se muestra en verde siempre, porque cualquier fila ya es oficial.
+- Reemplazar el mensaje vacío actual por:
+  > "No hay datos oficiales verificados de farmacias de guardia para esta fecha y localidad. Consulta la fuente oficial antes de desplazarte."
+  Traducible con clave `pharmacies.noOfficialData`.
+- La sección "Todas las farmacias en {municipio}" (directorio) sigue tal cual — sigue apoyándose en OSM y se mantiene visualmente separada.
 
-### Tests nuevos (`src/test/i18n-sprint-quality1.test.tsx`)
-- Paridad de claves y ausencia de vacíos (delegar a test existente `i18n-locales-parity`; añadir smoke).
-- Render en `en` de EventsPage/SportsPage/CalendarPage/MapPage/PharmaciesPage/ProfilePage y aserción de que **ninguno** de los literales ES enumerados aparece en el DOM.
-- Pluralización: `t('events.count', { count: 0|1|2 })` en es/en/ru/ar.
-- Fechas: `format(new Date('2026-01-05'), 'EEEE', { locale: getDateLocale(lang) })` para es/en/de/ar/ru.
-- `html[lang]` y `html[dir]` correctos tras `i18n.changeLanguage('ar')`.
-- Taxonomía deportiva: `getSportLabel(t, 'football')` distinto de `'football'` en los 10 idiomas.
+### 4. Pruebas (`src/test/pharmacies-no-fallback.test.ts` — nuevo)
+- Test unitario sobre `usePharmaciesOnDuty`: con `pharmacies_guard` vacío y `pharmacies_directory` con filas, el hook debe devolver `[]` (mock del cliente supabase).
+- Test que verifica que no se generan ids con prefijo `fallback-` ni `source_ref` con valor `fallback-rotation` bajo ninguna combinación.
+- Ejecutar `bunx vitest run` y la build.
+
+### 5. Diagnóstico previo (SOLO preparado, NO ejecutado)
+
+Se dejarán en la respuesta al usuario, sin lanzarlas contra la base:
+
+```sql
+-- (a) Turnos sintéticos ya guardados
+SELECT source_ref, COUNT(*) AS filas
+FROM public.pharmacies_guard
+WHERE source_ref IN ('fallback', 'fallback-rotation')
+GROUP BY source_ref;
+
+-- (b) Filas del directorio que coinciden con nombres de FALLBACK_PHARMACIES
+SELECT id, name, municipality, source_ref
+FROM public.pharmacies_directory
+WHERE name IN (
+  'Farmacia Alameda Principal','Farmacia Larios','Farmacia El Corte Inglés',
+  'Farmacia Huelin','Farmacia Teatinos','Farmacia Torremolinos Centro',
+  'Farmacia Benalmádena Pueblo','Farmacia Fuengirola Centro','Farmacia Marbella Centro',
+  'Farmacia Estepona','Farmacia Ronda','Farmacia Antequera','Farmacia Vélez-Málaga',
+  'Farmacia Nerja','Farmacia Coín','Farmacia Alhaurín de la Torre','Farmacia Mijas Costa',
+  'Farmacia Rincón de la Victoria','Farmacia Cártama','Farmacia Torrox'
+)
+ORDER BY municipality, name;
+```
+
+No se propone eliminación de datos hasta revisar el diagnóstico contigo.
+
+## Fuera de alcance
+- No se tocan `events`, `sports_events`, mapas, tickets, auth, i18n global, ni migraciones de esquema.
+- No se elimina ninguna fila de base de datos en esta fase.
 
 ## Verificación
-- `bunx vitest run`
-- `bun run build`
-- Revisión manual EN de /events /sports /calendar /map /pharmacies /venues /profile.
-- Revisión DE en una ruta y AR (RTL) en otra.
-
-## Fuera de alcance / permanece en su idioma
-- Títulos de eventos, nombres de recintos, municipios, direcciones y descripciones provenientes de scrapers/BBDD.
-- Contenido oficial farmacéutico devuelto por la fuente.
-- Textos administrativos internos (`/admin`).
-
-## Entrega
-Lista final de archivos modificados, claves añadidas por sección, salida de vitest y `bun run build`, y nota de textos que se dejan en idioma original por ser datos externos.
+- `bunx vitest run` (nuevo archivo de test verde).
+- Build limpio.
+- Reporte final con: archivos modificados, salida de tests, y las dos consultas SQL de diagnóstico listas para que las apruebes antes de un eventual borrado.

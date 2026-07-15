@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { ArrowLeft, MapPin, ExternalLink, CalendarX2, Compass } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { getDateLocale } from '@/i18n/dateLocale';
+import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMunicipalityBySlug, useMunicipalities } from '@/hooks/useMunicipalities';
@@ -98,7 +97,6 @@ const useNearbyEvents = (
 };
 
 const MunicipalityAgendaPage = () => {
-  const { t } = useTranslation();
   const { municipalitySlug } = useParams();
   const [radiusKm, setRadiusKm] = useState<15 | 30 | 50>(15);
 
@@ -131,32 +129,31 @@ const MunicipalityAgendaPage = () => {
       <div className="container max-w-2xl mx-auto py-12 px-4">
         <EmptyState
           icon={MapPin}
-          title={t('agenda.notFoundTitle')}
-          description={t('agenda.notFoundDesc')}
+          title="Municipio no encontrado"
+          description="El municipio solicitado no está en el registro provincial."
         />
         <div className="mt-4 flex justify-center">
           <Button asChild variant="outline">
-            <Link to="/events">{t('agenda.backToEvents')}</Link>
+            <Link to="/events">Volver a eventos</Link>
           </Button>
         </div>
       </div>
     );
   }
 
-
   return (
     <>
       <SEO
-        title={t('agenda.seoTitle', { name: municipality.name })}
-        description={t('agenda.seoDescription', { name: municipality.name, comarca: municipality.comarca })}
+        title={`Agenda cultural de ${municipality.name} | MalagaEvents`}
+        description={`Descubre los eventos culturales confirmados en ${municipality.name} (${municipality.comarca}) y sus alrededores.`}
         path={`/agenda/${municipality.slug}`}
       />
 
-      <main className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/events" aria-label={t('common.back')}>
-              <ArrowLeft className="h-4 w-4 mr-1" /> {t('common.back')}
+            <Link to="/events" aria-label="Volver">
+              <ArrowLeft className="h-4 w-4 mr-1" /> Volver
             </Link>
           </Button>
         </div>
@@ -168,7 +165,7 @@ const MunicipalityAgendaPage = () => {
           </div>
           <h1 className="text-3xl font-bold tracking-tight">{municipality.name}</h1>
           <p className="text-muted-foreground">
-            {t('agenda.verifiedSources')}
+            Agenda cultural verificada · fuentes oficiales
           </p>
         </header>
 
@@ -176,18 +173,18 @@ const MunicipalityAgendaPage = () => {
         <section aria-labelledby="local-heading" className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 id="local-heading" className="text-xl font-semibold">
-              {t('agenda.inMunicipality', { name: municipality.name })}
+              En {municipality.name}
             </h2>
             <Badge variant="secondary">{localEvents.length}</Badge>
           </div>
 
           {loadingEvents ? (
-            <div className="text-sm text-muted-foreground">{t('agenda.loadingEvents')}</div>
+            <div className="text-sm text-muted-foreground">Cargando eventos…</div>
           ) : localEvents.length === 0 ? (
             <EmptyState
               icon={CalendarX2}
-              title={t('agenda.noEventsTitle')}
-              description={t('agenda.noEventsDesc', { name: municipality.name })}
+              title="Sin eventos confirmados"
+              description={`Todavía no hay eventos culturales publicados en ${municipality.name}. Mira las opciones cercanas abajo.`}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -202,9 +199,9 @@ const MunicipalityAgendaPage = () => {
         <section aria-labelledby="nearby-heading" className="space-y-3 pt-4 border-t border-border">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="nearby-heading" className="text-xl font-semibold">
-              {t('agenda.nearHeading', { name: municipality.name })}
+              Cerca de {municipality.name}
             </h2>
-            <div className="flex gap-1" role="radiogroup" aria-label={t('agenda.searchRadius')}>
+            <div className="flex gap-1" role="radiogroup" aria-label="Radio de búsqueda">
               {NEARBY_RADII_KM.map((r) => (
                 <Button
                   key={r}
@@ -220,16 +217,14 @@ const MunicipalityAgendaPage = () => {
             </div>
           </div>
 
-          <p
-            className="text-xs text-muted-foreground"
-            dangerouslySetInnerHTML={{
-              __html: t('agenda.nearDisclaimer', { name: municipality.name }),
-            }}
-          />
+          <p className="text-xs text-muted-foreground">
+            Estos eventos <strong>no ocurren en {municipality.name}</strong>. Se listan por proximidad
+            desde el centro del municipio.
+          </p>
 
           {nearby.length === 0 ? (
             <div className="text-sm text-muted-foreground">
-              {t('agenda.noNearby', { radius: radiusKm })}
+              No hay eventos verificados en un radio de {radiusKm} km.
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -254,8 +249,7 @@ const MunicipalityAgendaPage = () => {
             </div>
           )}
         </section>
-      </main>
-
+      </div>
     </>
   );
 };
@@ -265,8 +259,6 @@ const MunicipalityAgendaPage = () => {
  * link on top of the standard EventCard, without altering the shared card.
  */
 const EventCardWithVerified = ({ event }: { event: Event & { verified_at?: string | null; lifecycle_status?: string | null } }) => {
-  const { t, i18n } = useTranslation();
-  const locale = getDateLocale(i18n.language);
   const verifiedAt = (event as Event & { verified_at?: string | null }).verified_at;
   const lifecycle = (event as Event & { lifecycle_status?: string | null }).lifecycle_status;
   return (
@@ -277,7 +269,7 @@ const EventCardWithVerified = ({ event }: { event: Event & { verified_at?: strin
           {lifecycle && <LifecycleStatusBadge status={lifecycle as never} />}
           {verifiedAt && (
             <span className="text-[10px] text-muted-foreground">
-              {t('events.verifiedAt', 'Verificado')} {formatDistanceToNow(new Date(verifiedAt), { addSuffix: true, locale })}
+              Verificado {formatDistanceToNow(new Date(verifiedAt), { addSuffix: true, locale: es })}
             </span>
           )}
         </div>
@@ -287,9 +279,9 @@ const EventCardWithVerified = ({ event }: { event: Event & { verified_at?: strin
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"
-            aria-label={t('events.viewOnSource', 'Ver en la fuente original')}
+            aria-label="Ver en la fuente original"
           >
-            {t('events.source', 'Fuente')} <ExternalLink className="h-3 w-3" />
+            Fuente <ExternalLink className="h-3 w-3" />
           </a>
         )}
       </div>
