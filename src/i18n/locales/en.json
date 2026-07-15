@@ -334,7 +334,18 @@
     "allEvents": "All events",
     "myFavorites": "My favorites",
     "exportEvent": "Export event",
-    "noEventsDay": "No events this day"
+    "noEventsDay": "No events this day",
+    "today": "Today",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "openMonthSelector": "Change month",
+    "eventsCount_one": "{{count}} event",
+    "eventsCount_other": "{{count}} events",
+    "loadError": "Couldn't load events",
+    "seeMore": "See more",
+    "monthEmpty": "No events this month"
   },
   "pharmacies": {
     "title": "Pharmacies on duty",

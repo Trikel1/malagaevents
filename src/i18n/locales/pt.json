@@ -334,7 +334,18 @@
     "allEvents": "Todos os eventos",
     "myFavorites": "Os meus favoritos",
     "exportEvent": "Exportar evento",
-    "noEventsDay": "Não há eventos neste dia"
+    "noEventsDay": "Não há eventos neste dia",
+    "today": "Hoje",
+    "prevMonth": "Mês anterior",
+    "nextMonth": "Mês seguinte",
+    "prevYear": "Ano anterior",
+    "nextYear": "Ano seguinte",
+    "openMonthSelector": "Mudar de mês",
+    "eventsCount_one": "{{count}} evento",
+    "eventsCount_other": "{{count}} eventos",
+    "loadError": "Não foi possível carregar os eventos",
+    "seeMore": "Ver mais",
+    "monthEmpty": "Não há eventos este mês"
   },
   "pharmacies": {
     "title": "Farmácias de serviço",

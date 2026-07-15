@@ -334,7 +334,18 @@
     "allEvents": "Tous les événements",
     "myFavorites": "Mes favoris",
     "exportEvent": "Exporter l'événement",
-    "noEventsDay": "Aucun événement ce jour-là"
+    "noEventsDay": "Aucun événement ce jour-là",
+    "today": "Aujourd'hui",
+    "prevMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "prevYear": "Année précédente",
+    "nextYear": "Année suivante",
+    "openMonthSelector": "Changer de mois",
+    "eventsCount_one": "{{count}} événement",
+    "eventsCount_other": "{{count}} événements",
+    "loadError": "Impossible de charger les événements",
+    "seeMore": "Voir plus",
+    "monthEmpty": "Aucun événement ce mois-ci"
   },
   "pharmacies": {
     "title": "Pharmacies de garde",

@@ -334,7 +334,18 @@
     "allEvents": "Alle Events",
     "myFavorites": "Meine Favoriten",
     "exportEvent": "Event exportieren",
-    "noEventsDay": "Keine Events an diesem Tag"
+    "noEventsDay": "Keine Events an diesem Tag",
+    "today": "Heute",
+    "prevMonth": "Vorheriger Monat",
+    "nextMonth": "Nächster Monat",
+    "prevYear": "Vorheriges Jahr",
+    "nextYear": "Nächstes Jahr",
+    "openMonthSelector": "Monat wechseln",
+    "eventsCount_one": "{{count}} Event",
+    "eventsCount_other": "{{count}} Events",
+    "loadError": "Events konnten nicht geladen werden",
+    "seeMore": "Mehr anzeigen",
+    "monthEmpty": "Keine Events in diesem Monat"
   },
   "pharmacies": {
     "title": "Notdienst-Apotheken",

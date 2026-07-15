@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Event } from '@/types';
 import type { EventFilters } from '@/components/events/FilterDrawer';
 import {
-  getMadridDateKey,
   mergeCalendarEntries,
   groupCalendarEntries,
   type CalendarEntry,
 } from '@/lib/calendarEntries';
+
 
 interface EventOccurrence {
   id: string;
@@ -388,8 +388,8 @@ export const useCalendarOccurrences = (dateFrom: Date, dateTo: Date) => {
   const { data: occurrences, ...rest } = useEventOccurrences(dateFrom, dateTo);
   const entries: CalendarEntry[] = occurrences || [];
   const groupedByDate = groupCalendarEntries(entries);
-  // Preserve grouping key contract via Madrid TZ helper
-  void getMadridDateKey;
+
+
 
   return {
     ...rest,
