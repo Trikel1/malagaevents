@@ -524,16 +524,11 @@ const CultureEventsPage = () => {
                   role="tab"
                   aria-selected={active}
                   onClick={() => setPreset(p.key)}
-                  className={cn(
-                    'shrink-0 h-9 px-3.5 rounded-full text-sm font-medium border transition-all whitespace-nowrap',
-                    active
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-muted/60 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground',
-                  )}
-
+                  className="preset-chip shrink-0"
                 >
                   {shortLabel}
                 </button>
+
               );
             })}
           </div>
