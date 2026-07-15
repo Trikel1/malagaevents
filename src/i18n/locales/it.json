@@ -334,7 +334,18 @@
     "allEvents": "Tutti gli eventi",
     "myFavorites": "I miei preferiti",
     "exportEvent": "Esporta evento",
-    "noEventsDay": "Nessun evento in questo giorno"
+    "noEventsDay": "Nessun evento in questo giorno",
+    "today": "Oggi",
+    "prevMonth": "Mese precedente",
+    "nextMonth": "Mese successivo",
+    "prevYear": "Anno precedente",
+    "nextYear": "Anno successivo",
+    "openMonthSelector": "Cambia mese",
+    "eventsCount_one": "{{count}} evento",
+    "eventsCount_other": "{{count}} eventi",
+    "loadError": "Impossibile caricare gli eventi",
+    "seeMore": "Mostra altro",
+    "monthEmpty": "Nessun evento in questo mese"
   },
   "pharmacies": {
     "title": "Farmacie di turno",
