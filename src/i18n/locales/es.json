@@ -339,6 +339,8 @@
     "today": "Hoy",
     "prevMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
+    "prevYear": "Año anterior",
+    "nextYear": "Año siguiente",
     "openMonthSelector": "Cambiar mes",
     "eventsCount_one": "{{count}} evento",
     "eventsCount_other": "{{count}} eventos",
