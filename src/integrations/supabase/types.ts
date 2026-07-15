@@ -1142,6 +1142,102 @@ export type Database = {
         }
         Relationships: []
       }
+      sports_entities: {
+        Row: {
+          accessibility: string | null
+          address: string | null
+          age_group: string | null
+          city: string | null
+          contact: string | null
+          created_at: string
+          date_end: string | null
+          date_start: string | null
+          discipline: string | null
+          district: string | null
+          entity_type: Database["public"]["Enums"]["sports_entity_type"]
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          official_url: string | null
+          organizer: string | null
+          price: string | null
+          registration_url: string | null
+          source_last_checked: string | null
+          source_name: string | null
+          source_url: string | null
+          sport: string | null
+          status: Database["public"]["Enums"]["sports_entity_status"]
+          tags: string[] | null
+          time_end: string | null
+          time_start: string | null
+          updated_at: string
+        }
+        Insert: {
+          accessibility?: string | null
+          address?: string | null
+          age_group?: string | null
+          city?: string | null
+          contact?: string | null
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          discipline?: string | null
+          district?: string | null
+          entity_type: Database["public"]["Enums"]["sports_entity_type"]
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          official_url?: string | null
+          organizer?: string | null
+          price?: string | null
+          registration_url?: string | null
+          source_last_checked?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          sport?: string | null
+          status?: Database["public"]["Enums"]["sports_entity_status"]
+          tags?: string[] | null
+          time_end?: string | null
+          time_start?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accessibility?: string | null
+          address?: string | null
+          age_group?: string | null
+          city?: string | null
+          contact?: string | null
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          discipline?: string | null
+          district?: string | null
+          entity_type?: Database["public"]["Enums"]["sports_entity_type"]
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          official_url?: string | null
+          organizer?: string | null
+          price?: string | null
+          registration_url?: string | null
+          source_last_checked?: string | null
+          source_name?: string | null
+          source_url?: string | null
+          sport?: string | null
+          status?: Database["public"]["Enums"]["sports_entity_status"]
+          tags?: string[] | null
+          time_end?: string | null
+          time_start?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sports_events: {
         Row: {
           address: string | null
@@ -1711,6 +1807,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      sports_entity_status: "verified" | "needs_review" | "inactive"
+      sports_entity_type:
+        | "facility"
+        | "club"
+        | "match"
+        | "tournament"
+        | "activity"
+        | "source"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1839,6 +1943,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      sports_entity_status: ["verified", "needs_review", "inactive"],
+      sports_entity_type: [
+        "facility",
+        "club",
+        "match",
+        "tournament",
+        "activity",
+        "source",
+      ],
     },
   },
 } as const
