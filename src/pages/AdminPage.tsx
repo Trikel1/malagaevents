@@ -335,6 +335,9 @@ const AdminPage = () => {
             <TabsTrigger value="cobertura" className="flex-1">
               Cobertura
             </TabsTrigger>
+            <TabsTrigger value="fuentes-deportivas" className="flex-1">
+              Fuentes deportivas
+            </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
 
