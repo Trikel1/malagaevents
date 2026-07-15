@@ -336,9 +336,9 @@ const CalendarPage = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9"
+                  className="h-11 w-11"
                   onClick={() => handleYearChange(-1)}
-                  aria-label="-1"
+                  aria-label={t('calendar.prevYear')}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -346,12 +346,13 @@ const CalendarPage = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9"
+                  className="h-11 w-11"
                   onClick={() => handleYearChange(1)}
-                  aria-label="+1"
+                  aria-label={t('calendar.nextYear')}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
+
               </div>
               <ScrollArea className="h-auto max-h-64 overscroll-contain">
                 <div className="grid grid-cols-3 gap-1 p-2" style={{ WebkitOverflowScrolling: 'touch' }}>
