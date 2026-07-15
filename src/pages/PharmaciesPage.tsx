@@ -578,56 +578,43 @@ const PharmaciesPage = () => {
         </div>
 
         {/* ============== DUTY MODE ============== */}
-        {mode === 'duty' && (
-          <section aria-labelledby="duty-heading">
-            {/* Contextual summary */}
-            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-2">
-              <h2 id="duty-heading" className="text-base font-semibold">
-                {isLoadingDuty
-                  ? t('pharmacies.checkingOfficial', 'Consultando datos oficiales…')
-                  : dutyPharmacies.length > 0
-                  ? t('pharmacies.dutySummary', {
-                      defaultValue: '{{count}} guardia(s) verificada(s) en {{place}}',
-                      count: dutyPharmacies.length,
-                      place: municipality,
-                    })
-                  : t('pharmacies.dutySummaryEmpty', {
-                      defaultValue: 'Sin guardias verificadas en {{place}}',
-                      place: municipality,
-                    })}
-              </h2>
-              <span className="text-xs text-muted-foreground">
-                {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
-              </span>
-            </div>
-
-            {/* Official source attribution */}
-            <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-              <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <span>{t('pharmacies.officialSourceLabel', 'Fuente oficial:')}</span>
-              <a
-                href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-primary hover:underline underline-offset-2 inline-flex items-center gap-0.5"
-              >
-                farmaciasguardia.farmaceuticos.com
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              </a>
-              {lastSyncLabel && (
-                <span className="opacity-80">
-                  · {t('pharmacies.lastSync', 'Actualizado')} {lastSyncLabel}
+        {mode === 'duty' && (() => {
+          // Build a deep-link to the official portal preserving the chosen date
+          // in the exact format the portal expects (D/M/YYYY). We cannot map
+          // arbitrary UI localities to portal zone IDs, so we always link to
+          // the province selector with the correct date pre-populated.
+          const dISO = formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd');
+          const [yy, mm, dd] = dISO.split('-').map((x) => parseInt(x, 10));
+          const officialQueryUrl =
+            `https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29`;
+          const officialDateLabel = `${dd}/${mm}/${yy}`;
+          const syncFailed = !!syncStatus && syncStatus.status === 'sync_error';
+          const heading = isAllProvince
+            ? t('pharmacies.dutyHeadingProvince', 'Farmacias de guardia en la provincia de Málaga')
+            : t('pharmacies.dutyHeadingCity', {
+                defaultValue: 'Farmacias de guardia en {{place}}',
+                place: municipality,
+              });
+          return (
+            <section aria-labelledby="duty-heading">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-3">
+                <h2 id="duty-heading" className="text-lg font-semibold leading-tight">
+                  {heading}
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
+                  {!isLoadingDuty && dutyPharmacies.length > 0 && (
+                    <> · {t('pharmacies.dutyCount', { defaultValue: '{{count}} guardias', count: dutyPharmacies.length })}</>
+                  )}
                 </span>
-              )}
-            </div>
-
-            {isLoadingDuty ? (
-              <div className="space-y-2">
-                <PharmacyCardSkeleton />
-                <PharmacyCardSkeleton />
               </div>
-            ) : dutyPharmacies.length > 0 ? (
-              <>
+
+              {isLoadingDuty ? (
+                <div className="space-y-2">
+                  <PharmacyCardSkeleton />
+                  <PharmacyCardSkeleton />
+                </div>
+              ) : dutyPharmacies.length > 0 ? (
                 <div className="space-y-2">
                   {dutyPharmacies.map((p: any) => (
                     <PharmacyCard
@@ -638,53 +625,49 @@ const PharmaciesPage = () => {
                     />
                   ))}
                 </div>
-                <p className="mt-2 text-[11px] text-muted-foreground flex items-start gap-1.5">
-                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 opacity-70" aria-hidden="true" />
-                  <span>
-                    {t(
-                      'pharmacies.phoneFirstAdvice',
-                      'Confirma por teléfono antes de desplazarte: los turnos oficiales pueden cambiar sin previo aviso.'
-                    )}
-                  </span>
-                </p>
-              </>
-            ) : (
-              <Card className="p-5 rounded-2xl border-dashed bg-card">
-                <div className="flex flex-col items-center text-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                    <AlertTriangle className="h-5 w-5 opacity-70" aria-hidden="true" />
-                  </div>
-                  <p className="text-sm text-muted-foreground max-w-sm">
-                    {t(
-                      'pharmacies.noOfficialData',
-                      'No hay datos oficiales verificados para esta localidad y fecha. Esto no significa que no haya farmacias abiertas — consulta la fuente oficial antes de desplazarte.'
-                    )}
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                    <Button asChild size="sm" className="rounded-full bg-emerald-600 hover:bg-emerald-600/90">
-                      <a
-                        href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
-                        target="_blank"
-                        rel="noreferrer"
+              ) : (
+                <Card className="p-5 rounded-2xl border-dashed bg-card">
+                  <div className="flex flex-col items-center text-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <AlertTriangle className="h-5 w-5 opacity-70" aria-hidden="true" />
+                    </div>
+                    <p className="text-sm text-muted-foreground max-w-sm">
+                      {syncFailed
+                        ? t(
+                            'pharmacies.syncErrorMessage',
+                            'No hemos podido actualizar los datos oficiales. Consulta directamente el portal del Consejo General de Farmacéuticos para esta fecha y localidad.'
+                          )
+                        : t(
+                            'pharmacies.noOfficialData',
+                            'Sin resultados oficiales para esta localidad y fecha. Puede que la fuente no publique guardias aquí o que aún no estén disponibles. Consulta el portal oficial antes de desplazarte.'
+                          )}
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <Button asChild size="sm" className="rounded-full bg-emerald-600 hover:bg-emerald-600/90">
+                        <a href={officialQueryUrl} target="_blank" rel="noreferrer">
+                          <ExternalLink className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                          {t('pharmacies.consultOfficial', {
+                            defaultValue: 'Consultar guardias oficiales para {{place}} · {{date}}',
+                            place: municipality,
+                            date: officialDateLabel,
+                          })}
+                        </a>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full"
+                        onClick={() => setMode('directory')}
                       >
-                        <ExternalLink className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                        {t('pharmacies.openOfficialSource', 'Consultar fuente oficial')}
-                      </a>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => setMode('directory')}
-                    >
-                      {t('pharmacies.switchToDirectory', 'Ver directorio')}
-                    </Button>
+                        {t('pharmacies.switchToDirectory', 'Ver directorio')}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            )}
-          </section>
-        )}
+                </Card>
+              )}
+            </section>
+          );
+        })()}
 
         {/* ============== DIRECTORY MODE ============== */}
         {mode === 'directory' && (
