@@ -189,6 +189,17 @@ export default function SportsSourcesPanel() {
                       {src.consecutive_failures} fallos
                     </Badge>
                   )}
+                  {src.robots_allowed === false && (
+                    <Badge variant="destructive" className="text-xs">
+                      robots bloqueado
+                    </Badge>
+                  )}
+                  {src.robots_allowed === true && (
+                    <Badge variant="outline" className="text-xs">
+                      robots ok
+                    </Badge>
+                  )}
+
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {src.municipality ? `${src.municipality} · ` : ''}
