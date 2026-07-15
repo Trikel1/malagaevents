@@ -536,7 +536,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: 16px;
   padding: 8px 0;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -547,7 +547,7 @@
   position: absolute;
   inset: 4px 6px;
   z-index: 0;
-  border-radius: 999px;
+  border-radius: 16px;
   pointer-events: none;
   background:
     radial-gradient(80% 80% at 50% 50%, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.09) 60%, transparent 100%),
@@ -561,7 +561,7 @@
   bottom: 4px;
   left: 0;
   z-index: 0;
-  border-radius: 999px;
+  border-radius: 16px;
   pointer-events: none;
   will-change: transform, width;
   background:
