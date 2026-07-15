@@ -336,6 +336,29 @@ const CalendarPage = () => {
             >
               {t('calendar.today')}
             </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative h-11 w-11 shrink-0"
+              onClick={() => {
+                setDraftFilters(filters);
+                setFiltersOpen(true);
+              }}
+              aria-label="Afina tu agenda"
+              aria-haspopup="dialog"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {activeFilterGroups > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-4 text-center tabular-nums"
+                >
+                  {activeFilterGroups}
+                </span>
+              )}
+              <span className="sr-only">{activeFilterGroups > 0 ? `${activeFilterGroups} filtros activos` : 'Sin filtros'}</span>
+            </Button>
+
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'month' | 'list')}>
               <TabsList className="h-11">
                 <TabsTrigger
