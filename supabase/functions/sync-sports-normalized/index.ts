@@ -111,10 +111,48 @@ function toRow(ev: CanonicalSportsEvent, hash: string, fingerprint: string, nowI
   };
 }
 
-async function processSource(sb: SB, sourceName: string, feedUrl: string) {
+type FetchedEvents = {
+  events: CanonicalSportsEvent[];
+  adapterUsed: "json" | "html" | "ics";
+  fetchNotes: string[];
+};
+
+async function fetchAllEvents(
+  sourceName: string,
+  sourceType: "json" | "html" | "ics" | "rss",
+  feedUrl: string,
+  slug: string | null,
+): Promise<FetchedEvents> {
+  if (sourceType === "json") {
+    const events = (await fetchJsonFeed(feedUrl, sourceName)).events;
+    return { events, adapterUsed: "json", fetchNotes: [] };
+  }
+  if (sourceType === "html" || sourceType === "ics") {
+    const out = await runSourceAdapter({
+      slug: slug ?? sourceName,
+      sourceType,
+      primaryUrl: feedUrl,
+      sourceName,
+    });
+    return { events: out.events, adapterUsed: out.adapterUsed, fetchNotes: out.notes };
+  }
+  throw new Error(`adapter_not_supported:${sourceType}`);
+}
+
+async function processSource(
+  sb: SB,
+  sourceName: string,
+  feedUrl: string,
+  sourceType: "json" | "html" | "ics" | "rss",
+  slug: string | null,
+) {
   const nowIso = new Date().toISOString();
-  const counters = { inserted: 0, updated: 0, unchanged: 0, deactivated: 0, errors: 0 };
-  const events = (await fetchJsonFeed(feedUrl, sourceName)).events;
+  const counters = {
+    inserted: 0, updated: 0, unchanged: 0,
+    deactivated: 0, errors: 0, rejected: 0,
+  };
+  const { events, adapterUsed, fetchNotes } =
+    await fetchAllEvents(sourceName, sourceType, feedUrl, slug);
 
   // Pre-compute hashes + fingerprints once.
   type Prepared = { ev: CanonicalSportsEvent; hash: string; fingerprint: string };
@@ -149,7 +187,6 @@ async function processSource(sb: SB, sourceName: string, feedUrl: string) {
       } else if (existing.raw_payload_hash === hash
                  && existing.status !== "cancelled_or_unpublished"
                  && existing.status !== "missing_from_feed") {
-        // Refresh last_seen_at + reset missed counter, don't touch updated_at.
         await sb.from("sports_events")
           .update({ last_seen_at: nowIso, missed_syncs: 0 })
           .eq("id", existing.id);
@@ -169,36 +206,41 @@ async function processSource(sb: SB, sourceName: string, feedUrl: string) {
     else seenFp.add(fingerprint);
   }
 
-  // Deactivation pass: rows attributed to this source that we didn't see.
-  const { data: candidates } = await sb.from("sports_events")
-    .select("id, external_id, fingerprint, missed_syncs, status")
-    .eq("source_name", sourceName)
-    .neq("status", "cancelled_or_unpublished");
+  // Empty-run safety: only run deactivation pass if we parsed at least one
+  // credible event AND had no fatal errors. Otherwise a broken fetch or a
+  // temporarily-empty page would sweep every event to cancelled.
+  if (events.length > 0 && counters.errors === 0) {
+    const { data: candidates } = await sb.from("sports_events")
+      .select("id, external_id, fingerprint, missed_syncs, status")
+      .eq("source_name", sourceName)
+      .neq("status", "cancelled_or_unpublished");
 
-  const decisions = decideDeactivations(
-    new Set<string>([
-      ...Array.from(seenExternal).map((x) => `ext:${x}`),
-      ...Array.from(seenFp).map((x) => `fp:${x}`),
-    ]),
-    (candidates ?? []).map((r: { id: string; external_id: string | null; fingerprint: string | null; missed_syncs: number | null; status: string | null }) => ({
-      id: r.id,
-      key: r.external_id ? `ext:${r.external_id}` : `fp:${r.fingerprint ?? ""}`,
-      missed_syncs: r.missed_syncs,
-      status: r.status,
-    })),
-    MISSED_THRESHOLD_JSON,
-    "cancelled_or_unpublished",
-  );
+    const decisions = decideDeactivations(
+      new Set<string>([
+        ...Array.from(seenExternal).map((x) => `ext:${x}`),
+        ...Array.from(seenFp).map((x) => `fp:${x}`),
+      ]),
+      (candidates ?? []).map((r: { id: string; external_id: string | null; fingerprint: string | null; missed_syncs: number | null; status: string | null }) => ({
+        id: r.id,
+        key: r.external_id ? `ext:${r.external_id}` : `fp:${r.fingerprint ?? ""}`,
+        missed_syncs: r.missed_syncs,
+        status: r.status,
+      })),
+      MISSED_THRESHOLD,
+      "cancelled_or_unpublished",
+    );
 
-  for (const d of decisions) {
-    await sb.from("sports_events")
-      .update({ missed_syncs: d.nextMissed, status: d.nextStatus })
-      .eq("id", d.id);
-    if (d.nextStatus === "cancelled_or_unpublished") counters.deactivated++;
+    for (const d of decisions) {
+      await sb.from("sports_events")
+        .update({ missed_syncs: d.nextMissed, status: d.nextStatus })
+        .eq("id", d.id);
+      if (d.nextStatus === "cancelled_or_unpublished") counters.deactivated++;
+    }
   }
 
-  return { counters, feedCount: events.length };
+  return { counters, feedCount: events.length, adapterUsed, fetchNotes };
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
