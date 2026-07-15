@@ -91,6 +91,27 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
               {event.venue} · {event.city}
             </span>
           </div>
+          {event.source_url && (() => {
+            try {
+              const host = new URL(event.source_url).hostname.replace(/^www\./, '');
+              return (
+                <div className="flex items-center gap-1 pt-0.5">
+                  <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-60" />
+                  <a
+                    href={event.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-muted-foreground hover:text-primary underline-offset-2 hover:underline truncate"
+                    title={event.source_url}
+                  >
+                    {t('sports.source', 'Fuente')}: {host}
+                  </a>
+                </div>
+              );
+            } catch {
+              return null;
+            }
+          })()}
         </div>
 
         {/* CTAs */}
