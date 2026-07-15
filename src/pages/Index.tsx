@@ -101,9 +101,10 @@ const Index = () => {
 
         {/* Subtle depth layer */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-32 -left-20 h-80 w-80 rounded-full bg-white/15 blur-3xl" />
-          <div className="absolute -bottom-24 -right-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div className="hero-glow hero-glow--warm -top-32 -left-24 h-80 w-80" />
+          <div className="hero-glow hero-glow--cool -bottom-24 -right-20 h-72 w-72" />
         </div>
+
 
         {/* Top controls */}
         <div className="relative flex justify-between items-center gap-2 mb-7 min-w-0">
@@ -232,13 +233,16 @@ const Index = () => {
 
             {/* ============== Ahora en Málaga (Hoy) ============== */}
             <section>
-              <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.nowInMalaga')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=today')}>
+              <div className="flex items-end justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <h2 className="section-title">{t('home.sections.nowInMalaga')}</h2>
+                  <div className="section-rule mt-2" aria-hidden />
+                </div>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4 shrink-0" onClick={() => navigate('/events?filter=today')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
-
               </div>
+
               {loadingToday ? (
                 <div className="grid grid-cols-2 gap-3">
                   {[1,2,3,4].map((i) => <EventCardSkeleton key={i} />)}
@@ -257,7 +261,9 @@ const Index = () => {
 
             {/* ============== Qué puedes encontrar ============== */}
             <section>
-              <h2 className="text-lg font-bold tracking-tight mb-3 px-1">{t('home.sections.whatYouFind')}</h2>
+              <h2 className="section-title mb-3">{t('home.sections.whatYouFind')}</h2>
+              <div className="section-rule mb-3" aria-hidden />
+
               <div className="grid grid-cols-2 gap-3">
                 {DISCOVER_CARDS.map((card) => (
                   <button
@@ -279,13 +285,16 @@ const Index = () => {
 
             {/* ============== Este finde ============== */}
             <section>
-              <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.thisWeekend')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=weekend')}>
+              <div className="flex items-end justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <h2 className="section-title">{t('home.sections.thisWeekend')}</h2>
+                  <div className="section-rule mt-2" aria-hidden />
+                </div>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4 shrink-0" onClick={() => navigate('/events?filter=weekend')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
-
               </div>
+
               {loadingWeekend ? (
                 <div className="grid grid-cols-2 gap-3">
                   {[1,2].map((i) => <EventCardSkeleton key={i} />)}
@@ -347,11 +356,14 @@ const Index = () => {
 
             {/* ============== Cultura viva ============== */}
             <section>
-              <div className="flex items-center gap-2 mb-3 px-1">
+              <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="h-4 w-4 text-accent" aria-hidden />
-                <h2 className="text-lg font-bold tracking-tight">{t('home.culture.title')}</h2>
+                <h2 className="section-title">{t('home.culture.title')}</h2>
               </div>
-              <p className="text-sm text-muted-foreground mb-4 px-1 leading-relaxed">
+              <div className="section-rule mb-3" aria-hidden />
+
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+
                 {t('home.culture.subtitle')}
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -421,10 +433,11 @@ const Index = () => {
                   { n: t('home.stats.familyValue'), l: t('home.stats.familyByAge') },
                   { n: t('home.stats.sportsValue'), l: t('home.stats.sportsGrowing') },
                 ].map((s) => (
-                  <div key={s.l} className="rounded-2xl bg-background/50 border border-border/40 px-2 py-3 text-center">
-                    <div className="text-lg sm:text-xl font-bold tracking-tight text-primary">{s.n}</div>
+                  <div key={s.l} className="tile-quiet px-2 py-3 text-center">
+                    <div className="text-lg sm:text-xl font-bold tracking-tight text-primary tabular-nums">{s.n}</div>
                     <div className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-tight mt-1">{s.l}</div>
                   </div>
+
                 ))}
 
               </div>
