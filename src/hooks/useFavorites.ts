@@ -24,7 +24,7 @@ export const useFavorites = () => {
   });
 };
 
-export const useFavoriteEvents = () => {
+export const useFavoriteEvents = (enabled: boolean = true) => {
   const { user } = useAuth();
   
   return useQuery({
@@ -48,7 +48,7 @@ export const useFavoriteEvents = () => {
         .map((f: any) => f.events)
         .filter(Boolean);
     },
-    enabled: !!user,
+    enabled: !!user && enabled,
   });
 };
 
