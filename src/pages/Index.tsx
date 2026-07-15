@@ -1,4 +1,5 @@
 
+import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -15,13 +16,14 @@ import EventCard from '@/components/events/EventCard';
 import EmptyState from '@/components/common/EmptyState';
 import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEvents } from '@/hooks/useEvents';
-import TwoHoursSheet from '@/components/home/TwoHoursSheet';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
-import SportsContent from '@/components/sports/SportsContent';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SEO from '@/components/common/SEO';
 import { MUNICIPALITIES, VENUE_ZONES } from '@/lib/venuesCatalog';
+
+const TwoHoursSheet = lazy(() => import('@/components/home/TwoHoursSheet'));
+const SportsContent = lazy(() => import('@/components/sports/SportsContent'));
 
 
 const DISCOVER_CARDS = [
