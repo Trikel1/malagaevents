@@ -78,6 +78,7 @@ import IngestionRegistry from '@/components/admin/IngestionRegistry';
 import SourceHealth from '@/components/admin/SourceHealth';
 import CoverageMatrix from '@/components/admin/CoverageMatrix';
 import CitizenServiceRadar from '@/components/admin/CitizenServiceRadar';
+import SportsSourcesPanel from '@/components/admin/SportsSourcesPanel';
 
 // Small inline component to show sports_events count
 const SportsEventCount = () => {
@@ -333,6 +334,9 @@ const AdminPage = () => {
             </TabsTrigger>
             <TabsTrigger value="cobertura" className="flex-1">
               Cobertura
+            </TabsTrigger>
+            <TabsTrigger value="fuentes-deportivas" className="flex-1">
+              Fuentes deportivas
             </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
@@ -690,6 +694,10 @@ const AdminPage = () => {
           <TabsContent value="cobertura" className="space-y-4">
             <CitizenServiceRadar />
             <CoverageMatrix />
+          </TabsContent>
+
+          <TabsContent value="fuentes-deportivas" className="space-y-4">
+            <SportsSourcesPanel />
           </TabsContent>
         </Tabs>
       </main>

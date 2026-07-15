@@ -1371,48 +1371,97 @@ export type Database = {
       }
       sports_sources: {
         Row: {
+          adapter_key: string | null
+          consecutive_failures: number
           created_at: string
+          enabled: boolean
           id: string
           is_active: boolean
           items_fetched: number
           items_upserted: number
+          last_attempt_at: string | null
           last_error: string | null
+          last_status: string | null
+          last_success_at: string | null
           last_sync_at: string | null
+          municipality: string | null
           name: string
+          primary_url: string | null
+          priority: number
+          province: string
+          robots_allowed: boolean | null
+          robots_checked_at: string | null
+          secondary_urls: Json
           slug: string
+          source_type: string
           sport_category: string
+          sync_frequency_minutes: number
+          updated_at: string
           url: string
         }
         Insert: {
+          adapter_key?: string | null
+          consecutive_failures?: number
           created_at?: string
+          enabled?: boolean
           id?: string
           is_active?: boolean
           items_fetched?: number
           items_upserted?: number
+          last_attempt_at?: string | null
           last_error?: string | null
+          last_status?: string | null
+          last_success_at?: string | null
           last_sync_at?: string | null
+          municipality?: string | null
           name: string
+          primary_url?: string | null
+          priority?: number
+          province?: string
+          robots_allowed?: boolean | null
+          robots_checked_at?: string | null
+          secondary_urls?: Json
           slug: string
+          source_type?: string
           sport_category?: string
+          sync_frequency_minutes?: number
+          updated_at?: string
           url: string
         }
         Update: {
+          adapter_key?: string | null
+          consecutive_failures?: number
           created_at?: string
+          enabled?: boolean
           id?: string
           is_active?: boolean
           items_fetched?: number
           items_upserted?: number
+          last_attempt_at?: string | null
           last_error?: string | null
+          last_status?: string | null
+          last_success_at?: string | null
           last_sync_at?: string | null
+          municipality?: string | null
           name?: string
+          primary_url?: string | null
+          priority?: number
+          province?: string
+          robots_allowed?: boolean | null
+          robots_checked_at?: string | null
+          secondary_urls?: Json
           slug?: string
+          source_type?: string
           sport_category?: string
+          sync_frequency_minutes?: number
+          updated_at?: string
           url?: string
         }
         Relationships: []
       }
       sports_sync_runs: {
         Row: {
+          adapter: string | null
           error_sample: string | null
           finished_at: string | null
           id: string
@@ -1420,11 +1469,13 @@ export type Database = {
           items_fetched: number
           items_parsed: number
           items_upserted: number
+          source_id: string | null
           source_slug: string
           started_at: string
           status: string
         }
         Insert: {
+          adapter?: string | null
           error_sample?: string | null
           finished_at?: string | null
           id?: string
@@ -1432,11 +1483,13 @@ export type Database = {
           items_fetched?: number
           items_parsed?: number
           items_upserted?: number
+          source_id?: string | null
           source_slug: string
           started_at?: string
           status?: string
         }
         Update: {
+          adapter?: string | null
           error_sample?: string | null
           finished_at?: string | null
           id?: string
@@ -1444,11 +1497,20 @@ export type Database = {
           items_fetched?: number
           items_parsed?: number
           items_upserted?: number
+          source_id?: string | null
           source_slug?: string
           started_at?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sports_sync_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sports_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sports_venues: {
         Row: {
