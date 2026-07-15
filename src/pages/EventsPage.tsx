@@ -100,24 +100,35 @@ const CultureEventsPage = () => {
     };
   }, [searchQuery]);
 
+  const onlyFavorites = !!filters.onlyFavorites;
+
   const queryOptions = useMemo(
     () => ({
       searchQuery: debouncedSearch || undefined,
-      filters: filters.onlyFavorites ? undefined : filters,
+      filters: onlyFavorites ? undefined : filters,
       venueIds: selectedVenueIds.length > 0 ? selectedVenueIds : undefined,
       locationIds: selectedLocationIds.length > 0 ? selectedLocationIds : undefined,
+      enabled: !onlyFavorites,
     }),
-    [debouncedSearch, filters, selectedVenueIds, selectedLocationIds],
+    [debouncedSearch, filters, selectedVenueIds, selectedLocationIds, onlyFavorites],
   );
 
-  const { data: events, isLoading, isError, refetch } = useEventsOptimized(queryOptions);
+  const {
+    data: events,
+    isLoading,
+    isError,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useEventsOptimized(queryOptions);
 
   const { data: favorites } = useFavorites();
-  const { data: favoriteEvents, isLoading: loadingFavorites } = useFavoriteEvents();
+  const { data: favoriteEvents, isLoading: loadingFavorites } = useFavoriteEvents(onlyFavorites);
   const toggleFavorite = useToggleFavorite();
 
-  const baseDisplayed = filters.onlyFavorites ? favoriteEvents : events;
-  const isLoadingEvents = filters.onlyFavorites ? loadingFavorites : isLoading;
+  const baseDisplayed = onlyFavorites ? favoriteEvents : events;
+  const isLoadingEvents = onlyFavorites ? loadingFavorites : isLoading;
 
   const displayedEvents = useMemo(() => {
     if (!userCoords || !baseDisplayed) return baseDisplayed;
