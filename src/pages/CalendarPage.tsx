@@ -600,12 +600,13 @@ const CalendarPage = () => {
                     />
                   ))
                 ) : (
-                  <Card className="bg-muted/50 border-dashed">
-                    <CardContent className="py-6 text-center text-muted-foreground">
-                      {t('calendar.noEventsDay')}
-                    </CardContent>
-                  </Card>
+                  <EmptyDayCard
+                    hasFilters={activeFilterGroups > 0}
+                    onClear={() => setFilters(EMPTY_CALENDAR_FILTERS)}
+                    t={t}
+                  />
                 )}
+
               </div>
             )}
           </>
