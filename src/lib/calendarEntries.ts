@@ -46,7 +46,7 @@ export type CalendarEntry = CalendarOccurrenceInput & {
  *  - Synthetic id is deterministic: `event:${event.id}:${event.start_at}`.
  */
 export function mergeCalendarEntries(
-  occurrences: EventOccurrence[],
+  occurrences: CalendarOccurrenceInput[],
   events: Event[],
 ): CalendarEntry[] {
   const eventIdsWithOccurrence = new Set<string>();
@@ -64,12 +64,11 @@ export function mergeCalendarEntries(
       event_id: ev.id,
       start_datetime: ev.start_at,
       end_datetime: ev.end_at,
-      created_at: ev.created_at ?? ev.start_at,
-      updated_at: ev.updated_at ?? ev.start_at,
       event: ev,
       isSynthetic: true,
     });
   }
+
 
   const merged: CalendarEntry[] = [...occurrences, ...synthetic];
   merged.sort((a, b) => a.start_datetime.localeCompare(b.start_datetime));
