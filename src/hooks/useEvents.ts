@@ -388,8 +388,8 @@ export const useCalendarOccurrences = (dateFrom: Date, dateTo: Date) => {
   const { data: occurrences, ...rest } = useEventOccurrences(dateFrom, dateTo);
   const entries: CalendarEntry[] = occurrences || [];
   const groupedByDate = groupCalendarEntries(entries);
-  // Preserve grouping key contract via Madrid TZ helper
-  void getMadridDateKey;
+
+
 
   return {
     ...rest,
