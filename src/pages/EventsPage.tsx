@@ -568,7 +568,7 @@ const CultureEventsPage = () => {
       </header>
 
       {/* ── BODY ───────────────────────────────────────────────────────── */}
-      <main className="px-4 py-4 sm:px-6">
+      <main className="px-4 py-4 sm:px-6 max-w-6xl mx-auto">
         <div className="mb-4">
           <VenueKindFilter
             selectedVenueIds={selectedVenueIds}
