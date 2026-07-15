@@ -1,5 +1,5 @@
 /**
- * Málaga Connect — Static venues catalog (READ-ONLY, frontend).
+ * Málaga Events — Static venues catalog (READ-ONLY, frontend).
  *
  * Catálogo curado de teatros, salas, auditorios, museos, festivales y recintos
  * de Málaga capital y provincia. Se usa solo para enriquecer el frontend
