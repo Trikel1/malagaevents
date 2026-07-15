@@ -140,8 +140,9 @@
     },
     "hero": {
       "title": "Qué hacer hoy en Málaga",
-      "subtitle": "Eventos, planes familiares, farmacias, deporte y cultura en una sola guía.",
-      "searchAria": "Buscar",
+      "subtitle": "Descubre Málaga hoy, a tu manera.",
+      "searchAria": "Buscar planes y eventos",
+      "searchLabel": "Buscar",
       "searchPlaceholder": "Buscar concierto, teatro, niños, museo…"
     },
     "quickActions": {

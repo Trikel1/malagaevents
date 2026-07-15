@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -6,7 +6,7 @@ import {
   Music, Drama, PartyPopper, Building2, Trees, Users, Ticket, Map as MapIcon,
   Landmark, Trophy, Radar, Heart,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import LanguageSelector from '@/components/common/LanguageSelector';
@@ -47,7 +47,7 @@ const CULTURE_CARDS = ['theaters', 'festivals', 'halls', 'museums', 'family', 'p
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
@@ -68,12 +68,7 @@ const Index = () => {
     toggleFavorite.mutate({ eventId, isFavorite: isFavorite(eventId) });
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/events?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
+
 
   const goLocality = (name: string) => navigate(`/events?q=${encodeURIComponent(name)}`);
 
@@ -96,7 +91,7 @@ const Index = () => {
 
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
-        'relative text-white px-4 sm:px-6 pt-5 pb-28 overflow-hidden',
+        'relative text-white px-4 sm:px-6 pt-4 pb-20 overflow-hidden',
         appMode === 'deportes' ? 'bg-gradient-hero-sports' : 'bg-gradient-hero'
       )}>
 
@@ -109,12 +104,11 @@ const Index = () => {
         {/* Fundido extenso hacia el fondo de la siguiente sección */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent via-background/40 to-background"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-background/40 to-background"
         />
 
-
         {/* Top controls */}
-        <div className="relative flex justify-between items-center gap-2 mb-7 min-w-0">
+        <div className="relative flex justify-between items-center gap-2 mb-5 min-w-0">
           <div className="glass-button relative flex p-0.5 min-w-0 shrink text-white overflow-hidden">
             <span
               aria-hidden
@@ -153,32 +147,33 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Título editorial — corto */}
-        <div className="relative">
-          <h1 className="text-[32px] sm:text-[42px] leading-[1.05] font-bold tracking-tight max-w-xl">
-            {t('home.hero.title')}
-          </h1>
-          <p className="text-[15px] sm:text-base text-white/90 mt-3 max-w-md leading-relaxed">
-            {t('home.hero.subtitle')}
-          </p>
-        </div>
+        {/* Título editorial + acceso a búsqueda compacto */}
+        <div className="relative flex items-end justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-[26px] sm:text-[38px] leading-[1.08] font-bold tracking-tight max-w-xl">
+              {t('home.hero.title')}
+            </h1>
+            <p className="text-[13.5px] sm:text-sm text-white/85 mt-1.5 max-w-md leading-snug truncate">
+              {t('home.hero.subtitle')}
+            </p>
+          </div>
 
-        {/* Buscador */}
-        <form onSubmit={handleSearch} className="relative mt-5" role="search">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" aria-hidden="true" />
-          <label htmlFor="home-search" className="sr-only">{t('home.hero.searchAria')}</label>
-          <Input
-            id="home-search"
-            type="search"
-            placeholder={t('home.hero.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="glass-input pl-12 h-14 text-foreground border-0 focus-visible:ring-2 focus-visible:ring-white/60 placeholder:text-muted-foreground"
-          />
-        </form>
+          <button
+            type="button"
+            onClick={() => navigate('/events')}
+            aria-label={t('home.hero.searchAria')}
+            title={t('home.hero.searchAria')}
+            className="liquid-press glass-button shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-3 sm:px-4 rounded-full text-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          >
+            <Search className="h-5 w-5" aria-hidden="true" />
+            <span className="hidden sm:inline text-sm font-semibold">{t('home.hero.searchLabel', 'Buscar')}</span>
+          </button>
+        </div>
       </header>
 
-      <main className="px-4 sm:px-6 -mt-9 space-y-8 pb-8 relative z-10 max-w-6xl mx-auto">
+
+
+      <main className="px-4 sm:px-6 -mt-14 space-y-6 pb-8 relative z-10 max-w-6xl mx-auto">
         {appMode === 'deportes' ? (
           <div className="pt-6"><SportsContent /></div>
         ) : (
