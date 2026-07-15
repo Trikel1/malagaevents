@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 
 
 // Lazy-load heavy / secondary routes to reduce initial bundle & TTI
+const EventsPage = lazy(() => import("./pages/EventsPage"));
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const PharmaciesPage = lazy(() => import("./pages/PharmaciesPage"));
