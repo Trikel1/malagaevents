@@ -368,7 +368,7 @@ const SportsContent = () => {
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60',
                   active
                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-[0_10px_28px_-14px_hsl(160_60%_25%/0.55)]'
-                    : 'bg-card/70 dark:bg-card/50 backdrop-blur border-emerald-700/15 hover:border-emerald-600/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20',
+                    : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/15 hover:border-emerald-600/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20',
                 )}
               >
                 <div
@@ -395,7 +395,7 @@ const SportsContent = () => {
 
       {/* Summary stats */}
       <section aria-label={t('sportsHome.summaryAria', 'Resumen de actividad')}>
-        <div className="grid grid-cols-3 gap-2 glass-panel p-3">
+        <div className="grid grid-cols-3 gap-2 rounded-2xl border border-emerald-700/20 bg-white dark:bg-[hsl(190_30%_12%)] p-3">
           {summaryStats.map((s, i) => (
             <div
               key={i}
@@ -472,7 +472,7 @@ const SportsContent = () => {
               'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
               selectedMunicipality === 'all'
                 ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-card/70 backdrop-blur border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
+                : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
             )}
           >
             <MapPin className="h-3.5 w-3.5" />
@@ -489,7 +489,7 @@ const SportsContent = () => {
                   'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
                   active
                     ? 'bg-emerald-600 text-white border-emerald-600'
-                    : 'bg-card/70 backdrop-blur border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
+                    : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
                 )}
               >
                 <MapPin className="h-3.5 w-3.5" />
@@ -593,7 +593,7 @@ const SportsContent = () => {
               <button
                 key={v.id}
                 onClick={() => navigate('/venues')}
-                className="flex items-start gap-3 p-3 rounded-xl border border-emerald-700/15 bg-card/70 backdrop-blur hover:border-emerald-600/40 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/20 transition-colors text-left min-h-[64px]"
+                className="flex items-start gap-3 p-3 rounded-xl border border-emerald-700/15 bg-white dark:bg-[hsl(190_30%_12%)] hover:border-emerald-600/40 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/20 transition-colors text-left min-h-[64px]"
               >
                 <div className="h-9 w-9 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center shrink-0">
                   <Building2 className="h-4 w-4" />
