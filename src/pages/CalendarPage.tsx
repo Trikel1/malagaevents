@@ -25,6 +25,7 @@ import {
   ChevronDown,
   Check,
   AlertCircle,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,6 +48,17 @@ import { useAppMode } from '@/contexts/AppModeContext';
 import { useSportsEvents } from '@/hooks/useSportsEvents';
 import SportEventCard from '@/components/sports/SportEventCard';
 import { getMadridDateKey } from '@/lib/calendarEntries';
+import CalendarFilterDrawer from '@/components/calendar/CalendarFilterDrawer';
+import {
+  EMPTY_CALENDAR_FILTERS,
+  applyCulturalFilters,
+  applySportsFilters,
+  availableCulturalGroups,
+  availableSportCategories,
+  countActiveGroups,
+  type CalendarFilters,
+} from '@/lib/calendarFilters';
+
 
 const TIMEZONE = 'Europe/Madrid';
 const LIST_PAGE_SIZE = 30;
@@ -68,6 +80,10 @@ const CalendarPage = () => {
   const [eventSource, setEventSource] = useState<'all' | 'favorites'>('all');
   const [monthSelectorOpen, setMonthSelectorOpen] = useState(false);
   const [listLimit, setListLimit] = useState(LIST_PAGE_SIZE);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<CalendarFilters>(EMPTY_CALENDAR_FILTERS);
+  const [draftFilters, setDraftFilters] = useState<CalendarFilters>(EMPTY_CALENDAR_FILTERS);
+
 
   // Localised month names for the popover selector
   const localisedMonths = useMemo(
@@ -130,6 +146,13 @@ const CalendarPage = () => {
     return occurrences;
   }, [occurrences, eventSource, favorites, appMode]);
 
+  // Apply user-chosen calendar filters (moment, categories, free, tickets)
+  const visibleOccurrences = useMemo(
+    () => applyCulturalFilters(filteredOccurrences, filters),
+    [filteredOccurrences, filters],
+  );
+
+
   // Sports events for the range — only in sports mode
   const sportGridStartStr = formatInTimeZone(gridStart, TIMEZONE, 'yyyy-MM-dd');
   const sportGridEndStr = formatInTimeZone(gridEnd, TIMEZONE, 'yyyy-MM-dd');
@@ -144,32 +167,38 @@ const CalendarPage = () => {
     enabled: appMode === 'deportes',
   });
 
-  // Occurrences for a specific day
+  const visibleSportEvents = useMemo(
+    () => applySportsFilters(sportEventsForMonth, filters),
+    [sportEventsForMonth, filters],
+  );
+
+
+  // Occurrences for a specific day (filters already applied)
   const getOccurrencesForDay = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
-    return filteredOccurrences.filter(
+    return visibleOccurrences.filter(
       (occ) => getMadridDateKey(occ.start_datetime) === dateKey,
     );
   };
 
   const getSportEventsForDay = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
-    return sportEventsForMonth.filter(
+    return visibleSportEvents.filter(
       (e) => getMadridDateKey(e.start_at) === dateKey,
     );
   };
 
-  // Count per day for the grid indicator
+  // Count per day for the grid indicator (filters applied)
   const eventCountByDay = useMemo(() => {
     const map = new Map<string, number>();
     const bump = (key: string) => map.set(key, (map.get(key) || 0) + 1);
     if (appMode === 'deportes') {
-      sportEventsForMonth.forEach((e) => bump(getMadridDateKey(e.start_at)));
+      visibleSportEvents.forEach((e) => bump(getMadridDateKey(e.start_at)));
     } else {
-      filteredOccurrences.forEach((occ) => bump(getMadridDateKey(occ.start_datetime)));
+      visibleOccurrences.forEach((occ) => bump(getMadridDateKey(occ.start_datetime)));
     }
     return map;
-  }, [filteredOccurrences, sportEventsForMonth, appMode]);
+  }, [visibleOccurrences, visibleSportEvents, appMode]);
 
   const selectedDayOccurrences = selectedDate ? getOccurrencesForDay(selectedDate) : [];
   const selectedDaySportEvents = selectedDate ? getSportEventsForDay(selectedDate) : [];
@@ -213,13 +242,33 @@ const CalendarPage = () => {
   const monthOccurrences = useMemo(() => {
     const start = format(monthStart, 'yyyy-MM-dd');
     const end = format(monthEnd, 'yyyy-MM-dd');
+    return visibleOccurrences.filter((occ) => {
+      const key = getMadridDateKey(occ.start_datetime);
+      return key >= start && key <= end;
+    });
+  }, [visibleOccurrences, monthStart, monthEnd]);
+
+  const monthSportEvents = useMemo(() => {
+    const start = format(monthStart, 'yyyy-MM-dd');
+    const end = format(monthEnd, 'yyyy-MM-dd');
+    return visibleSportEvents.filter((e) => {
+      const key = getMadridDateKey(e.start_at);
+      return key >= start && key <= end;
+    });
+  }, [visibleSportEvents, monthStart, monthEnd]);
+
+  // ----- Filter drawer inputs -----
+  // Available categories in the current month (before user filters apply)
+  const monthRawOccurrences = useMemo(() => {
+    const start = format(monthStart, 'yyyy-MM-dd');
+    const end = format(monthEnd, 'yyyy-MM-dd');
     return filteredOccurrences.filter((occ) => {
       const key = getMadridDateKey(occ.start_datetime);
       return key >= start && key <= end;
     });
   }, [filteredOccurrences, monthStart, monthEnd]);
 
-  const monthSportEvents = useMemo(() => {
+  const monthRawSportEvents = useMemo(() => {
     const start = format(monthStart, 'yyyy-MM-dd');
     const end = format(monthEnd, 'yyyy-MM-dd');
     return sportEventsForMonth.filter((e) => {
@@ -228,10 +277,33 @@ const CalendarPage = () => {
     });
   }, [sportEventsForMonth, monthStart, monthEnd]);
 
+  const availableCategories = useMemo<string[]>(() => {
+    return appMode === 'deportes'
+      ? availableSportCategories(monthRawSportEvents)
+      : availableCulturalGroups(monthRawOccurrences);
+  }, [appMode, monthRawOccurrences, monthRawSportEvents]);
+
+  // Preview count for the drawer footer, using the draft (or applied) filters
+  const draftResultCount = useMemo(() => {
+    if (appMode === 'deportes') {
+      return applySportsFilters(monthRawSportEvents, draftFilters).length;
+    }
+    return applyCulturalFilters(monthRawOccurrences, draftFilters).length;
+  }, [appMode, monthRawOccurrences, monthRawSportEvents, draftFilters]);
+
+  const activeFilterGroups = countActiveGroups(filters);
+
+  // Reset filters when switching between eventos/deportes
+  useEffect(() => {
+    setFilters(EMPTY_CALENDAR_FILTERS);
+    setDraftFilters(EMPTY_CALENDAR_FILTERS);
+  }, [appMode]);
+
   // Reset list pagination whenever the underlying dataset changes size or view
   useEffect(() => {
     setListLimit(LIST_PAGE_SIZE);
-  }, [viewMode, currentDate, eventSource, appMode]);
+  }, [viewMode, currentDate, eventSource, appMode, filters]);
+
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
@@ -264,6 +336,29 @@ const CalendarPage = () => {
             >
               {t('calendar.today')}
             </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="relative h-11 w-11 shrink-0"
+              onClick={() => {
+                setDraftFilters(filters);
+                setFiltersOpen(true);
+              }}
+              aria-label="Afina tu agenda"
+              aria-haspopup="dialog"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {activeFilterGroups > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-4 text-center tabular-nums"
+                >
+                  {activeFilterGroups}
+                </span>
+              )}
+              <span className="sr-only">{activeFilterGroups > 0 ? `${activeFilterGroups} filtros activos` : 'Sin filtros'}</span>
+            </Button>
+
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'month' | 'list')}>
               <TabsList className="h-11">
                 <TabsTrigger
@@ -478,12 +573,13 @@ const CalendarPage = () => {
                       ))}
                     </div>
                   ) : (
-                    <Card className="bg-muted/50 border-dashed">
-                      <CardContent className="py-6 text-center text-muted-foreground">
-                        {t('calendar.noEventsDay')}
-                      </CardContent>
-                    </Card>
+                    <EmptyDayCard
+                      hasFilters={activeFilterGroups > 0}
+                      onClear={() => setFilters(EMPTY_CALENDAR_FILTERS)}
+                      t={t}
+                    />
                   )
+
                 ) : loading ? (
                   <div className="space-y-4">
                     <EventCardSkeleton />
@@ -504,12 +600,13 @@ const CalendarPage = () => {
                     />
                   ))
                 ) : (
-                  <Card className="bg-muted/50 border-dashed">
-                    <CardContent className="py-6 text-center text-muted-foreground">
-                      {t('calendar.noEventsDay')}
-                    </CardContent>
-                  </Card>
+                  <EmptyDayCard
+                    hasFilters={activeFilterGroups > 0}
+                    onClear={() => setFilters(EMPTY_CALENDAR_FILTERS)}
+                    t={t}
+                  />
                 )}
+
               </div>
             )}
           </>
@@ -525,13 +622,32 @@ const CalendarPage = () => {
             onLoadMore={() => setListLimit((n) => n + LIST_PAGE_SIZE)}
             isFavorite={isFavorite}
             onToggleFavorite={handleToggleFavorite}
+            hasActiveFilters={activeFilterGroups > 0}
+            onClearFilters={() => setFilters(EMPTY_CALENDAR_FILTERS)}
             t={t}
           />
+
         )}
       </main>
+
+      <CalendarFilterDrawer
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        mode={appMode === 'deportes' ? 'deportes' : 'eventos'}
+        filters={filters}
+        onApply={setFilters}
+        onClear={() => {
+          setFilters(EMPTY_CALENDAR_FILTERS);
+          setDraftFilters(EMPTY_CALENDAR_FILTERS);
+        }}
+        onDraftChange={setDraftFilters}
+        availableCategories={availableCategories}
+        resultCount={draftResultCount}
+      />
     </div>
   );
 };
+
 
 // -------- List view (month-wide, grouped by date) --------
 
@@ -545,6 +661,8 @@ type ListViewProps = {
   onLoadMore: () => void;
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (id: string) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
   t: (key: string, opts?: any) => string;
 };
 
@@ -558,6 +676,8 @@ const ListView = ({
   onLoadMore,
   isFavorite,
   onToggleFavorite,
+  hasActiveFilters,
+  onClearFilters,
   t,
 }: ListViewProps) => {
   if (loading) {
@@ -570,17 +690,26 @@ const ListView = ({
     );
   }
 
+  const renderEmpty = () => (
+    <div className="space-y-3">
+      <EmptyState
+        icon={CalendarIcon}
+        title={hasActiveFilters ? 'Sin coincidencias con tus filtros' : t('calendar.monthEmpty')}
+        description={hasActiveFilters ? 'Prueba a quitar algún filtro para ver más planes.' : t('events.noEventsDesc')}
+      />
+      {hasActiveFilters && (
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={onClearFilters} className="h-11 px-5">
+            Limpiar filtros
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   if (appMode === 'deportes') {
     const items = (monthSportEvents ?? []).slice(0, listLimit);
-    if (items.length === 0) {
-      return (
-        <EmptyState
-          icon={CalendarIcon}
-          title={t('calendar.monthEmpty')}
-          description={t('events.noEventsDesc')}
-        />
-      );
-    }
+    if (items.length === 0) return renderEmpty();
     const grouped = groupByDayKey(items, (e) => getMadridDateKey(e.start_at));
     return (
       <div className="space-y-6">
@@ -608,15 +737,8 @@ const ListView = ({
   }
 
   const items = monthOccurrences.slice(0, listLimit);
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={CalendarIcon}
-        title={t('calendar.monthEmpty')}
-        description={t('events.noEventsDesc')}
-      />
-    );
-  }
+  if (items.length === 0) return renderEmpty();
+
   const grouped = groupByDayKey(items, (occ) => getMadridDateKey(occ.start_datetime));
 
   return (
@@ -669,4 +791,24 @@ function parseDayKey(key: string): Date {
   return new Date(y, (m || 1) - 1, d || 1);
 }
 
+interface EmptyDayCardProps {
+  hasFilters: boolean;
+  onClear: () => void;
+  t: (key: string, opts?: any) => string;
+}
+
+const EmptyDayCard = ({ hasFilters, onClear, t }: EmptyDayCardProps) => (
+  <Card className="bg-muted/50 border-dashed">
+    <CardContent className="py-6 text-center text-muted-foreground space-y-3">
+      <p>{hasFilters ? 'Sin coincidencias con tus filtros' : t('calendar.noEventsDay')}</p>
+      {hasFilters && (
+        <Button variant="outline" size="sm" onClick={onClear} className="h-11 px-5">
+          Limpiar filtros
+        </Button>
+      )}
+    </CardContent>
+  </Card>
+);
+
 export default CalendarPage;
+
