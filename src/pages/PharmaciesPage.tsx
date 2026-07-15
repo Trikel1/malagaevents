@@ -102,9 +102,9 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
             </div>
           </div>
           {onDuty && (
-            <Badge className="shrink-0 text-white bg-emerald-500 hover:bg-emerald-500">
-              <Clock className="h-3 w-3 mr-1" />
-              {t('pharmacies.onDutyToday', 'De guardia hoy')}
+            <Badge className="shrink-0 text-white bg-emerald-600 hover:bg-emerald-600 gap-1">
+              <ShieldCheck className="h-3 w-3" />
+              {t('pharmacies.verifiedGuard', 'Guardia verificada')}
             </Badge>
           )}
         </div>
