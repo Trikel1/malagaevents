@@ -141,6 +141,10 @@ const fetchEvents = async (
   
   query = query.range(from, to);
 
+  if (signal) {
+    query = (query as any).abortSignal(signal);
+  }
+
   const { data, error, count } = await query;
 
   if (error) throw error;
@@ -158,7 +162,7 @@ const fetchEvents = async (
 export const useEvents = (options: UseEventsOptions = {}) => {
   return useQuery({
     queryKey: ['events', options],
-    queryFn: () => fetchEvents(options),
+    queryFn: ({ signal }) => fetchEvents(options, signal),
     select: (data) => data.events,
   });
 };
