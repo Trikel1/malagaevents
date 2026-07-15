@@ -233,9 +233,10 @@ const Index = () => {
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
                 <h2 className="text-lg font-bold tracking-tight">{t('home.sections.nowInMalaga')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=today')}>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=today')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
+
               </div>
               {loadingToday ? (
                 <div className="grid grid-cols-2 gap-3">
