@@ -279,6 +279,41 @@ const SportsEventsPage = () => {
 
       {/* Content */}
       <main className="mx-auto w-full max-w-[1240px] p-4 sm:p-6 lg:p-8">
+        <section className="relative z-10 -mt-8 mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Accesos rápidos de Deportes">
+          {[
+            { key: 'today' as const, icon: Calendar, eyebrow: 'Ahora', title: 'Hoy en Málaga', copy: 'Lo que ocurre en las próximas horas' },
+            { key: 'weekend' as const, icon: Trophy, eyebrow: 'Planifica', title: 'Este fin de semana', copy: 'Competiciones y planes para salir' },
+            { key: 'upcoming' as const, icon: MapPinned, eyebrow: 'Explora', title: 'Próximos 14 días', copy: 'Descubre actividad por municipio' },
+          ].map(({ key, icon: Icon, eyebrow, title, copy }) => {
+            const active = timeFilter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTimeFilter(key)}
+                aria-pressed={active}
+                className={cn(
+                  'group min-h-[118px] rounded-3xl border p-4 text-left shadow-lg transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
+                  active
+                    ? 'border-emerald-300 bg-emerald-700 text-white shadow-emerald-950/20'
+                    : 'border-emerald-900/10 bg-card/95 text-foreground backdrop-blur-sm hover:border-emerald-300/70 dark:border-white/10 dark:bg-card/90'
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className={cn('text-[10px] font-bold uppercase tracking-[0.16em]', active ? 'text-emerald-100' : 'text-emerald-700 dark:text-emerald-300')}>{eyebrow}</p>
+                    <p className="mt-1 text-base font-bold tracking-tight">{title}</p>
+                    <p className={cn('mt-1 text-xs leading-relaxed', active ? 'text-emerald-50' : 'text-muted-foreground')}>{copy}</p>
+                  </div>
+                  <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl', active ? 'bg-white/15' : 'bg-emerald-500/10')}>
+                    <Icon className={cn('h-5 w-5', active ? 'text-white' : 'text-emerald-700 dark:text-emerald-300')} aria-hidden="true" />
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </section>
+
         {!isLoading && (
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
