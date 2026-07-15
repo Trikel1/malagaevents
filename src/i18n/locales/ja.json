@@ -139,7 +139,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Connect — 今日のマラガで何をする",
+      "title": "Málaga Events — 今日のマラガで何をする",
       "description": "マラガの市民ガイド:市と県のイベント、家族向けプラン、当番薬局、文化とスポーツ。"
     },
     "hero": {
@@ -710,19 +710,19 @@
       "description": "マラガのスポーツアジェンダ:試合、大会、アクティビティ、公式会場。"
     },
     "profile": {
-      "title": "マイプロフィール — MalagaEvents",
-      "description": "MalagaEventsでアカウント、お気に入り、チケット、言語を管理。"
+      "title": "マイプロフィール — Málaga Events",
+      "description": "Málaga Eventsでアカウント、お気に入り、チケット、言語を管理。"
     },
     "submit": {
       "title": "マラガのイベントを投稿",
-      "description": "MalagaEventsチームがレビューする文化・スポーツイベントを送信。"
+      "description": "Málaga Eventsチームがレビューする文化・スポーツイベントを送信。"
     },
     "tickets": {
-      "title": "マイチケット — MalagaEvents",
-      "description": "MalagaEventsに保存したチケットを閲覧・整理。"
+      "title": "マイチケット — Málaga Events",
+      "description": "Málaga Eventsに保存したチケットを閲覧・整理。"
     },
     "addTicket": {
-      "title": "チケットを追加 — MalagaEvents",
+      "title": "チケットを追加 — Málaga Events",
       "description": "あなたの個人コレクションにチケットを追加。"
     },
     "pharmacies": {
@@ -730,19 +730,19 @@
       "description": "マラガの公式当番薬局と自治体別の情報ディレクトリ。"
     },
     "auth": {
-      "title": "MalagaEventsにサインイン",
+      "title": "Málaga Eventsにサインイン",
       "description": "サインインまたはアカウント作成でお気に入り、チケット、設定を保存。"
     },
     "reset": {
-      "title": "パスワードをリセット — MalagaEvents",
+      "title": "パスワードをリセット — Málaga Events",
       "description": "アカウントの新しいパスワードを選択。"
     },
     "admin": {
-      "title": "Admin — MalagaEvents",
+      "title": "Admin — Málaga Events",
       "description": "内部管理パネル。"
     },
     "notFound": {
-      "title": "ページが見つかりません — MalagaEvents",
+      "title": "ページが見つかりません — Málaga Events",
       "description": "要求されたページは存在しないか、移動されました。"
     }
   },
@@ -770,7 +770,7 @@
     "searchRadius": "検索半径",
     "nearDisclaimer": "これらのイベントは <strong>{{name}} では開催されません</strong>。市の中心地からの距離順に表示されます。",
     "noNearby": "{{radius}} km 圏内に確認済みのイベントはありません。",
-    "seoTitle": "{{name}} の文化アジェンダ | MalagaEvents",
+    "seoTitle": "{{name}} の文化アジェンダ | Málaga Events",
     "seoDescription": "{{name}}（{{comarca}}）とその周辺で確定した文化イベントを発見。"
   }
 }

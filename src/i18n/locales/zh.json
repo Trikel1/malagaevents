@@ -139,7 +139,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Connect — 今日马拉加做什么",
+      "title": "Málaga Events — 今日马拉加做什么",
       "description": "马拉加市民指南:马拉加市及全省的活动、家庭计划、值班药房、文化与体育。"
     },
     "hero": {
@@ -710,19 +710,19 @@
       "description": "马拉加体育日程:比赛、赛事、活动及官方场馆。"
     },
     "profile": {
-      "title": "我的资料 — MalagaEvents",
-      "description": "在MalagaEvents管理账户、收藏、门票和语言。"
+      "title": "我的资料 — Málaga Events",
+      "description": "在Málaga Events管理账户、收藏、门票和语言。"
     },
     "submit": {
       "title": "提交马拉加活动",
-      "description": "提交文化或体育活动供MalagaEvents团队审核。"
+      "description": "提交文化或体育活动供Málaga Events团队审核。"
     },
     "tickets": {
-      "title": "我的门票 — MalagaEvents",
-      "description": "查看并整理你在MalagaEvents保存的门票。"
+      "title": "我的门票 — Málaga Events",
+      "description": "查看并整理你在Málaga Events保存的门票。"
     },
     "addTicket": {
-      "title": "添加门票 — MalagaEvents",
+      "title": "添加门票 — Málaga Events",
       "description": "将门票加入你的个人收藏。"
     },
     "pharmacies": {
@@ -730,19 +730,19 @@
       "description": "马拉加官方值班药店及按市镇的信息目录。"
     },
     "auth": {
-      "title": "登录MalagaEvents",
+      "title": "登录Málaga Events",
       "description": "登录或创建账户以保存收藏、门票及偏好。"
     },
     "reset": {
-      "title": "重置密码 — MalagaEvents",
+      "title": "重置密码 — Málaga Events",
       "description": "为你的账户选择新密码。"
     },
     "admin": {
-      "title": "Admin — MalagaEvents",
+      "title": "Admin — Málaga Events",
       "description": "内部管理面板。"
     },
     "notFound": {
-      "title": "页面未找到 — MalagaEvents",
+      "title": "页面未找到 — Málaga Events",
       "description": "请求的页面不存在或已被移动。"
     }
   },
@@ -770,7 +770,7 @@
     "searchRadius": "搜索半径",
     "nearDisclaimer": "这些活动 <strong>不在 {{name}} 举行</strong>。按距离市中心的远近排列。",
     "noNearby": "{{radius}} 公里范围内没有已核实的活动。",
-    "seoTitle": "{{name}} 文化议程 | MalagaEvents",
+    "seoTitle": "{{name}} 文化议程 | Málaga Events",
     "seoDescription": "探索 {{name}}（{{comarca}}）及周边已确认的文化活动。"
   }
 }

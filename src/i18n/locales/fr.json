@@ -139,7 +139,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Connect — Que faire aujourd'hui à Málaga",
+      "title": "Málaga Events — Que faire aujourd'hui à Málaga",
       "description": "Le guide citoyen de Málaga : événements, plans familiaux, pharmacies de garde, culture et sport dans la ville et la province."
     },
     "hero": {
@@ -710,19 +710,19 @@
       "description": "Agenda sportif de Málaga : matchs, compétitions, activités et enceintes officielles."
     },
     "profile": {
-      "title": "Mon profil — MalagaEvents",
-      "description": "Gérez votre compte, favoris, billets et langue sur MalagaEvents."
+      "title": "Mon profil — Málaga Events",
+      "description": "Gérez votre compte, favoris, billets et langue sur Málaga Events."
     },
     "submit": {
       "title": "Proposer un événement à Málaga",
-      "description": "Proposez un événement culturel ou sportif pour vérification par l'équipe MalagaEvents."
+      "description": "Proposez un événement culturel ou sportif pour vérification par l'équipe Málaga Events."
     },
     "tickets": {
-      "title": "Mes billets — MalagaEvents",
-      "description": "Consultez et organisez vos billets enregistrés sur MalagaEvents."
+      "title": "Mes billets — Málaga Events",
+      "description": "Consultez et organisez vos billets enregistrés sur Málaga Events."
     },
     "addTicket": {
-      "title": "Ajouter un billet — MalagaEvents",
+      "title": "Ajouter un billet — Málaga Events",
       "description": "Ajoutez un billet à votre collection personnelle."
     },
     "pharmacies": {
@@ -730,19 +730,19 @@
       "description": "Pharmacies de garde officielles de Málaga et annuaire informatif par commune."
     },
     "auth": {
-      "title": "Se connecter à MalagaEvents",
+      "title": "Se connecter à Málaga Events",
       "description": "Connectez-vous ou créez un compte pour enregistrer favoris, billets et préférences."
     },
     "reset": {
-      "title": "Réinitialiser le mot de passe — MalagaEvents",
+      "title": "Réinitialiser le mot de passe — Málaga Events",
       "description": "Choisissez un nouveau mot de passe pour votre compte."
     },
     "admin": {
-      "title": "Admin — MalagaEvents",
+      "title": "Admin — Málaga Events",
       "description": "Panneau d'administration interne."
     },
     "notFound": {
-      "title": "Page introuvable — MalagaEvents",
+      "title": "Page introuvable — Málaga Events",
       "description": "La page demandée n'existe pas ou a été déplacée."
     }
   },
@@ -770,7 +770,7 @@
     "searchRadius": "Rayon de recherche",
     "nearDisclaimer": "Ces événements <strong>n'ont pas lieu à {{name}}</strong>. Ils sont classés par proximité au centre-ville.",
     "noNearby": "Aucun événement vérifié dans un rayon de {{radius}} km.",
-    "seoTitle": "Agenda culturel de {{name}} | MalagaEvents",
+    "seoTitle": "Agenda culturel de {{name}} | Málaga Events",
     "seoDescription": "Découvrez les événements culturels confirmés à {{name}} ({{comarca}}) et alentours."
   }
 }
