@@ -113,7 +113,7 @@ const CalendarFilterDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[92vh] h-[92vh] flex flex-col">
+      <DrawerContent className="h-[92dvh] max-h-[92dvh] flex flex-col [&>div:last-child]:flex [&>div:last-child]:min-h-0 [&>div:last-child]:flex-col [&>div:last-child]:overflow-hidden">
         <DrawerHeader className="flex items-start justify-between gap-2 text-left">
           <div className="min-w-0">
             <DrawerTitle>Afina tu agenda</DrawerTitle>
@@ -126,7 +126,10 @@ const CalendarFilterDrawer = ({
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="flex-1 min-h-0 px-4 pt-2 pb-6 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
+        <div
+          data-vaul-no-drag
+          className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-4 pb-6 pt-2 space-y-6 [-webkit-overflow-scrolling:touch]"
+        >
           {/* Plan fácil — only cultural */}
           {mode !== 'deportes' && (
             <section className="space-y-2" aria-labelledby="filter-plan-facil">
