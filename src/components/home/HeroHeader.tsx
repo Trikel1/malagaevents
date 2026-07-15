@@ -27,11 +27,11 @@ const HeroHeader = () => {
       )}
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* geometric ambient shapes */}
-        <div className="absolute -top-32 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-accent/25 blur-3xl" />
-        <div className="absolute top-1/3 right-1/3 h-40 w-40 rounded-2xl rotate-12 bg-secondary/20 blur-2xl" />
+        {/* subtle Mediterranean ambient glow — no busy blobs */}
+        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-accent/25 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-secondary/20 blur-3xl" />
       </div>
+
 
       <div className="relative mx-auto w-full max-w-[1240px] px-4 lg:px-8 pt-5 pb-12 lg:pb-14 min-h-[340px] sm:min-h-[380px] lg:min-h-[440px] flex flex-col">
         {/* Top controls */}
