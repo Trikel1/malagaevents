@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import {
+  CircleDollarSign,
+  Clock3,
+  Moon,
+  Sunrise,
+  SunMedium,
+  Ticket,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import {
   Drawer,
   DrawerClose,
@@ -35,11 +44,16 @@ interface Props {
   onDraftChange?: (f: CalendarFilters) => void;
 }
 
-const MOMENTS: Array<{ id: CalendarMoment; label: string; hint?: string }> = [
-  { id: 'any', label: 'Cualquier hora' },
-  { id: 'morning', label: 'Mañana', hint: 'antes de las 14:00' },
-  { id: 'afternoon', label: 'Tarde', hint: '14:00–20:00' },
-  { id: 'evening', label: 'Noche', hint: 'desde las 20:00' },
+const MOMENTS: Array<{
+  id: CalendarMoment;
+  label: string;
+  hint?: string;
+  icon: LucideIcon;
+}> = [
+  { id: 'any', label: 'Cualquier hora', icon: Clock3 },
+  { id: 'morning', label: 'Mañana', hint: 'antes de las 14:00', icon: Sunrise },
+  { id: 'afternoon', label: 'Tarde', hint: '14:00–20:00', icon: SunMedium },
+  { id: 'evening', label: 'Noche', hint: 'desde las 20:00', icon: Moon },
 ];
 
 const CalendarFilterDrawer = ({
@@ -121,11 +135,13 @@ const CalendarFilterDrawer = ({
                 <FilterChip
                   active={draft.isFree}
                   onClick={() => update({ isFree: !draft.isFree })}
+                  icon={CircleDollarSign}
                   label="Gratis"
                 />
                 <FilterChip
                   active={draft.withTickets}
                   onClick={() => update({ withTickets: !draft.withTickets })}
+                  icon={Ticket}
                   label="Con entradas"
                 />
               </div>
@@ -136,34 +152,38 @@ const CalendarFilterDrawer = ({
           <section className="space-y-2" aria-labelledby="filter-momento">
             <h3 id="filter-momento" className="text-sm font-semibold">Tu momento</h3>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Tu momento">
-              {MOMENTS.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={draft.moment === m.id}
-                  onClick={() => update({ moment: m.id })}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-full border px-3.5 min-h-11 text-sm font-medium transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    draft.moment === m.id
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                      : 'bg-card hover:bg-accent border-border/60 text-foreground',
-                  )}
-                >
-                  <span>{m.label}</span>
-                  {m.hint && (
-                    <span
-                      className={cn(
-                        'text-xs',
-                        draft.moment === m.id ? 'text-primary-foreground/80' : 'text-muted-foreground',
-                      )}
-                    >
-                      · {m.hint}
-                    </span>
-                  )}
-                </button>
-              ))}
+              {MOMENTS.map((m) => {
+                const Icon = m.icon;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={draft.moment === m.id}
+                    onClick={() => update({ moment: m.id })}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 rounded-full border px-3.5 min-h-11 text-sm font-medium transition-colors',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                      draft.moment === m.id
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-card hover:bg-accent border-border/60 text-foreground',
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>{m.label}</span>
+                    {m.hint && (
+                      <span
+                        className={cn(
+                          'text-xs',
+                          draft.moment === m.id ? 'text-primary-foreground/80' : 'text-muted-foreground',
+                        )}
+                      >
+                        · {m.hint}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -226,9 +246,10 @@ const CalendarFilterDrawer = ({
 interface ChipProps {
   active: boolean;
   onClick: () => void;
+  icon: LucideIcon;
   label: string;
 }
-const FilterChip = ({ active, onClick, label }: ChipProps) => (
+const FilterChip = ({ active, onClick, icon: Icon, label }: ChipProps) => (
   <button
     type="button"
     aria-pressed={active}
@@ -241,6 +262,7 @@ const FilterChip = ({ active, onClick, label }: ChipProps) => (
         : 'bg-card hover:bg-accent border-border/60 text-foreground',
     )}
   >
+    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
     {label}
   </button>
 );
