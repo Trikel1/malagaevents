@@ -278,11 +278,20 @@ Deno.serve(async (req) => {
       ok: true, sourceName, adapter, feedCount, counters, durationMs, runId,
     });
   } catch (e) {
-    const msg = (e as Error).message ?? "unknown_error";
+    const msg = ((e as Error).message ?? "unknown_error").slice(0, 500);
     if (runId) {
       await sb.from("sports_sync_runs").update({
-        status: "error", finished_at: new Date().toISOString(),
+        status: "error", finished_at: new Date().toISOString(), error_sample: msg,
       }).eq("id", runId);
+    }
+    if (sourceId) {
+      // Increment failures via read-modify-write (best effort)
+      const { data: cur } = await sb.from("sports_sources")
+        .select("consecutive_failures").eq("id", sourceId).maybeSingle();
+      const next = ((cur as { consecutive_failures: number } | null)?.consecutive_failures ?? 0) + 1;
+      await sb.from("sports_sources").update({
+        last_status: "error", last_error: msg, consecutive_failures: next,
+      }).eq("id", sourceId);
     }
     return json({ error: "sync_failed", message: msg }, 500);
   }
