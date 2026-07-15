@@ -83,8 +83,9 @@ const HeroHeader = () => {
         <div className="relative flex-1 flex flex-col justify-center max-w-3xl">
           <h1
             className="font-display font-bold tracking-[-0.02em] leading-[1.02]"
-            style={{ fontSize: 'clamp(2.4rem, 5vw, 4.75rem)' }}
+            style={{ fontSize: 'clamp(2.1rem, 4.4vw, 3.75rem)' }}
           >
+
             {t('home.hero.title')}
           </h1>
           <p className="text-[15px] sm:text-base lg:text-lg text-white/90 mt-4 max-w-xl leading-relaxed">
