@@ -193,6 +193,9 @@ const Index = () => {
               </div>
             </section>
 
+            {/* ============== TENGO DOS HORAS — módulo de descubrimiento ciudadano ============== */}
+            <TwoHoursSheet />
+
             {/* ============== Bloque INFANTIL / FAMILIAR ============== */}
             <section className="glass-panel p-5 sm:p-6 animate-fade-in">
               <div className="flex items-start gap-3 mb-4">
