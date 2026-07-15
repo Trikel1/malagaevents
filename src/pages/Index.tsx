@@ -175,7 +175,7 @@ const Index = () => {
         ) : (
           <>
             {/* ============== QUICK ACTIONS visible desde primer pantallazo ============== */}
-            <section aria-label={t('home.quickActions.aria')} className="glass-panel p-3">
+            <section aria-label={t('home.quickActions.aria')} className="glass-panel p-4 sm:p-5">
               <div className="grid grid-cols-3 gap-2">
                 {QUICK_ACTIONS.map((qa) => (
                   <button
