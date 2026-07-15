@@ -86,9 +86,8 @@ export default function TwoHoursSheet() {
       return;
     }
     let cancelled = false;
-    // @ts-expect-error — Permissions API name literal
     navigator.permissions
-      .query({ name: 'geolocation' })
+      .query({ name: 'geolocation' as PermissionName })
       .then((s: PermissionStatus) => {
         if (cancelled) return;
         setGeoGranted(s.state === 'granted');
