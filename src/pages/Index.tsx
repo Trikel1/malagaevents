@@ -363,6 +363,7 @@ const Index = () => {
               <div className="section-rule mb-3" aria-hidden />
 
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+
                 {t('home.culture.subtitle')}
               </p>
               <div className="grid grid-cols-2 gap-3">
