@@ -503,6 +503,8 @@ const PharmaciesPage = () => {
                     selected={selectedDate}
                     onSelect={(d) => d && setSelectedDate(d)}
                     initialFocus
+                    locale={locale}
+                    weekStartsOn={1}
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
