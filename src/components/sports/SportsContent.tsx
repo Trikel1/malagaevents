@@ -18,6 +18,7 @@ import { useSportsEvents, useSportsVenues } from '@/hooks/useSportsEvents';
 import { useMunicipalities } from '@/hooks/useMunicipalities';
 import SportIcon from '@/components/sports/SportIcon';
 import OfficialSourcesPanel from '@/components/sports/OfficialSourcesPanel';
+import SportsAgenda from '@/components/sports/SportsAgenda';
 
 const TIMEZONE = 'Europe/Madrid';
 
