@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Event } from '@/types';
 import type { EventFilters } from '@/components/events/FilterDrawer';
 import {
-  getMadridDateKey,
   mergeCalendarEntries,
   groupCalendarEntries,
   type CalendarEntry,
 } from '@/lib/calendarEntries';
+
 
 interface EventOccurrence {
   id: string;
