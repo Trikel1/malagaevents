@@ -685,6 +685,10 @@ const AdminPage = () => {
           <TabsContent value="salud" className="space-y-4">
             <SourceHealth />
           </TabsContent>
+
+          <TabsContent value="cobertura" className="space-y-4">
+            <CoverageMatrix />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
