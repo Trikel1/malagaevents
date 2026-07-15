@@ -391,14 +391,19 @@ Deno.serve(async (req) => {
     const todayStr = todayDate.toISOString().split('T')[0];
 
     const dutyEntries = guardiaPharmacies
-      .filter((p: any) => typeof p?.duty_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.duty_date))
+      .filter((p: any) =>
+        typeof p?.duty_date === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test(p.duty_date) &&
+        typeof p?.name === 'string' && p.name.trim().length > 1 &&
+        typeof p?.address === 'string' && p.address.trim().length > 3
+      )
       .map((p: any) => ({
-        name: p.name,
-        address: p.address,
-        phone: p.phone || null,
+        name: p.name.trim(),
+        address: p.address.trim(),
+        phone: p.phone ? String(p.phone).trim() : null,
         lat: null,
         lng: null,
-        municipality: p.municipality || 'Málaga',
+        municipality: (p.municipality || 'Málaga').trim(),
         date_from: p.duty_date,
         date_to: p.duty_date,
         source_ref: p.source_ref,
@@ -441,16 +446,56 @@ Deno.serve(async (req) => {
       results.guardia_scraped = 0;
       results.guardia_inserted = 0;
     }
+
+    // ── 2. DIRECTORY PHARMACIES ──
+    // Directory rows are informative only; they NEVER become guardias.
+    // Prefer Overpass (OSM) as it exposes coordinates. Then optionally supplement
+    // via Firecrawl/Jina scraping of icofma.es. Never fall back to fabricated data.
+    let directoryPharmacies: any[] = [];
+
+    const overpassPharmacies = await scrapeFromOverpass();
+    if (overpassPharmacies.length >= 5) {
+      directoryPharmacies = overpassPharmacies;
+      results.directory_scraped = directoryPharmacies.length;
+      results.directory_source = 'openstreetmap';
+      console.log(`Directory via Overpass: ${directoryPharmacies.length}`);
+    }
+
+    // Try Firecrawl for icofma.es to supplement missing phones/municipality metadata.
+    if (firecrawlKey && directoryPharmacies.length < 50) {
+      const dirResult = await scrapeWithFirecrawl(
+        'https://www.icofma.es/es/farmacias',
+        firecrawlKey,
+        DIRECTORY_SCHEMA,
+        'Extract ALL pharmacies from the province directory. For each: name, full address, municipality/town, phone.',
+        25000
+      );
+      if (dirResult?.success && dirResult?.data?.json?.pharmacies?.length > 5) {
+        const extra = dirResult.data.json.pharmacies.map((p: any) => ({
+          ...p,
+          municipality: p.municipality || 'Málaga',
+          source_ref: 'icofma.es',
+        }));
+        directoryPharmacies = directoryPharmacies.length ? directoryPharmacies.concat(extra) : extra;
+        results.directory_scraped = directoryPharmacies.length;
+        if (results.directory_source === 'none') results.directory_source = 'firecrawl';
+        else results.directory_source = `${results.directory_source}+firecrawl`;
+        console.log(`Directory supplemented via Firecrawl: total ${directoryPharmacies.length}`);
+      }
     }
 
     // Jina+AI fallback for directory
     if (directoryPharmacies.length < 5) {
       const jinaDir = await scrapeWithJinaAndAI(
-        'https://icofma.es/listado-farmacias-provincia-malaga',
+        'https://www.icofma.es/es/farmacias',
         'Extract ALL pharmacies listed. For each: name, address, municipality/town, phone number. This is the complete directory of pharmacies in Málaga province.'
       );
       if (jinaDir.length > directoryPharmacies.length) {
-        directoryPharmacies = jinaDir;
+        directoryPharmacies = jinaDir.map((p: any) => ({
+          ...p,
+          municipality: p.municipality || 'Málaga',
+          source_ref: 'icofma.es',
+        }));
         results.directory_scraped = directoryPharmacies.length;
         results.directory_source = 'jina-ai';
         console.log(`Scraped ${directoryPharmacies.length} directory pharmacies via Jina+AI`);
@@ -465,16 +510,21 @@ Deno.serve(async (req) => {
       results.directory_scraped = 0;
     }
 
-    // Upsert into pharmacies_directory
-    for (let i = 0; i < directoryPharmacies.length; i += batchSize) {
-      const batch = directoryPharmacies.slice(i, i + batchSize).map((p: any) => ({
-        name: p.name,
-        address: p.address,
-        municipality: p.municipality || 'Málaga',
+    // Upsert into pharmacies_directory (validated fields only)
+    const validatedDirectory = directoryPharmacies.filter((p: any) =>
+      typeof p?.name === 'string' && p.name.trim().length > 1 &&
+      typeof p?.address === 'string' && p.address.trim().length > 3
+    );
+
+    for (let i = 0; i < validatedDirectory.length; i += batchSize) {
+      const batch = validatedDirectory.slice(i, i + batchSize).map((p: any) => ({
+        name: p.name.trim(),
+        address: p.address.trim(),
+        municipality: (p.municipality || 'Málaga').trim(),
         province: 'Málaga',
-        phone: p.phone || null,
-        lat: p.lat || null,
-        lng: p.lng || null,
+        phone: p.phone ? String(p.phone).trim() : null,
+        lat: p.lat ?? null,
+        lng: p.lng ?? null,
         dedupe_key: generateDedupeKey(p.name, p.address, p.municipality || 'Málaga'),
         source_ref: p.source_ref || 'icofma.es',
       }));
@@ -491,6 +541,29 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Record honest sync status in app_config so the UI can show last attempt.
+    try {
+      await supabase
+        .from('app_config')
+        .upsert(
+          {
+            key: 'pharmacies_guard_last_sync',
+            value: {
+              status: results.source_status,
+              guardia_source: results.guardia_source,
+              guardia_inserted: results.guardia_inserted,
+              directory_source: results.directory_source,
+              directory_upserted: results.directory_upserted,
+              errors: results.errors,
+              updated_at: new Date().toISOString(),
+            },
+          },
+          { onConflict: 'key' }
+        );
+    } catch (e) {
+      console.warn('app_config update failed:', e);
+    }
+
     console.log('Pharmacy scraping complete:', JSON.stringify(results));
 
     return new Response(
@@ -505,3 +578,4 @@ Deno.serve(async (req) => {
     );
   }
 });
+

@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import EmptyState from '@/components/common/EmptyState';
 import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
-import { usePharmaciesOnDuty, usePharmacyDirectory } from '@/hooks/usePharmacies';
+import { usePharmaciesOnDuty, usePharmacyDirectory, usePharmacyGuardSyncStatus } from '@/hooks/usePharmacies';
 import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib/localitiesCatalog';
 import { haversineKm, formatDistance } from '@/lib/distance';
 import { cn } from '@/lib/utils';
@@ -281,6 +281,16 @@ const PharmaciesPage = () => {
   const { data: dutyAll, isLoading: isLoadingDuty } =
     usePharmaciesOnDuty(selectedDate, municipalityFilter);
   const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipalityFilter);
+  const { data: syncStatus } = usePharmacyGuardSyncStatus();
+
+  const lastSyncLabel = useMemo(() => {
+    if (!syncStatus?.updated_at) return null;
+    try {
+      return formatInTimeZone(new Date(syncStatus.updated_at), TIMEZONE, "d MMM yyyy, HH:mm", { locale });
+    } catch {
+      return null;
+    }
+  }, [syncStatus?.updated_at, locale]);
 
   const matchesSearch = (p: any) => {
     const q = stripDiacritics(search.trim());
@@ -487,15 +497,32 @@ const PharmaciesPage = () => {
 
         {/* On-duty section */}
         <section>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5 gap-3">
             <h2 className="text-base font-semibold">
               {t('pharmacies.onDutyTitle', 'Farmacias de guardia')}
             </h2>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground text-right">
               {isToday
                 ? t('pharmacies.onDutyToday', 'De guardia hoy')
                 : `${t('pharmacies.guardDate', 'Guardia el')} ${formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}`}
             </span>
+          </div>
+
+          {/* Official-source attribution (always visible) */}
+          <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+            <Info className="h-3 w-3 shrink-0" />
+            <span>{t('pharmacies.officialSourceLabel', 'Fuente oficial:')}</span>
+            <a
+              href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-primary hover:underline underline-offset-2"
+            >
+              farmaciasguardia.farmaceuticos.com
+            </a>
+            {lastSyncLabel && (
+              <span className="opacity-80">· {t('pharmacies.lastSync', 'Actualizado')} {lastSyncLabel}</span>
+            )}
           </div>
 
           {isLoadingDuty ? (
@@ -504,26 +531,51 @@ const PharmaciesPage = () => {
               <PharmacyCardSkeleton />
             </div>
           ) : dutyPharmacies.length > 0 ? (
-            <div className="space-y-2">
-              {dutyPharmacies.map((p: any) => (
-                <PharmacyCard
-                  key={p.id}
-                  pharmacy={{ ...p, municipality: p.municipality }}
-                  onDuty
-                  distanceKm={p._distance}
-                />
-              ))}
-            </div>
+            <>
+              <div className="space-y-2">
+                {dutyPharmacies.map((p: any) => (
+                  <PharmacyCard
+                    key={p.id}
+                    pharmacy={{ ...p, municipality: p.municipality }}
+                    onDuty
+                    distanceKm={p._distance}
+                  />
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground flex items-start gap-1.5">
+                <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 opacity-70" />
+                <span>
+                  {t(
+                    'pharmacies.phoneFirstAdvice',
+                    'Confirma por teléfono antes de desplazarte: los turnos oficiales pueden cambiar sin previo aviso.'
+                  )}
+                </span>
+              </p>
+            </>
           ) : (
-            <Card className="p-5 text-center text-sm text-muted-foreground rounded-2xl border-dashed">
-              <AlertTriangle className="h-6 w-6 mx-auto mb-2 opacity-60" />
-              {t(
-                'pharmacies.noOfficialData',
-                'No hay datos oficiales verificados de farmacias de guardia para esta fecha y localidad. Consulta la fuente oficial antes de desplazarte.'
-              )}
+            <Card className="p-5 text-sm rounded-2xl border-dashed border-border/70 bg-card">
+              <div className="flex flex-col items-center text-center gap-2">
+                <AlertTriangle className="h-6 w-6 opacity-60" />
+                <p className="text-muted-foreground">
+                  {t(
+                    'pharmacies.noOfficialData',
+                    'No hay datos oficiales verificados de farmacias de guardia para esta fecha y localidad. Consulta directamente la fuente oficial antes de desplazarte.'
+                  )}
+                </p>
+                <Button asChild size="sm" variant="outline" className="rounded-full mt-1">
+                  <a
+                    href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t('pharmacies.openOfficialSource', 'Abrir fuente oficial')}
+                  </a>
+                </Button>
+              </div>
             </Card>
           )}
         </section>
+
 
         {/* All pharmacies in locality */}
         <section className="pt-2">
