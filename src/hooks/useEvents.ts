@@ -397,6 +397,3 @@ export const useCalendarOccurrences = (dateFrom: Date, dateTo: Date) => {
     occurrences: entries,
   };
 };
-
-  };
-};
