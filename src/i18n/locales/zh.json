@@ -334,7 +334,18 @@
     "allEvents": "所有活动",
     "myFavorites": "我的收藏",
     "exportEvent": "导出活动",
-    "noEventsDay": "本日无活动"
+    "noEventsDay": "本日无活动",
+    "today": "今天",
+    "prevMonth": "上个月",
+    "nextMonth": "下个月",
+    "prevYear": "上一年",
+    "nextYear": "下一年",
+    "openMonthSelector": "切换月份",
+    "eventsCount_one": "{{count}} 个活动",
+    "eventsCount_other": "{{count}} 个活动",
+    "loadError": "无法加载活动",
+    "seeMore": "查看更多",
+    "monthEmpty": "本月无活动"
   },
   "pharmacies": {
     "title": "值班药店",
