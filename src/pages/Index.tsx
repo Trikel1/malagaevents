@@ -280,9 +280,10 @@ const Index = () => {
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
                 <h2 className="text-lg font-bold tracking-tight">{t('home.sections.thisWeekend')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=weekend')}>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=weekend')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
+
               </div>
               {loadingWeekend ? (
                 <div className="grid grid-cols-2 gap-3">
