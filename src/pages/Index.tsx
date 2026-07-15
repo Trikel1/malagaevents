@@ -53,6 +53,26 @@ const Index = () => {
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchOpen) {
+      // focus on next tick so the slide-down transition has started
+      const id = window.setTimeout(() => searchInputRef.current?.focus(), 50);
+      return () => window.clearTimeout(id);
+    }
+  }, [searchOpen]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    navigate(`/events?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+  };
+
   const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({
     weekendOnly: true,
     limit: 6,
