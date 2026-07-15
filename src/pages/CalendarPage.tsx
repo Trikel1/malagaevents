@@ -167,6 +167,12 @@ const CalendarPage = () => {
     enabled: appMode === 'deportes',
   });
 
+  const visibleSportEvents = useMemo(
+    () => applySportsFilters(sportEventsForMonth, filters),
+    [sportEventsForMonth, filters],
+  );
+
+
   // Occurrences for a specific day
   const getOccurrencesForDay = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
