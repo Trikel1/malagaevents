@@ -275,6 +275,8 @@ const PharmaciesPage = () => {
   const [search, setSearch] = useState('');
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [mode, setMode] = useState<'duty' | 'directory'>('duty');
+  const [dirLimit, setDirLimit] = useState(30);
 
   const isAllProvince = municipality === ALL_PROVINCE_LABEL;
   const municipalityFilter = isAllProvince ? undefined : municipality;
