@@ -421,6 +421,22 @@
 [data-mode="deportes"] .liquid-blob-1 { background: hsl(190 80% 65% / 0.35); }
 [data-mode="deportes"] .liquid-blob-2 { background: hsl(150 60% 60% / 0.32); }
 
+/* Sports HOME: backdrop is fully opaque teal so no white strip is ever
+   revealed behind the safe-area / bottom-nav padding. Scoped to the home
+   route so other sports pages keep their own surfaces. */
+[data-mode="deportes"][data-route="home"] .liquid-backdrop {
+  background:
+    radial-gradient(60% 45% at 15% 8%, hsl(170 40% 88%) 0%, hsl(168 30% 92%) 55%, hsl(178 28% 90%) 100%),
+    linear-gradient(180deg, hsl(168 28% 92%) 0%, hsl(180 28% 90%) 100%);
+}
+.dark [data-mode="deportes"][data-route="home"] .liquid-backdrop {
+  background:
+    radial-gradient(60% 45% at 15% 8%, hsl(190 40% 14%) 0%, hsl(190 32% 10%) 55%, hsl(180 30% 8%) 100%),
+    linear-gradient(180deg, hsl(190 32% 9%) 0%, hsl(180 30% 8%) 100%);
+}
+[data-mode="deportes"][data-route="home"] .liquid-blob { display: none; }
+
+
 
 .liquid-page-shell {
   position: relative;
