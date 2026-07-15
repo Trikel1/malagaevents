@@ -169,7 +169,7 @@ const Index = () => {
         </form>
       </header>
 
-      <main className="px-4 -mt-9 space-y-8 pb-8 relative z-10">
+      <main className="px-4 sm:px-6 -mt-9 space-y-8 pb-8 relative z-10 max-w-6xl mx-auto">
         {appMode === 'deportes' ? (
           <div className="pt-6"><SportsContent /></div>
         ) : (
