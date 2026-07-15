@@ -257,45 +257,121 @@ const SportsAgenda = () => {
         )}
       </div>
 
-      {/* Pending federative calendars — honest state */}
-      <div>
-        <h3 className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
-          <Radar className="h-3.5 w-3.5" aria-hidden="true" />
-          {t('sportsAgenda.pendingTitle', 'Calendarios externos pendientes de sincronización')}
-        </h3>
-        <Card className="border-dashed border-emerald-700/20 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)]">
-          <CardContent className="p-3">
-            <p className="text-[12.5px] text-muted-foreground mb-2 leading-snug">
-              {t(
-                'sportsAgenda.pendingSubtitle',
-                'Estamos conectando los calendarios federativos. Mientras tanto puedes consultarlos directamente:',
-              )}
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-              {FEDERATIONS.map((f) => (
-                <li key={f.name}>
-                  <a
-                    href={f.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-emerald-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
-                  >
-                    <ExternalLink
-                      className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-300"
-                      aria-hidden="true"
-                    />
-                    <span className="text-[13px] font-medium truncate flex-1">{f.name}</span>
-                    <span className="text-[10.5px] uppercase tracking-wide text-muted-foreground shrink-0">
-                      {f.sport}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
+      {/* External federative & club calendars — honest state */}
+      <PendingSourcesBlock />
     </section>
+  );
+};
+
+const PendingSourcesBlock = () => {
+  const { t } = useTranslation();
+  const { data: sources = [], isLoading } = useSportsCalendarSources();
+
+  const grouped = useMemo(() => {
+    return {
+      federation: sources.filter((s) => s.scope === 'federation'),
+      club: sources.filter((s) => s.scope === 'club'),
+    };
+  }, [sources]);
+
+  const renderItem = (s: (typeof sources)[number]) => {
+    const checked = formatLastChecked(s.lastChecked);
+    return (
+      <li key={s.id}>
+        <a
+          href={s.officialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-emerald-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+        >
+          <ExternalLink
+            className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-300"
+            aria-hidden="true"
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[13px] font-medium truncate">{s.shortName}</span>
+              <Badge
+                variant="outline"
+                className="text-[9.5px] px-1 py-0 border-emerald-700/25 uppercase tracking-wide"
+              >
+                {s.scope === 'federation'
+                  ? t('sportsAgenda.scope.federation', 'Federación')
+                  : t('sportsAgenda.scope.club', 'Club')}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10.5px] text-muted-foreground mt-0.5">
+              <span className="uppercase tracking-wide">{s.sport}</span>
+              <span aria-hidden="true">·</span>
+              <span>
+                {s.syncState === 'linked'
+                  ? t('sportsAgenda.state.linked', 'Enlace oficial')
+                  : t('sportsAgenda.state.pending', 'Sincronización pendiente')}
+              </span>
+              {checked && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>
+                    {t('sportsAgenda.checked', 'Comprobado')} {checked}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+          <ChevronRight
+            className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+        </a>
+      </li>
+    );
+  };
+
+  return (
+    <div>
+      <h3 className="text-[12px] font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1.5">
+        <Radar className="h-3.5 w-3.5" aria-hidden="true" />
+        {t('sportsAgenda.pendingTitle', 'Calendarios externos pendientes de sincronización')}
+      </h3>
+      <Card className="border-dashed border-emerald-700/20 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)]">
+        <CardContent className="p-3">
+          <p className="text-[12.5px] text-muted-foreground mb-2 leading-snug">
+            {t(
+              'sportsAgenda.pendingSubtitle',
+              'Ninguno de estos calendarios expone un feed público estable. Enlazamos siempre a la fuente oficial y registramos la última comprobación.',
+            )}
+          </p>
+          {isLoading ? (
+            <p className="text-[12px] text-muted-foreground py-2">
+              {t('common.loading', 'Cargando…')}
+            </p>
+          ) : (
+            <div className="space-y-2.5">
+              {grouped.federation.length > 0 && (
+                <div>
+                  <p className="text-[10.5px] font-semibold uppercase tracking-wide text-emerald-700/80 dark:text-emerald-300/80 mb-0.5">
+                    {t('sportsAgenda.scope.federations', 'Federaciones')}
+                  </p>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                    {grouped.federation.map(renderItem)}
+                  </ul>
+                </div>
+              )}
+              {grouped.club.length > 0 && (
+                <div>
+                  <p className="text-[10.5px] font-semibold uppercase tracking-wide text-emerald-700/80 dark:text-emerald-300/80 mb-0.5">
+                    {t('sportsAgenda.scope.clubs', 'Clubes')}
+                  </p>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                    {grouped.club.map(renderItem)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
