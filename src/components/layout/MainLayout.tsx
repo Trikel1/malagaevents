@@ -15,12 +15,28 @@ const MainLayout = () => {
   const location = useLocation();
   const routeKey = useMemo(() => routeKeyFromPath(location.pathname), [location.pathname]);
 
+  const isSportsHome = appMode === 'deportes' && (location.pathname === '/' || location.pathname === '');
+
   return (
     <div
-      className="min-h-screen bg-background relative"
+      className="min-h-screen relative"
       data-mode={appMode}
       data-route={routeKey}
+      style={
+        isSportsHome
+          ? {
+              // Opaque mediterranean teal so the safe-area/nav strip never
+              // reveals a white band at the bottom of the sports landing.
+              background: 'hsl(168 28% 92%)',
+            }
+          : undefined
+      }
     >
+      {/* Dark-mode override for the sports landing background */}
+      {isSportsHome && (
+        <style>{`.dark [data-mode="deportes"][data-route="home"]{background:hsl(190 32% 9%)!important}`}</style>
+      )}
+      {!isSportsHome && <div aria-hidden className="absolute inset-0 bg-background -z-10" />}
       <LiquidGlassBackdrop />
       <main
         className="relative z-[1]"
@@ -36,5 +52,6 @@ const MainLayout = () => {
     </div>
   );
 };
+
 
 export default MainLayout;
