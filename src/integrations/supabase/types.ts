@@ -1241,21 +1241,35 @@ export type Database = {
       sports_events: {
         Row: {
           address: string | null
+          canonical_url: string | null
           city: string
           competition: string | null
           created_at: string
           dedupe_key: string
           end_datetime: string | null
           external_id: string | null
+          fingerprint: string | null
           id: string
           image_url: string | null
           is_in_malaga_province: boolean
+          last_seen_at: string | null
+          missed_syncs: number
           normalized_title: string | null
           normalized_venue: string | null
+          organizer_email: string | null
+          organizer_name: string | null
+          organizer_phone: string | null
+          price_amount: number | null
+          price_currency: string | null
           price_info: string | null
+          province: string | null
+          raw_payload_hash: string | null
+          registration_url: string | null
           source_id: string | null
+          source_name: string | null
           source_url: string | null
           sport_category: string
+          sport_subcategory: string | null
           start_date: string
           start_datetime: string
           status: string
@@ -1267,21 +1281,35 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          canonical_url?: string | null
           city?: string
           competition?: string | null
           created_at?: string
           dedupe_key: string
           end_datetime?: string | null
           external_id?: string | null
+          fingerprint?: string | null
           id?: string
           image_url?: string | null
           is_in_malaga_province?: boolean
+          last_seen_at?: string | null
+          missed_syncs?: number
           normalized_title?: string | null
           normalized_venue?: string | null
+          organizer_email?: string | null
+          organizer_name?: string | null
+          organizer_phone?: string | null
+          price_amount?: number | null
+          price_currency?: string | null
           price_info?: string | null
+          province?: string | null
+          raw_payload_hash?: string | null
+          registration_url?: string | null
           source_id?: string | null
+          source_name?: string | null
           source_url?: string | null
           sport_category: string
+          sport_subcategory?: string | null
           start_date: string
           start_datetime: string
           status?: string
@@ -1293,21 +1321,35 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          canonical_url?: string | null
           city?: string
           competition?: string | null
           created_at?: string
           dedupe_key?: string
           end_datetime?: string | null
           external_id?: string | null
+          fingerprint?: string | null
           id?: string
           image_url?: string | null
           is_in_malaga_province?: boolean
+          last_seen_at?: string | null
+          missed_syncs?: number
           normalized_title?: string | null
           normalized_venue?: string | null
+          organizer_email?: string | null
+          organizer_name?: string | null
+          organizer_phone?: string | null
+          price_amount?: number | null
+          price_currency?: string | null
           price_info?: string | null
+          province?: string | null
+          raw_payload_hash?: string | null
+          registration_url?: string | null
           source_id?: string | null
+          source_name?: string | null
           source_url?: string | null
           sport_category?: string
+          sport_subcategory?: string | null
           start_date?: string
           start_datetime?: string
           status?: string
