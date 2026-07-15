@@ -94,7 +94,7 @@ const Index = () => {
     <div
       className={cn(
         'min-h-screen',
-        isSports && 'bg-[hsl(168_28%_92%)] dark:bg-[hsl(190_32%_9%)]'
+        isSports && 'bg-[hsl(174_22%_85%)] dark:bg-[hsl(190_32%_9%)]'
       )}
     >
       <SEO

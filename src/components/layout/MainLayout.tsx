@@ -15,9 +15,15 @@ const MainLayout = () => {
   const location = useLocation();
   const routeKey = useMemo(() => routeKeyFromPath(location.pathname), [location.pathname]);
 
+  const isSportsHome = appMode === 'deportes' && (location.pathname === '/' || location.pathname === '');
+
   return (
     <div
-      className="min-h-screen bg-background relative"
+      className={
+        isSportsHome
+          ? 'min-h-screen relative bg-[hsl(174_22%_85%)] dark:bg-[hsl(190_32%_9%)]'
+          : 'min-h-screen relative bg-background'
+      }
       data-mode={appMode}
       data-route={routeKey}
     >
@@ -36,5 +42,8 @@ const MainLayout = () => {
     </div>
   );
 };
+
+
+
 
 export default MainLayout;
