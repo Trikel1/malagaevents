@@ -292,23 +292,24 @@
 
   .glass-nav {
     background:
-      linear-gradient(180deg, hsl(0 0% 100% / 0.82) 0%, hsl(200 30% 98% / 0.72) 100%),
-      hsl(var(--surface-elevated) / 0.55);
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid hsl(var(--border) / 0.6);
+      linear-gradient(180deg, hsl(0 0% 100% / 0.98) 0%, hsl(200 30% 98% / 0.96) 100%),
+      hsl(var(--surface-elevated));
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid hsl(var(--border) / 0.7);
     box-shadow:
       0 1px 0 hsl(0 0% 100% / 0.6) inset,
-      0 10px 34px -20px hsl(210 45% 20% / 0.18);
+      0 6px 18px -12px hsl(210 45% 20% / 0.22);
   }
   .dark .glass-nav {
     background:
-      linear-gradient(180deg, hsl(215 35% 18% / 0.92) 0%, hsl(215 35% 14% / 0.88) 100%);
-    border-color: hsl(200 25% 45% / 0.35);
+      linear-gradient(180deg, hsl(215 35% 16% / 0.98) 0%, hsl(215 35% 12% / 0.98) 100%);
+    border-color: hsl(200 25% 45% / 0.4);
     box-shadow:
       0 1px 0 hsl(200 25% 70% / 0.14) inset,
-      0 12px 40px -18px hsl(0 0% 0% / 0.6);
+      0 8px 22px -14px hsl(0 0% 0% / 0.7);
   }
+
 
 
 
