@@ -152,23 +152,27 @@ const Index = () => {
         <div className="relative flex items-end justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h1 className="text-[26px] sm:text-[38px] leading-[1.08] font-bold tracking-tight max-w-xl">
-              {t('home.hero.title')}
+              {appMode === 'deportes' ? t('sportsHome.heroTitle', 'Deportes en Málaga') : t('home.hero.title')}
             </h1>
             <p className="text-[13.5px] sm:text-sm text-white/85 mt-1.5 max-w-md leading-snug truncate">
-              {t('home.hero.subtitle')}
+              {appMode === 'deportes'
+                ? t('sportsHome.heroSubtitle', 'Instalaciones, actividades y eventos deportivos cerca de ti')
+                : t('home.hero.subtitle')}
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => navigate('/events')}
-            aria-label={t('home.hero.searchAria')}
-            title={t('home.hero.searchAria')}
-            className="liquid-press glass-button shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-3 sm:px-4 rounded-full text-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-          >
-            <Search className="h-5 w-5" aria-hidden="true" />
-            <span className="hidden sm:inline text-sm font-semibold">{t('home.hero.searchLabel', 'Buscar')}</span>
-          </button>
+          {appMode === 'eventos' && (
+            <button
+              type="button"
+              onClick={() => navigate('/events')}
+              aria-label={t('home.hero.searchAria')}
+              title={t('home.hero.searchAria')}
+              className="liquid-press glass-button shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-3 sm:px-4 rounded-full text-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              <Search className="h-5 w-5" aria-hidden="true" />
+              <span className="hidden sm:inline text-sm font-semibold">{t('home.hero.searchLabel', 'Buscar')}</span>
+            </button>
+          )}
         </div>
       </header>
 
