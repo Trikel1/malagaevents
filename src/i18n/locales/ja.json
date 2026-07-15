@@ -334,7 +334,18 @@
     "allEvents": "すべてのイベント",
     "myFavorites": "お気に入りイベント",
     "exportEvent": "イベントをエクスポート",
-    "noEventsDay": "この日はイベントがありません"
+    "noEventsDay": "この日はイベントがありません",
+    "today": "今日",
+    "prevMonth": "前の月",
+    "nextMonth": "次の月",
+    "prevYear": "前の年",
+    "nextYear": "次の年",
+    "openMonthSelector": "月を変更",
+    "eventsCount_one": "{{count}} 件のイベント",
+    "eventsCount_other": "{{count}} 件のイベント",
+    "loadError": "イベントを読み込めませんでした",
+    "seeMore": "もっと見る",
+    "monthEmpty": "今月はイベントがありません"
   },
   "pharmacies": {
     "title": "当番薬局",
