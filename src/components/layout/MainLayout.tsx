@@ -21,7 +21,7 @@ const MainLayout = () => {
     <div
       className={
         isSportsHome
-          ? 'min-h-screen relative bg-[hsl(168_28%_92%)] dark:bg-[hsl(190_32%_9%)]'
+          ? 'min-h-screen relative bg-[hsl(174_22%_85%)] dark:bg-[hsl(190_32%_9%)]'
           : 'min-h-screen relative bg-background'
       }
       data-mode={appMode}
