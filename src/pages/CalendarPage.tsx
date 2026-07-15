@@ -624,9 +624,25 @@ const CalendarPage = () => {
           />
         )}
       </main>
+
+      <CalendarFilterDrawer
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        mode={appMode === 'deportes' ? 'deportes' : 'eventos'}
+        filters={filters}
+        onApply={setFilters}
+        onClear={() => {
+          setFilters(EMPTY_CALENDAR_FILTERS);
+          setDraftFilters(EMPTY_CALENDAR_FILTERS);
+        }}
+        onDraftChange={setDraftFilters}
+        availableCategories={availableCategories}
+        resultCount={draftResultCount}
+      />
     </div>
   );
 };
+
 
 // -------- List view (month-wide, grouped by date) --------
 
