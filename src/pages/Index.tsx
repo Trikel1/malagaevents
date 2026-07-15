@@ -285,13 +285,16 @@ const Index = () => {
 
             {/* ============== Este finde ============== */}
             <section>
-              <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.thisWeekend')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=weekend')}>
+              <div className="flex items-end justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <h2 className="section-title">{t('home.sections.thisWeekend')}</h2>
+                  <div className="section-rule mt-2" aria-hidden />
+                </div>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4 shrink-0" onClick={() => navigate('/events?filter=weekend')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
-
               </div>
+
               {loadingWeekend ? (
                 <div className="grid grid-cols-2 gap-3">
                   {[1,2].map((i) => <EventCardSkeleton key={i} />)}
