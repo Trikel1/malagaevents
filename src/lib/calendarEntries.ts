@@ -1,5 +1,5 @@
 import { formatInTimeZone } from 'date-fns-tz';
-import type { Event, EventOccurrence } from '@/types';
+import type { Event } from '@/types';
 
 export const CALENDAR_TIMEZONE = 'Europe/Madrid';
 
@@ -13,15 +13,27 @@ export function getMadridDateKey(iso: string | Date): string {
 }
 
 /**
- * A "calendar entry" is the unified projection used by the calendar view.
- * It re-uses the EventOccurrence shape so that consumers do not need to
- * differentiate between real occurrences and synthetic projections from
- * `events.start_at`.
+ * Minimal occurrence shape the calendar consumes. Kept loose to interop with
+ * both the DB-typed occurrence and the projection built from events.start_at.
  */
-export type CalendarEntry = EventOccurrence & {
+export interface CalendarOccurrenceInput {
+  id: string;
+  event_id: string;
+  start_datetime: string;
+  end_datetime?: string;
+  buy_url?: string;
+  sold_out?: boolean;
+  event?: Event;
+}
+
+/**
+ * A "calendar entry" is the unified projection used by the calendar view.
+ */
+export type CalendarEntry = CalendarOccurrenceInput & {
   /** True when this entry is a synthetic projection from events.start_at */
   isSynthetic?: boolean;
 };
+
 
 /**
  * Merge real occurrences with a projection built from published events.
