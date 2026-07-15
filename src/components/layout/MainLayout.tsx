@@ -19,25 +19,30 @@ const MainLayout = () => {
 
   return (
     <div
-      className="min-h-screen relative"
+      className={
+        isSportsHome
+          ? 'min-h-screen relative bg-[hsl(168_28%_92%)] dark:bg-[hsl(190_32%_9%)]'
+          : 'min-h-screen relative bg-background'
+      }
       data-mode={appMode}
       data-route={routeKey}
-      style={
-        isSportsHome
-          ? {
-              // Opaque mediterranean teal so the safe-area/nav strip never
-              // reveals a white band at the bottom of the sports landing.
-              background: 'hsl(168 28% 92%)',
-            }
-          : undefined
-      }
     >
-      {/* Dark-mode override for the sports landing background */}
-      {isSportsHome && (
-        <style>{`.dark [data-mode="deportes"][data-route="home"]{background:hsl(190 32% 9%)!important}`}</style>
-      )}
-      {!isSportsHome && <div aria-hidden className="absolute inset-0 bg-background -z-10" />}
       <LiquidGlassBackdrop />
+      <main
+        className="relative z-[1]"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
+        }}
+      >
+        <div key={routeKey} className="liquid-page-shell">
+          <Outlet />
+        </div>
+      </main>
+      <BottomNav />
+    </div>
+  );
+};
+
       <main
         className="relative z-[1]"
         style={{
