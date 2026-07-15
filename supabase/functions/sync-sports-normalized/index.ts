@@ -197,19 +197,10 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   if (!checkAuth(req)) return json({ error: "unauthorized" }, 401);
 
-  let body: { sourceName?: string; feedUrl?: string; adapter?: "json" } = {};
+  let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" } = {};
   try { body = await req.json(); } catch { /* empty body OK */ }
 
-  const sourceName = (body.sourceName ?? "malaga-sports-normalized").trim();
-  const feedUrl = (body.feedUrl ?? Deno.env.get("SPORTS_NORMALIZED_FEED_URL") ?? "").trim();
   const adapter = body.adapter ?? "json";
-
-  if (!feedUrl) {
-    return json({
-      error: "no_feed_url",
-      hint: "Set SPORTS_NORMALIZED_FEED_URL secret or pass body.feedUrl",
-    }, 400);
-  }
   if (adapter !== "json") {
     return json({ error: "adapter_not_implemented", adapter, phase: "A" }, 501);
   }
@@ -220,23 +211,68 @@ Deno.serve(async (req) => {
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
 
+  // Resolve source: prefer registry lookup by slug; fallback to body/env for backward compat
+  let sourceId: string | null = null;
+  let sourceName = (body.sourceName ?? "malaga-sports-normalized").trim();
+  let feedUrl = (body.feedUrl ?? "").trim();
+  const slug = (body.slug ?? "").trim();
+
+  if (slug) {
+    const { data: srcRow } = await sb.from("sports_sources")
+      .select("id, slug, name, primary_url, enabled")
+      .eq("slug", slug).maybeSingle();
+    if (!srcRow) return json({ error: "source_not_found", slug }, 404);
+    if (!(srcRow as { enabled: boolean }).enabled) {
+      return json({ error: "source_disabled", slug }, 409);
+    }
+    sourceId = (srcRow as { id: string }).id;
+    sourceName = (srcRow as { slug: string }).slug;
+    if (!feedUrl) feedUrl = ((srcRow as { primary_url: string | null }).primary_url ?? "").trim();
+  }
+
+  if (!feedUrl) feedUrl = (Deno.env.get("SPORTS_NORMALIZED_FEED_URL") ?? "").trim();
+  if (!feedUrl) {
+    return json({
+      error: "no_feed_url",
+      hint: "Pass body.slug (registered source) or body.feedUrl, or set SPORTS_NORMALIZED_FEED_URL",
+    }, 400);
+  }
+
   const startedAt = Date.now();
-  // Best-effort run log — table may or may not have all columns; ignore errors.
+  const attemptIso = new Date().toISOString();
   const { data: runRow } = await sb.from("sports_sync_runs")
-    .insert({ status: "running", source: sourceName })
+    .insert({ status: "running", source_slug: sourceName, source_id: sourceId, adapter })
     .select("id").maybeSingle();
   const runId = (runRow as { id: string } | null)?.id ?? null;
+  if (sourceId) {
+    await sb.from("sports_sources")
+      .update({ last_attempt_at: attemptIso, last_status: "running" })
+      .eq("id", sourceId);
+  }
 
   try {
     const { counters, feedCount } = await processSource(sb, sourceName, feedUrl);
     const durationMs = Date.now() - startedAt;
+    const finalStatus = counters.errors === 0 ? "success" : "partial";
     if (runId) {
       await sb.from("sports_sync_runs").update({
-        status: counters.errors === 0 ? "success" : "partial",
-        inserted: counters.inserted,
-        updated: counters.updated,
+        status: finalStatus,
+        items_fetched: feedCount,
+        items_upserted: counters.inserted + counters.updated,
+        items_failed: counters.errors,
         finished_at: new Date().toISOString(),
       }).eq("id", runId);
+    }
+    if (sourceId) {
+      await sb.from("sports_sources").update({
+        last_status: finalStatus,
+        last_success_at: counters.errors === 0 ? new Date().toISOString() : undefined,
+        last_error: counters.errors === 0 ? null : `errors=${counters.errors}`,
+        consecutive_failures: counters.errors === 0 ? 0 : undefined,
+        items_fetched: feedCount,
+        items_upserted: counters.inserted + counters.updated,
+        last_sync_at: new Date().toISOString(),
+      }).eq("id", sourceId);
     }
     return json({
       ok: true, sourceName, adapter, feedCount, counters, durationMs, runId,
