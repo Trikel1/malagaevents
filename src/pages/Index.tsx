@@ -400,7 +400,7 @@ const Index = () => {
                 {INSTITUTIONAL_CARDS.map((c) => (
                   <div key={c.key} className="glass-card p-4 flex flex-col gap-2">
                     <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <c.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
+                      <c.icon className="h-5 w-5 text-primary" aria-hidden />
                     </div>
                     <div>
                       <div className="font-semibold text-sm leading-tight">{t(`home.institutional.${c.key}.label`)}</div>
