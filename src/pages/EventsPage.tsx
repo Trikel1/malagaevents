@@ -545,7 +545,7 @@ const CultureEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                className="min-h-[44px] px-3 text-xs text-muted-foreground hover:text-foreground"
               >
                 {t('events.clearFilters', 'Limpiar')}
               </Button>
