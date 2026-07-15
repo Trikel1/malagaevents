@@ -387,8 +387,12 @@ const CultureEventsPage = () => {
       />
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <header className="glass-nav sticky top-0 z-40 rounded-none border-b border-border/40">
-        <div className="px-4 pt-3 pb-2.5 sm:px-6 sm:pt-4 space-y-2.5">
+      <header
+        className="glass-nav sticky top-0 z-40 rounded-none border-b border-border/40"
+        style={{ ['--events-header-h' as string]: 'calc(env(safe-area-inset-top, 0px) + 148px)' }}
+      >
+        <div className="px-4 pt-3 pb-2.5 sm:px-6 sm:pt-4 space-y-2.5 max-w-6xl mx-auto">
+
           {/* Title + count pill */}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
@@ -521,11 +525,12 @@ const CultureEventsPage = () => {
                   aria-selected={active}
                   onClick={() => setPreset(p.key)}
                   className={cn(
-                    'shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium border transition-all whitespace-nowrap',
+                    'shrink-0 h-9 px-3.5 rounded-full text-sm font-medium border transition-all whitespace-nowrap',
                     active
                       ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                       : 'bg-muted/60 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground',
                   )}
+
                 >
                   {shortLabel}
                 </button>
@@ -541,7 +546,7 @@ const CultureEventsPage = () => {
                   key={chip.key}
                   type="button"
                   onClick={chip.onRemove}
-                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-[11px] border border-border/60 max-w-full"
+                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-[12px] border border-border/60 max-w-full"
                   aria-label={`${t('common.remove', 'Quitar')} ${chip.label}`}
                 >
                   <span className="truncate max-w-[160px]">{chip.label}</span>
@@ -552,17 +557,18 @@ const CultureEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                className="ml-auto h-7 px-2 text-[12px] text-muted-foreground hover:text-foreground"
               >
                 {t('events.clearFilters', 'Limpiar')}
               </Button>
+
             </div>
           )}
         </div>
       </header>
 
       {/* ── BODY ───────────────────────────────────────────────────────── */}
-      <main className="px-4 py-4 sm:px-6">
+      <main className="px-4 py-4 sm:px-6 max-w-6xl mx-auto">
         <div className="mb-4">
           <VenueKindFilter
             selectedVenueIds={selectedVenueIds}

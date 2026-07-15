@@ -107,13 +107,14 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
             {/* Subtle bottom gradient for legibility */}
             <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
           </div>
-          <CardContent className="p-2.5">
-            <h3 className="text-sm font-semibold line-clamp-1 mb-0.5 leading-tight">{eventTitle}</h3>
+          <CardContent className="p-2.5 sm:p-3">
+            <h3 className="text-sm sm:text-[15px] font-semibold line-clamp-1 mb-0.5 leading-tight">{eventTitle}</h3>
             {denseMetaParts.length > 0 && (
-              <p className="text-[11px] text-muted-foreground truncate">
+              <p className="text-[11px] sm:text-[13px] text-muted-foreground truncate">
                 {denseMetaParts.join(' · ')}
               </p>
             )}
+
           </CardContent>
         </Card>
       </Link>

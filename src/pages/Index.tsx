@@ -95,9 +95,10 @@ const Index = () => {
 
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
-        'relative text-white px-4 pt-5 pb-14 overflow-hidden',
+        'relative text-white px-4 sm:px-6 pt-5 pb-14 overflow-hidden',
         appMode === 'deportes' ? 'bg-gradient-hero-sports' : 'bg-gradient-hero'
       )}>
+
         {/* Subtle depth layer */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -top-32 -left-20 h-80 w-80 rounded-full bg-white/15 blur-3xl" />
@@ -169,13 +170,13 @@ const Index = () => {
         </form>
       </header>
 
-      <main className="px-4 -mt-9 space-y-8 pb-8 relative z-10">
+      <main className="px-4 sm:px-6 -mt-9 space-y-8 pb-8 relative z-10 max-w-6xl mx-auto">
         {appMode === 'deportes' ? (
           <div className="pt-6"><SportsContent /></div>
         ) : (
           <>
             {/* ============== QUICK ACTIONS visible desde primer pantallazo ============== */}
-            <section aria-label={t('home.quickActions.aria')} className="glass-panel p-3">
+            <section aria-label={t('home.quickActions.aria')} className="glass-panel p-4 sm:p-5">
               <div className="grid grid-cols-3 gap-2">
                 {QUICK_ACTIONS.map((qa) => (
                   <button
@@ -233,9 +234,10 @@ const Index = () => {
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
                 <h2 className="text-lg font-bold tracking-tight">{t('home.sections.nowInMalaga')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=today')}>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=today')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
+
               </div>
               {loadingToday ? (
                 <div className="grid grid-cols-2 gap-3">
@@ -264,7 +266,7 @@ const Index = () => {
                     className="glass-card liquid-hover liquid-press text-left p-4 min-h-[108px] flex flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <card.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
+                      <card.icon className="h-5 w-5 text-primary" aria-hidden />
                     </div>
                     <div>
                       <div className="font-semibold text-sm leading-tight">{t(`home.discover.${card.key}.label`)}</div>
@@ -279,9 +281,10 @@ const Index = () => {
             <section>
               <div className="flex justify-between items-center mb-3 px-1">
                 <h2 className="text-lg font-bold tracking-tight">{t('home.sections.thisWeekend')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/events?filter=weekend')}>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=weekend')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
+
               </div>
               {loadingWeekend ? (
                 <div className="grid grid-cols-2 gap-3">
@@ -398,7 +401,7 @@ const Index = () => {
                 {INSTITUTIONAL_CARDS.map((c) => (
                   <div key={c.key} className="glass-card p-4 flex flex-col gap-2">
                     <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <c.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
+                      <c.icon className="h-5 w-5 text-primary" aria-hidden />
                     </div>
                     <div>
                       <div className="font-semibold text-sm leading-tight">{t(`home.institutional.${c.key}.label`)}</div>
@@ -419,10 +422,11 @@ const Index = () => {
                   { n: t('home.stats.sportsValue'), l: t('home.stats.sportsGrowing') },
                 ].map((s) => (
                   <div key={s.l} className="rounded-2xl bg-background/50 border border-border/40 px-2 py-3 text-center">
-                    <div className="text-base sm:text-lg font-bold tracking-tight text-primary">{s.n}</div>
-                    <div className="text-[10.5px] sm:text-[11px] text-muted-foreground leading-tight mt-0.5">{s.l}</div>
+                    <div className="text-lg sm:text-xl font-bold tracking-tight text-primary">{s.n}</div>
+                    <div className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-tight mt-1">{s.l}</div>
                   </div>
                 ))}
+
               </div>
               <p className="mt-3 text-center text-[11px] text-muted-foreground italic">
                 {t('home.stats.footer')}
