@@ -1,11 +1,11 @@
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, Calendar, Pill, ChevronRight, Sparkles, Baby,
   Music, Drama, PartyPopper, Building2, Trees, Users, Ticket, Map as MapIcon,
-  Landmark, Trophy, Radar, Heart,
+  Landmark, Trophy, Radar, Heart, X,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,26 @@ const Index = () => {
   
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
+
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchOpen) {
+      // focus on next tick so the slide-down transition has started
+      const id = window.setTimeout(() => searchInputRef.current?.focus(), 50);
+      return () => window.clearTimeout(id);
+    }
+  }, [searchOpen]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    navigate(`/events?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+  };
 
   const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({
     weekendOnly: true,
@@ -189,16 +209,81 @@ const Index = () => {
           {!isSports && (
             <button
               type="button"
-              onClick={() => navigate('/events')}
+              onClick={() => setSearchOpen((v) => !v)}
               aria-label={t('home.hero.searchAria')}
+              aria-expanded={searchOpen}
+              aria-controls="global-search-panel"
               title={t('home.hero.searchAria')}
               className="liquid-press glass-button shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-3 sm:px-4 rounded-full text-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
-              <Search className="h-5 w-5" aria-hidden="true" />
-              <span className="hidden sm:inline text-sm font-semibold">{t('home.hero.searchLabel', 'Buscar')}</span>
+              {searchOpen ? (
+                <X className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <Search className="h-5 w-5" aria-hidden="true" />
+              )}
+              <span className="hidden sm:inline text-sm font-semibold">
+                {searchOpen
+                  ? t('common.close', 'Cerrar')
+                  : t('home.hero.searchLabel', 'Buscar')}
+              </span>
             </button>
           )}
         </div>
+
+        {/* Barra de búsqueda global desplegable */}
+        {!isSports && (
+          <div
+            id="global-search-panel"
+            className={cn(
+              'grid transition-all duration-300 ease-out',
+              searchOpen
+                ? 'grid-rows-[1fr] opacity-100 mt-3'
+                : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none',
+            )}
+          >
+            <div className="overflow-hidden">
+              <form
+                onSubmit={handleSearchSubmit}
+                role="search"
+                className="flex items-center gap-2 h-12 px-3 rounded-2xl bg-white/95 dark:bg-slate-900/85 backdrop-blur border border-white/40 shadow-lg"
+              >
+                <Search className="h-5 w-5 text-slate-500 shrink-0" aria-hidden="true" />
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t(
+                    'home.hero.searchPlaceholder',
+                    'Busca eventos, lugares, categorías…'
+                  )}
+                  className="flex-1 min-w-0 bg-transparent border-0 outline-none text-sm text-slate-900 dark:text-white placeholder:text-slate-500"
+                  aria-label={t('home.hero.searchAria')}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery('');
+                      searchInputRef.current?.focus();
+                    }}
+                    aria-label={t('common.clear', 'Limpiar')}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-white px-2 min-h-9"
+                  >
+                    {t('common.clear', 'Limpiar')}
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={!searchQuery.trim()}
+                  className="h-9 px-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+                >
+                  {t('common.search', 'Buscar')}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </header>
 
 
