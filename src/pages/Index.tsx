@@ -47,7 +47,7 @@ const CULTURE_CARDS = ['theaters', 'festivals', 'halls', 'museums', 'family', 'p
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
