@@ -53,7 +53,6 @@ const Index = () => {
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
-  const { data: todayEvents, isLoading: loadingToday } = useEvents({ todayOnly: true, limit: 6 });
   const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({ weekendOnly: true, limit: 6 });
 
   const { data: favorites } = useFavorites();
