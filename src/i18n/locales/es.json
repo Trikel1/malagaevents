@@ -335,8 +335,18 @@
     "allEvents": "Todos los eventos",
     "myFavorites": "Mis favoritos",
     "exportEvent": "Exportar evento",
-    "noEventsDay": "No hay eventos este día"
+    "noEventsDay": "No hay eventos este día",
+    "today": "Hoy",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "openMonthSelector": "Cambiar mes",
+    "eventsCount_one": "{{count}} evento",
+    "eventsCount_other": "{{count}} eventos",
+    "loadError": "No se pudieron cargar los eventos",
+    "seeMore": "Ver más",
+    "monthEmpty": "No hay eventos este mes"
   },
+
   "pharmacies": {
     "title": "Farmacias de guardia",
     "short": "Farmacia",

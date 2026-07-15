@@ -2,6 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Event } from '@/types';
 import type { EventFilters } from '@/components/events/FilterDrawer';
+import {
+  getMadridDateKey,
+  mergeCalendarEntries,
+  groupCalendarEntries,
+  type CalendarEntry,
+} from '@/lib/calendarEntries';
 
 interface EventOccurrence {
   id: string;
@@ -12,6 +18,7 @@ interface EventOccurrence {
   sold_out?: boolean;
   event?: Event;
 }
+
 
 interface UseEventsOptions {
   filters?: EventFilters;
@@ -236,17 +243,24 @@ export const useSimilarEvents = (event: Event | null | undefined, limit = 6) => 
   });
 };
 
-// Hook for calendar - fetches occurrences with events for a date range
+// Hook for calendar - fetches occurrences AND published events in a date range
+// and merges them so no published event is missing from the calendar.
 export const useEventOccurrences = (dateFrom: Date, dateTo: Date, filters?: {
   venueIds?: string[];
   locationIds?: string[];
   searchQuery?: string;
 }) => {
   return useQuery({
-    queryKey: ['event-occurrences', dateFrom.toISOString(), dateTo.toISOString(), filters],
-    queryFn: async () => {
-      // First get occurrences in date range
-      let query = supabase
+    queryKey: [
+      'event-occurrences',
+      dateFrom.toISOString(),
+      dateTo.toISOString(),
+      filters,
+    ],
+    staleTime: 60_000,
+    queryFn: async ({ signal }) => {
+      // 1) Real occurrences in range (joined with their event)
+      let occQuery = supabase
         .from('event_occurrences')
         .select(`
           id,
@@ -278,7 +292,7 @@ export const useEventOccurrences = (dateFrom: Date, dateTo: Date, filters?: {
             status,
             source_type,
             venues(*),
-            locations(*)
+            locations(id,name,normalized_name,province,country)
           )
         `)
         .gte('start_datetime', dateFrom.toISOString())
@@ -286,33 +300,85 @@ export const useEventOccurrences = (dateFrom: Date, dateTo: Date, filters?: {
         .eq('events.status', 'published')
         .order('start_datetime', { ascending: true });
 
-      // Apply filters if provided
-      if (filters?.venueIds && filters.venueIds.length > 0) {
-        query = query.in('events.venue_id', filters.venueIds);
+      if (filters?.venueIds?.length) {
+        occQuery = occQuery.in('events.venue_id', filters.venueIds);
+      }
+      if (filters?.locationIds?.length) {
+        occQuery = occQuery.in('events.location_id', filters.locationIds);
       }
 
-      if (filters?.locationIds && filters.locationIds.length > 0) {
-        query = query.in('events.location_id', filters.locationIds);
+      // 2) Published events whose start_at falls inside the same range
+      let evQuery = supabase
+        .from('events')
+        .select(`
+          id,
+          title,
+          description,
+          category,
+          start_at,
+          end_at,
+          venue_name,
+          venue_name_normalized,
+          venue_normalized,
+          address,
+          venue_id,
+          location_id,
+          location_normalized,
+          province,
+          image_url,
+          is_free,
+          price_info,
+          ticket_url,
+          tags,
+          status,
+          source_type,
+          venues(id,name,lat,lng),
+          locations(id,name)
+        `)
+        .eq('status', 'published')
+        .gte('start_at', dateFrom.toISOString())
+        .lte('start_at', dateTo.toISOString())
+        .order('start_at', { ascending: true });
+
+      if (filters?.venueIds?.length) {
+        evQuery = evQuery.in('venue_id', filters.venueIds);
+      }
+      if (filters?.locationIds?.length) {
+        evQuery = evQuery.in('location_id', filters.locationIds);
       }
 
-      const { data, error } = await query;
+      if (signal) {
+        occQuery = (occQuery as any).abortSignal(signal);
+        evQuery = (evQuery as any).abortSignal(signal);
+      }
 
-      if (error) throw error;
+      const [occRes, evRes] = await Promise.all([occQuery, evQuery]);
+      if (occRes.error) throw occRes.error;
+      if (evRes.error) throw evRes.error;
 
-      // Map to occurrence objects with event data
-      return (data || []).map((item: any) => ({
+      const occurrences: EventOccurrence[] = (occRes.data || []).map((item: any) => ({
         id: item.id,
         event_id: item.event_id,
         start_datetime: item.start_datetime,
         end_datetime: item.end_datetime,
         buy_url: item.buy_url,
         sold_out: item.sold_out,
-        event: item.events ? {
-          ...item.events,
-          venue: item.events.venues || undefined,
-          location: item.events.locations || undefined,
-        } : undefined,
-      })) as EventOccurrence[];
+        event: item.events
+          ? {
+              ...item.events,
+              venue: item.events.venues || undefined,
+              location: item.events.locations || undefined,
+            }
+          : undefined,
+      }));
+
+      const events: Event[] = (evRes.data || []).map((item: any) => ({
+        ...item,
+        venue: item.venues || undefined,
+        location: item.locations || undefined,
+      })) as Event[];
+
+      return mergeCalendarEntries(occurrences, events);
     },
   });
 };
@@ -320,26 +386,14 @@ export const useEventOccurrences = (dateFrom: Date, dateTo: Date, filters?: {
 // Get occurrences grouped by date for calendar view
 export const useCalendarOccurrences = (dateFrom: Date, dateTo: Date) => {
   const { data: occurrences, ...rest } = useEventOccurrences(dateFrom, dateTo);
-
-  const groupedByDate = (occurrences || []).reduce((acc, occ) => {
-    const occDate = new Date(occ.start_datetime);
-    // Use Europe/Madrid timezone for correct day grouping
-    const dateKey = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Europe/Madrid',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(occDate);
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(occ);
-    return acc;
-  }, {} as Record<string, EventOccurrence[]>);
+  const entries: CalendarEntry[] = occurrences || [];
+  const groupedByDate = groupCalendarEntries(entries);
+  // Preserve grouping key contract via Madrid TZ helper
+  void getMadridDateKey;
 
   return {
     ...rest,
     data: groupedByDate,
-    occurrences,
+    occurrences: entries,
   };
 };

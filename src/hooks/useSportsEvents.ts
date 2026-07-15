@@ -75,6 +75,8 @@ export interface SportsEventsFilters {
   venueNames?: string[];
   q?: string;
   limit?: number;
+  /** When false, the query is disabled and no request is made. Default true. */
+  enabled?: boolean;
 }
 
 async function fetchSportsEvents(filters: SportsEventsFilters): Promise<SportEvent[]> {
@@ -110,12 +112,15 @@ async function fetchSportsEvents(filters: SportsEventsFilters): Promise<SportEve
 }
 
 export function useSportsEvents(filters: SportsEventsFilters) {
+  const { enabled = true, ...rest } = filters;
   return useQuery({
-    queryKey: ['sports-events', filters],
-    queryFn: () => fetchSportsEvents(filters),
+    queryKey: ['sports-events', rest],
+    queryFn: () => fetchSportsEvents(rest),
     staleTime: 60_000,
+    enabled,
   });
 }
+
 
 export function useSportsEventsToday() {
   const today = todayMadrid();
