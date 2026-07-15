@@ -17,6 +17,7 @@ import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
 import { useSportsEvents, useSportsVenues } from '@/hooks/useSportsEvents';
 import { useMunicipalities } from '@/hooks/useMunicipalities';
 import SportIcon from '@/components/sports/SportIcon';
+import OfficialSourcesPanel from '@/components/sports/OfficialSourcesPanel';
 
 const TIMEZONE = 'Europe/Madrid';
 
@@ -619,6 +620,9 @@ const SportsContent = () => {
           renderEmpty(t('sports.empty.venuesSoon', 'Estamos incorporando recintos deportivos.'))
         )}
       </section>
+
+      {/* Fuentes oficiales — compacto, sólo modo Deportes */}
+      <OfficialSourcesPanel />
 
       {/* Organizers CTA */}
       <section className="pb-2">
