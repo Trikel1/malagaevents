@@ -23,7 +23,7 @@ interface UpcomingHighlightsProps {
  */
 const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
   const { t } = useTranslation();
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true);
   const trackRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo(() => {
