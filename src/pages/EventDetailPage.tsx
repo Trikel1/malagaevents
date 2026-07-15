@@ -462,7 +462,42 @@ END:VCALENDAR`;
             </div>
           </>
         )}
+
+        {/* Discreet provenance line — only when the event carries a real source URL */}
+        {(() => {
+          const rawUrl = (event as any).url || (event as any).source_url || null;
+          let host: string | null = null;
+          if (rawUrl) {
+            try { host = new URL(rawUrl).host.replace(/^www\./, ''); } catch { host = null; }
+          }
+          const updated = (event as any).updated_at as string | undefined;
+          if (!host && !updated) return null;
+          return (
+            <div className="pt-4 border-t border-border/50 text-[11px] text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1">
+              {host && (
+                <>
+                  <span>{t('eventDetail.source', 'Fuente:')}</span>
+                  <a
+                    href={rawUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-foreground/80 hover:text-primary hover:underline underline-offset-2 truncate max-w-[240px]"
+                  >
+                    {host}
+                  </a>
+                </>
+              )}
+              {updated && (
+                <span className="opacity-80">
+                  {host ? '· ' : ''}
+                  {t('eventDetail.updatedOn', 'Actualizado')} {new Date(updated).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              )}
+            </div>
+          );
+        })()}
       </main>
+
 
       {/* Sticky bottom CTA */}
       <div className={cn(
