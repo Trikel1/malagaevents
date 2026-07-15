@@ -356,10 +356,12 @@ const Index = () => {
 
             {/* ============== Cultura viva ============== */}
             <section>
-              <div className="flex items-center gap-2 mb-3 px-1">
+              <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="h-4 w-4 text-accent" aria-hidden />
-                <h2 className="text-lg font-bold tracking-tight">{t('home.culture.title')}</h2>
+                <h2 className="section-title">{t('home.culture.title')}</h2>
               </div>
+              <div className="section-rule mb-3" aria-hidden />
+
               <p className="text-sm text-muted-foreground mb-4 px-1 leading-relaxed">
                 {t('home.culture.subtitle')}
               </p>
