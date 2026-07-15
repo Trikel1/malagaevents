@@ -1,581 +1,348 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  parseOfficialGuardHtml,
+  dedupeGuardRows,
+  buildOfficialUrl,
+  type ParsedGuardRow,
+} from './parser.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Pharmacy extraction schema for Firecrawl JSON extraction
-const GUARDIA_SCHEMA = {
-  type: 'object',
-  properties: {
-    pharmacies: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', description: 'Pharmacy name' },
-          address: { type: 'string', description: 'Full street address' },
-          municipality: { type: 'string', description: 'Municipality or town name (e.g., Málaga, Marbella, Torremolinos)' },
-          phone: { type: 'string', description: 'Phone number' },
-          duty_date: { type: 'string', description: 'Date of guard duty (YYYY-MM-DD)' },
-          duty_hours: { type: 'string', description: 'Hours (e.g., 22:00-09:00, 24h)' },
-        },
-        required: ['name', 'address'],
-      },
-    },
-  },
-  required: ['pharmacies'],
-};
-
-const DIRECTORY_SCHEMA = {
-  type: 'object',
-  properties: {
-    pharmacies: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', description: 'Pharmacy name' },
-          address: { type: 'string', description: 'Full street address' },
-          municipality: { type: 'string', description: 'Municipality or town (e.g., Málaga, Marbella, Ronda, Antequera)' },
-          phone: { type: 'string', description: 'Phone number' },
-        },
-        required: ['name', 'address'],
-      },
-    },
-  },
-  required: ['pharmacies'],
-};
-
-// NOTE: A hard-coded FALLBACK_PHARMACIES list previously existed here and was used to
-// synthesize duty rotations when official sources failed. It has been removed on purpose:
-// a citizen-facing app must never present invented or estimated pharmacy guard shifts.
-
-
-function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]/g, '')
-    .trim();
-}
-
-function generateDedupeKey(name: string, address: string, municipality: string): string {
-  return `phdir_${normalizeText(name)}_${normalizeText(address)}_${normalizeText(municipality)}`;
-}
-
-async function scrapeWithFirecrawl(url: string, apiKey: string, schema: any, prompt: string, timeoutMs = 25000): Promise<any> {
-  console.log(`Scraping: ${url}`);
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url,
-        formats: ['markdown', 'json'],
-        jsonOptions: { schema, prompt },
-        onlyMainContent: true,
-        waitFor: 5000,
-      }),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Firecrawl error for ${url}: ${response.status}`, errorText);
-      return null;
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      console.warn(`Firecrawl timeout for ${url} after ${timeoutMs}ms`);
-    } else {
-      console.error(`Error scraping ${url}:`, error);
-    }
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// Try Jina Reader + AI Gateway as fallback for JS-heavy pages
-async function scrapeWithJinaAndAI(url: string, prompt: string): Promise<any[]> {
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-  if (!lovableApiKey) {
-    console.warn('LOVABLE_API_KEY not set, skipping Jina+AI fallback');
-    return [];
-  }
-
-  try {
-    console.log(`Jina+AI fallback for: ${url}`);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 30000);
-
-    const jinaResp = await fetch(`https://r.jina.ai/${encodeURIComponent(url)}`, {
-      headers: {
-        'Accept': 'application/json',
-        'X-Return-Format': 'markdown',
-      },
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
-
-    if (!jinaResp.ok) {
-      console.warn(`Jina failed for ${url}: ${jinaResp.status}`);
-      return [];
-    }
-
-    const jinaData = await jinaResp.json();
-    const markdown = jinaData?.data?.content || jinaData?.content || '';
-    if (!markdown || markdown.length < 100) {
-      console.warn('Jina returned insufficient content');
-      return [];
-    }
-
-    // Send to AI Gateway for extraction
-    const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        temperature: 0,
-        messages: [
-          {
-            role: 'system',
-            content: 'You extract pharmacy data from scraped web content. Return ONLY valid JSON array.',
-          },
-          {
-            role: 'user',
-            content: `${prompt}\n\nContent:\n${markdown.substring(0, 15000)}`,
-          },
-        ],
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'extract_pharmacies',
-            description: 'Extract pharmacy listings',
-            parameters: {
-              type: 'object',
-              properties: {
-                pharmacies: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      name: { type: 'string' },
-                      address: { type: 'string' },
-                      municipality: { type: 'string' },
-                      phone: { type: 'string' },
-                      duty_date: { type: 'string' },
-                    },
-                    required: ['name', 'address'],
-                  },
-                },
-              },
-              required: ['pharmacies'],
-            },
-          },
-        }],
-        tool_choice: { type: 'function', function: { name: 'extract_pharmacies' } },
-      }),
-    });
-
-    if (!aiResp.ok) {
-      console.warn(`AI Gateway failed: ${aiResp.status}`);
-      return [];
-    }
-
-    const aiData = await aiResp.json();
-    const toolCall = aiData?.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      const parsed = JSON.parse(toolCall.function.arguments);
-      return parsed.pharmacies || [];
-    }
-    return [];
-  } catch (error) {
-    console.error('Jina+AI fallback error:', error);
-    return [];
-  }
-}
-
-// ── Overpass API (OpenStreetMap) — exhaustive directory for Málaga province ──
-const OVERPASS_ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.openstreetmap.fr/api/interpreter',
+// Curated list of province zones the official portal (Provincia_pNew.asp?id=29)
+// exposes for Málaga. Extracted from the live form on 2026-07-15. Kept as a
+// static list to make the crawler predictable and cachable.
+const PROVINCE_ZONES: { id: string; label: string }[] = [
+  { id: '29000085', label: 'Alameda' },
+  { id: '29000024', label: 'Alcaucin' },
+  { id: '29000025', label: 'Algarrobo' },
+  { id: '29000079', label: 'Algatocin' },
+  { id: '29000019', label: 'Alhaurin de la Torre' },
+  { id: '29000075', label: 'Alhaurin el Grande' },
+  { id: '29000026', label: 'Almachar' },
+  { id: '29000027', label: 'Almargen' },
+  { id: '29000028', label: 'Almogia' },
+  { id: '29000003', label: 'Alora' },
+  { id: '29000071', label: 'Alozaina, El burgo, Tolox, Yunquera y Casarabonela' },
+  { id: '29000029', label: 'Alpandeire' },
+  { id: '29000011', label: 'Antequera' },
+  { id: '29000030', label: 'Archez' },
+  { id: '29000070', label: 'Archidona' },
+  { id: '29000072', label: 'Ardales - Carratraca' },
+  { id: '29000031', label: 'Arenas' },
+  { id: '29000032', label: 'Arriate' },
+  { id: '29000033', label: 'Atalajate' },
+  { id: '29000080', label: 'Benadalid' },
+  { id: '29000023', label: 'Benahavis' },
+  { id: '29000083', label: 'Benalauria' },
+  { id: '29000018', label: 'Benalmadena' },
+  { id: '29000034', label: 'Benamargosa' },
+  { id: '29000035', label: 'Benamocarra' },
+  { id: '29000082', label: 'Benarraba' },
+  { id: '29000087', label: 'Campillos' },
+  { id: '29000037', label: 'Canillas de Aceituno' },
+  { id: '29000073', label: 'Canillas de Albaida' },
+  { id: '29000038', label: 'Cañete La Real' },
+  { id: '29000039', label: 'Cartajima' },
+  { id: '29000010', label: 'Cartama' },
+  { id: '29000077', label: 'Cartaojal' },
+  { id: '29000004', label: 'Casabermeja - Riogordo - Colmenar' },
+  { id: '29000076', label: 'Coin' },
+  { id: '29000040', label: 'Comares' },
+  { id: '29000090', label: 'Competa' },
+  { id: '29000015', label: 'Cortes - Montejaque - Jimera - Benaojan' },
+  { id: '29000041', label: 'Cuevas Bajas' },
+  { id: '29000091', label: 'Cuevas de San Marcos.' },
+  { id: '29000042', label: 'Cuevas del Becerro' },
+  { id: '29000043', label: 'Cutar' },
+  { id: '29000067', label: 'El Borge' },
+  { id: '29000036', label: 'El Burgo' },
+  { id: '29000020', label: 'Estepona' },
+  { id: '29000044', label: 'Farajan' },
+  { id: '29000045', label: 'Frigiliana' },
+  { id: '29000069', label: 'Fuengirola - Mijas' },
+  { id: '29000046', label: 'Gaucin' },
+  { id: '29000081', label: 'Genalguacil' },
+  { id: '29000047', label: 'Guaro' },
+  { id: '29000005', label: 'Humilladero - Mollina - Fuente Piedra' },
+  { id: '29000048', label: 'Igualeja' },
+  { id: '29000022', label: 'Istan' },
+  { id: '29000049', label: 'Iznate' },
+  { id: '29000078', label: 'Jubrique' },
+  { id: '29000050', label: 'Juzcar' },
+  { id: '29000065', label: 'La Viñuela' },
+  { id: '29000051', label: 'Macharaviaya' },
+  { id: '29000001', label: 'Málaga capital' },
+  { id: '29000002', label: 'Malnilva' },
+  { id: '29000068', label: 'Marbella' },
+  { id: '29000084', label: 'Mijas' },
+  { id: '29000052', label: 'Moclinejo' },
+  { id: '29000053', label: 'Monda' },
+  { id: '29000092', label: 'Montecorto' },
+  { id: '29000008', label: 'Nerja' },
+  { id: '29000021', label: 'Ojen' },
+  { id: '29000054', label: 'Parauta' },
+  { id: '29000055', label: 'Periana' },
+  { id: '29000007', label: 'Pizarra' },
+  { id: '29000056', label: 'Pujerra' },
+  { id: '29000014', label: 'Ricon de la Victoria' },
+  { id: '29000009', label: 'Ronda' },
+  { id: '29000057', label: 'Salares' },
+  { id: '29000017', label: 'San Pedro Alcantara' },
+  { id: '29000058', label: 'Sayalonga' },
+  { id: '29000059', label: 'Sedella' },
+  { id: '29000093', label: 'Serrato' },
+  { id: '29000060', label: 'Sierra de Yeguas' },
+  { id: '29000074', label: 'Teba' },
+  { id: '29000013', label: 'Torre del Mar' },
+  { id: '29000006', label: 'Torremolinos' },
+  { id: '29000086', label: 'Torrox - Torrox Costa' },
+  { id: '29000061', label: 'Totalan' },
+  { id: '29000062', label: 'Valle de Abdalajis' },
+  { id: '29000012', label: 'Velez - Malaga' },
+  { id: '29000016', label: 'Villanueva de Algaidas' },
+  { id: '29000094', label: 'Villanueva de la Concepcion' },
+  { id: '29000064', label: 'Villanueva de Tapia' },
+  { id: '29000063', label: 'Villanueva del Rosario' },
+  { id: '29000088', label: 'Villanueva del Trabuco' },
+  { id: '29000066', label: 'Yunquera' },
 ];
 
-async function scrapeFromOverpass(): Promise<any[]> {
-  // ISO3166-2 = ES-MA = Málaga province
-  const query = `[out:json][timeout:60];
-area["ISO3166-2"="ES-MA"]->.malaga;
-(
-  node["amenity"="pharmacy"](area.malaga);
-  way["amenity"="pharmacy"](area.malaga);
-  relation["amenity"="pharmacy"](area.malaga);
-);
-out center tags;`;
+const OFFICIAL_HOST = 'farmaciasguardia.farmaceuticos.com';
+const FORM_URL = `https://${OFFICIAL_HOST}/web_guardias/publico/Provincia_pNew.asp?id=29`;
+const USER_AGENT =
+  'Mozilla/5.0 (compatible; MalagaEventsGuardBot/1.0; +https://malagaevents.lovable.app)';
 
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    try {
-      console.log(`Querying Overpass: ${endpoint}`);
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 75000);
-
-      const resp = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'User-Agent': 'MalagaEvents/1.0 (https://malagaevents.lovable.app; contact@malagaevents.app)',
-        },
-        body: `data=${encodeURIComponent(query)}`,
-        signal: controller.signal,
-      });
-      clearTimeout(timer);
-
-      if (!resp.ok) {
-        console.warn(`Overpass ${endpoint} failed: ${resp.status}`);
-        continue;
-      }
-      const data = await resp.json();
-      const elements: any[] = data?.elements || [];
-      console.log(`Overpass returned ${elements.length} pharmacy elements`);
-
-      const mapped = elements
-        .map((el: any) => {
-          const tags = el.tags || {};
-          const lat = el.lat ?? el.center?.lat ?? null;
-          const lng = el.lon ?? el.center?.lon ?? null;
-          if (!lat || !lng) return null;
-
-          const name = (tags.name || tags['name:es'] || tags.brand || '').trim();
-          if (!name || name.length < 2) return null;
-
-          const street = tags['addr:street'] || '';
-          const num = tags['addr:housenumber'] || '';
-          const postcode = tags['addr:postcode'] || '';
-          const city = tags['addr:city'] || tags['addr:suburb'] || tags['addr:town'] || tags['addr:village'] || 'Málaga';
-          const addrParts = [
-            [street, num].filter(Boolean).join(' ').trim(),
-            postcode,
-            city,
-          ].filter(Boolean);
-          const address = addrParts.join(', ') || `${city}, Málaga`;
-
-          const phone = (tags.phone || tags['contact:phone'] || tags['phone:mobile'] || '')
-            .toString()
-            .trim() || null;
-
-          return {
-            name,
-            address,
-            municipality: city,
-            phone,
-            lat: Number(lat),
-            lng: Number(lng),
-            source_ref: 'openstreetmap.org',
-          };
-        })
-        .filter(Boolean);
-
-      // Dedupe by name + lat/lng rounded
-      const seen = new Set<string>();
-      const unique = mapped.filter((p: any) => {
-        const key = `${normalizeText(p.name)}|${p.lat.toFixed(4)}|${p.lng.toFixed(4)}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-
-      console.log(`Overpass: ${unique.length} unique pharmacies after dedupe`);
-      return unique;
-    } catch (err) {
-      console.warn(`Overpass endpoint ${endpoint} error:`, err instanceof Error ? err.message : err);
-    }
-  }
-  return [];
+// windows-1252 → utf8 decode via TextDecoder
+async function fetchTextLatin1(url: string, headers: HeadersInit): Promise<{ status: number; text: string }> {
+  const resp = await fetch(url, { headers, redirect: 'follow' });
+  const buf = new Uint8Array(await resp.arrayBuffer());
+  // Portal declares windows-1252; latin1 is close enough for our field extraction
+  // (accents survive intact for the patterns we match).
+  const text = new TextDecoder('windows-1252').decode(buf);
+  return { status: resp.status, text };
 }
 
-// NOTE: generateDutySchedule() has been intentionally removed. Duty shifts must come
-// exclusively from verifiable official sources (farmaciasguardia.farmaceuticos.com).
+async function fetchOfficialForZone(
+  zoneId: string,
+  dateISO: string,
+  cookie: string
+): Promise<{ url: string; ok: boolean; status: number; text: string }> {
+  const url = buildOfficialUrl(zoneId, dateISO);
+  const { status, text } = await fetchTextLatin1(url, {
+    'User-Agent': USER_AGENT,
+    'Accept': 'text/html,application/xhtml+xml',
+    'Accept-Language': 'es-ES,es;q=0.9',
+    'Referer': FORM_URL,
+    'Cookie': cookie,
+  });
+  return { url, ok: status >= 200 && status < 400, status, text };
+}
 
+/** Get the ASP session cookie by visiting the form page once. */
+async function primeSession(): Promise<string> {
+  const resp = await fetch(FORM_URL, {
+    headers: { 'User-Agent': USER_AGENT, 'Accept': 'text/html' },
+    redirect: 'manual',
+  });
+  await resp.arrayBuffer(); // drain
+  const setCookie = resp.headers.get('set-cookie') || '';
+  const match = setCookie.match(/ASPSESSIONID[A-Z]+=[^;]+/);
+  return match ? match[0] : '';
+}
+
+// Ingestion allowlist for pharmacies_guard.source_ref — must match the DB
+// trigger (pharmacies_guard_enforce_official_source). Enforced client-side
+// as defense in depth using exact hostname.
+const ALLOWED_HOSTS = new Set([
+  'farmaciasguardia.farmaceuticos.com',
+  'farmaceuticos.com',
+  'icofma.es',
+  'cofmalaga.com',
+  'cgcof.es',
+]);
+
+function isAllowedSource(sourceRef: string): boolean {
+  try {
+    const u = new URL(sourceRef);
+    const host = u.hostname.toLowerCase();
+    return ALLOWED_HOSTS.has(host) || [...ALLOWED_HOSTS].some((h) => host.endsWith(`.${h}`));
+  } catch {
+    // Fallback for legacy plain-domain values: still whitelist by substring.
+    return [...ALLOWED_HOSTS].some((h) => sourceRef.toLowerCase().includes(h));
+  }
+}
+
+function todayInMadrid(): string {
+  // Europe/Madrid calendar day, no libs.
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(now);
+  const y = parts.find((p) => p.type === 'year')?.value;
+  const m = parts.find((p) => p.type === 'month')?.value;
+  const d = parts.find((p) => p.type === 'day')?.value;
+  return `${y}-${m}-${d}`;
+}
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
+    const url = new URL(req.url);
+    const params = url.searchParams;
+    let body: Record<string, unknown> = {};
+    if (req.method === 'POST') {
+      try { body = await req.json(); } catch { body = {}; }
+    }
+    const dateISO = (params.get('date') || (body.date as string) || todayInMadrid()).slice(0, 10);
+    const zonesLimit = Number(params.get('zonesLimit') || body.zonesLimit || 0) || undefined;
+    const onlyZoneId = params.get('zone') || (body.zone as string) || undefined;
+    const dryRun = params.get('dryRun') === '1' || body.dryRun === true;
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('Starting pharmacy scraping (province-wide)...');
+    console.log(`[scrape-pharmacies] start date=${dateISO} zonesLimit=${zonesLimit ?? 'all'} zone=${onlyZoneId ?? '*'} dryRun=${dryRun}`);
 
     const results = {
-      guardia_scraped: 0,
-      guardia_inserted: 0,
-      directory_scraped: 0,
-      directory_upserted: 0,
-      guardia_source: 'none',
-      directory_source: 'none',
-      source_status: 'official_data_unavailable' as
+      date: dateISO,
+      status: 'official_data_unavailable' as
         | 'official_data_unavailable'
-        | 'official_data_available',
+        | 'official_data_available'
+        | 'sync_error',
+      zones_queried: 0,
+      zones_with_data: 0,
+      zones_empty: 0,
+      zones_failed: 0,
+      guardia_inserted: 0,
+      per_municipality: {} as Record<string, number>,
       errors: [] as string[],
+      updated_at: new Date().toISOString(),
     };
 
-    // ── 1. GUARDIA PHARMACIES ──
-    let guardiaPharmacies: any[] = [];
+    const cookie = await primeSession();
+    if (!cookie) console.warn('[scrape-pharmacies] no session cookie obtained (portal may still work)');
 
-    // Try Firecrawl first (with timeout)
-    if (firecrawlKey) {
-      const guardiaResult = await scrapeWithFirecrawl(
-        'https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29',
-        firecrawlKey,
-        GUARDIA_SCHEMA,
-        'Extract all on-duty pharmacy information shown on this page for Málaga province (ID 29). For each pharmacy get: name, address, municipality/town, phone, and date of guard duty in YYYY-MM-DD format.',
-        20000
-      );
+    const zonesToQuery = onlyZoneId
+      ? PROVINCE_ZONES.filter((z) => z.id === onlyZoneId)
+      : (zonesLimit ? PROVINCE_ZONES.slice(0, zonesLimit) : PROVINCE_ZONES);
 
-      if (guardiaResult?.success && guardiaResult?.data?.json?.pharmacies?.length > 5) {
-        guardiaPharmacies = guardiaResult.data.json.pharmacies.map((p: any) => ({
-          ...p,
-          municipality: p.municipality || 'Málaga',
-          source_ref: 'farmaciasguardia.farmaceuticos.com',
-        }));
-        results.guardia_scraped = guardiaPharmacies.length;
-        results.guardia_source = 'firecrawl';
-        console.log(`Scraped ${guardiaPharmacies.length} guardia pharmacies via Firecrawl`);
-      } else {
-        console.log('Firecrawl guardia returned insufficient data, trying Jina+AI...');
+    const collected: ParsedGuardRow[] = [];
+
+    for (const zone of zonesToQuery) {
+      results.zones_queried += 1;
+      try {
+        const r = await fetchOfficialForZone(zone.id, dateISO, cookie);
+        if (!r.ok) {
+          results.zones_failed += 1;
+          results.errors.push(`zone_${zone.id}_http_${r.status}`);
+          continue;
+        }
+        const parsed = parseOfficialGuardHtml(r.text, {
+          source_ref: r.url,
+          duty_date: dateISO,
+          zone_label: zone.label,
+        });
+        if (!parsed.available || parsed.rows.length === 0) {
+          results.zones_empty += 1;
+          continue;
+        }
+        // Whitelist enforcement per row
+        const safeRows = parsed.rows.filter((row) => isAllowedSource(row.source_ref));
+        if (safeRows.length > 0) {
+          results.zones_with_data += 1;
+          collected.push(...safeRows);
+        }
+      } catch (err) {
+        results.zones_failed += 1;
+        results.errors.push(`zone_${zone.id}_err_${err instanceof Error ? err.message : 'unknown'}`);
       }
+      // gentle throttle so we don't hammer the ASP server
+      await new Promise((res) => setTimeout(res, 40));
     }
 
-    // Jina+AI fallback for guardia
-    if (guardiaPharmacies.length < 5) {
-      const jinaPharmacies = await scrapeWithJinaAndAI(
-        'https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29',
-        'Extract ALL on-duty pharmacies shown for Málaga province. For each pharmacy: name, full address, municipality/town, phone number, and duty_date in YYYY-MM-DD format.'
-      );
-      if (jinaPharmacies.length > guardiaPharmacies.length) {
-        guardiaPharmacies = jinaPharmacies.map((p: any) => ({
-          ...p,
-          municipality: p.municipality || 'Málaga',
-          source_ref: 'farmaciasguardia.farmaceuticos.com',
-        }));
-        results.guardia_scraped = guardiaPharmacies.length;
-        results.guardia_source = 'jina-ai';
-        console.log(`Scraped ${guardiaPharmacies.length} guardia pharmacies via Jina+AI`);
-      }
+    const deduped = dedupeGuardRows(collected);
+    for (const r of deduped) {
+      results.per_municipality[r.municipality] = (results.per_municipality[r.municipality] || 0) + 1;
     }
 
-    // Build duty entries ONLY from officially-scraped data. Every row must include a
-    // real duty_date; otherwise it is discarded. If nothing verifiable remains we do NOT
-    // delete existing rows and we do NOT insert anything.
-    const todayDate = new Date();
-    todayDate.setHours(0, 0, 0, 0);
-    const todayStr = todayDate.toISOString().split('T')[0];
+    console.log(`[scrape-pharmacies] parsed=${collected.length} unique=${deduped.length} municipalities=${Object.keys(results.per_municipality).length}`);
 
-    const dutyEntries = guardiaPharmacies
-      .filter((p: any) =>
-        typeof p?.duty_date === 'string' &&
-        /^\d{4}-\d{2}-\d{2}$/.test(p.duty_date) &&
-        typeof p?.name === 'string' && p.name.trim().length > 1 &&
-        typeof p?.address === 'string' && p.address.trim().length > 3
-      )
-      .map((p: any) => ({
-        name: p.name.trim(),
-        address: p.address.trim(),
-        phone: p.phone ? String(p.phone).trim() : null,
-        lat: null,
-        lng: null,
-        municipality: (p.municipality || 'Málaga').trim(),
-        date_from: p.duty_date,
-        date_to: p.duty_date,
-        source_ref: p.source_ref,
-      }));
+    if (deduped.length > 0) {
+      results.status = 'official_data_available';
 
-    const batchSize = 50;
-
-    if (dutyEntries.length >= 5) {
-      results.source_status = 'official_data_available';
-
-      // Only touch pharmacies_guard when we have verifiable official data.
-      const { error: deleteError } = await supabase
-        .from('pharmacies_guard')
-        .delete()
-        .gte('date_from', todayStr);
-
-      if (deleteError) {
-        console.error('Error deleting old guard entries:', deleteError.message);
-        results.errors.push(`guard_delete: ${deleteError.message}`);
-      }
-
-      for (let i = 0; i < dutyEntries.length; i += batchSize) {
-        const batch = dutyEntries.slice(i, i + batchSize);
-        const { error } = await supabase
+      if (!dryRun) {
+        // Only touch rows for the SPECIFIC target date; preserve everything else.
+        const { error: delErr } = await supabase
           .from('pharmacies_guard')
-          .insert(batch);
+          .delete()
+          .eq('date_from', dateISO)
+          .eq('date_to', dateISO);
+        if (delErr) results.errors.push(`delete_${delErr.message}`);
 
-        if (error) {
-          console.error(`Guard batch insert error:`, error.message);
-          results.errors.push(`guard_batch: ${error.message}`);
-        } else {
-          results.guardia_inserted += batch.length;
+        const batchSize = 100;
+        const payload = deduped.map((r) => ({
+          name: r.name,
+          address: r.address,
+          phone: null,
+          lat: null,
+          lng: null,
+          municipality: r.municipality,
+          date_from: r.duty_date,
+          date_to: r.duty_date,
+          source_ref: r.source_ref,
+        }));
+        for (let i = 0; i < payload.length; i += batchSize) {
+          const batch = payload.slice(i, i + batchSize);
+          const { error } = await supabase.from('pharmacies_guard').insert(batch);
+          if (error) {
+            results.errors.push(`insert_${error.message}`);
+          } else {
+            results.guardia_inserted += batch.length;
+          }
         }
       }
     } else {
-      console.warn(
-        'Official guardia data unavailable — preserving existing rows, inserting nothing.'
-      );
-      results.guardia_source = 'none';
-      results.guardia_scraped = 0;
-      results.guardia_inserted = 0;
+      // Honest failure signal: distinguish "no data" from "sync error".
+      results.status = results.zones_failed > 0 && results.zones_with_data === 0
+        ? 'sync_error'
+        : 'official_data_unavailable';
+      console.warn('[scrape-pharmacies] no verifiable rows, preserving existing DB state');
     }
 
-    // ── 2. DIRECTORY PHARMACIES ──
-    // Directory rows are informative only; they NEVER become guardias.
-    // Prefer Overpass (OSM) as it exposes coordinates. Then optionally supplement
-    // via Firecrawl/Jina scraping of icofma.es. Never fall back to fabricated data.
-    let directoryPharmacies: any[] = [];
-
-    const overpassPharmacies = await scrapeFromOverpass();
-    if (overpassPharmacies.length >= 5) {
-      directoryPharmacies = overpassPharmacies;
-      results.directory_scraped = directoryPharmacies.length;
-      results.directory_source = 'openstreetmap';
-      console.log(`Directory via Overpass: ${directoryPharmacies.length}`);
-    }
-
-    // Try Firecrawl for icofma.es to supplement missing phones/municipality metadata.
-    if (firecrawlKey && directoryPharmacies.length < 50) {
-      const dirResult = await scrapeWithFirecrawl(
-        'https://www.icofma.es/es/farmacias',
-        firecrawlKey,
-        DIRECTORY_SCHEMA,
-        'Extract ALL pharmacies from the province directory. For each: name, full address, municipality/town, phone.',
-        25000
-      );
-      if (dirResult?.success && dirResult?.data?.json?.pharmacies?.length > 5) {
-        const extra = dirResult.data.json.pharmacies.map((p: any) => ({
-          ...p,
-          municipality: p.municipality || 'Málaga',
-          source_ref: 'icofma.es',
-        }));
-        directoryPharmacies = directoryPharmacies.length ? directoryPharmacies.concat(extra) : extra;
-        results.directory_scraped = directoryPharmacies.length;
-        if (results.directory_source === 'none') results.directory_source = 'firecrawl';
-        else results.directory_source = `${results.directory_source}+firecrawl`;
-        console.log(`Directory supplemented via Firecrawl: total ${directoryPharmacies.length}`);
-      }
-    }
-
-    // Jina+AI fallback for directory
-    if (directoryPharmacies.length < 5) {
-      const jinaDir = await scrapeWithJinaAndAI(
-        'https://www.icofma.es/es/farmacias',
-        'Extract ALL pharmacies listed. For each: name, address, municipality/town, phone number. This is the complete directory of pharmacies in Málaga province.'
-      );
-      if (jinaDir.length > directoryPharmacies.length) {
-        directoryPharmacies = jinaDir.map((p: any) => ({
-          ...p,
-          municipality: p.municipality || 'Málaga',
-          source_ref: 'icofma.es',
-        }));
-        results.directory_scraped = directoryPharmacies.length;
-        results.directory_source = 'jina-ai';
-        console.log(`Scraped ${directoryPharmacies.length} directory pharmacies via Jina+AI`);
-      }
-    }
-
-    // If every directory source failed, do NOT insert placeholder data.
-    if (directoryPharmacies.length < 5) {
-      console.warn('Directory sources unavailable — no directory rows will be upserted.');
-      directoryPharmacies = [];
-      results.directory_source = 'none';
-      results.directory_scraped = 0;
-    }
-
-    // Upsert into pharmacies_directory (validated fields only)
-    const validatedDirectory = directoryPharmacies.filter((p: any) =>
-      typeof p?.name === 'string' && p.name.trim().length > 1 &&
-      typeof p?.address === 'string' && p.address.trim().length > 3
-    );
-
-    for (let i = 0; i < validatedDirectory.length; i += batchSize) {
-      const batch = validatedDirectory.slice(i, i + batchSize).map((p: any) => ({
-        name: p.name.trim(),
-        address: p.address.trim(),
-        municipality: (p.municipality || 'Málaga').trim(),
-        province: 'Málaga',
-        phone: p.phone ? String(p.phone).trim() : null,
-        lat: p.lat ?? null,
-        lng: p.lng ?? null,
-        dedupe_key: generateDedupeKey(p.name, p.address, p.municipality || 'Málaga'),
-        source_ref: p.source_ref || 'icofma.es',
-      }));
-
-      const { error } = await supabase
-        .from('pharmacies_directory')
-        .upsert(batch, { onConflict: 'dedupe_key', ignoreDuplicates: false });
-
-      if (error) {
-        console.error(`Directory batch upsert error:`, error.message);
-        results.errors.push(`dir_batch: ${error.message}`);
-      } else {
-        results.directory_upserted += batch.length;
-      }
-    }
-
-    // Record honest sync status in app_config so the UI can show last attempt.
+    // Persist sync status
     try {
-      await supabase
-        .from('app_config')
-        .upsert(
-          {
-            key: 'pharmacies_guard_last_sync',
-            value: {
-              status: results.source_status,
-              guardia_source: results.guardia_source,
-              guardia_inserted: results.guardia_inserted,
-              directory_source: results.directory_source,
-              directory_upserted: results.directory_upserted,
-              errors: results.errors,
-              updated_at: new Date().toISOString(),
-            },
+      await supabase.from('app_config').upsert(
+        {
+          key: 'pharmacies_guard_last_sync',
+          value: {
+            ...results,
+            guardia_source: results.status === 'official_data_available'
+              ? 'farmaciasguardia.farmaceuticos.com'
+              : 'none',
+            source_form_url: FORM_URL,
           },
-          { onConflict: 'key' }
-        );
+        },
+        { onConflict: 'key' }
+      );
     } catch (e) {
-      console.warn('app_config update failed:', e);
+      console.warn('[scrape-pharmacies] app_config upsert failed:', e);
     }
-
-    console.log('Pharmacy scraping complete:', JSON.stringify(results));
 
     return new Response(
-      JSON.stringify({ success: true, ...results }),
+      JSON.stringify({ success: true, ...results, sample: deduped.slice(0, 5) }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in pharmacy scraping:', error);
+    console.error('[scrape-pharmacies] fatal:', error);
     return new Response(
       JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
-
