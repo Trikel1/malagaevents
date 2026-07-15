@@ -330,8 +330,12 @@ const AdminPage = () => {
               <BarChart3 className="h-4 w-4 mr-1" />
               Salud
             </TabsTrigger>
+            <TabsTrigger value="cobertura" className="flex-1">
+              Cobertura
+            </TabsTrigger>
             <TabsTrigger value="all" className="flex-1">{t('admin.tabs.all')}</TabsTrigger>
           </TabsList>
+
 
           {/* Pending Events Tab */}
           <TabsContent value="pending" className="space-y-4">
