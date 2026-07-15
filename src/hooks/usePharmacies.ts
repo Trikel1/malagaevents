@@ -5,6 +5,23 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 const TIMEZONE = 'Europe/Madrid';
 
+// Whitelist of official sources that can back a "de guardia" row. Anything
+// outside of this list is treated as unverified and hidden from the UI, even
+// if it slipped past the DB trigger. Defense in depth.
+const OFFICIAL_GUARD_SOURCES = [
+  'farmaciasguardia.farmaceuticos.com',
+  'farmaceuticos.com',
+  'icofma.es',
+  'cofmalaga.com',
+  'cgcof.es',
+];
+
+export const isOfficialGuardSource = (source?: string | null): boolean => {
+  if (!source) return false;
+  const s = source.toLowerCase();
+  return OFFICIAL_GUARD_SOURCES.some((allowed) => s.includes(allowed));
+};
+
 // Directory pharmacy type (from pharmacies_directory table)
 export interface PharmacyDirectory {
   id: string;
@@ -22,8 +39,9 @@ export interface PharmacyDirectory {
 }
 
 // Get pharmacies on duty for a specific date (optionally filtered by municipality).
-// If the DB has no rows for that date+municipality, derive a deterministic rotation
-// from the directory so the UI never appears empty.
+// Returns ONLY rows that come from a verifiable official source. If no
+// official rows exist for that date+municipality, returns an empty list —
+// this app must never fabricate a duty rotation.
 export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
   const dateStr = formatInTimeZone(date, TIMEZONE, 'yyyy-MM-dd');
 
@@ -40,12 +58,41 @@ export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
 
       const { data, error } = await q;
       if (error) throw error;
-      // Only return officially-sourced rows. If there are none for this date+municipality,
-      // return an empty list — never fabricate a duty rotation from the directory.
-      return (data || []) as (Pharmacy & { municipality?: string })[];
+      const rows = (data || []) as (Pharmacy & { municipality?: string; source_ref?: string | null })[];
+      // Client-side whitelist filter — defense in depth against any legacy
+      // row that might still be present in the table.
+      return rows.filter((r) => isOfficialGuardSource(r.source_ref));
     },
   });
 };
+
+// Last successful pharmacies-guard sync attempt against the official source.
+export interface PharmacyGuardSyncStatus {
+  status?: string;
+  guardia_source?: string;
+  guardia_inserted?: number;
+  directory_source?: string;
+  directory_upserted?: number;
+  errors?: string[];
+  updated_at?: string;
+}
+
+export const usePharmacyGuardSyncStatus = () => {
+  return useQuery({
+    queryKey: ['pharmacies', 'sync-status'],
+    queryFn: async (): Promise<PharmacyGuardSyncStatus | null> => {
+      const { data, error } = await (supabase as any)
+        .from('app_config')
+        .select('value')
+        .eq('key', 'pharmacies_guard_last_sync')
+        .maybeSingle();
+      if (error || !data) return null;
+      return (data.value as PharmacyGuardSyncStatus) ?? null;
+    },
+    staleTime: 60_000,
+  });
+};
+
 
 // Get all pharmacies from the province directory.
 // Paginates by 1000-row chunks to bypass Supabase's default row limit and return
