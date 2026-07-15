@@ -470,39 +470,29 @@ const PharmaciesPage = () => {
           </button>
         </div>
 
-        {/* ============== Filters row ============== */}
+        {/* ============== Filters ============== */}
         <div className="flex flex-col gap-2">
           <LocalitySelector value={municipality} onChange={setMunicipality} />
 
           {mode === 'duty' && (
-            <div className="flex gap-2">
+            <div className="grid grid-cols-[auto_1fr] gap-2 sm:grid-cols-[auto_1fr_auto]">
               <Button
                 variant={isToday ? 'default' : 'outline'}
-                className="rounded-xl h-11 flex-1 sm:flex-none sm:w-24"
+                className="rounded-xl h-11 px-4"
                 onClick={() => setSelectedDate(madridNow())}
+                aria-pressed={isToday}
               >
                 {t('pharmacies.today', 'Hoy')}
-              </Button>
-              <Button
-                variant="outline"
-                className="rounded-xl h-11 flex-1 sm:flex-none sm:w-28"
-                onClick={() => {
-                  const d = madridNow();
-                  d.setDate(d.getDate() + 1);
-                  setSelectedDate(d);
-                }}
-              >
-                {t('pharmacies.tomorrow', 'Mañana')}
               </Button>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="rounded-xl h-11 flex-1 justify-start bg-card min-w-0"
+                    className="rounded-xl h-11 w-full justify-start bg-card"
                     aria-label={t('pharmacies.pickDateAria', 'Elegir fecha de guardia')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                    <span className="truncate">
+                    <span className="whitespace-nowrap overflow-hidden text-ellipsis">
                       {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
                     </span>
                   </Button>
@@ -517,6 +507,21 @@ const PharmaciesPage = () => {
                   />
                 </PopoverContent>
               </Popover>
+              <Button
+                type="button"
+                variant={userLoc ? 'default' : 'outline'}
+                className="rounded-xl h-11 px-4 col-span-2 sm:col-span-1"
+                onClick={handleLocate}
+                disabled={locating}
+                aria-pressed={!!userLoc}
+              >
+                <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} aria-hidden="true" />
+                {locating
+                  ? t('pharmacies.locating', 'Localizando…')
+                  : userLoc
+                  ? t('pharmacies.clearDistanceSort', 'Quitar cercanía')
+                  : t('pharmacies.nearMe', 'Cerca de mí')}
+              </Button>
             </div>
           )}
 
@@ -546,28 +551,30 @@ const PharmaciesPage = () => {
             </div>
           )}
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              type="button"
-              variant={userLoc ? 'default' : 'outline'}
-              className="rounded-full h-9 px-4 text-sm"
-              onClick={handleLocate}
-              disabled={locating}
-              aria-pressed={!!userLoc}
-            >
-              <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} aria-hidden="true" />
-              {locating
-                ? t('pharmacies.locating', 'Localizando…')
-                : userLoc
-                ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
-                : t('pharmacies.nearMe', 'Cerca de mí')}
-            </Button>
-            {userLoc && (
-              <span className="text-[11px] text-muted-foreground">
-                {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
-              </span>
-            )}
-          </div>
+          {mode === 'directory' && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                type="button"
+                variant={userLoc ? 'default' : 'outline'}
+                className="rounded-full h-9 px-4 text-sm"
+                onClick={handleLocate}
+                disabled={locating}
+                aria-pressed={!!userLoc}
+              >
+                <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} aria-hidden="true" />
+                {locating
+                  ? t('pharmacies.locating', 'Localizando…')
+                  : userLoc
+                  ? t('pharmacies.clearDistanceSort', 'Quitar cercanía')
+                  : t('pharmacies.nearMe', 'Cerca de mí')}
+              </Button>
+              {userLoc && (
+                <span className="text-[11px] text-muted-foreground">
+                  {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ============== DUTY MODE ============== */}
