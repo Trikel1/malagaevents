@@ -96,7 +96,7 @@ export default function CitizenServiceRadar() {
         .select('*')
         .order('future_events', { ascending: false, nullsFirst: false });
       if (error) throw error;
-      return (data ?? []) as CoverageRow[];
+      return (data ?? []) as unknown as CoverageRow[];
     },
     staleTime: 60_000,
   });
