@@ -101,9 +101,10 @@ const Index = () => {
 
         {/* Subtle depth layer */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-32 -left-20 h-80 w-80 rounded-full bg-white/15 blur-3xl" />
-          <div className="absolute -bottom-24 -right-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div className="hero-glow hero-glow--warm -top-32 -left-24 h-80 w-80" />
+          <div className="hero-glow hero-glow--cool -bottom-24 -right-20 h-72 w-72" />
         </div>
+
 
         {/* Top controls */}
         <div className="relative flex justify-between items-center gap-2 mb-7 min-w-0">
