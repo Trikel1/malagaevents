@@ -146,6 +146,13 @@ const CalendarPage = () => {
     return occurrences;
   }, [occurrences, eventSource, favorites, appMode]);
 
+  // Apply user-chosen calendar filters (moment, categories, free, tickets)
+  const visibleOccurrences = useMemo(
+    () => applyCulturalFilters(filteredOccurrences, filters),
+    [filteredOccurrences, filters],
+  );
+
+
   // Sports events for the range — only in sports mode
   const sportGridStartStr = formatInTimeZone(gridStart, TIMEZONE, 'yyyy-MM-dd');
   const sportGridEndStr = formatInTimeZone(gridEnd, TIMEZONE, 'yyyy-MM-dd');
