@@ -80,6 +80,10 @@ const CalendarPage = () => {
   const [eventSource, setEventSource] = useState<'all' | 'favorites'>('all');
   const [monthSelectorOpen, setMonthSelectorOpen] = useState(false);
   const [listLimit, setListLimit] = useState(LIST_PAGE_SIZE);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<CalendarFilters>(EMPTY_CALENDAR_FILTERS);
+  const [draftFilters, setDraftFilters] = useState<CalendarFilters>(EMPTY_CALENDAR_FILTERS);
+
 
   // Localised month names for the popover selector
   const localisedMonths = useMemo(
