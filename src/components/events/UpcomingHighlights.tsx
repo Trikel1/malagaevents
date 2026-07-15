@@ -65,7 +65,7 @@ const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
 
   return (
     <section aria-labelledby="upcoming-highlights-title" className="mb-5">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
         <h2
           id="upcoming-highlights-title"
           className="text-sm sm:text-base font-semibold flex items-center gap-1.5"
