@@ -239,9 +239,8 @@ const fetchEvents = async (
   
   query = query.range(from, to);
 
-  // Check cancellation before executing
-  if (signal?.aborted) {
-    throw new DOMException('Request cancelled', 'AbortError');
+  if (signal) {
+    query = (query as any).abortSignal(signal);
   }
 
   const { data, error, count } = await query;
