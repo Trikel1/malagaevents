@@ -96,7 +96,7 @@ const Index = () => {
 
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
-        'relative text-white px-4 sm:px-6 pt-5 pb-14 overflow-hidden',
+        'relative text-white px-4 sm:px-6 pt-5 pb-28 overflow-hidden',
         appMode === 'deportes' ? 'bg-gradient-hero-sports' : 'bg-gradient-hero'
       )}>
 
@@ -105,6 +105,12 @@ const Index = () => {
           <div className="hero-glow hero-glow--warm -top-32 -left-24 h-80 w-80" />
           <div className="hero-glow hero-glow--cool -bottom-24 -right-20 h-72 w-72" />
         </div>
+
+        {/* Fundido extenso hacia el fondo de la siguiente sección */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent via-background/40 to-background"
+        />
 
 
         {/* Top controls */}
