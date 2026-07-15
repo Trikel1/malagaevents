@@ -421,10 +421,11 @@ const Index = () => {
                   { n: t('home.stats.sportsValue'), l: t('home.stats.sportsGrowing') },
                 ].map((s) => (
                   <div key={s.l} className="rounded-2xl bg-background/50 border border-border/40 px-2 py-3 text-center">
-                    <div className="text-base sm:text-lg font-bold tracking-tight text-primary">{s.n}</div>
-                    <div className="text-[10.5px] sm:text-[11px] text-muted-foreground leading-tight mt-0.5">{s.l}</div>
+                    <div className="text-lg sm:text-xl font-bold tracking-tight text-primary">{s.n}</div>
+                    <div className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-tight mt-1">{s.l}</div>
                   </div>
                 ))}
+
               </div>
               <p className="mt-3 text-center text-[11px] text-muted-foreground italic">
                 {t('home.stats.footer')}
