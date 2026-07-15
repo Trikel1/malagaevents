@@ -193,41 +193,43 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
         <h2 className="text-lg font-semibold tracking-tight mb-3">
           {t('sports.exploreBySport', 'Explorar deportes')}
         </h2>
-        <div className="flex gap-2 overflow-x-auto pb-2 px-0.5 -mx-0.5 scrollbar-hide">
+        <div className="flex gap-2 overflow-x-auto pb-1 px-1 -mx-1 pr-4 scrollbar-hide">
           <button
             onClick={() => setSelectedSport('all')}
             className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
+              'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
               selectedSport === 'all'
-                ? 'bg-primary/10 text-primary border-primary/30'
+                ? 'bg-primary/12 text-primary border-primary/30'
                 : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
             )}
           >
-            <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
+            <Trophy className="h-4 w-4" aria-hidden="true" />
             {t('sports.all')}
           </button>
           {SPORT_CATEGORIES.map((cat) => {
             const active = selectedSport === cat;
+            const label = getSportLabel(t, cat);
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedSport(cat)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
+                  'inline-flex items-center gap-1.5 px-4 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors border',
                   active
-                    ? 'bg-primary/10 text-primary border-primary/30'
+                    ? 'bg-primary/12 text-primary border-primary/30'
                     : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
                 )}
               >
                 <SportIcon
                   sport={cat}
-                  className={cn('h-3.5 w-3.5', active ? 'text-primary' : 'text-muted-foreground')}
+                  className={cn('h-4 w-4', active ? 'text-primary' : 'text-muted-foreground')}
                 />
-                {t(`sports.${cat}`)}
+                {label}
               </button>
             );
           })}
         </div>
+
       </section>
 
       {/* Today highlights */}
