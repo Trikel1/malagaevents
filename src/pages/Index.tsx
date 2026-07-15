@@ -94,7 +94,7 @@ const Index = () => {
     <div
       className={cn(
         'min-h-screen',
-        isSports && 'bg-[hsl(165_32%_94%)] dark:bg-[hsl(190_28%_9%)]'
+        isSports && 'bg-[hsl(168_28%_92%)] dark:bg-[hsl(190_32%_9%)]'
       )}
     >
       <SEO
@@ -205,7 +205,7 @@ const Index = () => {
 
       <main className={cn(
         'px-4 sm:px-6 pb-8 relative z-10 max-w-6xl mx-auto',
-        isSports ? 'pt-5 space-y-6' : '-mt-14 space-y-6'
+        isSports ? 'pt-5 space-y-5' : '-mt-14 space-y-6'
       )}>
         {isSports ? (
           <Suspense fallback={<div className="h-40" />}>
