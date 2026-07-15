@@ -25,6 +25,7 @@ import {
   ChevronDown,
   Check,
   AlertCircle,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,6 +48,17 @@ import { useAppMode } from '@/contexts/AppModeContext';
 import { useSportsEvents } from '@/hooks/useSportsEvents';
 import SportEventCard from '@/components/sports/SportEventCard';
 import { getMadridDateKey } from '@/lib/calendarEntries';
+import CalendarFilterDrawer from '@/components/calendar/CalendarFilterDrawer';
+import {
+  EMPTY_CALENDAR_FILTERS,
+  applyCulturalFilters,
+  applySportsFilters,
+  availableCulturalGroups,
+  availableSportCategories,
+  countActiveGroups,
+  type CalendarFilters,
+} from '@/lib/calendarFilters';
+
 
 const TIMEZONE = 'Europe/Madrid';
 const LIST_PAGE_SIZE = 30;
