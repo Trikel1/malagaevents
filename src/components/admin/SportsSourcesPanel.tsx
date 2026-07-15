@@ -67,23 +67,45 @@ const StatusBadge = ({ status }: { status: string | null }) => {
   );
 };
 
+interface SyncRun {
+  id: string;
+  source_slug: string;
+  adapter: string | null;
+  status: string;
+  started_at: string;
+  finished_at: string | null;
+  items_fetched: number;
+  items_parsed: number;
+  items_upserted: number;
+  items_failed: number;
+  error_sample: string | null;
+}
+
 export default function SportsSourcesPanel() {
   const { toast } = useToast();
   const [sources, setSources] = useState<SportSource[]>([]);
+  const [runs, setRuns] = useState<SyncRun[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningSlug, setRunningSlug] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
 
   const fetchSources = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('sports_sources')
-      .select('*')
-      .order('priority', { ascending: true });
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    const [srcRes, runsRes] = await Promise.all([
+      supabase.from('sports_sources').select('*').order('priority', { ascending: true }),
+      supabase
+        .from('sports_sync_runs')
+        .select('id, source_slug, adapter, status, started_at, finished_at, items_fetched, items_parsed, items_upserted, items_failed, error_sample')
+        .order('started_at', { ascending: false })
+        .limit(20),
+    ]);
+    if (srcRes.error) {
+      toast({ title: 'Error', description: srcRes.error.message, variant: 'destructive' });
     } else {
-      setSources((data as SportSource[]) || []);
+      setSources((srcRes.data as SportSource[]) || []);
+    }
+    if (!runsRes.error) {
+      setRuns((runsRes.data as SyncRun[]) || []);
     }
     setLoading(false);
   };
