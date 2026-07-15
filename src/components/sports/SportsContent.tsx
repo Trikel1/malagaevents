@@ -399,7 +399,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
                       {v.sports.slice(0, 3).map((s) => (
                         <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
                           <SportIcon sport={s} className="h-3 w-3" />
-                          {t(`sports.${s}`, s)}
+                          {getSportLabel(t, s)}
                         </Badge>
                       ))}
                     </div>
