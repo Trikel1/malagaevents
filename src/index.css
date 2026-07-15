@@ -740,3 +740,59 @@
   }
 }
 
+/* Accessibility fallbacks — reduced transparency & no backdrop-filter support.
+   Ensures Liquid Glass surfaces stay legible on all devices/OS settings. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  .glass-card,
+  .glass-card-strong,
+  .glass-button,
+  .glass-chip,
+  .glass-nav,
+  .glass-dropdown,
+  .glass-modal,
+  .glass-input {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: hsl(var(--surface-elevated)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  .dark .glass-panel,
+  .dark .glass-card,
+  .dark .glass-card-strong,
+  .dark .glass-button,
+  .dark .glass-chip,
+  .dark .glass-nav,
+  .dark .glass-dropdown,
+  .dark .glass-modal,
+  .dark .glass-input {
+    background: hsl(var(--card)) !important;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel,
+  .glass-card,
+  .glass-card-strong,
+  .glass-button,
+  .glass-chip,
+  .glass-nav,
+  .glass-dropdown,
+  .glass-modal,
+  .glass-input {
+    background: hsl(var(--surface-elevated) / 0.96);
+  }
+  .dark .glass-panel,
+  .dark .glass-card,
+  .dark .glass-card-strong,
+  .dark .glass-button,
+  .dark .glass-chip,
+  .dark .glass-nav,
+  .dark .glass-dropdown,
+  .dark .glass-modal,
+  .dark .glass-input {
+    background: hsl(var(--card) / 0.96);
+  }
+}
+
+
