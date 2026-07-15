@@ -281,6 +281,16 @@ const PharmaciesPage = () => {
   const { data: dutyAll, isLoading: isLoadingDuty } =
     usePharmaciesOnDuty(selectedDate, municipalityFilter);
   const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipalityFilter);
+  const { data: syncStatus } = usePharmacyGuardSyncStatus();
+
+  const lastSyncLabel = useMemo(() => {
+    if (!syncStatus?.updated_at) return null;
+    try {
+      return formatInTimeZone(new Date(syncStatus.updated_at), TIMEZONE, "d MMM yyyy, HH:mm", { locale });
+    } catch {
+      return null;
+    }
+  }, [syncStatus?.updated_at, locale]);
 
   const matchesSearch = (p: any) => {
     const q = stripDiacritics(search.trim());
