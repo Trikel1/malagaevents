@@ -33,7 +33,7 @@ const HeroHeader = () => {
         <div className="absolute top-1/3 right-1/3 h-40 w-40 rounded-2xl rotate-12 bg-secondary/20 blur-2xl" />
       </div>
 
-      <div className="relative mx-auto w-full max-w-[1240px] px-4 lg:px-8 pt-5 pb-16 lg:pb-20 min-h-[380px] lg:min-h-[520px] flex flex-col">
+      <div className="relative mx-auto w-full max-w-[1240px] px-4 lg:px-8 pt-5 pb-12 lg:pb-14 min-h-[340px] sm:min-h-[380px] lg:min-h-[440px] flex flex-col">
         {/* Top controls */}
         <div className="flex items-center justify-between gap-2 mb-8 min-w-0">
           <div className="glass-button relative flex p-0.5 min-w-0 shrink overflow-hidden">
