@@ -263,20 +263,13 @@ const SportsContent = () => {
   ];
 
   return (
-    <div
-      className="relative space-y-7 rounded-3xl -mx-2 sm:-mx-3 px-2 sm:px-3 pt-1 pb-6"
-      style={{
-        // Subtle mediterranean green/teal wash so we never sit on flat white.
-        backgroundImage:
-          'radial-gradient(120% 60% at 0% 0%, hsl(160 55% 92% / 0.55), transparent 60%), radial-gradient(90% 50% at 100% 10%, hsl(190 60% 92% / 0.55), transparent 55%)',
-      }}
-    >
-      {/* Compact search bar */}
+    <div className="relative space-y-6 pt-1 pb-6">
+      {/* Compact search bar — opaque petrol/teal surface for AA contrast */}
       <form
         onSubmit={handleSearchSubmit}
         role="search"
         aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
-        className="glass-panel flex items-center gap-2 px-3 py-2"
+        className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-emerald-700/25 bg-white dark:bg-[hsl(190_30%_12%)] shadow-sm"
       >
         <Search className="h-5 w-5 text-emerald-700 dark:text-emerald-300 shrink-0" aria-hidden="true" />
         <input
@@ -284,19 +277,20 @@ const SportsContent = () => {
           value={searchDraft}
           onChange={(e) => setSearchDraft(e.target.value)}
           placeholder={t('sportsHome.searchPlaceholder', 'Busca un deporte, instalación o municipio')}
-          className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/80 min-h-11"
+          className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground min-h-11"
           aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
         />
         {searchDraft && (
           <button
             type="button"
             onClick={() => { setSearchDraft(''); setSearchQ(''); }}
-            className="text-xs text-muted-foreground hover:text-foreground min-h-11 px-2"
+            className="text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:underline min-h-11 px-2"
           >
             {t('common.clear', 'Limpiar')}
           </button>
         )}
       </form>
+
 
       {/* Big quick-action cards */}
       <section aria-label={t('sportsHome.quickAria', 'Accesos rápidos')}>
