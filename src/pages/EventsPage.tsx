@@ -546,7 +546,7 @@ const CultureEventsPage = () => {
                   key={chip.key}
                   type="button"
                   onClick={chip.onRemove}
-                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-[11px] border border-border/60 max-w-full"
+                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-[12px] border border-border/60 max-w-full"
                   aria-label={`${t('common.remove', 'Quitar')} ${chip.label}`}
                 >
                   <span className="truncate max-w-[160px]">{chip.label}</span>
@@ -557,10 +557,11 @@ const CultureEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                className="ml-auto h-7 px-2 text-[12px] text-muted-foreground hover:text-foreground"
               >
                 {t('events.clearFilters', 'Limpiar')}
               </Button>
+
             </div>
           )}
         </div>
