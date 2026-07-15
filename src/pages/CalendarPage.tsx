@@ -791,4 +791,24 @@ function parseDayKey(key: string): Date {
   return new Date(y, (m || 1) - 1, d || 1);
 }
 
+interface EmptyDayCardProps {
+  hasFilters: boolean;
+  onClear: () => void;
+  t: (key: string, opts?: any) => string;
+}
+
+const EmptyDayCard = ({ hasFilters, onClear, t }: EmptyDayCardProps) => (
+  <Card className="bg-muted/50 border-dashed">
+    <CardContent className="py-6 text-center text-muted-foreground space-y-3">
+      <p>{hasFilters ? 'Sin coincidencias con tus filtros' : t('calendar.noEventsDay')}</p>
+      {hasFilters && (
+        <Button variant="outline" size="sm" onClick={onClear} className="h-11 px-5">
+          Limpiar filtros
+        </Button>
+      )}
+    </CardContent>
+  </Card>
+);
+
 export default CalendarPage;
+
