@@ -292,9 +292,9 @@ const SportsContent = () => {
       </form>
 
 
-      {/* Big quick-action cards */}
+      {/* Big quick-action cards — compact, opaque */}
       <section aria-label={t('sportsHome.quickAria', 'Accesos rápidos')}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {bigCards.map((c) => {
             const active = timeFilter === c.key;
             return (
@@ -304,37 +304,36 @@ const SportsContent = () => {
                 onClick={() => handleQuickAction(c.key)}
                 aria-pressed={active}
                 className={cn(
-                  'group relative overflow-hidden rounded-2xl text-left min-h-[92px] px-4 py-4',
-                  'border transition-all liquid-press',
+                  'relative rounded-xl text-left min-h-[88px] px-3.5 py-3',
+                  'border transition-colors liquid-press',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1',
                   active
-                    ? 'border-emerald-600/40 shadow-[0_10px_30px_-18px_hsl(160_50%_25%/0.55)]'
-                    : 'border-emerald-700/15 hover:border-emerald-600/30',
-                  'bg-gradient-to-br',
-                  c.tone,
-                  'bg-card/70 dark:bg-card/50 backdrop-blur',
+                    ? 'bg-emerald-600 text-white border-emerald-600'
+                    : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/20 hover:border-emerald-600/40',
                 )}
               >
                 <div className="flex items-start gap-3">
-                  <div className="h-11 w-11 rounded-xl bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center shrink-0">
+                  <div className={cn(
+                    'h-10 w-10 rounded-lg flex items-center justify-center shrink-0',
+                    active ? 'bg-white/15 text-white' : 'bg-emerald-600/12 text-emerald-700 dark:text-emerald-200',
+                  )}>
                     <c.icon className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold leading-tight">{c.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{c.subtitle}</p>
+                    <p className={cn('text-sm font-semibold leading-tight', active ? 'text-white' : 'text-foreground')}>
+                      {c.title}
+                    </p>
+                    <p className={cn('text-[12px] mt-0.5 leading-snug', active ? 'text-white/85' : 'text-muted-foreground')}>
+                      {c.subtitle}
+                    </p>
                   </div>
                 </div>
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-4 bottom-2 h-0.5 rounded-full bg-emerald-600/60"
-                  />
-                )}
               </button>
             );
           })}
         </div>
       </section>
+
 
       {/* Category grid */}
       <section aria-label={t('sportsHome.categoriesAria', 'Categorías deportivas')}>
