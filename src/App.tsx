@@ -28,7 +28,17 @@ const VenuesPage = lazy(() => import("./pages/VenuesPage"));
 const MapPage = lazy(() => import("./pages/MapPage"));
 const MunicipalityAgendaPage = lazy(() => import("./pages/MunicipalityAgendaPage"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 2 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+      retry: 1,
+    },
+  },
+});
 
 const RouteFallback = () => (
   <div className="min-h-screen w-full flex items-center justify-center bg-background">
