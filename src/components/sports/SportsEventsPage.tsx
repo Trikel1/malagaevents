@@ -10,7 +10,13 @@ import SportsAgenda from '@/components/sports/SportsAgenda';
  */
 const SportsEventsPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50/90 via-background to-emerald-100/40 dark:from-emerald-950/45 dark:via-background dark:to-emerald-950/25">
+    <div
+      className="min-h-screen bg-gradient-to-b from-emerald-50/90 via-background to-emerald-100/40 dark:from-emerald-950/45 dark:via-background dark:to-emerald-950/25"
+      style={{
+        marginBottom: 'calc(-1 * (env(safe-area-inset-bottom, 0px) + 96px))',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
+      }}
+    >
       <header className="bg-gradient-to-br from-emerald-950 via-teal-900 to-emerald-700 text-white border-b border-emerald-800 sticky top-0 z-40">
         <div className="p-4 space-y-1">
           <div className="flex items-start justify-between gap-3">
