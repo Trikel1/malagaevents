@@ -30,6 +30,8 @@ interface UseEventsOptions {
   locationIds?: string[];
   page?: number;
   pageSize?: number;
+  /** Disable the request when the app is displaying the independent Deportes mode. */
+  enabled?: boolean;
 }
 
 // Normalize search text (remove accents for Spanish)
@@ -171,6 +173,7 @@ export const useEvents = (options: UseEventsOptions = {}) => {
     queryKey: ['events', options],
     queryFn: ({ signal }) => fetchEvents(options, signal),
     select: (data) => data.events,
+    enabled: options.enabled ?? true,
   });
 };
 

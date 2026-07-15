@@ -53,7 +53,13 @@ const Index = () => {
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
-  const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({ weekendOnly: true, limit: 6 });
+  const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({
+    weekendOnly: true,
+    limit: 6,
+    // Deportes has its own data source and landing; avoid fetching cultural
+    // events while that mode is active.
+    enabled: appMode === 'eventos',
+  });
 
   const { data: favorites } = useFavorites();
   const toggleFavorite = useToggleFavorite();
