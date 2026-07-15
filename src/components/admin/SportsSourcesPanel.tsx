@@ -273,6 +273,48 @@ export default function SportsSourcesPanel() {
           </CardContent>
         </Card>
       ))}
+
+      {runs.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Ejecuciones recientes</CardTitle>
+            <CardDescription>Últimas {runs.length} ejecuciones registradas.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1.5 text-xs">
+              {runs.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start gap-2 flex-wrap py-1.5 border-b border-border/40 last:border-0"
+                >
+                  <StatusBadge status={r.status} />
+                  <span className="font-medium min-w-[160px]">{r.source_slug}</span>
+                  <span className="text-muted-foreground">
+                    {format(new Date(r.started_at), 'd MMM HH:mm:ss', { locale: es })}
+                  </span>
+                  <span className="text-muted-foreground">
+                    ↓{r.items_fetched} · ⚙{r.items_parsed} · ↑{r.items_upserted}
+                    {r.items_failed > 0 && ` · ✗${r.items_failed}`}
+                  </span>
+                  {r.adapter && (
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {r.adapter}
+                    </Badge>
+                  )}
+                  {r.error_sample && (
+                    <span
+                      className="text-destructive line-clamp-1 basis-full"
+                      title={r.error_sample}
+                    >
+                      {r.error_sample}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
