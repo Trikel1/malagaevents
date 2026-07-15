@@ -334,7 +334,18 @@
     "allEvents": "Все события",
     "myFavorites": "Мои избранные",
     "exportEvent": "Экспортировать событие",
-    "noEventsDay": "В этот день нет событий"
+    "noEventsDay": "В этот день нет событий",
+    "today": "Сегодня",
+    "prevMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц",
+    "prevYear": "Предыдущий год",
+    "nextYear": "Следующий год",
+    "openMonthSelector": "Сменить месяц",
+    "eventsCount_one": "{{count}} событие",
+    "eventsCount_other": "{{count}} событий",
+    "loadError": "Не удалось загрузить события",
+    "seeMore": "Показать ещё",
+    "monthEmpty": "В этом месяце нет событий"
   },
   "pharmacies": {
     "title": "Дежурные аптеки",
