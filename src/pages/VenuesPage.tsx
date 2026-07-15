@@ -16,19 +16,27 @@ const VenuesPage = () => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
+  const [selectedCity, setSelectedCity] = useState('all');
   const { data: venues = [], isLoading } = useSportsVenues();
+  const cities = useMemo(() => {
+    const rest = Array.from(new Set(venues.map((v) => v.city).filter(Boolean)))
+      .filter((city) => city !== 'Málaga')
+      .sort((a, b) => a.localeCompare(b, 'es'));
+    return ['all', ...(venues.some((v) => v.city === 'Málaga') ? ['Málaga'] : []), ...rest];
+  }, [venues]);
 
   const filtered = useMemo(() => {
     let result = venues;
     if (selectedSport !== 'all') {
       result = result.filter(v => v.sports.includes(selectedSport));
     }
+    if (selectedCity !== 'all') result = result.filter(v => v.city === selectedCity);
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter(v => v.name.toLowerCase().includes(q) || v.city.toLowerCase().includes(q));
+      result = result.filter(v => v.name.toLowerCase().includes(q) || v.city.toLowerCase().includes(q) || (v.address ?? '').toLowerCase().includes(q));
     }
     return result;
-  }, [search, selectedSport, venues]);
+  }, [search, selectedSport, selectedCity, venues]);
 
   const openMap = (venue: typeof venues[0]) => {
     if (venue.lat && venue.lng) {
@@ -86,6 +94,14 @@ const VenuesPage = () => {
           />
         </div>
 
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {cities.map((city) => (
+            <button key={city} onClick={() => setSelectedCity(city)} className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border', selectedCity === city ? 'bg-primary/10 text-primary border-primary/30' : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20')}>
+              <MapPin className="h-3.5 w-3.5" />
+              {city === 'all' ? 'Toda la provincia' : city}
+            </button>
+          ))}
+        </div>
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           <button
             onClick={() => setSelectedSport('all')}

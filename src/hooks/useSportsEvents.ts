@@ -73,6 +73,7 @@ export interface SportsEventsFilters {
   toDate?: string;   // YYYY-MM-DD
   categories?: string[];
   venueNames?: string[];
+  cities?: string[];
   q?: string;
   limit?: number;
   /** When false, the query is disabled and no request is made. Default true. */
@@ -99,12 +100,14 @@ async function fetchSportsEvents(filters: SportsEventsFilters): Promise<SportEve
   if (filters.venueNames?.length) {
     query = query.in('venue_name', filters.venueNames);
   }
+  if (filters.cities?.length) {
+    query = query.in('city', filters.cities);
+  }
   if (filters.q) {
-    query = query.or(`title.ilike.%${filters.q}%,venue_name.ilike.%${filters.q}%`);
+    const safeQ = filters.q.trim().replace(/[%,_()]/g, ' ');
+    if (safeQ) query = query.or(`title.ilike.%${safeQ}%,venue_name.ilike.%${safeQ}%`);
   }
-  if (filters.limit) {
-    query = query.limit(filters.limit);
-  }
+  query = query.limit(filters.limit ?? 150);
 
   const { data, error } = await query;
   if (error) throw error;

@@ -14,10 +14,10 @@ import { cn } from '@/lib/utils';
 import SportEventCard from '@/components/sports/SportEventCard';
 import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
 import { useSportsEvents, useSportsVenues } from '@/hooks/useSportsEvents';
+import { useMunicipalities } from '@/hooks/useMunicipalities';
 import { SPORT_CATEGORIES } from '@/types/sports';
 import type { SportCategory } from '@/types/sports';
 import SportIcon from '@/components/sports/SportIcon';
-import { MALAGA_MUNICIPALITIES } from '@/lib/sports';
 
 const TIMEZONE = 'Europe/Madrid';
 
@@ -51,15 +51,11 @@ const SportsContent = () => {
   const navigate = useNavigate();
 
   const { data: allVenues = [] } = useSportsVenues();
-
-  // Map municipality → venue names (no schema changes)
-  const municipalityVenueNames = useMemo(() => {
-    if (selectedMunicipality === 'all') return null;
-    const norm = selectedMunicipality.toLowerCase();
-    return allVenues
-      .filter((v) => (v.city || '').toLowerCase().includes(norm))
-      .map((v) => v.name);
-  }, [allVenues, selectedMunicipality]);
+  const { data: municipalities = [] } = useMunicipalities();
+  const municipalityNames = useMemo(() => {
+    const names = municipalities.map((m) => m.name).filter(Boolean);
+    return names.length ? names : ['Málaga', 'Marbella', 'Fuengirola', 'Benalmádena', 'Torremolinos'];
+  }, [municipalities]);
 
   const filters = useMemo(() => {
     const today = todayMadrid();
@@ -80,27 +76,25 @@ const SportsContent = () => {
     if (selectedSport !== 'all') f.categories = [selectedSport];
 
     const venueSet = new Set<string>(selectedVenueNames);
-    if (municipalityVenueNames && municipalityVenueNames.length > 0) {
-      municipalityVenueNames.forEach((n) => venueSet.add(n));
-    }
     if (venueSet.size > 0) f.venueNames = Array.from(venueSet);
+    if (selectedMunicipality !== 'all') f.cities = [selectedMunicipality];
 
     return f;
-  }, [selectedSport, timeFilter, selectedVenueNames, municipalityVenueNames]);
+  }, [selectedSport, timeFilter, selectedVenueNames, selectedMunicipality]);
 
   const { data: events = [], isLoading, isError } = useSportsEvents(filters);
 
-  // Highlights
+  // Derive highlights from the same bounded result set to avoid three
+  // simultaneous network requests on first render.
   const todayDate = todayMadrid();
   const weekend = useMemo(getWeekendDates, []);
-  const { data: todayEvents = [], isLoading: loadingToday } = useSportsEvents({
-    fromDate: todayDate,
-    toDate: todayDate,
-  });
-  const { data: weekendEvents = [], isLoading: loadingWeekend } = useSportsEvents({
-    fromDate: weekend.from,
-    toDate: weekend.to,
-  });
+  const todayEvents = useMemo(() => events.filter((e) => e.start_at.slice(0, 10) === todayDate), [events, todayDate]);
+  const weekendEvents = useMemo(() => events.filter((e) => {
+    const day = e.start_at.slice(0, 10);
+    return day >= weekend.from && day <= weekend.to;
+  }), [events, weekend]);
+  const loadingToday = isLoading;
+  const loadingWeekend = isLoading;
 
   const featuredVenues = useMemo(() => allVenues.slice(0, 6), [allVenues]);
 
@@ -254,7 +248,7 @@ const SportsContent = () => {
             <MapPin className="h-3.5 w-3.5" />
             {t('sports.all')}
           </button>
-          {MALAGA_MUNICIPALITIES.map((m) => {
+          {municipalityNames.map((m) => {
             const active = selectedMunicipality === m;
             return (
               <button
@@ -285,6 +279,7 @@ const SportsContent = () => {
             selectedVenueNames={selectedVenueNames}
             onSelectionChange={setSelectedVenueNames}
           />
+          {!isLoading && <span className="text-xs text-muted-foreground">{events.length} resultados</span>}
         </div>
 
         <div className="flex gap-2 flex-wrap mb-3">
