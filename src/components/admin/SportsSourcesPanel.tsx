@@ -67,23 +67,45 @@ const StatusBadge = ({ status }: { status: string | null }) => {
   );
 };
 
+interface SyncRun {
+  id: string;
+  source_slug: string;
+  adapter: string | null;
+  status: string;
+  started_at: string;
+  finished_at: string | null;
+  items_fetched: number;
+  items_parsed: number;
+  items_upserted: number;
+  items_failed: number;
+  error_sample: string | null;
+}
+
 export default function SportsSourcesPanel() {
   const { toast } = useToast();
   const [sources, setSources] = useState<SportSource[]>([]);
+  const [runs, setRuns] = useState<SyncRun[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningSlug, setRunningSlug] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
 
   const fetchSources = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('sports_sources')
-      .select('*')
-      .order('priority', { ascending: true });
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    const [srcRes, runsRes] = await Promise.all([
+      supabase.from('sports_sources').select('*').order('priority', { ascending: true }),
+      supabase
+        .from('sports_sync_runs')
+        .select('id, source_slug, adapter, status, started_at, finished_at, items_fetched, items_parsed, items_upserted, items_failed, error_sample')
+        .order('started_at', { ascending: false })
+        .limit(20),
+    ]);
+    if (srcRes.error) {
+      toast({ title: 'Error', description: srcRes.error.message, variant: 'destructive' });
     } else {
-      setSources((data as SportSource[]) || []);
+      setSources((srcRes.data as SportSource[]) || []);
+    }
+    if (!runsRes.error) {
+      setRuns((runsRes.data as SyncRun[]) || []);
     }
     setLoading(false);
   };
@@ -251,6 +273,48 @@ export default function SportsSourcesPanel() {
           </CardContent>
         </Card>
       ))}
+
+      {runs.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Ejecuciones recientes</CardTitle>
+            <CardDescription>Últimas {runs.length} ejecuciones registradas.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-1.5 text-xs">
+              {runs.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start gap-2 flex-wrap py-1.5 border-b border-border/40 last:border-0"
+                >
+                  <StatusBadge status={r.status} />
+                  <span className="font-medium min-w-[160px]">{r.source_slug}</span>
+                  <span className="text-muted-foreground">
+                    {format(new Date(r.started_at), 'd MMM HH:mm:ss', { locale: es })}
+                  </span>
+                  <span className="text-muted-foreground">
+                    ↓{r.items_fetched} · ⚙{r.items_parsed} · ↑{r.items_upserted}
+                    {r.items_failed > 0 && ` · ✗${r.items_failed}`}
+                  </span>
+                  {r.adapter && (
+                    <Badge variant="outline" className="text-[10px] uppercase">
+                      {r.adapter}
+                    </Badge>
+                  )}
+                  {r.error_sample && (
+                    <span
+                      className="text-destructive line-clamp-1 basis-full"
+                      title={r.error_sample}
+                    >
+                      {r.error_sample}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
