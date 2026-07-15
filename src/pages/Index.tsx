@@ -95,9 +95,10 @@ const Index = () => {
 
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
-        'relative text-white px-4 pt-5 pb-14 overflow-hidden',
+        'relative text-white px-4 sm:px-6 pt-5 pb-14 overflow-hidden',
         appMode === 'deportes' ? 'bg-gradient-hero-sports' : 'bg-gradient-hero'
       )}>
+
         {/* Subtle depth layer */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -top-32 -left-20 h-80 w-80 rounded-full bg-white/15 blur-3xl" />
