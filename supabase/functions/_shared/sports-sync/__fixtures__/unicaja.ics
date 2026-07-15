@@ -1,0 +1,30 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Unicaja//Baloncesto//ES
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:unicaja-2026-10-05-liga-endesa@unicajabaloncesto.com
+SUMMARY:Unicaja vs Real Madrid — Liga Endesa
+DTSTAMP:20260901T100000Z
+DTSTART;TZID=Europe/Madrid:20261005T210000
+DTEND;TZID=Europe/Madrid:20261005T230000
+LOCATION:Palacio Martín Carpena\, Málaga
+URL:https://www.unicajabaloncesto.com/partido/unicaja-real-madrid-2026-10-05
+STATUS:CONFIRMED
+DESCRIPTION:Jornada 4 de la Liga Endesa 2026-27. Puertas 20:00.
+END:VEVENT
+BEGIN:VEVENT
+UID:unicaja-2026-11-12-euroliga@unicajabaloncesto.com
+SUMMARY:Unicaja vs Panathinaikos — BCL
+DTSTAMP:20260901T100000Z
+DTSTART;TZID=Europe/Madrid:20261112T203000
+LOCATION:Palacio Martín Carpena
+URL:https://www.unicajabaloncesto.com/partido/unicaja-panathinaikos-2026-11-12
+STATUS:TENTATIVE
+END:VEVENT
+BEGIN:VEVENT
+UID:unicaja-1999-liga-vieja@unicajabaloncesto.com
+SUMMARY:Partido histórico (fuera de ventana)
+DTSTART:19990101T210000Z
+END:VEVENT
+END:VCALENDAR
