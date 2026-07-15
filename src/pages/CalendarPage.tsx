@@ -622,8 +622,11 @@ const CalendarPage = () => {
             onLoadMore={() => setListLimit((n) => n + LIST_PAGE_SIZE)}
             isFavorite={isFavorite}
             onToggleFavorite={handleToggleFavorite}
+            hasActiveFilters={activeFilterGroups > 0}
+            onClearFilters={() => setFilters(EMPTY_CALENDAR_FILTERS)}
             t={t}
           />
+
         )}
       </main>
 
