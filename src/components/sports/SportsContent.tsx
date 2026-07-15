@@ -337,6 +337,9 @@ const SportsContent = () => {
       </section>
 
 
+      {/* Agenda deportiva verificada — antes de las categorías genéricas */}
+      <SportsAgenda />
+
       {/* Category grid */}
       <section aria-label={t('sportsHome.categoriesAria', 'Categorías deportivas')}>
         <div className="flex items-baseline justify-between mb-3">
