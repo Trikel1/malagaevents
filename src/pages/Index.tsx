@@ -265,7 +265,7 @@ const Index = () => {
                     className="glass-card liquid-hover liquid-press text-left p-4 min-h-[108px] flex flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <card.icon className="h-4.5 w-4.5 text-primary" aria-hidden />
+                      <card.icon className="h-5 w-5 text-primary" aria-hidden />
                     </div>
                     <div>
                       <div className="font-semibold text-sm leading-tight">{t(`home.discover.${card.key}.label`)}</div>
