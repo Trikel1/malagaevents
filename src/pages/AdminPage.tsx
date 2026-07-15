@@ -688,6 +688,7 @@ const AdminPage = () => {
           </TabsContent>
 
           <TabsContent value="cobertura" className="space-y-4">
+            <CitizenServiceRadar />
             <CoverageMatrix />
           </TabsContent>
         </Tabs>
