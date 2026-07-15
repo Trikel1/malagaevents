@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import {
-  Phone, MapPin, Calendar as CalendarIcon, Clock, AlertTriangle,
+  Phone, MapPin, Calendar as CalendarIcon, AlertTriangle,
   Search, ChevronDown, Check, Navigation, X, Pill, LocateFixed, Info,
+  ShieldCheck, ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,6 +22,7 @@ import { usePharmaciesOnDuty, usePharmacyDirectory, usePharmacyGuardSyncStatus }
 import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib/localitiesCatalog';
 import { haversineKm, formatDistance } from '@/lib/distance';
 import { cn } from '@/lib/utils';
+
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
