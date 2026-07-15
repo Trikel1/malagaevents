@@ -196,7 +196,7 @@ const BottomNav = () => {
               <span className="bottom-nav-icon-shell" aria-hidden>
                 <item.icon
                   className={cn(
-                    'h-[24px] w-[24px] shrink-0 transition-[transform,stroke-width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                    'h-[24px] w-[24px] shrink-0 transition-[transform,stroke-width] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]',
                     isActive && 'stroke-[2.4px] scale-[1.12]'
                   )}
                 />
