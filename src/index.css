@@ -622,3 +622,113 @@
   .bottom-nav-item,
   .bottom-nav-active-surface { transition: none !important; }
 }
+
+/* ============================================================
+   Editorial polish — section headers, focus, hero glow
+   (scoped, additive, uses existing tokens)
+   ============================================================ */
+@layer components {
+  /* Small caps eyebrow above sections and inside institutional blocks */
+  .section-eyebrow {
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Consistent section heading — used in Inicio & Eventos */
+  .section-title {
+    font-size: 1.125rem;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: hsl(var(--foreground));
+  }
+  @media (min-width: 640px) {
+    .section-title { font-size: 1.25rem; }
+  }
+
+  /* Ornament rule after a section title (subtle, primary→transparent) */
+  .section-rule {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(
+      to right,
+      hsl(var(--primary) / 0.35) 0,
+      hsl(var(--border) / 0.6) 30%,
+      transparent 100%
+    );
+  }
+
+  /* Toned-down hero glow blobs — replaces raw white/15/10 blurs */
+  .hero-glow {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(56px);
+    pointer-events: none;
+    background: hsl(0 0% 100% / 0.14);
+  }
+  .hero-glow.hero-glow--warm {
+    background: radial-gradient(closest-side, hsl(45 100% 88% / 0.35), transparent 70%);
+  }
+  .hero-glow.hero-glow--cool {
+    background: radial-gradient(closest-side, hsl(199 100% 85% / 0.28), transparent 70%);
+  }
+
+  /* Quiet outline card — for institutional/stat tiles */
+  .tile-quiet {
+    background: hsl(var(--surface-elevated) / 0.75);
+    border: 1px solid hsl(var(--border) / 0.6);
+    border-radius: var(--liquid-radius);
+    transition: border-color var(--liquid-transition), background-color var(--liquid-transition);
+  }
+  .tile-quiet:hover {
+    border-color: hsl(var(--primary) / 0.35);
+    background: hsl(var(--surface-elevated));
+  }
+
+  /* Segmented preset chip — used by Eventos preset row */
+  .preset-chip {
+    height: 2.25rem;
+    padding-inline: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--muted) / 0.6);
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+    transition: background-color var(--liquid-transition), color var(--liquid-transition), border-color var(--liquid-transition), box-shadow var(--liquid-transition);
+  }
+  .preset-chip:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+  .preset-chip[aria-selected="true"] {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+    box-shadow: 0 6px 14px -8px hsl(var(--primary) / 0.55);
+  }
+}
+
+/* Consistent focus-visible ring across interactive elements
+   (buttons, links, chips, tiles). Doesn't override native focus styles
+   from shadcn primitives that already set ring-2. */
+@layer base {
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  [role="tab"]:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+}
+
