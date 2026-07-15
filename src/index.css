@@ -376,18 +376,18 @@
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(60% 45% at 15% 8%, hsl(24 90% 88% / 0.55) 0%, transparent 60%),
-    radial-gradient(55% 45% at 90% 18%, hsl(340 75% 90% / 0.45) 0%, transparent 62%),
-    radial-gradient(70% 55% at 50% 100%, hsl(200 75% 90% / 0.5) 0%, transparent 65%),
-    linear-gradient(180deg, hsl(45 40% 99%) 0%, hsl(40 30% 98%) 100%);
+    radial-gradient(60% 45% at 15% 8%, hsl(200 85% 92% / 0.55) 0%, transparent 60%),
+    radial-gradient(55% 45% at 90% 18%, hsl(45 55% 92% / 0.42) 0%, transparent 62%),
+    radial-gradient(70% 55% at 50% 100%, hsl(188 75% 90% / 0.5) 0%, transparent 65%),
+    linear-gradient(180deg, hsl(200 40% 99%) 0%, hsl(200 30% 98%) 100%);
   transition: background var(--liquid-motion-slow) var(--liquid-ease);
 }
 .dark .liquid-backdrop {
   background:
-    radial-gradient(60% 45% at 15% 8%, hsl(24 60% 30% / 0.35) 0%, transparent 60%),
-    radial-gradient(55% 45% at 90% 18%, hsl(340 55% 30% / 0.30) 0%, transparent 62%),
-    radial-gradient(70% 55% at 50% 100%, hsl(200 55% 25% / 0.35) 0%, transparent 65%),
-    linear-gradient(180deg, hsl(220 28% 10%) 0%, hsl(220 30% 7%) 100%);
+    radial-gradient(60% 45% at 15% 8%, hsl(210 55% 22% / 0.4) 0%, transparent 60%),
+    radial-gradient(55% 45% at 90% 18%, hsl(188 45% 22% / 0.32) 0%, transparent 62%),
+    radial-gradient(70% 55% at 50% 100%, hsl(200 55% 22% / 0.38) 0%, transparent 65%),
+    linear-gradient(180deg, hsl(215 32% 10%) 0%, hsl(215 38% 7%) 100%);
 }
 
 /* Legacy blob elements kept for compatibility but rendered as extremely subtle
@@ -404,13 +404,14 @@
 }
 .liquid-blob-1 {
   width: 60vw; height: 60vw; top: 10%; left: 55%;
-  background: hsl(24 90% 72% / 0.55);
+  background: hsl(200 78% 72% / 0.5);
 }
 .liquid-blob-2 {
   width: 55vw; height: 55vw; bottom: 5%; left: -15%;
-  background: hsl(200 75% 72% / 0.5);
+  background: hsl(188 68% 70% / 0.5);
 }
 .dark .liquid-blob { opacity: 0.08; }
+
 
 [data-mode="deportes"] .liquid-backdrop {
   background:
