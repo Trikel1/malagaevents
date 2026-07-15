@@ -123,7 +123,7 @@ const SportsEventsPage = () => {
     (debouncedSearch ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/90 via-background to-emerald-100/40 dark:from-emerald-950/45 dark:via-background dark:to-emerald-950/25">
       {/* Header */}
       <header className="bg-gradient-to-br from-emerald-950 via-teal-900 to-emerald-700 text-white border-b border-emerald-800 sticky top-0 z-40">
         <div className="p-4 space-y-3">
@@ -167,7 +167,7 @@ const SportsEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="text-muted-foreground h-7 px-2 text-xs"
+                className="text-emerald-100/80 hover:text-white hover:bg-white/10 h-7 px-2 text-xs"
               >
                 <X className="h-3.5 w-3.5 mr-1" />
                 {t('events.clearFilters', 'Limpiar filtros')}
@@ -185,7 +185,7 @@ const SportsEventsPage = () => {
                 placeholder={t('common.search', 'Buscar')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-10"
+                className="pl-9 pr-10 bg-white/95 text-slate-900 border-0 shadow-lg"
               />
               {searchQuery && (
                 <Button
@@ -210,8 +210,8 @@ const SportsEventsPage = () => {
                 className={cn(
                   'px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border',
                   timeFilter === f.key
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-background border-border text-muted-foreground hover:bg-muted'
+                    ? 'bg-emerald-300 text-emerald-950 border-emerald-200'
+                    : 'bg-white/10 border-white/20 text-emerald-50 hover:bg-white/15'
                 )}
               >
                 {f.label}
@@ -248,8 +248,8 @@ const SportsEventsPage = () => {
               className={cn(
                 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
                 selectedSport === 'all'
-                  ? 'bg-primary/10 text-primary border-primary/30'
-                  : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20'
+                  ? 'bg-emerald-300 text-emerald-950 border-emerald-200'
+                  : 'bg-white/10 border-white/20 text-emerald-50 hover:bg-white/15 hover:border-white/30'
               )}
             >
               <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
@@ -264,11 +264,11 @@ const SportsEventsPage = () => {
                   className={cn(
                     'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
                     active
-                      ? 'bg-primary/10 text-primary border-primary/30'
-                      : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20'
+                      ? 'bg-emerald-300 text-emerald-950 border-emerald-200'
+                      : 'bg-white/10 border-white/20 text-emerald-50 hover:bg-white/15 hover:border-white/30'
                   )}
                 >
-                  <SportIcon sport={cat} className={cn('h-3.5 w-3.5', active ? 'text-primary' : 'text-muted-foreground')} />
+                  <SportIcon sport={cat} className={cn('h-3.5 w-3.5', active ? 'text-emerald-950' : 'text-emerald-100')} />
                   {t(`sports.${cat}`, cat)}
                 </button>
               );
