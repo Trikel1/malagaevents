@@ -177,7 +177,11 @@ const Index = () => {
 
       <main className="px-4 sm:px-6 -mt-14 space-y-6 pb-8 relative z-10 max-w-6xl mx-auto">
         {appMode === 'deportes' ? (
-          <div className="pt-6"><SportsContent /></div>
+          <div className="pt-6">
+            <Suspense fallback={<div className="h-40" />}>
+              <SportsContent />
+            </Suspense>
+          </div>
         ) : (
           <>
             {/* ============== QUICK ACTIONS visible desde primer pantallazo ============== */}
@@ -197,7 +201,9 @@ const Index = () => {
             </section>
 
             {/* ============== TENGO DOS HORAS — módulo de descubrimiento ciudadano ============== */}
-            <TwoHoursSheet />
+            <Suspense fallback={null}>
+              <TwoHoursSheet />
+            </Suspense>
 
             {/* ============== Bloque INFANTIL / FAMILIAR ============== */}
             <section className="glass-panel p-5 sm:p-6 animate-fade-in">
