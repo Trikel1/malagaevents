@@ -139,7 +139,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Connect — ماذا تفعل اليوم في مالقة",
+      "title": "Málaga Events — ماذا تفعل اليوم في مالقة",
       "description": "دليل المواطن لمالقة: فعاليات، خطط عائلية، صيدليات مناوبة، ثقافة ورياضة في المدينة والمقاطعة."
     },
     "hero": {
@@ -710,19 +710,19 @@
       "description": "أجندة مالقة الرياضية: مباريات، منافسات، أنشطة ومرافق رسمية."
     },
     "profile": {
-      "title": "ملفي الشخصي — MalagaEvents",
-      "description": "إدارة الحساب والمفضلة والتذاكر واللغة في MalagaEvents."
+      "title": "ملفي الشخصي — Málaga Events",
+      "description": "إدارة الحساب والمفضلة والتذاكر واللغة في Málaga Events."
     },
     "submit": {
       "title": "إرسال فعالية في مالقة",
-      "description": "أرسل فعالية ثقافية أو رياضية لمراجعتها من فريق MalagaEvents."
+      "description": "أرسل فعالية ثقافية أو رياضية لمراجعتها من فريق Málaga Events."
     },
     "tickets": {
-      "title": "تذاكري — MalagaEvents",
-      "description": "تصفح ونظّم تذاكرك المحفوظة في MalagaEvents."
+      "title": "تذاكري — Málaga Events",
+      "description": "تصفح ونظّم تذاكرك المحفوظة في Málaga Events."
     },
     "addTicket": {
-      "title": "إضافة تذكرة — MalagaEvents",
+      "title": "إضافة تذكرة — Málaga Events",
       "description": "أضف تذكرة إلى مجموعتك الشخصية."
     },
     "pharmacies": {
@@ -730,19 +730,19 @@
       "description": "صيدليات المناوبة الرسمية في مالقة ودليل معلوماتي حسب البلدية."
     },
     "auth": {
-      "title": "تسجيل الدخول إلى MalagaEvents",
+      "title": "تسجيل الدخول إلى Málaga Events",
       "description": "سجّل الدخول أو أنشئ حسابًا لحفظ المفضلة والتذاكر والتفضيلات."
     },
     "reset": {
-      "title": "إعادة تعيين كلمة المرور — MalagaEvents",
+      "title": "إعادة تعيين كلمة المرور — Málaga Events",
       "description": "اختر كلمة مرور جديدة لحسابك."
     },
     "admin": {
-      "title": "Admin — MalagaEvents",
+      "title": "Admin — Málaga Events",
       "description": "لوحة الإدارة الداخلية."
     },
     "notFound": {
-      "title": "الصفحة غير موجودة — MalagaEvents",
+      "title": "الصفحة غير موجودة — Málaga Events",
       "description": "الصفحة المطلوبة غير موجودة أو تم نقلها."
     }
   },
@@ -770,7 +770,7 @@
     "searchRadius": "نطاق البحث",
     "nearDisclaimer": "هذه الأحداث <strong>لا تُقام في {{name}}</strong>. تُدرج حسب القرب من مركز البلدية.",
     "noNearby": "لا توجد أحداث موثّقة في نطاق {{radius}} كم.",
-    "seoTitle": "الأجندة الثقافية في {{name}} | MalagaEvents",
+    "seoTitle": "الأجندة الثقافية في {{name}} | Málaga Events",
     "seoDescription": "اكتشف الأحداث الثقافية المؤكّدة في {{name}} ({{comarca}}) وما حولها."
   }
 }

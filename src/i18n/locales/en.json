@@ -139,7 +139,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Connect — What's on in Málaga today",
+      "title": "Málaga Events — What's on in Málaga today",
       "description": "The citizen guide to Málaga: events, family plans, on-duty pharmacies, culture and sport across Málaga city and province."
     },
     "hero": {
@@ -710,19 +710,19 @@
       "description": "Sports agenda in Málaga: matches, competitions, activities and official venues."
     },
     "profile": {
-      "title": "My profile — MalagaEvents",
-      "description": "Manage your account, favourites, tickets and language on MalagaEvents."
+      "title": "My profile — Málaga Events",
+      "description": "Manage your account, favourites, tickets and language on Málaga Events."
     },
     "submit": {
       "title": "Submit a Málaga event",
-      "description": "Submit a cultural or sports event for review by the MalagaEvents team."
+      "description": "Submit a cultural or sports event for review by the Málaga Events team."
     },
     "tickets": {
-      "title": "My tickets — MalagaEvents",
-      "description": "Browse and organise your saved tickets on MalagaEvents."
+      "title": "My tickets — Málaga Events",
+      "description": "Browse and organise your saved tickets on Málaga Events."
     },
     "addTicket": {
-      "title": "Add ticket — MalagaEvents",
+      "title": "Add ticket — Málaga Events",
       "description": "Add a ticket to your personal collection."
     },
     "pharmacies": {
@@ -730,19 +730,19 @@
       "description": "Official on-duty pharmacies in Málaga and informational directory by municipality."
     },
     "auth": {
-      "title": "Sign in to MalagaEvents",
+      "title": "Sign in to Málaga Events",
       "description": "Sign in or create an account to save favourites, tickets and preferences."
     },
     "reset": {
-      "title": "Reset password — MalagaEvents",
+      "title": "Reset password — Málaga Events",
       "description": "Choose a new password for your account."
     },
     "admin": {
-      "title": "Admin — MalagaEvents",
+      "title": "Admin — Málaga Events",
       "description": "Internal administration panel."
     },
     "notFound": {
-      "title": "Page not found — MalagaEvents",
+      "title": "Page not found — Málaga Events",
       "description": "The requested page does not exist or has been moved."
     }
   },
@@ -770,7 +770,7 @@
     "searchRadius": "Search radius",
     "nearDisclaimer": "These events <strong>do not take place in {{name}}</strong>. They are listed by proximity to the town centre.",
     "noNearby": "No verified events within a {{radius}} km radius.",
-    "seoTitle": "{{name}} cultural agenda | MalagaEvents",
+    "seoTitle": "{{name}} cultural agenda | Málaga Events",
     "seoDescription": "Discover confirmed cultural events in {{name}} ({{comarca}}) and surroundings."
   }
 }

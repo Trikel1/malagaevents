@@ -436,7 +436,7 @@ const CultureEventsPage = () => {
                 placeholder={t('events.searchPlaceholderShort', 'Buscar…')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-9 h-10 rounded-full text-sm bg-background/70 border-border/60 focus-visible:ring-primary"
+                className="pl-9 pr-9 h-11 rounded-full text-sm bg-background/70 border-border/60 focus-visible:ring-primary"
               />
               {searchQuery && (
                 <Button
@@ -467,7 +467,7 @@ const CultureEventsPage = () => {
               aria-pressed={!!userCoords}
               aria-label={t('events.nearMe', 'Cerca de mí')}
               className={cn(
-                'h-10 w-10 rounded-full shrink-0 transition-colors',
+                'h-11 w-11 min-h-[44px] min-w-[44px] rounded-full shrink-0 transition-colors',
                 userCoords && 'bg-primary text-primary-foreground border-primary hover:bg-primary/90',
                 isRequestingLocation && 'opacity-60',
               )}
@@ -478,7 +478,7 @@ const CultureEventsPage = () => {
               variant="outline"
               size="icon"
               onClick={() => setIsFilterOpen(true)}
-              className="h-10 w-10 rounded-full relative shrink-0"
+              className="h-11 w-11 min-h-[44px] min-w-[44px] rounded-full relative shrink-0"
               aria-label={t('events.filters', 'Filtros')}
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -497,7 +497,7 @@ const CultureEventsPage = () => {
           <div
             role="tablist"
             aria-label={t('events.timeRange', 'Franja temporal')}
-            className="flex gap-1.5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {PRIMARY_PRESETS.map((p) => {
               const active = filters.datePreset === p.key;
@@ -513,11 +513,12 @@ const CultureEventsPage = () => {
                   aria-selected={active}
                   onClick={() => setPreset(p.key)}
                   className={cn(
-                    'shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium border transition-all whitespace-nowrap',
+                    'shrink-0 min-h-[44px] px-4 rounded-full text-[13px] font-medium border transition-all whitespace-nowrap',
                     active
                       ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                       : 'bg-muted/60 text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground',
                   )}
+
                 >
                   {shortLabel}
                 </button>
@@ -544,7 +545,7 @@ const CultureEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                className="min-h-[44px] px-3 text-xs text-muted-foreground hover:text-foreground"
               >
                 {t('events.clearFilters', 'Limpiar')}
               </Button>

@@ -91,14 +91,14 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
         </div>
 
         {/* CTAs */}
-        <div className="flex gap-1.5 pt-1">
+        <div className="flex gap-2 pt-1">
           {ctaUrl && (
             <Button
               size="sm"
-              className="flex-1 h-7 text-xs"
+              className="flex-1 min-h-[44px] text-sm"
               onClick={() => window.open(ctaUrl, '_blank', 'noopener,noreferrer')}
             >
-              <ExternalLink className="h-3 w-3 mr-1" />
+              <ExternalLink className="h-4 w-4 mr-1.5" />
               {ctaLabel}
             </Button>
           )}
@@ -106,14 +106,15 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
             <Button
               size="sm"
               variant="outline"
-              className="h-7 text-xs px-2"
+              className="min-h-[44px] min-w-[44px] text-sm px-3"
               aria-label={t('sports.cta.directions', 'Cómo llegar')}
               onClick={() => window.open(directions, '_blank', 'noopener,noreferrer')}
             >
-              <Navigation className="h-3 w-3" />
+              <Navigation className="h-4 w-4" />
             </Button>
           )}
         </div>
+
       </CardContent>
     </Card>
   );

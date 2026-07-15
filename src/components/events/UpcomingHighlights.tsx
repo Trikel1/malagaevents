@@ -85,22 +85,25 @@ const UpcomingHighlights = ({ events, maxItems }: UpcomingHighlightsProps) => {
                 ? t('events.resumeCarousel', 'Reanudar carrusel')
                 : t('events.pauseCarousel', 'Pausar carrusel')
             }
-            className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background/70 backdrop-blur px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+            className="inline-flex items-center gap-1.5 min-h-[44px] rounded-full border border-border/60 bg-background/70 backdrop-blur px-3 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {paused ? (
               <>
-                <Play className="h-3 w-3" aria-hidden="true" />
+                <Play className="h-3.5 w-3.5" aria-hidden="true" />
                 {t('events.play', 'Reanudar')}
               </>
             ) : (
               <>
-                <Pause className="h-3 w-3" aria-hidden="true" />
+                <Pause className="h-3.5 w-3.5" aria-hidden="true" />
                 {t('events.pause', 'Pausar')}
               </>
             )}
           </button>
-          <span className="text-[11px] text-muted-foreground">{items.length}</span>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {t('events.eventCount', { count: items.length })}
+          </span>
         </div>
+
       </div>
 
       <div

@@ -1,6 +1,6 @@
 {
-  "name": "MalagaEvents",
-  "short_name": "MalagaEvents",
+  "name": "Málaga Events",
+  "short_name": "Málaga Events",
   "description": "Agenda de eventos, cultura, ocio, deporte y servicios en Málaga",
   "start_url": "/",
   "scope": "/",
@@ -9,8 +9,9 @@
   "orientation": "portrait-primary",
   "lang": "es",
   "dir": "ltr",
-  "background_color": "#0f172a",
-  "theme_color": "#f97316",
+  "background_color": "#FAF7F0",
+  "theme_color": "#075985",
+
   "categories": ["events", "lifestyle", "travel"],
   "icons": [
     {

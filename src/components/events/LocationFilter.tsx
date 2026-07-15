@@ -125,7 +125,7 @@ const LocationFilter = ({
       variant={isActive ? 'default' : 'outline'}
       size="sm"
       className={cn(
-        'h-9 px-2 sm:px-3 gap-1 sm:gap-1.5 max-w-full whitespace-nowrap rounded-full min-w-0',
+        'min-h-[44px] h-11 px-3 gap-1.5 max-w-full whitespace-nowrap rounded-full min-w-0',
         !isActive && 'bg-card hover:bg-accent border-border/60',
         isActive && 'shadow-sm'
       )}

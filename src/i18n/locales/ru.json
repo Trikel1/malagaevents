@@ -139,7 +139,7 @@
   },
   "home": {
     "seo": {
-      "title": "Málaga Connect — Что делать сегодня в Малаге",
+      "title": "Málaga Events — Что делать сегодня в Малаге",
       "description": "Гражданский гид по Малаге: события, семейные планы, дежурные аптеки, культура и спорт в городе и провинции."
     },
     "hero": {
@@ -710,19 +710,19 @@
       "description": "Спортивная афиша Малаги: матчи, соревнования, активности и официальные объекты."
     },
     "profile": {
-      "title": "Мой профиль — MalagaEvents",
-      "description": "Управляйте аккаунтом, избранным, билетами и языком в MalagaEvents."
+      "title": "Мой профиль — Málaga Events",
+      "description": "Управляйте аккаунтом, избранным, билетами и языком в Málaga Events."
     },
     "submit": {
       "title": "Отправить событие в Малаге",
-      "description": "Отправьте культурное или спортивное событие на проверку команде MalagaEvents."
+      "description": "Отправьте культурное или спортивное событие на проверку команде Málaga Events."
     },
     "tickets": {
-      "title": "Мои билеты — MalagaEvents",
-      "description": "Просмотр и организация сохранённых билетов в MalagaEvents."
+      "title": "Мои билеты — Málaga Events",
+      "description": "Просмотр и организация сохранённых билетов в Málaga Events."
     },
     "addTicket": {
-      "title": "Добавить билет — MalagaEvents",
+      "title": "Добавить билет — Málaga Events",
       "description": "Добавьте билет в вашу личную коллекцию."
     },
     "pharmacies": {
@@ -730,19 +730,19 @@
       "description": "Официальные дежурные аптеки Малаги и информационный каталог по муниципалитетам."
     },
     "auth": {
-      "title": "Войти в MalagaEvents",
+      "title": "Войти в Málaga Events",
       "description": "Войдите или создайте аккаунт, чтобы сохранять избранное, билеты и настройки."
     },
     "reset": {
-      "title": "Сброс пароля — MalagaEvents",
+      "title": "Сброс пароля — Málaga Events",
       "description": "Выберите новый пароль для вашего аккаунта."
     },
     "admin": {
-      "title": "Admin — MalagaEvents",
+      "title": "Admin — Málaga Events",
       "description": "Внутренняя панель администрирования."
     },
     "notFound": {
-      "title": "Страница не найдена — MalagaEvents",
+      "title": "Страница не найдена — Málaga Events",
       "description": "Запрошенная страница не существует или была перемещена."
     }
   },
@@ -770,7 +770,7 @@
     "searchRadius": "Радиус поиска",
     "nearDisclaimer": "Эти события <strong>не проходят в {{name}}</strong>. Они отсортированы по удалённости от центра муниципалитета.",
     "noNearby": "Проверенных событий в радиусе {{radius}} км нет.",
-    "seoTitle": "Культурная афиша {{name}} | MalagaEvents",
+    "seoTitle": "Культурная афиша {{name}} | Málaga Events",
     "seoDescription": "Подтверждённые культурные события в {{name}} ({{comarca}}) и окрестностях."
   }
 }

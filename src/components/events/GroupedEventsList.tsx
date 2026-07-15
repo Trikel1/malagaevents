@@ -68,12 +68,10 @@ const GroupedEventsList = ({
               >
                 {bucket.label}
               </h3>
-              <span className="text-[11px] text-muted-foreground font-medium">
-                {bucket.items.length}{' '}
-                {bucket.items.length === 1
-                  ? t('events.eventSingular', 'evento')
-                  : t('events.eventPlural', 'eventos')}
+              <span className="text-[11px] text-muted-foreground font-medium tabular-nums">
+                {t('events.eventCount', { count: bucket.items.length })}
               </span>
+
             </div>
             <div className="mt-1 h-px bg-gradient-to-r from-primary/40 via-border to-transparent" />
           </div>
