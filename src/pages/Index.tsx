@@ -15,6 +15,7 @@ import EventCard from '@/components/events/EventCard';
 import EmptyState from '@/components/common/EmptyState';
 import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEvents } from '@/hooks/useEvents';
+import TwoHoursSheet from '@/components/home/TwoHoursSheet';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import SportsContent from '@/components/sports/SportsContent';
@@ -191,6 +192,9 @@ const Index = () => {
                 ))}
               </div>
             </section>
+
+            {/* ============== TENGO DOS HORAS — módulo de descubrimiento ciudadano ============== */}
+            <TwoHoursSheet />
 
             {/* ============== Bloque INFANTIL / FAMILIAR ============== */}
             <section className="glass-panel p-5 sm:p-6 animate-fade-in">
