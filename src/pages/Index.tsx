@@ -261,7 +261,9 @@ const Index = () => {
 
             {/* ============== Qué puedes encontrar ============== */}
             <section>
-              <h2 className="text-lg font-bold tracking-tight mb-3 px-1">{t('home.sections.whatYouFind')}</h2>
+              <h2 className="section-title mb-3">{t('home.sections.whatYouFind')}</h2>
+              <div className="section-rule mb-3" aria-hidden />
+
               <div className="grid grid-cols-2 gap-3">
                 {DISCOVER_CARDS.map((card) => (
                   <button
