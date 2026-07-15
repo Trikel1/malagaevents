@@ -9,8 +9,8 @@ import { ThemeProvider } from "./components/theme/ThemeProvider";
 import { AppModeProvider } from "./contexts/AppModeContext";
 import MainLayout from "./components/layout/MainLayout";
 import Index from "./pages/Index";
-import EventsPage from "./pages/EventsPage";
 import NotFound from "./pages/NotFound";
+
 
 // Lazy-load heavy / secondary routes to reduce initial bundle & TTI
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
