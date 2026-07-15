@@ -365,7 +365,7 @@ const CalendarPage = () => {
                         key={month}
                         onClick={() => handleMonthSelect(index)}
                         className={cn(
-                          'relative px-2 py-2.5 text-sm rounded-md transition-colors capitalize',
+                          'relative px-2 py-2.5 min-h-11 text-sm rounded-md transition-colors capitalize',
                           'hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring',
                           isSelected && 'bg-primary text-primary-foreground hover:bg-primary/90',
                           !isSelected && isCurrentRealMonth && 'bg-primary/10 font-medium',
