@@ -26,7 +26,10 @@ interface SportSource {
   consecutive_failures: number;
   items_upserted: number;
   items_fetched: number;
+  robots_allowed: boolean | null;
+  robots_checked_at: string | null;
 }
+
 
 const StatusBadge = ({ status }: { status: string | null }) => {
   if (!status) {
