@@ -6,7 +6,7 @@ import {
   Music, Drama, PartyPopper, Building2, Trees, Users, Ticket, Map as MapIcon,
   Landmark, Trophy, Radar, Heart,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import LanguageSelector from '@/components/common/LanguageSelector';
