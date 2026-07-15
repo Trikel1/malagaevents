@@ -233,13 +233,16 @@ const Index = () => {
 
             {/* ============== Ahora en Málaga (Hoy) ============== */}
             <section>
-              <div className="flex justify-between items-center mb-3 px-1">
-                <h2 className="text-lg font-bold tracking-tight">{t('home.sections.nowInMalaga')}</h2>
-                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4" onClick={() => navigate('/events?filter=today')}>
+              <div className="flex items-end justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <h2 className="section-title">{t('home.sections.nowInMalaga')}</h2>
+                  <div className="section-rule mt-2" aria-hidden />
+                </div>
+                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4 shrink-0" onClick={() => navigate('/events?filter=today')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
-
               </div>
+
               {loadingToday ? (
                 <div className="grid grid-cols-2 gap-3">
                   {[1,2,3,4].map((i) => <EventCardSkeleton key={i} />)}
