@@ -133,6 +133,13 @@ export type Database = {
             foreignKeyName: "event_source_runs_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "event_source_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
             referencedRelation: "event_sources"
             referencedColumns: ["id"]
           },
@@ -254,6 +261,13 @@ export type Database = {
           write_confirmed_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "event_sources_canonical_source_id_fkey"
+            columns: ["canonical_source_id"]
+            isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
+          },
           {
             foreignKeyName: "event_sources_canonical_source_id_fkey"
             columns: ["canonical_source_id"]
@@ -540,6 +554,13 @@ export type Database = {
             foreignKeyName: "events_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "events_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
             referencedRelation: "event_sources"
             referencedColumns: ["id"]
           },
@@ -628,6 +649,13 @@ export type Database = {
             foreignKeyName: "ingestion_errors_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "ingestion_errors_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
             referencedRelation: "event_sources"
             referencedColumns: ["id"]
           },
@@ -668,6 +696,13 @@ export type Database = {
           used_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ingestion_write_tokens_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
+          },
           {
             foreignKeyName: "ingestion_write_tokens_source_id_fkey"
             columns: ["source_id"]
@@ -991,6 +1026,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "event_source_runs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "raw_event_snapshots_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
           },
           {
             foreignKeyName: "raw_event_snapshots_source_id_fkey"
@@ -1480,6 +1522,13 @@ export type Database = {
             foreignKeyName: "venue_aliases_source_id_fkey"
             columns: ["source_id"]
             isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "venue_aliases_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
             referencedRelation: "event_sources"
             referencedColumns: ["id"]
           },
@@ -1596,7 +1645,40 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      event_source_coverage: {
+        Row: {
+          canonical_source_id: string | null
+          consecutive_errors: number | null
+          distinct_future_venues: number | null
+          future_events: number | null
+          last_error_at: string | null
+          last_event_updated_at: string | null
+          last_success_at: string | null
+          next_event_at: string | null
+          priority_tier: string | null
+          source_enabled: boolean | null
+          source_id: string | null
+          source_kind: string | null
+          source_name: string | null
+          source_slug: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_sources_canonical_source_id_fkey"
+            columns: ["canonical_source_id"]
+            isOneToOne: false
+            referencedRelation: "event_source_coverage"
+            referencedColumns: ["source_id"]
+          },
+          {
+            foreignKeyName: "event_sources_canonical_source_id_fkey"
+            columns: ["canonical_source_id"]
+            isOneToOne: false
+            referencedRelation: "event_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       backfill_event_family_flags: {
