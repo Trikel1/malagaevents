@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import EmptyState from '@/components/common/EmptyState';
 import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
-import { usePharmaciesOnDuty, usePharmacyDirectory } from '@/hooks/usePharmacies';
+import { usePharmaciesOnDuty, usePharmacyDirectory, usePharmacyGuardSyncStatus } from '@/hooks/usePharmacies';
 import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib/localitiesCatalog';
 import { haversineKm, formatDistance } from '@/lib/distance';
 import { cn } from '@/lib/utils';
