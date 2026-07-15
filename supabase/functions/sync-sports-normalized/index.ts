@@ -1,11 +1,16 @@
 // Edge function: sync-sports-normalized
-// Phase A: JSON adapter only. Auth by SYNC_SPORTS_KEY (x-sync-key header).
+// Phase B: adapter routing for json/html/ics. Auth by SYNC_SPORTS_KEY.
 //
-// - Reads feed URL from body.feedUrl OR env SPORTS_NORMALIZED_FEED_URL.
-// - Upserts into public.sports_events using (source_name, external_id) or fingerprint.
-// - Bumps missed_syncs for rows attributed to source_name that didn't appear.
-// - Marks status='cancelled_or_unpublished' at 3 consecutive misses.
-// - Logs run into public.sports_sync_runs.
+// - Resolves source via public.sports_sources when body.slug is passed.
+// - Routes by source_type: json → JSON feed adapter,
+//   html → HTML + JSON-LD adapter (with optional ICS discovery),
+//   ics → RFC 5545 ICS parser.
+// - Upserts into public.sports_events using (source_name, external_id) or
+//   fingerprint. Bumps missed_syncs; marks cancelled_or_unpublished at 3.
+// - Empty-run safety: never deactivates events when the run yielded 0
+//   parsed events (treated as no-data-this-run, not "everything cancelled").
+// - Respects robots.txt when body.slug is used (checkRobots).
+// - Logs run into public.sports_sync_runs with source_id + adapter + counters.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -13,8 +18,11 @@ import type { CanonicalSportsEvent } from "../_shared/sports-sync/types.ts";
 import { fetchJsonFeed } from "../_shared/sports-sync/adapters/json.ts";
 import { computeFingerprint, computePayloadHash } from "../_shared/sports-sync/fingerprint.ts";
 import { decideDeactivations } from "../_shared/sports-sync/upsert.ts";
+import { runSourceAdapter } from "../_shared/sports-sync/adapters/sources.ts";
+import { checkRobots } from "../_shared/sports-sync/robots.ts";
 
-const MISSED_THRESHOLD_JSON = 3;
+const MISSED_THRESHOLD = 3;
+
 
 // deno-lint-ignore no-explicit-any
 type SB = any;
