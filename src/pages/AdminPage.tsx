@@ -695,6 +695,10 @@ const AdminPage = () => {
             <CitizenServiceRadar />
             <CoverageMatrix />
           </TabsContent>
+
+          <TabsContent value="fuentes-deportivas" className="space-y-4">
+            <SportsSourcesPanel />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
