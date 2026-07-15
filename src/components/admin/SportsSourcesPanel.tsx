@@ -91,8 +91,8 @@ export default function SportsSourcesPanel() {
   const runSource = async (slug: string) => {
     setRunningSlug(slug);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-sync-sports', {
-        body: { slug, force: true, cooldownMinutes: 0 },
+      const { data, error } = await supabase.functions.invoke('admin-sync-sports-source', {
+        body: { slug },
       });
       if (error) throw error;
       toast({
