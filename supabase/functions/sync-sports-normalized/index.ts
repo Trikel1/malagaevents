@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   if (!checkAuth(req)) return json({ error: "unauthorized" }, 401);
 
-  let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" | "html" | "ics" | "rss" } = {};
+  let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" | "html" | "ics" | "rss"; all?: boolean } = {};
   try { body = await req.json(); } catch { /* empty body OK */ }
 
   const sb = createClient(
@@ -255,6 +255,30 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
+
+  // Batch mode: iterate every enabled source sequentially (polite spacing).
+  if (body.all === true) {
+    const { data: rows } = await sb.from("sports_sources")
+      .select("slug, priority").eq("enabled", true)
+      .order("priority", { ascending: true });
+    const results: Array<{ slug: string; ok: boolean; status: number }> = [];
+    for (const r of (rows ?? []) as Array<{ slug: string }>) {
+      const target = `${Deno.env.get("SUPABASE_URL")}/functions/v1/sync-sports-normalized`;
+      const resp = await fetch(target, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-sync-key": Deno.env.get("SYNC_SPORTS_KEY") ?? "",
+        },
+        body: JSON.stringify({ slug: r.slug }),
+      });
+      try { await resp.text(); } catch { /* ignore */ }
+      results.push({ slug: r.slug, ok: resp.ok, status: resp.status });
+      await new Promise((res) => setTimeout(res, 1500));
+    }
+    return json({ ok: true, batch: true, count: results.length, results });
+  }
+
 
   // Resolve source: prefer registry lookup by slug; fallback to body/env for backward compat
   let sourceId: string | null = null;
