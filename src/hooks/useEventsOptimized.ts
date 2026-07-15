@@ -258,86 +258,50 @@ const fetchEvents = async (
 };
 
 /**
- * Optimized events hook with request cancellation and stable caching
+ * Optimized events hook with infinite pagination and stable caching.
+ * Uses TanStack's native AbortSignal via query.abortSignal(signal).
  */
 export const useEventsOptimized = (options: UseEventsOptions = {}) => {
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const queryClient = useQueryClient();
+  const pageSize = options.pageSize || options.limit || 20;
 
-  // Cancel previous request when options change
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [JSON.stringify(generateQueryKey(options))]);
-
-  return useQuery({
-    queryKey: generateQueryKey(options),
-    queryFn: async ({ signal }) => {
-      // Cancel previous request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      
-      abortControllerRef.current = new AbortController();
-      
-      try {
-        const result = await fetchEvents(options, signal);
-        return result;
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          // Return empty result for cancelled requests
-          return { events: [], count: 0 };
-        }
-        throw error;
-      }
+  const query = useInfiniteQuery({
+    queryKey: generateQueryKey({ ...options, page: undefined, pageSize }),
+    initialPageParam: 0,
+    queryFn: ({ pageParam, signal }) =>
+      fetchEvents({ ...options, page: pageParam as number, pageSize }, signal),
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((n, p) => n + p.events.length, 0);
+      if (loaded >= (lastPage.count || 0)) return undefined;
+      return allPages.length;
     },
-    select: (data) => data.events,
-    staleTime: 30000, // Cache for 30 seconds
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
-    retry: (failureCount, error) => {
-      // Don't retry on abort
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        return false;
-      }
-      return failureCount < 2;
-    },
+    enabled: options.enabled !== false,
+    staleTime: 30000,
+    gcTime: 5 * 60 * 1000,
+    retry: 1,
   });
+
+  const flatEvents = useMemo(
+    () => (query.data?.pages ?? []).flatMap((p) => p.events),
+    [query.data],
+  );
+
+  const totalCount = query.data?.pages?.[0]?.count ?? 0;
+
+  return {
+    ...query,
+    data: flatEvents,
+    totalCount,
+  };
 };
 
 /**
  * Paginated events with total count
  */
 export const useEventsPaginatedOptimized = (options: UseEventsOptions = {}) => {
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [JSON.stringify(generateQueryKey(options))]);
-
   return useQuery({
     queryKey: [...generateQueryKey(options), 'paginated'],
-    queryFn: async ({ signal }) => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-      
-      try {
-        return await fetchEvents(options, signal);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return { events: [], count: 0 };
-        }
-        throw error;
-      }
-    },
+    queryFn: ({ signal }) => fetchEvents(options, signal),
+    enabled: options.enabled !== false,
     staleTime: 30000,
     gcTime: 5 * 60 * 1000,
   });
