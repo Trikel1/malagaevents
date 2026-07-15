@@ -1,5 +1,5 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Event, EventOccurrence } from '@/types';
 import type { EventFilters } from '@/components/events/FilterDrawer';
@@ -14,6 +14,7 @@ interface UseEventsOptions {
   locationIds?: string[];
   page?: number;
   pageSize?: number;
+  enabled?: boolean;
 }
 
 // Normalize search text (remove accents for Spanish)
