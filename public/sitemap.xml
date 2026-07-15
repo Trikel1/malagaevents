@@ -102,12 +102,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/cc5a8e39-8fdc-4650-bcbf-561519ea0579</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/c19b647a-6348-4e9a-aea1-dccdf32ad690</loc>
     <lastmod>2026-01-24</lastmod>
     <changefreq>weekly</changefreq>
@@ -600,14 +594,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/3869987c-8261-4817-b63b-ab33247dcbba</loc>
-    <lastmod>2026-07-15</lastmod>
+    <loc>https://malagaevents.lovable.app/events/c965fe71-d2f4-4251-ac01-fcedfbe0511e</loc>
+    <lastmod>2026-01-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/c965fe71-d2f4-4251-ac01-fcedfbe0511e</loc>
-    <lastmod>2026-01-26</lastmod>
+    <loc>https://malagaevents.lovable.app/events/3869987c-8261-4817-b63b-ab33247dcbba</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -1566,12 +1560,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/b55bab33-7cad-46aa-968e-24e60db6b0ec</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/8340b306-bf44-4f84-90b6-29440c724f0e</loc>
     <lastmod>2026-02-09</lastmod>
     <changefreq>weekly</changefreq>
@@ -1620,6 +1608,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://malagaevents.lovable.app/events/40217ef4-d24d-4c20-9cee-9bed4c039243</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://malagaevents.lovable.app/events/befe7ece-a906-408f-b8da-4ea076989463</loc>
     <lastmod>2026-02-10</lastmod>
     <changefreq>weekly</changefreq>
@@ -1656,6 +1650,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://malagaevents.lovable.app/events/766d2739-8645-4b1f-9002-76dd6ec34fc3</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://malagaevents.lovable.app/events/515b2dbe-943f-4259-807a-ce3adad241b0</loc>
     <lastmod>2026-02-11</lastmod>
     <changefreq>weekly</changefreq>
@@ -1670,6 +1670,12 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/297ea99a-6b51-4ed9-8209-5d10bcafbe78</loc>
     <lastmod>2026-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/b55bab33-7cad-46aa-968e-24e60db6b0ec</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -1742,6 +1748,12 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/90b42f0c-63b3-4aac-8278-7459c3176a6a</loc>
     <lastmod>2026-02-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/cc5a8e39-8fdc-4650-bcbf-561519ea0579</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -2430,14 +2442,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/db9e6bdf-0bed-4d60-bd5a-0c4ffa3fcad5</loc>
-    <lastmod>2026-07-12</lastmod>
+    <loc>https://malagaevents.lovable.app/events/64fd0ceb-ad10-4efb-8f42-42f9cc5a45cd</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/64fd0ceb-ad10-4efb-8f42-42f9cc5a45cd</loc>
-    <lastmod>2026-07-15</lastmod>
+    <loc>https://malagaevents.lovable.app/events/db9e6bdf-0bed-4d60-bd5a-0c4ffa3fcad5</loc>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -3462,12 +3474,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/bd0b9ef8-f64b-4867-9dbd-39513f4a86cc</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/aacc445a-5a0a-4ca1-9ae6-9b2584d84401</loc>
     <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
@@ -3476,6 +3482,12 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/40729d53-1e86-4616-89a6-e04a4dfce90e</loc>
     <lastmod>2026-07-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/bd0b9ef8-f64b-4867-9dbd-39513f4a86cc</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -3966,12 +3978,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/73f0dfad-1a99-4578-856a-192946f7df16</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/c5829e10-39d5-406a-870c-90d32aaf8107</loc>
     <lastmod>2026-04-28</lastmod>
     <changefreq>weekly</changefreq>
@@ -3980,6 +3986,12 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/c318d90f-6b5b-4f16-a4c3-420f1b393d24</loc>
     <lastmod>2026-04-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/73f0dfad-1a99-4578-856a-192946f7df16</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -4212,6 +4224,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://malagaevents.lovable.app/events/f9ba4399-8e61-471f-8732-ce21617b37cf</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://malagaevents.lovable.app/events/7b3baaf4-f9d9-4147-8e8a-1466f4eef706</loc>
     <lastmod>2026-05-04</lastmod>
     <changefreq>weekly</changefreq>
@@ -4220,12 +4238,6 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/93e6c1f5-064c-43d9-be94-c6cc7bdd53f9</loc>
     <lastmod>2026-05-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/f9ba4399-8e61-471f-8732-ce21617b37cf</loc>
-    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -4410,6 +4422,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://malagaevents.lovable.app/events/2339254c-1bb2-41c0-8522-8b6a0e85055e</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://malagaevents.lovable.app/events/04348cbd-2c9d-43e1-942e-cb6b7d753c2a</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>weekly</changefreq>
@@ -4424,12 +4442,6 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/4f1ef954-7369-4065-9f08-ac32e768dc40</loc>
     <lastmod>2026-07-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/2339254c-1bb2-41c0-8522-8b6a0e85055e</loc>
-    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -4560,14 +4572,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/8a2e9270-1eb6-45e6-89ae-bb21a45c3e6d</loc>
-    <lastmod>2026-06-17</lastmod>
+    <loc>https://malagaevents.lovable.app/events/e3eb1dea-aac2-4a77-88d6-f356d9aec6ac</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/e3eb1dea-aac2-4a77-88d6-f356d9aec6ac</loc>
-    <lastmod>2026-07-15</lastmod>
+    <loc>https://malagaevents.lovable.app/events/8a2e9270-1eb6-45e6-89ae-bb21a45c3e6d</loc>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -4614,6 +4626,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://malagaevents.lovable.app/events/9762c429-1e75-482f-ab3e-5c1d0e2fee6e</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://malagaevents.lovable.app/events/cf79a586-51d4-4f4b-9f1a-bd8cc3e5436b</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>weekly</changefreq>
@@ -4622,12 +4640,6 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/647317cf-bf2c-4c13-848e-2348850a1a4d</loc>
     <lastmod>2026-05-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/9762c429-1e75-482f-ab3e-5c1d0e2fee6e</loc>
-    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -4782,30 +4794,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/26037e82-bfb0-4c57-b8a6-38be7fe26f0f</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/e4985ac4-fb01-4c18-a98a-4366d8f694b4</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/82b21dd6-f5d8-4244-90a5-9ccbc8239db7</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/b15d9028-3147-4d5c-9ec6-4b1f361d8f58</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/b7266696-7cea-4bb5-8ca6-759453468304</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
@@ -4818,13 +4806,25 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/9a1dbbeb-7a88-4f61-be54-6dea67307fde</loc>
+    <loc>https://malagaevents.lovable.app/events/e4985ac4-fb01-4c18-a98a-4366d8f694b4</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/3303263d-3dbf-48b0-9458-ffeae838bc6a</loc>
+    <loc>https://malagaevents.lovable.app/events/26037e82-bfb0-4c57-b8a6-38be7fe26f0f</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/82b21dd6-f5d8-4244-90a5-9ccbc8239db7</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/b15d9028-3147-4d5c-9ec6-4b1f361d8f58</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -4843,6 +4843,18 @@
   </url>
   <url>
     <loc>https://malagaevents.lovable.app/events/ea3712b2-4dc2-4623-89e9-ea93106123d1</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/9a1dbbeb-7a88-4f61-be54-6dea67307fde</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/3303263d-3dbf-48b0-9458-ffeae838bc6a</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -4908,6 +4920,24 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://malagaevents.lovable.app/events/2ebf5aa8-4c52-4fda-a235-d7bf2fcc382b</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/07ef2934-23a5-4557-beff-2f559ce07756</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/2fc77d97-9a5a-4334-8171-1976950b8746</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://malagaevents.lovable.app/events/77e7799c-62e7-4ff5-8524-17fea486aedb</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
@@ -4920,32 +4950,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/7829ff4c-27a0-4272-bd71-a4024d2c4251</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/2ebf5aa8-4c52-4fda-a235-d7bf2fcc382b</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/2fc77d97-9a5a-4334-8171-1976950b8746</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/07ef2934-23a5-4557-beff-2f559ce07756</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/e31e87a2-b2d0-44ba-8644-588785203a8b</loc>
     <lastmod>2026-07-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/7829ff4c-27a0-4272-bd71-a4024d2c4251</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -5022,12 +5034,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/b50e6533-62d9-4725-940e-62acae8dbb42</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/60e8961e-8c8e-4e1f-857a-09a98b0be456</loc>
     <lastmod>2026-05-04</lastmod>
     <changefreq>weekly</changefreq>
@@ -5042,6 +5048,12 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/5529c2f0-c7b8-4943-9dcd-741774ead515</loc>
     <lastmod>2026-07-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/b50e6533-62d9-4725-940e-62acae8dbb42</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -5646,14 +5658,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/0d972abb-4457-4f9c-8f2e-e3f83e05f160</loc>
-    <lastmod>2026-06-17</lastmod>
+    <loc>https://malagaevents.lovable.app/events/aa3aedc9-a372-4d40-b109-89115bed0173</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/aa3aedc9-a372-4d40-b109-89115bed0173</loc>
-    <lastmod>2026-07-15</lastmod>
+    <loc>https://malagaevents.lovable.app/events/0d972abb-4457-4f9c-8f2e-e3f83e05f160</loc>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -6114,6 +6126,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://malagaevents.lovable.app/events/760517a7-903d-46a1-b5c5-1c8065476810</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://malagaevents.lovable.app/events/089f9e73-fe7a-4d92-9909-383e9fe6f82a</loc>
     <lastmod>2026-05-08</lastmod>
     <changefreq>weekly</changefreq>
@@ -6132,20 +6150,8 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/760517a7-903d-46a1-b5c5-1c8065476810</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/43f9a699-d646-4637-b904-932ee70ddacf</loc>
     <lastmod>2026-05-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://malagaevents.lovable.app/events/40217ef4-d24d-4c20-9cee-9bed4c039243</loc>
-    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -6510,12 +6516,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/ee3d35db-51d8-4e96-8bff-e686b7999e41</loc>
-    <lastmod>2026-07-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://malagaevents.lovable.app/events/6e5eeb4d-cd9c-4027-a58b-1b32bc1687c7</loc>
     <lastmod>2026-05-16</lastmod>
     <changefreq>weekly</changefreq>
@@ -6524,6 +6524,12 @@
   <url>
     <loc>https://malagaevents.lovable.app/events/527ad927-eec2-4fed-9329-f3062b9f4c92</loc>
     <lastmod>2026-05-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://malagaevents.lovable.app/events/ee3d35db-51d8-4e96-8bff-e686b7999e41</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -6738,14 +6744,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/20f3b9a8-77b4-48bc-9495-dfcd9564696e</loc>
-    <lastmod>2026-05-21</lastmod>
+    <loc>https://malagaevents.lovable.app/events/3fcb0bcc-858b-4eba-951d-4205f94fb823</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/3fcb0bcc-858b-4eba-951d-4205f94fb823</loc>
-    <lastmod>2026-07-15</lastmod>
+    <loc>https://malagaevents.lovable.app/events/20f3b9a8-77b4-48bc-9495-dfcd9564696e</loc>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -8118,14 +8124,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/a06f3984-c320-4bc2-8eba-ecd1c35e8596</loc>
-    <lastmod>2026-07-12</lastmod>
+    <loc>https://malagaevents.lovable.app/events/7db190e6-5e11-41dd-8d4d-78778f245361</loc>
+    <lastmod>2026-07-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://malagaevents.lovable.app/events/7db190e6-5e11-41dd-8d4d-78778f245361</loc>
-    <lastmod>2026-07-15</lastmod>
+    <loc>https://malagaevents.lovable.app/events/a06f3984-c320-4bc2-8eba-ecd1c35e8596</loc>
+    <lastmod>2026-07-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
