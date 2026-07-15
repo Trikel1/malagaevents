@@ -338,9 +338,9 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
               key={f.key}
               onClick={() => setTimeFilter(f.key)}
               className={cn(
-                'px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border',
+                'px-4 min-h-[44px] rounded-full text-sm font-semibold transition-colors border',
                 timeFilter === f.key
-                  ? 'bg-primary text-primary-foreground border-primary'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                   : 'bg-background border-border text-muted-foreground hover:bg-muted',
               )}
             >
@@ -348,6 +348,7 @@ const SportsContent = ({ externalSearch, onClearExternalSearch }: SportsContentP
             </button>
           ))}
         </div>
+
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
