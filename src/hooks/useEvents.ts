@@ -34,10 +34,16 @@ const normalizeSearchText = (text: string): string => {
     .trim();
 };
 
-const fetchEvents = async (options: UseEventsOptions): Promise<{ events: Event[]; count: number }> => {
+const EVENT_LIST_FIELDS =
+  'id,title,category,start_at,venue_name,location_normalized,province,image_url,is_free,tags,venue_id,location_id, venues(id,name,lat,lng), locations(id,name,lat,lng)';
+
+const fetchEvents = async (
+  options: UseEventsOptions,
+  signal?: AbortSignal,
+): Promise<{ events: Event[]; count: number }> => {
   let query = supabase
     .from('events')
-    .select('*, venues(*), locations(*)', { count: 'exact' })
+    .select(`${EVENT_LIST_FIELDS}`, { count: 'exact' })
     .eq('status', 'published')
     .order('start_at', { ascending: true });
 
