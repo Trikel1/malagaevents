@@ -17,7 +17,8 @@ import { useSportsEvents, useSportsVenues } from '@/hooks/useSportsEvents';
 import { SPORT_CATEGORIES } from '@/types/sports';
 import type { SportCategory } from '@/types/sports';
 import SportIcon from '@/components/sports/SportIcon';
-import { MALAGA_MUNICIPALITIES } from '@/lib/sports';
+import { MALAGA_MUNICIPALITIES, getSportLabel } from '@/lib/sports';
+
 
 const TIMEZONE = 'Europe/Madrid';
 
