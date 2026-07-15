@@ -348,7 +348,6 @@
     "seeMore": "Ver más",
     "monthEmpty": "No hay eventos este mes"
   },
-
   "pharmacies": {
     "title": "Farmacias de guardia",
     "short": "Farmacia",
@@ -605,5 +604,46 @@
     "rugby": "Rugby",
     "acuaticos": "Deportes acuáticos",
     "artes_marciales": "Artes marciales"
+  },
+  "sportsHome": {
+    "heroTitle": "Deportes en Málaga",
+    "heroSubtitle": "Instalaciones, actividades y eventos deportivos cerca de ti",
+    "searchPlaceholder": "Busca un deporte, instalación o municipio",
+    "searchAria": "Buscar deportes, instalaciones o municipios",
+    "quickAria": "Accesos rápidos",
+    "categoriesAria": "Categorías deportivas",
+    "categoriesTitle": "Explora por deporte",
+    "clearCategory": "Ver todos",
+    "summaryAria": "Resumen de actividad",
+    "results": "resultados",
+    "big": {
+      "todayTitle": "Hoy en Málaga",
+      "todaySubtitle": "Actividades activas hoy",
+      "weekendTitle": "Este fin de semana",
+      "weekendSubtitle": "Planes de viernes a domingo",
+      "upcomingTitle": "Próximos 14 días",
+      "upcomingSubtitle": "Toda la agenda deportiva"
+    },
+    "cat": {
+      "futbol": "Fútbol",
+      "baloncesto": "Baloncesto",
+      "atletismo": "Atletismo",
+      "natacion": "Natación",
+      "padelTenis": "Pádel y tenis",
+      "raqueta": "Deportes de raqueta",
+      "aireLibre": "Actividades al aire libre",
+      "otros": "Otros deportes"
+    },
+    "stats": {
+      "events": "Eventos próximos",
+      "venues": "Instalaciones",
+      "municipalities": "Municipios"
+    },
+    "cta": {
+      "title": "¿Qué te apetece hacer hoy?",
+      "subtitle": "Descubre lo que se mueve en tu entorno.",
+      "near": "Ver actividades cerca de mí",
+      "venues": "Explorar instalaciones"
+    }
   }
 }

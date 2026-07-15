@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calendar, Loader2, Building2, ChevronRight, CalendarDays, Sparkles,
-  Trophy, MapPin, Megaphone,
+  Search, Loader2, Building2, ChevronRight, CalendarDays, Sparkles,
+  MapPin, Megaphone, CalendarClock, Trophy, Waves, Trees, Dumbbell,
+  Footprints, Zap, Map as MapIcon, Navigation,
 } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -15,8 +16,6 @@ import SportEventCard from '@/components/sports/SportEventCard';
 import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
 import { useSportsEvents, useSportsVenues } from '@/hooks/useSportsEvents';
 import { useMunicipalities } from '@/hooks/useMunicipalities';
-import { SPORT_CATEGORIES } from '@/types/sports';
-import type { SportCategory } from '@/types/sports';
 import SportIcon from '@/components/sports/SportIcon';
 
 const TIMEZONE = 'Europe/Madrid';
@@ -35,18 +34,92 @@ function getWeekendDates(): { from: string; to: string } {
   else if (dayOfWeek === 6) fri = addDays(today, -1);
   else if (dayOfWeek === 0) fri = addDays(today, -2);
   else fri = addDays(today, 5 - dayOfWeek);
-
   return {
     from: formatInTimeZone(fri, TIMEZONE, 'yyyy-MM-dd'),
     to: formatInTimeZone(addDays(fri, 2), TIMEZONE, 'yyyy-MM-dd'),
   };
 }
 
+/**
+ * Category tiles: 8 visual buckets requested for the redesign.
+ * Each tile maps to one or more `sport_category` values already used by the
+ * data pipeline so filtering works without any backend change.
+ */
+interface CategoryTile {
+  id: string;
+  labelKey: string;
+  fallback: string;
+  icon: (props: { className?: string }) => JSX.Element;
+  categories: string[];
+}
+
+const CATEGORY_TILES: CategoryTile[] = [
+  {
+    id: 'futbol',
+    labelKey: 'sportsHome.cat.futbol',
+    fallback: 'Fútbol',
+    icon: (p) => <SportIcon sport="futbol" className={p.className} />,
+    categories: ['futbol', 'futsal'],
+  },
+  {
+    id: 'baloncesto',
+    labelKey: 'sportsHome.cat.baloncesto',
+    fallback: 'Baloncesto',
+    icon: (p) => <SportIcon sport="baloncesto" className={p.className} />,
+    categories: ['baloncesto'],
+  },
+  {
+    id: 'atletismo',
+    labelKey: 'sportsHome.cat.atletismo',
+    fallback: 'Atletismo',
+    icon: (p) => <Footprints className={p.className} aria-hidden="true" />,
+    categories: ['atletismo', 'running'],
+  },
+  {
+    id: 'natacion',
+    labelKey: 'sportsHome.cat.natacion',
+    fallback: 'Natación',
+    icon: (p) => <Waves className={p.className} aria-hidden="true" />,
+    categories: ['natacion', 'acuaticos'],
+  },
+  {
+    id: 'padel_tenis',
+    labelKey: 'sportsHome.cat.padelTenis',
+    fallback: 'Pádel y tenis',
+    icon: (p) => <Trophy className={p.className} aria-hidden="true" />,
+    categories: ['padel', 'tenis'],
+  },
+  {
+    id: 'raqueta',
+    labelKey: 'sportsHome.cat.raqueta',
+    fallback: 'Deportes de raqueta',
+    icon: (p) => <Zap className={p.className} aria-hidden="true" />,
+    categories: ['padel', 'tenis', 'badminton', 'squash', 'tenis_mesa'],
+  },
+  {
+    id: 'aire_libre',
+    labelKey: 'sportsHome.cat.aireLibre',
+    fallback: 'Actividades al aire libre',
+    icon: (p) => <Trees className={p.className} aria-hidden="true" />,
+    categories: ['senderismo', 'ciclismo', 'triatlon'],
+  },
+  {
+    id: 'otros',
+    labelKey: 'sportsHome.cat.otros',
+    fallback: 'Otros deportes',
+    icon: (p) => <Dumbbell className={p.className} aria-hidden="true" />,
+    categories: ['otros', 'balonmano', 'voleibol', 'rugby', 'motor', 'fitness', 'artes_marciales'],
+  },
+];
+
 const SportsContent = () => {
-  const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
+  const [selectedTile, setSelectedTile] = useState<string | 'all'>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('upcoming');
   const [selectedVenueNames, setSelectedVenueNames] = useState<string[]>([]);
   const [selectedMunicipality, setSelectedMunicipality] = useState<string | 'all'>('all');
+  const [searchQ, setSearchQ] = useState('');
+  const [searchDraft, setSearchDraft] = useState('');
+  const resultsRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -57,9 +130,18 @@ const SportsContent = () => {
     return names.length ? names : ['Málaga', 'Marbella', 'Fuengirola', 'Benalmádena', 'Torremolinos'];
   }, [municipalities]);
 
+  const activeTile = CATEGORY_TILES.find((c) => c.id === selectedTile);
+
   const filters = useMemo(() => {
     const today = todayMadrid();
-    const f: any = {};
+    const f: {
+      fromDate?: string;
+      toDate?: string;
+      categories?: string[];
+      venueNames?: string[];
+      cities?: string[];
+      q?: string;
+    } = {};
 
     if (timeFilter === 'today') {
       f.fromDate = today;
@@ -73,164 +155,318 @@ const SportsContent = () => {
       f.toDate = formatInTimeZone(addDays(new Date(), 14), TIMEZONE, 'yyyy-MM-dd');
     }
 
-    if (selectedSport !== 'all') f.categories = [selectedSport];
-
-    const venueSet = new Set<string>(selectedVenueNames);
-    if (venueSet.size > 0) f.venueNames = Array.from(venueSet);
+    if (activeTile) f.categories = activeTile.categories;
+    if (selectedVenueNames.length > 0) f.venueNames = selectedVenueNames;
     if (selectedMunicipality !== 'all') f.cities = [selectedMunicipality];
+    if (searchQ.trim()) f.q = searchQ.trim();
 
     return f;
-  }, [selectedSport, timeFilter, selectedVenueNames, selectedMunicipality]);
+  }, [activeTile, timeFilter, selectedVenueNames, selectedMunicipality, searchQ]);
 
   const { data: events = [], isLoading, isError } = useSportsEvents(filters);
 
-  // Derive highlights from the same bounded result set to avoid three
-  // simultaneous network requests on first render.
   const todayDate = todayMadrid();
   const weekend = useMemo(getWeekendDates, []);
-  const todayEvents = useMemo(() => events.filter((e) => e.start_at.slice(0, 10) === todayDate), [events, todayDate]);
-  const weekendEvents = useMemo(() => events.filter((e) => {
-    const day = e.start_at.slice(0, 10);
-    return day >= weekend.from && day <= weekend.to;
-  }), [events, weekend]);
-  const loadingToday = isLoading;
-  const loadingWeekend = isLoading;
+  const todayEvents = useMemo(
+    () => events.filter((e) => e.start_at.slice(0, 10) === todayDate),
+    [events, todayDate],
+  );
+  const weekendEvents = useMemo(
+    () => events.filter((e) => {
+      const day = e.start_at.slice(0, 10);
+      return day >= weekend.from && day <= weekend.to;
+    }),
+    [events, weekend],
+  );
 
   const featuredVenues = useMemo(() => allVenues.slice(0, 6), [allVenues]);
+  const municipalitiesWithEvents = useMemo(() => {
+    const set = new Set(events.map((e) => e.city).filter(Boolean));
+    return set.size;
+  }, [events]);
 
-  const quickActions = [
-    { icon: Calendar, label: t('sports.today', 'Hoy'), onClick: () => setTimeFilter('today') },
-    { icon: CalendarDays, label: t('sports.thisWeekend', 'Este finde'), onClick: () => setTimeFilter('weekend') },
-    { icon: Sparkles, label: t('sports.upcoming', 'Próximos 14d'), onClick: () => setTimeFilter('upcoming') },
-    { icon: Building2, label: t('nav.venues', 'Recintos'), onClick: () => navigate('/venues') },
-  ];
+  const scrollToResults = () => {
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
-  const timeFilters: { key: TimeFilter; label: string }[] = [
-    { key: 'today', label: t('sports.today') },
-    { key: 'weekend', label: t('sports.thisWeekend') },
-    { key: 'upcoming', label: t('sports.upcoming') },
-  ];
+  const handleQuickAction = (key: TimeFilter) => {
+    setTimeFilter(key);
+    // Defer scroll to next tick so the results block reflects the new filter.
+    setTimeout(scrollToResults, 60);
+  };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQ(searchDraft);
+    setTimeout(scrollToResults, 60);
+  };
+
+  // -------------------------------------------------------------------------
+  // Reusable UI
+  // -------------------------------------------------------------------------
   const renderEmpty = (msg: string) => (
-    <Card className="bg-muted/50 border-dashed">
+    <Card className="bg-emerald-50/40 dark:bg-emerald-900/10 border-dashed border-emerald-700/20">
       <CardContent className="py-8 text-center text-muted-foreground">
-        <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
+        <CalendarClock className="h-10 w-10 mx-auto mb-2 opacity-50 text-emerald-700 dark:text-emerald-300" />
         <p className="text-sm">{msg}</p>
       </CardContent>
     </Card>
   );
 
-  return (
-    <div className="space-y-7">
-      {/* Quick actions */}
-      <div className="grid grid-cols-4 gap-1 p-3 bg-card rounded-2xl shadow-card border border-border/60">
-        {quickActions.map((action, i) => (
-          <button
-            key={i}
-            onClick={action.onClick}
-            className="flex flex-col items-center gap-2 py-2 px-1 group rounded-xl hover:bg-muted/60 active:scale-[0.97] transition-all min-h-[88px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            <div className="h-11 w-11 flex items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/15 transition-colors">
-              <action.icon className="h-5 w-5 text-primary" aria-hidden="true" />
-            </div>
-            <span className="text-xs font-medium text-foreground/85 group-hover:text-foreground text-center leading-tight line-clamp-2">
-              {action.label}
-            </span>
-          </button>
-        ))}
-      </div>
+  // Big touchable time-window cards.
+  const bigCards: {
+    key: TimeFilter;
+    icon: typeof Sparkles;
+    title: string;
+    subtitle: string;
+    tone: string;
+  }[] = [
+    {
+      key: 'today',
+      icon: Sparkles,
+      title: t('sportsHome.big.todayTitle', 'Hoy en Málaga'),
+      subtitle: t('sportsHome.big.todaySubtitle', 'Actividades activas hoy'),
+      tone: 'from-emerald-500/25 to-teal-500/10',
+    },
+    {
+      key: 'weekend',
+      icon: CalendarDays,
+      title: t('sportsHome.big.weekendTitle', 'Este fin de semana'),
+      subtitle: t('sportsHome.big.weekendSubtitle', 'Planes de viernes a domingo'),
+      tone: 'from-teal-500/25 to-cyan-600/10',
+    },
+    {
+      key: 'upcoming',
+      icon: CalendarClock,
+      title: t('sportsHome.big.upcomingTitle', 'Próximos 14 días'),
+      subtitle: t('sportsHome.big.upcomingSubtitle', 'Toda la agenda deportiva'),
+      tone: 'from-lime-500/20 to-emerald-600/15',
+    },
+  ];
 
-      {/* Explore by sport */}
-      <section>
-        <h2 className="text-lg font-semibold tracking-tight mb-3">
-          {t('sports.exploreBySport', 'Explorar deportes')}
-        </h2>
-        <div className="flex gap-2 overflow-x-auto pb-2 px-0.5 -mx-0.5 scrollbar-hide">
+  const summaryStats = [
+    {
+      icon: CalendarClock,
+      value: events.length,
+      label: t('sportsHome.stats.events', 'Eventos próximos'),
+    },
+    {
+      icon: Building2,
+      value: allVenues.length,
+      label: t('sportsHome.stats.venues', 'Instalaciones'),
+    },
+    {
+      icon: MapPin,
+      value: municipalitiesWithEvents || municipalityNames.length,
+      label: t('sportsHome.stats.municipalities', 'Municipios'),
+    },
+  ];
+
+  return (
+    <div
+      className="relative space-y-7 rounded-3xl -mx-2 sm:-mx-3 px-2 sm:px-3 pt-1 pb-6"
+      style={{
+        // Subtle mediterranean green/teal wash so we never sit on flat white.
+        backgroundImage:
+          'radial-gradient(120% 60% at 0% 0%, hsl(160 55% 92% / 0.55), transparent 60%), radial-gradient(90% 50% at 100% 10%, hsl(190 60% 92% / 0.55), transparent 55%)',
+      }}
+    >
+      {/* Compact search bar */}
+      <form
+        onSubmit={handleSearchSubmit}
+        role="search"
+        aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
+        className="glass-panel flex items-center gap-2 px-3 py-2"
+      >
+        <Search className="h-5 w-5 text-emerald-700 dark:text-emerald-300 shrink-0" aria-hidden="true" />
+        <input
+          type="search"
+          value={searchDraft}
+          onChange={(e) => setSearchDraft(e.target.value)}
+          placeholder={t('sportsHome.searchPlaceholder', 'Busca un deporte, instalación o municipio')}
+          className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/80 min-h-11"
+          aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
+        />
+        {searchDraft && (
           <button
-            onClick={() => setSelectedSport('all')}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
-              selectedSport === 'all'
-                ? 'bg-primary/10 text-primary border-primary/30'
-                : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
-            )}
+            type="button"
+            onClick={() => { setSearchDraft(''); setSearchQ(''); }}
+            className="text-xs text-muted-foreground hover:text-foreground min-h-11 px-2"
           >
-            <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
-            {t('sports.all')}
+            {t('common.clear', 'Limpiar')}
           </button>
-          {SPORT_CATEGORIES.map((cat) => {
-            const active = selectedSport === cat;
+        )}
+      </form>
+
+      {/* Big quick-action cards */}
+      <section aria-label={t('sportsHome.quickAria', 'Accesos rápidos')}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {bigCards.map((c) => {
+            const active = timeFilter === c.key;
             return (
               <button
-                key={cat}
-                onClick={() => setSelectedSport(cat)}
+                key={c.key}
+                type="button"
+                onClick={() => handleQuickAction(c.key)}
+                aria-pressed={active}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
+                  'group relative overflow-hidden rounded-2xl text-left min-h-[92px] px-4 py-4',
+                  'border transition-all liquid-press',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1',
                   active
-                    ? 'bg-primary/10 text-primary border-primary/30'
-                    : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
+                    ? 'border-emerald-600/40 shadow-[0_10px_30px_-18px_hsl(160_50%_25%/0.55)]'
+                    : 'border-emerald-700/15 hover:border-emerald-600/30',
+                  'bg-gradient-to-br',
+                  c.tone,
+                  'bg-card/70 dark:bg-card/50 backdrop-blur',
                 )}
               >
-                <SportIcon
-                  sport={cat}
-                  className={cn('h-3.5 w-3.5', active ? 'text-primary' : 'text-muted-foreground')}
-                />
-                {t(`sports.${cat}`)}
+                <div className="flex items-start gap-3">
+                  <div className="h-11 w-11 rounded-xl bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center shrink-0">
+                    <c.icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold leading-tight">{c.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{c.subtitle}</p>
+                  </div>
+                </div>
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute inset-x-4 bottom-2 h-0.5 rounded-full bg-emerald-600/60"
+                  />
+                )}
               </button>
             );
           })}
         </div>
       </section>
 
-      {/* Today highlights */}
-      <section>
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-semibold">{t('sports.todayInSport', 'Hoy en deporte')}</h2>
-          <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => setTimeFilter('today')}>
-            {t('common.seeAll')}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      {/* Category grid */}
+      <section aria-label={t('sportsHome.categoriesAria', 'Categorías deportivas')}>
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {t('sportsHome.categoriesTitle', 'Explora por deporte')}
+          </h2>
+          {selectedTile !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setSelectedTile('all')}
+              className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:underline min-h-9 px-1"
+            >
+              {t('sportsHome.clearCategory', 'Ver todos')}
+            </button>
+          )}
         </div>
-        {loadingToday ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {CATEGORY_TILES.map((tile) => {
+            const active = selectedTile === tile.id;
+            return (
+              <button
+                key={tile.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => {
+                  setSelectedTile(active ? 'all' : tile.id);
+                  setTimeout(scrollToResults, 60);
+                }}
+                className={cn(
+                  'group relative flex flex-col items-start gap-2 rounded-2xl border p-3 min-h-[96px] text-left transition-all liquid-press',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60',
+                  active
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-[0_10px_28px_-14px_hsl(160_60%_25%/0.55)]'
+                    : 'bg-card/70 dark:bg-card/50 backdrop-blur border-emerald-700/15 hover:border-emerald-600/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20',
+                )}
+              >
+                <div
+                  className={cn(
+                    'h-9 w-9 rounded-lg flex items-center justify-center',
+                    active
+                      ? 'bg-white/15 text-white'
+                      : 'bg-emerald-600/12 text-emerald-700 dark:text-emerald-200',
+                  )}
+                >
+                  <tile.icon className="h-5 w-5" />
+                </div>
+                <p className={cn(
+                  'text-[13px] font-semibold leading-tight',
+                  active ? 'text-white' : 'text-foreground',
+                )}>
+                  {t(tile.labelKey, tile.fallback)}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Summary stats */}
+      <section aria-label={t('sportsHome.summaryAria', 'Resumen de actividad')}>
+        <div className="grid grid-cols-3 gap-2 glass-panel p-3">
+          {summaryStats.map((s, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center text-center gap-1 rounded-xl py-2 px-1"
+            >
+              <div className="h-9 w-9 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center">
+                <s.icon className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <span className="text-xl font-bold leading-none tabular-nums">
+                {isLoading ? '—' : s.value}
+              </span>
+              <span className="text-[11px] text-muted-foreground leading-tight">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Today highlights */}
+      {timeFilter !== 'today' && todayEvents.length > 0 && (
+        <section>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold">{t('sports.todayInSport', 'Hoy en deporte')}</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-emerald-700 dark:text-emerald-300 gap-1 min-h-11"
+              onClick={() => handleQuickAction('today')}
+            >
+              {t('common.seeAll')}
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-        ) : todayEvents.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {todayEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
           </div>
-        ) : (
-          renderEmpty(t('sports.empty.today', 'Sin actividades deportivas hoy.'))
-        )}
-      </section>
+        </section>
+      )}
 
       {/* Weekend highlights */}
-      <section>
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-semibold">{t('sports.weekendSport', 'Deporte este finde')}</h2>
-          <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => setTimeFilter('weekend')}>
-            {t('common.seeAll')}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        {loadingWeekend ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      {timeFilter !== 'weekend' && weekendEvents.length > 0 && (
+        <section>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold">{t('sports.weekendSport', 'Deporte este finde')}</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-emerald-700 dark:text-emerald-300 gap-1 min-h-11"
+              onClick={() => handleQuickAction('weekend')}
+            >
+              {t('common.seeAll')}
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-        ) : weekendEvents.length > 0 ? (
           <div className="grid grid-cols-2 gap-3">
             {weekendEvents.slice(0, 4).map((event) => (
               <SportEventCard key={event.id} event={event} />
             ))}
           </div>
-        ) : (
-          renderEmpty(t('sports.empty.weekend', 'Sin actividades deportivas este fin de semana.'))
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* Explore by municipality */}
+      {/* Municipalities chips */}
       <section>
         <h2 className="text-lg font-semibold tracking-tight mb-3">
           {t('sports.exploreByMunicipality', 'Explorar por municipio')}
@@ -238,11 +474,12 @@ const SportsContent = () => {
         <div className="flex gap-2 overflow-x-auto pb-2 px-0.5 -mx-0.5 scrollbar-hide">
           <button
             onClick={() => setSelectedMunicipality('all')}
+            aria-pressed={selectedMunicipality === 'all'}
             className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
+              'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
               selectedMunicipality === 'all'
-                ? 'bg-primary/10 text-primary border-primary/30'
-                : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
+                ? 'bg-emerald-600 text-white border-emerald-600'
+                : 'bg-card/70 backdrop-blur border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
             )}
           >
             <MapPin className="h-3.5 w-3.5" />
@@ -254,11 +491,12 @@ const SportsContent = () => {
               <button
                 key={m}
                 onClick={() => setSelectedMunicipality(active ? 'all' : m)}
+                aria-pressed={active}
                 className={cn(
-                  'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border',
+                  'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
                   active
-                    ? 'bg-primary/10 text-primary border-primary/30'
-                    : 'bg-background border-border text-muted-foreground hover:bg-muted hover:border-primary/20',
+                    ? 'bg-emerald-600 text-white border-emerald-600'
+                    : 'bg-card/70 backdrop-blur border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
                 )}
               >
                 <MapPin className="h-3.5 w-3.5" />
@@ -269,8 +507,8 @@ const SportsContent = () => {
         </div>
       </section>
 
-      {/* Filtered results */}
-      <section>
+      {/* Results block */}
+      <section ref={resultsRef}>
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <h2 className="text-lg font-semibold mr-auto">
             {t('sports.upcomingEvents', 'Próximos eventos deportivos')}
@@ -279,29 +517,16 @@ const SportsContent = () => {
             selectedVenueNames={selectedVenueNames}
             onSelectionChange={setSelectedVenueNames}
           />
-          {!isLoading && <span className="text-xs text-muted-foreground">{events.length} resultados</span>}
-        </div>
-
-        <div className="flex gap-2 flex-wrap mb-3">
-          {timeFilters.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setTimeFilter(f.key)}
-              className={cn(
-                'px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border',
-                timeFilter === f.key
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background border-border text-muted-foreground hover:bg-muted',
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
+          {!isLoading && (
+            <span className="text-xs text-muted-foreground">
+              {events.length} {t('sportsHome.results', 'resultados')}
+            </span>
+          )}
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <Loader2 className="h-8 w-8 animate-spin text-emerald-700 dark:text-emerald-300" />
           </div>
         ) : isError ? (
           <Card className="bg-destructive/10 border-destructive/20">
@@ -320,11 +545,51 @@ const SportsContent = () => {
         )}
       </section>
 
+      {/* CTA: what do you want to do today */}
+      <section>
+        <div
+          className="rounded-2xl border border-emerald-700/20 p-4 sm:p-5"
+          style={{
+            backgroundImage:
+              'linear-gradient(135deg, hsl(160 55% 35% / 0.15), hsl(190 55% 40% / 0.10))',
+          }}
+        >
+          <h3 className="text-base font-semibold mb-1">
+            {t('sportsHome.cta.title', '¿Qué te apetece hacer hoy?')}
+          </h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            {t('sportsHome.cta.subtitle', 'Descubre lo que se mueve en tu entorno.')}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Button
+              onClick={() => navigate('/map')}
+              className="min-h-11 bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            >
+              <Navigation className="h-4 w-4" />
+              {t('sportsHome.cta.near', 'Ver actividades cerca de mí')}
+            </Button>
+            <Button
+              onClick={() => navigate('/venues')}
+              variant="outline"
+              className="min-h-11 border-emerald-700/30 gap-2"
+            >
+              <Building2 className="h-4 w-4" />
+              {t('sportsHome.cta.venues', 'Explorar instalaciones')}
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Featured venues */}
       <section>
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-semibold">{t('sports.venuesTitle', 'Recintos deportivos')}</h2>
-          <Button variant="ghost" size="sm" className="text-primary gap-1" onClick={() => navigate('/venues')}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-emerald-700 dark:text-emerald-300 gap-1 min-h-11"
+            onClick={() => navigate('/venues')}
+          >
             {t('common.seeAll')}
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -335,10 +600,10 @@ const SportsContent = () => {
               <button
                 key={v.id}
                 onClick={() => navigate('/venues')}
-                className="flex items-start gap-3 p-3 rounded-xl border border-border/60 bg-card hover:border-primary/30 hover:bg-muted/40 transition-colors text-left"
+                className="flex items-start gap-3 p-3 rounded-xl border border-emerald-700/15 bg-card/70 backdrop-blur hover:border-emerald-600/40 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/20 transition-colors text-left min-h-[64px]"
               >
-                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                  <Building2 className="h-4 w-4 text-primary" />
+                <div className="h-9 w-9 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center shrink-0">
+                  <Building2 className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{v.name}</p>
@@ -346,7 +611,7 @@ const SportsContent = () => {
                   {v.sports?.length > 0 && (
                     <div className="flex gap-1 mt-1.5 flex-wrap">
                       {v.sports.slice(0, 3).map((s) => (
-                        <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+                        <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1 border-emerald-700/25">
                           <SportIcon sport={s} className="h-3 w-3" />
                           {t(`sports.${s}`, s)}
                         </Badge>
@@ -363,24 +628,25 @@ const SportsContent = () => {
       </section>
 
       {/* Organizers CTA */}
-      <section className="pb-4">
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-dashed">
+      <section className="pb-2">
+        <Card className="border-dashed border-emerald-700/25 bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-primary/15">
-              <Megaphone className="h-6 w-6 text-primary" />
+            <div className="p-3 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200">
+              <Megaphone className="h-6 w-6" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-medium">
                 {t('sports.organizers.title', '¿Organizas actividades deportivas?')}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {t(
-                  'sports.organizers.subtitle',
-                  'Da visibilidad a tu club, recinto o competición.',
-                )}
+                {t('sports.organizers.subtitle', 'Da visibilidad a tu club, recinto o competición.')}
               </p>
             </div>
-            <Button size="sm" variant="secondary" onClick={() => navigate('/submit-event')}>
+            <Button
+              size="sm"
+              onClick={() => navigate('/submit-event')}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white min-h-11"
+            >
               {t('sports.organizers.cta', 'Publicar')}
             </Button>
           </CardContent>

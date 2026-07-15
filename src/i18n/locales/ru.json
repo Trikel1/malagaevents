@@ -579,5 +579,46 @@
     "rugby": "Регби",
     "acuaticos": "Водный спорт",
     "artes_marciales": "Боевые искусства"
+  },
+  "sportsHome": {
+    "heroTitle": "Sports in Málaga",
+    "heroSubtitle": "Facilities, activities and sports events near you",
+    "searchPlaceholder": "Search a sport, venue or municipality",
+    "searchAria": "Search sports, venues or municipalities",
+    "quickAria": "Quick actions",
+    "categoriesAria": "Sport categories",
+    "categoriesTitle": "Explore by sport",
+    "clearCategory": "Show all",
+    "summaryAria": "Activity summary",
+    "results": "results",
+    "big": {
+      "todayTitle": "Today in Málaga",
+      "todaySubtitle": "Active today",
+      "weekendTitle": "This weekend",
+      "weekendSubtitle": "Friday to Sunday plans",
+      "upcomingTitle": "Next 14 days",
+      "upcomingSubtitle": "Full sports agenda"
+    },
+    "cat": {
+      "futbol": "Football",
+      "baloncesto": "Basketball",
+      "atletismo": "Athletics",
+      "natacion": "Swimming",
+      "padelTenis": "Padel & tennis",
+      "raqueta": "Racket sports",
+      "aireLibre": "Outdoor activities",
+      "otros": "Other sports"
+    },
+    "stats": {
+      "events": "Upcoming events",
+      "venues": "Facilities",
+      "municipalities": "Municipalities"
+    },
+    "cta": {
+      "title": "What do you feel like doing today?",
+      "subtitle": "Discover what's happening around you.",
+      "near": "See activities near me",
+      "venues": "Explore facilities"
+    }
   }
 }
