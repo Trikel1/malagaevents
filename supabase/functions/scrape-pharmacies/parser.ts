@@ -102,6 +102,9 @@ export function parseOfficialGuardHtml(
   if (!html || /Datos\s+no\s+disponibles/i.test(html)) {
     return { available: false, rows: [] };
   }
+  // Decode named/numeric entities up-front so schedule headers like
+  // "GUARDIAS DE D&Iacute;A" are recognisable as "GUARDIAS DE DÍA".
+  html = decodeEntities(html);
 
   // Walk the HTML in document order picking up:
   //   - schedule block headers ("GUARDIAS ...", "DE ... MAÑANA")
