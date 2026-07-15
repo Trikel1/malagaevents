@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import EventCard from '@/components/events/EventCard';
-import EmptyState from '@/components/common/EmptyState';
+
 import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEvents } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
