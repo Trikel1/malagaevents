@@ -497,7 +497,7 @@ const CultureEventsPage = () => {
           <div
             role="tablist"
             aria-label={t('events.timeRange', 'Franja temporal')}
-            className="flex gap-1.5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-2 overflow-x-auto -mx-4 px-4 pb-1 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {PRIMARY_PRESETS.map((p) => {
               const active = filters.datePreset === p.key;
