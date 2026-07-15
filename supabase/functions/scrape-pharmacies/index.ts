@@ -1,3 +1,4 @@
+// scrape-pharmacies v2026-07-15b — province-wide ASP zones ingestion
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   parseOfficialGuardHtml,
