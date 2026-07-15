@@ -68,12 +68,7 @@ const Index = () => {
     toggleFavorite.mutate({ eventId, isFavorite: isFavorite(eventId) });
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/events?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
+
 
   const goLocality = (name: string) => navigate(`/events?q=${encodeURIComponent(name)}`);
 
