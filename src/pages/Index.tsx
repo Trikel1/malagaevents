@@ -88,8 +88,15 @@ const Index = () => {
     { k: 'free', icon: Heart, to: '/events?filter=free' },
   ] as const;
 
+  const isSports = appMode === 'deportes';
+
   return (
-    <div className="min-h-screen">
+    <div
+      className={cn(
+        'min-h-screen',
+        isSports && 'bg-[hsl(165_32%_94%)] dark:bg-[hsl(190_28%_9%)]'
+      )}
+    >
       <SEO
         title={t('home.seo.title')}
         description={t('home.seo.description')}
@@ -98,24 +105,28 @@ const Index = () => {
 
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
-        'relative text-white px-4 sm:px-6 pt-4 pb-20 overflow-hidden',
-        appMode === 'deportes' ? 'bg-gradient-hero-sports' : 'bg-gradient-hero'
+        'relative text-white px-4 sm:px-6 pt-4 overflow-hidden',
+        isSports ? 'bg-gradient-hero-sports pb-8' : 'bg-gradient-hero pb-20'
       )}>
 
-        {/* Subtle depth layer */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="hero-glow hero-glow--warm -top-32 -left-24 h-80 w-80" />
-          <div className="hero-glow hero-glow--cool -bottom-24 -right-20 h-72 w-72" />
-        </div>
+        {/* Subtle depth layer — only in Eventos to keep Deportes hero clean */}
+        {!isSports && (
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="hero-glow hero-glow--warm -top-32 -left-24 h-80 w-80" />
+            <div className="hero-glow hero-glow--cool -bottom-24 -right-20 h-72 w-72" />
+          </div>
+        )}
 
-        {/* Fundido extenso hacia el fondo de la siguiente sección */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-background/40 to-background"
-        />
+        {/* Fundido hacia la siguiente sección — sólo Eventos (Deportes es opaco continuo) */}
+        {!isSports && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-background/40 to-background"
+          />
+        )}
 
         {/* Top controls */}
-        <div className="relative flex justify-between items-center gap-2 mb-5 min-w-0">
+        <div className="relative flex justify-between items-center gap-2 mb-4 min-w-0">
           <div className="glass-button relative flex p-0.5 min-w-0 shrink text-white overflow-hidden">
             <span
               aria-hidden
@@ -157,17 +168,25 @@ const Index = () => {
         {/* Título editorial + acceso a búsqueda compacto */}
         <div className="relative flex items-end justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h1 className="text-[26px] sm:text-[38px] leading-[1.08] font-bold tracking-tight max-w-xl">
-              {appMode === 'deportes' ? t('sportsHome.heroTitle', 'Deportes en Málaga') : t('home.hero.title')}
+            <h1 className={cn(
+              'font-bold tracking-tight max-w-xl',
+              isSports
+                ? 'text-[24px] sm:text-[32px] leading-[1.1]'
+                : 'text-[26px] sm:text-[38px] leading-[1.08]'
+            )}>
+              {isSports ? t('sportsHome.heroTitle', 'Deportes en Málaga') : t('home.hero.title')}
             </h1>
-            <p className="text-[13.5px] sm:text-sm text-white/85 mt-1.5 max-w-md leading-snug truncate">
-              {appMode === 'deportes'
+            <p className={cn(
+              'text-[13.5px] sm:text-sm text-white/90 mt-1.5 max-w-md leading-snug',
+              isSports ? 'line-clamp-2' : 'truncate'
+            )}>
+              {isSports
                 ? t('sportsHome.heroSubtitle', 'Instalaciones, actividades y eventos deportivos cerca de ti')
                 : t('home.hero.subtitle')}
             </p>
           </div>
 
-          {appMode === 'eventos' && (
+          {!isSports && (
             <button
               type="button"
               onClick={() => navigate('/events')}
@@ -184,13 +203,14 @@ const Index = () => {
 
 
 
-      <main className="px-4 sm:px-6 -mt-14 space-y-6 pb-8 relative z-10 max-w-6xl mx-auto">
-        {appMode === 'deportes' ? (
-          <div className="pt-6">
-            <Suspense fallback={<div className="h-40" />}>
-              <SportsContent />
-            </Suspense>
-          </div>
+      <main className={cn(
+        'px-4 sm:px-6 pb-8 relative z-10 max-w-6xl mx-auto',
+        isSports ? 'pt-5 space-y-6' : '-mt-14 space-y-6'
+      )}>
+        {isSports ? (
+          <Suspense fallback={<div className="h-40" />}>
+            <SportsContent />
+          </Suspense>
         ) : (
           <>
             {/* ============== QUICK ACTIONS visible desde primer pantallazo ============== */}

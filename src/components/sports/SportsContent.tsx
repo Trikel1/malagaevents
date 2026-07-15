@@ -263,20 +263,13 @@ const SportsContent = () => {
   ];
 
   return (
-    <div
-      className="relative space-y-7 rounded-3xl -mx-2 sm:-mx-3 px-2 sm:px-3 pt-1 pb-6"
-      style={{
-        // Subtle mediterranean green/teal wash so we never sit on flat white.
-        backgroundImage:
-          'radial-gradient(120% 60% at 0% 0%, hsl(160 55% 92% / 0.55), transparent 60%), radial-gradient(90% 50% at 100% 10%, hsl(190 60% 92% / 0.55), transparent 55%)',
-      }}
-    >
-      {/* Compact search bar */}
+    <div className="relative space-y-6 pt-1 pb-6">
+      {/* Compact search bar — opaque petrol/teal surface for AA contrast */}
       <form
         onSubmit={handleSearchSubmit}
         role="search"
         aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
-        className="glass-panel flex items-center gap-2 px-3 py-2"
+        className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-emerald-700/25 bg-white dark:bg-[hsl(190_30%_12%)] shadow-sm"
       >
         <Search className="h-5 w-5 text-emerald-700 dark:text-emerald-300 shrink-0" aria-hidden="true" />
         <input
@@ -284,23 +277,24 @@ const SportsContent = () => {
           value={searchDraft}
           onChange={(e) => setSearchDraft(e.target.value)}
           placeholder={t('sportsHome.searchPlaceholder', 'Busca un deporte, instalación o municipio')}
-          className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/80 min-h-11"
+          className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground min-h-11"
           aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
         />
         {searchDraft && (
           <button
             type="button"
             onClick={() => { setSearchDraft(''); setSearchQ(''); }}
-            className="text-xs text-muted-foreground hover:text-foreground min-h-11 px-2"
+            className="text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:underline min-h-11 px-2"
           >
             {t('common.clear', 'Limpiar')}
           </button>
         )}
       </form>
 
-      {/* Big quick-action cards */}
+
+      {/* Big quick-action cards — compact, opaque */}
       <section aria-label={t('sportsHome.quickAria', 'Accesos rápidos')}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {bigCards.map((c) => {
             const active = timeFilter === c.key;
             return (
@@ -310,37 +304,36 @@ const SportsContent = () => {
                 onClick={() => handleQuickAction(c.key)}
                 aria-pressed={active}
                 className={cn(
-                  'group relative overflow-hidden rounded-2xl text-left min-h-[92px] px-4 py-4',
-                  'border transition-all liquid-press',
+                  'relative rounded-xl text-left min-h-[88px] px-3.5 py-3',
+                  'border transition-colors liquid-press',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1',
                   active
-                    ? 'border-emerald-600/40 shadow-[0_10px_30px_-18px_hsl(160_50%_25%/0.55)]'
-                    : 'border-emerald-700/15 hover:border-emerald-600/30',
-                  'bg-gradient-to-br',
-                  c.tone,
-                  'bg-card/70 dark:bg-card/50 backdrop-blur',
+                    ? 'bg-emerald-600 text-white border-emerald-600'
+                    : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/20 hover:border-emerald-600/40',
                 )}
               >
                 <div className="flex items-start gap-3">
-                  <div className="h-11 w-11 rounded-xl bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center shrink-0">
+                  <div className={cn(
+                    'h-10 w-10 rounded-lg flex items-center justify-center shrink-0',
+                    active ? 'bg-white/15 text-white' : 'bg-emerald-600/12 text-emerald-700 dark:text-emerald-200',
+                  )}>
                     <c.icon className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold leading-tight">{c.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{c.subtitle}</p>
+                    <p className={cn('text-sm font-semibold leading-tight', active ? 'text-white' : 'text-foreground')}>
+                      {c.title}
+                    </p>
+                    <p className={cn('text-[12px] mt-0.5 leading-snug', active ? 'text-white/85' : 'text-muted-foreground')}>
+                      {c.subtitle}
+                    </p>
                   </div>
                 </div>
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-4 bottom-2 h-0.5 rounded-full bg-emerald-600/60"
-                  />
-                )}
               </button>
             );
           })}
         </div>
       </section>
+
 
       {/* Category grid */}
       <section aria-label={t('sportsHome.categoriesAria', 'Categorías deportivas')}>
@@ -375,7 +368,7 @@ const SportsContent = () => {
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60',
                   active
                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-[0_10px_28px_-14px_hsl(160_60%_25%/0.55)]'
-                    : 'bg-card/70 dark:bg-card/50 backdrop-blur border-emerald-700/15 hover:border-emerald-600/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20',
+                    : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/15 hover:border-emerald-600/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20',
                 )}
               >
                 <div
@@ -402,7 +395,7 @@ const SportsContent = () => {
 
       {/* Summary stats */}
       <section aria-label={t('sportsHome.summaryAria', 'Resumen de actividad')}>
-        <div className="grid grid-cols-3 gap-2 glass-panel p-3">
+        <div className="grid grid-cols-3 gap-2 rounded-2xl border border-emerald-700/20 bg-white dark:bg-[hsl(190_30%_12%)] p-3">
           {summaryStats.map((s, i) => (
             <div
               key={i}
@@ -479,7 +472,7 @@ const SportsContent = () => {
               'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
               selectedMunicipality === 'all'
                 ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-card/70 backdrop-blur border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
+                : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
             )}
           >
             <MapPin className="h-3.5 w-3.5" />
@@ -496,7 +489,7 @@ const SportsContent = () => {
                   'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
                   active
                     ? 'bg-emerald-600 text-white border-emerald-600'
-                    : 'bg-card/70 backdrop-blur border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
+                    : 'bg-white dark:bg-[hsl(190_30%_12%)] border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
                 )}
               >
                 <MapPin className="h-3.5 w-3.5" />
@@ -600,7 +593,7 @@ const SportsContent = () => {
               <button
                 key={v.id}
                 onClick={() => navigate('/venues')}
-                className="flex items-start gap-3 p-3 rounded-xl border border-emerald-700/15 bg-card/70 backdrop-blur hover:border-emerald-600/40 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/20 transition-colors text-left min-h-[64px]"
+                className="flex items-start gap-3 p-3 rounded-xl border border-emerald-700/15 bg-white dark:bg-[hsl(190_30%_12%)] hover:border-emerald-600/40 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/20 transition-colors text-left min-h-[64px]"
               >
                 <div className="h-9 w-9 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center shrink-0">
                   <Building2 className="h-4 w-4" />
