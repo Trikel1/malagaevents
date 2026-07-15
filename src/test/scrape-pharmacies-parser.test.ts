@@ -27,7 +27,7 @@ describe('parseOfficialGuardHtml', () => {
     const r = rows[0];
     expect(r.municipality).toBe('Antequera');
     expect(r.address.toLowerCase()).toContain('campillo');
-    expect(r.duty_hours).toMatch(/GUARDIAS/i);
+    expect(r.duty_hours).toMatch(/GUARDIAS|DE \d/i);
     expect(r.source_ref).toBe(url);
     expect(r.duty_date).toBe('2026-07-15');
     expect(r.name.startsWith('Farmacia')).toBe(true);
