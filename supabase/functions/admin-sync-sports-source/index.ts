@@ -44,18 +44,41 @@ Deno.serve(async (req) => {
   });
   if (!hasAdmin) return json({ error: "forbidden" }, 403);
 
-  let body: { slug?: string; feedUrl?: string } = {};
+  let body: { slug?: string; feedUrl?: string; all?: boolean } = {};
   try { body = await req.json(); } catch { /* empty */ }
   const slug = (body.slug ?? "").trim();
-  if (!slug && !body.feedUrl) return json({ error: "missing_slug_or_feedUrl" }, 400);
+  const runAll = body.all === true;
+  if (!runAll && !slug && !body.feedUrl) return json({ error: "missing_slug_or_feedUrl" }, 400);
 
   const target = `${supabaseUrl}/functions/v1/sync-sports-normalized`;
-  const resp = await fetch(target, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-sync-key": syncKey },
-    body: JSON.stringify({ slug, feedUrl: body.feedUrl, adapter: "json" }),
-  });
-  let payload: unknown;
-  try { payload = await resp.json(); } catch { payload = { error: "invalid_response" }; }
-  return json({ ok: resp.ok, result: payload }, resp.ok ? 200 : 502);
+  const callOne = async (payload: Record<string, unknown>) => {
+    const resp = await fetch(target, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-sync-key": syncKey },
+      body: JSON.stringify(payload),
+    });
+    let out: unknown;
+    try { out = await resp.json(); } catch { out = { error: "invalid_response" }; }
+    return { ok: resp.ok, status: resp.status, out };
+  };
+
+  if (runAll) {
+    const { data: rows } = await admin
+      .from("sports_sources")
+      .select("slug, priority")
+      .eq("enabled", true)
+      .order("priority", { ascending: true });
+    const results: unknown[] = [];
+    for (const r of (rows ?? []) as Array<{ slug: string }>) {
+      const one = await callOne({ slug: r.slug });
+      results.push({ slug: r.slug, ...one });
+      // polite pacing: ~1.5s between calls to avoid hammering any single host
+      await new Promise((res) => setTimeout(res, 1500));
+    }
+    return json({ ok: true, batch: true, count: results.length, results });
+  }
+
+  const single = await callOne({ slug, feedUrl: body.feedUrl });
+  return json({ ok: single.ok, result: single.out }, single.ok ? 200 : 502);
 });
+

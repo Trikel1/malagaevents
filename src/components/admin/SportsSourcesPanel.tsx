@@ -26,7 +26,10 @@ interface SportSource {
   consecutive_failures: number;
   items_upserted: number;
   items_fetched: number;
+  robots_allowed: boolean | null;
+  robots_checked_at: string | null;
 }
+
 
 const StatusBadge = ({ status }: { status: string | null }) => {
   if (!status) {
@@ -69,6 +72,7 @@ export default function SportsSourcesPanel() {
   const [sources, setSources] = useState<SportSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningSlug, setRunningSlug] = useState<string | null>(null);
+  const [runningAll, setRunningAll] = useState(false);
 
   const fetchSources = async () => {
     setLoading(true);
@@ -111,6 +115,29 @@ export default function SportsSourcesPanel() {
     }
   };
 
+  const runAll = async () => {
+    setRunningAll(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-sync-sports-source', {
+        body: { all: true },
+      });
+      if (error) throw error;
+      toast({
+        title: 'Sincronización completa',
+        description: `Procesadas ${data?.count ?? 0} fuentes`,
+      });
+      await fetchSources();
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err?.message ?? 'unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setRunningAll(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-8">
@@ -122,14 +149,25 @@ export default function SportsSourcesPanel() {
   return (
     <div className="space-y-3">
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Fuentes deportivas registradas</CardTitle>
-          <CardDescription>
-            {sources.length} fuentes MVP para Málaga y provincia. Adaptador, estado y última
-            ejecución.
-          </CardDescription>
+        <CardHeader className="pb-2 flex flex-row items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-base">Fuentes deportivas registradas</CardTitle>
+            <CardDescription>
+              {sources.length} fuentes MVP para Málaga y provincia. Adaptador, estado y última
+              ejecución.
+            </CardDescription>
+          </div>
+          <Button size="sm" onClick={runAll} disabled={runningAll}>
+            {runningAll ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4 mr-1" />
+            )}
+            Sincronizar todas
+          </Button>
         </CardHeader>
       </Card>
+
 
       {sources.map((src) => (
         <Card key={src.id} data-testid={`sports-source-${src.slug}`}>
@@ -151,6 +189,17 @@ export default function SportsSourcesPanel() {
                       {src.consecutive_failures} fallos
                     </Badge>
                   )}
+                  {src.robots_allowed === false && (
+                    <Badge variant="destructive" className="text-xs">
+                      robots bloqueado
+                    </Badge>
+                  )}
+                  {src.robots_allowed === true && (
+                    <Badge variant="outline" className="text-xs">
+                      robots ok
+                    </Badge>
+                  )}
+
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {src.municipality ? `${src.municipality} · ` : ''}

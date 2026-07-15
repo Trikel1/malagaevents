@@ -1,11 +1,16 @@
 // Edge function: sync-sports-normalized
-// Phase A: JSON adapter only. Auth by SYNC_SPORTS_KEY (x-sync-key header).
+// Phase B: adapter routing for json/html/ics. Auth by SYNC_SPORTS_KEY.
 //
-// - Reads feed URL from body.feedUrl OR env SPORTS_NORMALIZED_FEED_URL.
-// - Upserts into public.sports_events using (source_name, external_id) or fingerprint.
-// - Bumps missed_syncs for rows attributed to source_name that didn't appear.
-// - Marks status='cancelled_or_unpublished' at 3 consecutive misses.
-// - Logs run into public.sports_sync_runs.
+// - Resolves source via public.sports_sources when body.slug is passed.
+// - Routes by source_type: json → JSON feed adapter,
+//   html → HTML + JSON-LD adapter (with optional ICS discovery),
+//   ics → RFC 5545 ICS parser.
+// - Upserts into public.sports_events using (source_name, external_id) or
+//   fingerprint. Bumps missed_syncs; marks cancelled_or_unpublished at 3.
+// - Empty-run safety: never deactivates events when the run yielded 0
+//   parsed events (treated as no-data-this-run, not "everything cancelled").
+// - Respects robots.txt when body.slug is used (checkRobots).
+// - Logs run into public.sports_sync_runs with source_id + adapter + counters.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -13,8 +18,11 @@ import type { CanonicalSportsEvent } from "../_shared/sports-sync/types.ts";
 import { fetchJsonFeed } from "../_shared/sports-sync/adapters/json.ts";
 import { computeFingerprint, computePayloadHash } from "../_shared/sports-sync/fingerprint.ts";
 import { decideDeactivations } from "../_shared/sports-sync/upsert.ts";
+import { runSourceAdapter } from "../_shared/sports-sync/adapters/sources.ts";
+import { checkRobots } from "../_shared/sports-sync/robots.ts";
 
-const MISSED_THRESHOLD_JSON = 3;
+const MISSED_THRESHOLD = 3;
+
 
 // deno-lint-ignore no-explicit-any
 type SB = any;
@@ -103,10 +111,48 @@ function toRow(ev: CanonicalSportsEvent, hash: string, fingerprint: string, nowI
   };
 }
 
-async function processSource(sb: SB, sourceName: string, feedUrl: string) {
+type FetchedEvents = {
+  events: CanonicalSportsEvent[];
+  adapterUsed: "json" | "html" | "ics";
+  fetchNotes: string[];
+};
+
+async function fetchAllEvents(
+  sourceName: string,
+  sourceType: "json" | "html" | "ics" | "rss",
+  feedUrl: string,
+  slug: string | null,
+): Promise<FetchedEvents> {
+  if (sourceType === "json") {
+    const events = (await fetchJsonFeed(feedUrl, sourceName)).events;
+    return { events, adapterUsed: "json", fetchNotes: [] };
+  }
+  if (sourceType === "html" || sourceType === "ics") {
+    const out = await runSourceAdapter({
+      slug: slug ?? sourceName,
+      sourceType,
+      primaryUrl: feedUrl,
+      sourceName,
+    });
+    return { events: out.events, adapterUsed: out.adapterUsed, fetchNotes: out.notes };
+  }
+  throw new Error(`adapter_not_supported:${sourceType}`);
+}
+
+async function processSource(
+  sb: SB,
+  sourceName: string,
+  feedUrl: string,
+  sourceType: "json" | "html" | "ics" | "rss",
+  slug: string | null,
+) {
   const nowIso = new Date().toISOString();
-  const counters = { inserted: 0, updated: 0, unchanged: 0, deactivated: 0, errors: 0 };
-  const events = (await fetchJsonFeed(feedUrl, sourceName)).events;
+  const counters = {
+    inserted: 0, updated: 0, unchanged: 0,
+    deactivated: 0, errors: 0, rejected: 0,
+  };
+  const { events, adapterUsed, fetchNotes } =
+    await fetchAllEvents(sourceName, sourceType, feedUrl, slug);
 
   // Pre-compute hashes + fingerprints once.
   type Prepared = { ev: CanonicalSportsEvent; hash: string; fingerprint: string };
@@ -141,7 +187,6 @@ async function processSource(sb: SB, sourceName: string, feedUrl: string) {
       } else if (existing.raw_payload_hash === hash
                  && existing.status !== "cancelled_or_unpublished"
                  && existing.status !== "missing_from_feed") {
-        // Refresh last_seen_at + reset missed counter, don't touch updated_at.
         await sb.from("sports_events")
           .update({ last_seen_at: nowIso, missed_syncs: 0 })
           .eq("id", existing.id);
@@ -161,49 +206,49 @@ async function processSource(sb: SB, sourceName: string, feedUrl: string) {
     else seenFp.add(fingerprint);
   }
 
-  // Deactivation pass: rows attributed to this source that we didn't see.
-  const { data: candidates } = await sb.from("sports_events")
-    .select("id, external_id, fingerprint, missed_syncs, status")
-    .eq("source_name", sourceName)
-    .neq("status", "cancelled_or_unpublished");
+  // Empty-run safety: only run deactivation pass if we parsed at least one
+  // credible event AND had no fatal errors. Otherwise a broken fetch or a
+  // temporarily-empty page would sweep every event to cancelled.
+  if (events.length > 0 && counters.errors === 0) {
+    const { data: candidates } = await sb.from("sports_events")
+      .select("id, external_id, fingerprint, missed_syncs, status")
+      .eq("source_name", sourceName)
+      .neq("status", "cancelled_or_unpublished");
 
-  const decisions = decideDeactivations(
-    new Set<string>([
-      ...Array.from(seenExternal).map((x) => `ext:${x}`),
-      ...Array.from(seenFp).map((x) => `fp:${x}`),
-    ]),
-    (candidates ?? []).map((r: { id: string; external_id: string | null; fingerprint: string | null; missed_syncs: number | null; status: string | null }) => ({
-      id: r.id,
-      key: r.external_id ? `ext:${r.external_id}` : `fp:${r.fingerprint ?? ""}`,
-      missed_syncs: r.missed_syncs,
-      status: r.status,
-    })),
-    MISSED_THRESHOLD_JSON,
-    "cancelled_or_unpublished",
-  );
+    const decisions = decideDeactivations(
+      new Set<string>([
+        ...Array.from(seenExternal).map((x) => `ext:${x}`),
+        ...Array.from(seenFp).map((x) => `fp:${x}`),
+      ]),
+      (candidates ?? []).map((r: { id: string; external_id: string | null; fingerprint: string | null; missed_syncs: number | null; status: string | null }) => ({
+        id: r.id,
+        key: r.external_id ? `ext:${r.external_id}` : `fp:${r.fingerprint ?? ""}`,
+        missed_syncs: r.missed_syncs,
+        status: r.status,
+      })),
+      MISSED_THRESHOLD,
+      "cancelled_or_unpublished",
+    );
 
-  for (const d of decisions) {
-    await sb.from("sports_events")
-      .update({ missed_syncs: d.nextMissed, status: d.nextStatus })
-      .eq("id", d.id);
-    if (d.nextStatus === "cancelled_or_unpublished") counters.deactivated++;
+    for (const d of decisions) {
+      await sb.from("sports_events")
+        .update({ missed_syncs: d.nextMissed, status: d.nextStatus })
+        .eq("id", d.id);
+      if (d.nextStatus === "cancelled_or_unpublished") counters.deactivated++;
+    }
   }
 
-  return { counters, feedCount: events.length };
+  return { counters, feedCount: events.length, adapterUsed, fetchNotes };
 }
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   if (!checkAuth(req)) return json({ error: "unauthorized" }, 401);
 
-  let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" } = {};
+  let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" | "html" | "ics" | "rss"; all?: boolean } = {};
   try { body = await req.json(); } catch { /* empty body OK */ }
-
-  const adapter = body.adapter ?? "json";
-  if (adapter !== "json") {
-    return json({ error: "adapter_not_implemented", adapter, phase: "A" }, 501);
-  }
 
   const sb = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -211,23 +256,50 @@ Deno.serve(async (req) => {
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
 
+  // Batch mode: iterate every enabled source sequentially (polite spacing).
+  if (body.all === true) {
+    const { data: rows } = await sb.from("sports_sources")
+      .select("slug, priority").eq("enabled", true)
+      .order("priority", { ascending: true });
+    const results: Array<{ slug: string; ok: boolean; status: number }> = [];
+    for (const r of (rows ?? []) as Array<{ slug: string }>) {
+      const target = `${Deno.env.get("SUPABASE_URL")}/functions/v1/sync-sports-normalized`;
+      const resp = await fetch(target, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-sync-key": Deno.env.get("SYNC_SPORTS_KEY") ?? "",
+        },
+        body: JSON.stringify({ slug: r.slug }),
+      });
+      try { await resp.text(); } catch { /* ignore */ }
+      results.push({ slug: r.slug, ok: resp.ok, status: resp.status });
+      await new Promise((res) => setTimeout(res, 1500));
+    }
+    return json({ ok: true, batch: true, count: results.length, results });
+  }
+
+
   // Resolve source: prefer registry lookup by slug; fallback to body/env for backward compat
   let sourceId: string | null = null;
   let sourceName = (body.sourceName ?? "malaga-sports-normalized").trim();
   let feedUrl = (body.feedUrl ?? "").trim();
+  let sourceType: "json" | "html" | "ics" | "rss" = body.adapter ?? "json";
   const slug = (body.slug ?? "").trim();
 
   if (slug) {
     const { data: srcRow } = await sb.from("sports_sources")
-      .select("id, slug, name, primary_url, enabled")
+      .select("id, slug, name, primary_url, source_type, enabled")
       .eq("slug", slug).maybeSingle();
     if (!srcRow) return json({ error: "source_not_found", slug }, 404);
-    if (!(srcRow as { enabled: boolean }).enabled) {
-      return json({ error: "source_disabled", slug }, 409);
+    const r = srcRow as { id: string; slug: string; primary_url: string | null; source_type: string; enabled: boolean };
+    if (!r.enabled) return json({ error: "source_disabled", slug }, 409);
+    sourceId = r.id;
+    sourceName = r.slug;
+    if (!feedUrl) feedUrl = (r.primary_url ?? "").trim();
+    if (r.source_type === "html" || r.source_type === "ics" || r.source_type === "json" || r.source_type === "rss") {
+      sourceType = r.source_type;
     }
-    sourceId = (srcRow as { id: string }).id;
-    sourceName = (srcRow as { slug: string }).slug;
-    if (!feedUrl) feedUrl = ((srcRow as { primary_url: string | null }).primary_url ?? "").trim();
   }
 
   if (!feedUrl) feedUrl = (Deno.env.get("SPORTS_NORMALIZED_FEED_URL") ?? "").trim();
@@ -237,11 +309,40 @@ Deno.serve(async (req) => {
       hint: "Pass body.slug (registered source) or body.feedUrl, or set SPORTS_NORMALIZED_FEED_URL",
     }, 400);
   }
+  if (sourceType === "rss") {
+    return json({ error: "adapter_not_implemented", adapter: "rss" }, 501);
+  }
+
+  // Robots.txt check when we scrape a public site (html/ics only).
+  let robotsAllowed: boolean | null = null;
+  let robotsReason: string | null = null;
+  if (sourceType === "html" || sourceType === "ics") {
+    const rc = await checkRobots(feedUrl);
+    robotsAllowed = rc.allowed;
+    robotsReason = rc.reason;
+    if (sourceId) {
+      await sb.from("sports_sources").update({
+        robots_checked_at: rc.fetchedAt, robots_allowed: rc.allowed,
+      }).eq("id", sourceId);
+    }
+    if (!rc.allowed) {
+      if (sourceId) {
+        await sb.from("sports_sources").update({
+          last_status: "skipped_robots",
+          last_error: `robots_disallow:${rc.reason}`.slice(0, 500),
+        }).eq("id", sourceId);
+      }
+      return json({
+        ok: false, skipped: true, reason: "robots_disallow", robots: rc,
+        sourceName, adapter: sourceType,
+      }, 200);
+    }
+  }
 
   const startedAt = Date.now();
   const attemptIso = new Date().toISOString();
   const { data: runRow } = await sb.from("sports_sync_runs")
-    .insert({ status: "running", source_slug: sourceName, source_id: sourceId, adapter })
+    .insert({ status: "running", source_slug: sourceName, source_id: sourceId, adapter: sourceType })
     .select("id").maybeSingle();
   const runId = (runRow as { id: string } | null)?.id ?? null;
   if (sourceId) {
@@ -251,7 +352,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { counters, feedCount } = await processSource(sb, sourceName, feedUrl);
+    const { counters, feedCount, adapterUsed, fetchNotes } =
+      await processSource(sb, sourceName, feedUrl, sourceType, slug || null);
     const durationMs = Date.now() - startedAt;
     const finalStatus = counters.errors === 0 ? "success" : "partial";
     if (runId) {
@@ -261,6 +363,7 @@ Deno.serve(async (req) => {
         items_upserted: counters.inserted + counters.updated,
         items_failed: counters.errors,
         finished_at: new Date().toISOString(),
+        error_sample: fetchNotes.length ? fetchNotes.join(" | ").slice(0, 500) : null,
       }).eq("id", runId);
     }
     if (sourceId) {
@@ -275,8 +378,12 @@ Deno.serve(async (req) => {
       }).eq("id", sourceId);
     }
     return json({
-      ok: true, sourceName, adapter, feedCount, counters, durationMs, runId,
+      ok: true, sourceName, adapter: sourceType, adapterUsed,
+      feedCount, counters, durationMs, runId,
+      robots: { allowed: robotsAllowed, reason: robotsReason },
+      notes: fetchNotes,
     });
+
   } catch (e) {
     const msg = ((e as Error).message ?? "unknown_error").slice(0, 500);
     if (runId) {
