@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import EventCard from '@/components/events/EventCard';
-import EmptyState from '@/components/common/EmptyState';
+
 import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEvents } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
@@ -53,7 +53,6 @@ const Index = () => {
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
-  const { data: todayEvents, isLoading: loadingToday } = useEvents({ todayOnly: true, limit: 6 });
   const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({ weekendOnly: true, limit: 6 });
 
   const { data: favorites } = useFavorites();
@@ -244,33 +243,6 @@ const Index = () => {
               </Button>
             </section>
 
-            {/* ============== Ahora en Málaga (Hoy) ============== */}
-            <section>
-              <div className="flex items-end justify-between gap-3 mb-3">
-                <div className="min-w-0">
-                  <h2 className="section-title">{t('home.sections.nowInMalaga')}</h2>
-                  <div className="section-rule mt-2" aria-hidden />
-                </div>
-                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4 shrink-0" onClick={() => navigate('/events?filter=today')}>
-                  {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {loadingToday ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {[1,2,3,4].map((i) => <EventCardSkeleton key={i} />)}
-                </div>
-              ) : todayEvents && todayEvents.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {todayEvents.map((event, idx) => (
-                    <EventCard key={event.id} event={event} dense priority={idx < 2}
-                      isFavorite={isFavorite(event.id)} onToggleFavorite={handleToggleFavorite} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState icon={Calendar} title={t('events.noEvents')} description={t('events.noEventsDesc')} />
-              )}
-            </section>
 
             {/* ============== Qué puedes encontrar ============== */}
             <section>
