@@ -173,32 +173,32 @@ const CalendarPage = () => {
   );
 
 
-  // Occurrences for a specific day
+  // Occurrences for a specific day (filters already applied)
   const getOccurrencesForDay = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
-    return filteredOccurrences.filter(
+    return visibleOccurrences.filter(
       (occ) => getMadridDateKey(occ.start_datetime) === dateKey,
     );
   };
 
   const getSportEventsForDay = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
-    return sportEventsForMonth.filter(
+    return visibleSportEvents.filter(
       (e) => getMadridDateKey(e.start_at) === dateKey,
     );
   };
 
-  // Count per day for the grid indicator
+  // Count per day for the grid indicator (filters applied)
   const eventCountByDay = useMemo(() => {
     const map = new Map<string, number>();
     const bump = (key: string) => map.set(key, (map.get(key) || 0) + 1);
     if (appMode === 'deportes') {
-      sportEventsForMonth.forEach((e) => bump(getMadridDateKey(e.start_at)));
+      visibleSportEvents.forEach((e) => bump(getMadridDateKey(e.start_at)));
     } else {
-      filteredOccurrences.forEach((occ) => bump(getMadridDateKey(occ.start_datetime)));
+      visibleOccurrences.forEach((occ) => bump(getMadridDateKey(occ.start_datetime)));
     }
     return map;
-  }, [filteredOccurrences, sportEventsForMonth, appMode]);
+  }, [visibleOccurrences, visibleSportEvents, appMode]);
 
   const selectedDayOccurrences = selectedDate ? getOccurrencesForDay(selectedDate) : [];
   const selectedDaySportEvents = selectedDate ? getSportEventsForDay(selectedDate) : [];
@@ -242,13 +242,33 @@ const CalendarPage = () => {
   const monthOccurrences = useMemo(() => {
     const start = format(monthStart, 'yyyy-MM-dd');
     const end = format(monthEnd, 'yyyy-MM-dd');
+    return visibleOccurrences.filter((occ) => {
+      const key = getMadridDateKey(occ.start_datetime);
+      return key >= start && key <= end;
+    });
+  }, [visibleOccurrences, monthStart, monthEnd]);
+
+  const monthSportEvents = useMemo(() => {
+    const start = format(monthStart, 'yyyy-MM-dd');
+    const end = format(monthEnd, 'yyyy-MM-dd');
+    return visibleSportEvents.filter((e) => {
+      const key = getMadridDateKey(e.start_at);
+      return key >= start && key <= end;
+    });
+  }, [visibleSportEvents, monthStart, monthEnd]);
+
+  // ----- Filter drawer inputs -----
+  // Available categories in the current month (before user filters apply)
+  const monthRawOccurrences = useMemo(() => {
+    const start = format(monthStart, 'yyyy-MM-dd');
+    const end = format(monthEnd, 'yyyy-MM-dd');
     return filteredOccurrences.filter((occ) => {
       const key = getMadridDateKey(occ.start_datetime);
       return key >= start && key <= end;
     });
   }, [filteredOccurrences, monthStart, monthEnd]);
 
-  const monthSportEvents = useMemo(() => {
+  const monthRawSportEvents = useMemo(() => {
     const start = format(monthStart, 'yyyy-MM-dd');
     const end = format(monthEnd, 'yyyy-MM-dd');
     return sportEventsForMonth.filter((e) => {
@@ -257,10 +277,33 @@ const CalendarPage = () => {
     });
   }, [sportEventsForMonth, monthStart, monthEnd]);
 
+  const availableCategories = useMemo<string[]>(() => {
+    return appMode === 'deportes'
+      ? availableSportCategories(monthRawSportEvents)
+      : availableCulturalGroups(monthRawOccurrences);
+  }, [appMode, monthRawOccurrences, monthRawSportEvents]);
+
+  // Preview count for the drawer footer, using the draft (or applied) filters
+  const draftResultCount = useMemo(() => {
+    if (appMode === 'deportes') {
+      return applySportsFilters(monthRawSportEvents, draftFilters).length;
+    }
+    return applyCulturalFilters(monthRawOccurrences, draftFilters).length;
+  }, [appMode, monthRawOccurrences, monthRawSportEvents, draftFilters]);
+
+  const activeFilterGroups = countActiveGroups(filters);
+
+  // Reset filters when switching between eventos/deportes
+  useEffect(() => {
+    setFilters(EMPTY_CALENDAR_FILTERS);
+    setDraftFilters(EMPTY_CALENDAR_FILTERS);
+  }, [appMode]);
+
   // Reset list pagination whenever the underlying dataset changes size or view
   useEffect(() => {
     setListLimit(LIST_PAGE_SIZE);
-  }, [viewMode, currentDate, eventSource, appMode]);
+  }, [viewMode, currentDate, eventSource, appMode, filters]);
+
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
