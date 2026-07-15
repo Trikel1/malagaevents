@@ -407,211 +407,340 @@ const PharmaciesPage = () => {
           },
         ]}
       />
-      {/* Header */}
-      <header className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white px-5 pt-5 pb-7 rounded-b-3xl space-y-3">
-        <div className="flex items-center gap-2">
-          <Pill className="h-5 w-5" />
-          <div>
-            <h1 className="text-xl font-bold leading-tight">{t('pharmacies.title', 'Farmacias')}</h1>
-            <p className="text-[12px] text-white/85">
-              {t('pharmacies.subtitle', 'Consulta farmacias de guardia y servicios cercanos.')}
+      {/* ============== HERO — compact, sanitary Mediterranean ============== */}
+      <header className="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-600 text-white px-4 sm:px-6 pt-4 pb-14 rounded-b-3xl">
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -right-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-teal-300/15 blur-3xl" />
+        </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background/60 rounded-b-3xl"
+        />
+
+        <div className="relative flex items-center gap-3">
+          <div className="h-10 w-10 shrink-0 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/25">
+            <Pill className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-[22px] sm:text-2xl font-bold leading-tight">
+              {t('pharmacies.title', 'Farmacias')}
+            </h1>
+            <p className="text-[12.5px] text-white/85 leading-snug">
+              {t('pharmacies.subtitleShort', 'Guardias verificadas y directorio de la provincia.')}
             </p>
           </div>
         </div>
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('pharmacies.searchPlaceholder', 'Buscar farmacia, dirección o zona…')}
-            className="pl-9 pr-9 h-10 rounded-full bg-white text-foreground border-0"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="Clear"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
       </header>
 
-      <main className="px-4 -mt-4 space-y-4">
-        {/* Locality + date selectors */}
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-1">
-            <LocalitySelector value={municipality} onChange={setMunicipality} />
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="rounded-xl h-11 bg-card"
-              onClick={() => setSelectedDate(madridNow())}
-            >
-              {t('pharmacies.today', 'Hoy')}
-            </Button>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="rounded-xl h-11 bg-card flex-1 justify-start min-w-[140px]">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-50 bg-popover" align="end">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(d) => d && setSelectedDate(d)}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-
-        {/* Near me */}
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant={userLoc ? 'default' : 'outline'}
-            className="rounded-full h-9 px-4 text-sm"
-            onClick={handleLocate}
-            disabled={locating}
+      <main className="px-4 sm:px-6 -mt-8 space-y-4 relative z-10 max-w-4xl mx-auto">
+        {/* ============== Segmented control: De guardia / Directorio ============== */}
+        <div
+          role="tablist"
+          aria-label={t('pharmacies.modeAria', 'Modo de consulta')}
+          className="glass-panel p-1 flex items-center gap-1"
+        >
+          <button
+            role="tab"
+            aria-selected={mode === 'duty'}
+            onClick={() => setMode('duty')}
+            className={cn(
+              'flex-1 h-11 rounded-full text-sm font-semibold inline-flex items-center justify-center gap-1.5 transition-colors',
+              mode === 'duty'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-foreground/70 hover:text-foreground'
+            )}
           >
-            <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} />
-            {locating
-              ? t('pharmacies.locating', 'Localizando…')
-              : userLoc
-              ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
-              : t('pharmacies.nearMe', 'Cerca de mí')}
-          </Button>
-          {userLoc && (
-            <span className="text-[11px] text-muted-foreground">
-              {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
-            </span>
-          )}
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            {t('pharmacies.tabDuty', 'De guardia')}
+          </button>
+          <button
+            role="tab"
+            aria-selected={mode === 'directory'}
+            onClick={() => setMode('directory')}
+            className={cn(
+              'flex-1 h-11 rounded-full text-sm font-semibold inline-flex items-center justify-center gap-1.5 transition-colors',
+              mode === 'directory'
+                ? 'bg-foreground text-background shadow-sm'
+                : 'text-foreground/70 hover:text-foreground'
+            )}
+          >
+            <Pill className="h-4 w-4" aria-hidden="true" />
+            {t('pharmacies.tabDirectory', 'Directorio')}
+          </button>
         </div>
 
-        {/* On-duty section */}
-        <section>
-          <div className="flex items-center justify-between mb-1.5 gap-3">
-            <h2 className="text-base font-semibold">
-              {t('pharmacies.onDutyTitle', 'Farmacias de guardia')}
-            </h2>
-            <span className="text-xs text-muted-foreground text-right">
-              {isToday
-                ? t('pharmacies.onDutyToday', 'De guardia hoy')
-                : `${t('pharmacies.guardDate', 'Guardia el')} ${formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}`}
-            </span>
-          </div>
+        {/* ============== Filters row ============== */}
+        <div className="flex flex-col gap-2">
+          <LocalitySelector value={municipality} onChange={setMunicipality} />
 
-          {/* Official-source attribution (always visible) */}
-          <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-            <Info className="h-3 w-3 shrink-0" />
-            <span>{t('pharmacies.officialSourceLabel', 'Fuente oficial:')}</span>
-            <a
-              href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-primary hover:underline underline-offset-2"
+          {mode === 'duty' && (
+            <div className="flex gap-2">
+              <Button
+                variant={isToday ? 'default' : 'outline'}
+                className="rounded-xl h-11 flex-1 sm:flex-none sm:w-24"
+                onClick={() => setSelectedDate(madridNow())}
+              >
+                {t('pharmacies.today', 'Hoy')}
+              </Button>
+              <Button
+                variant="outline"
+                className="rounded-xl h-11 flex-1 sm:flex-none sm:w-28"
+                onClick={() => {
+                  const d = madridNow();
+                  d.setDate(d.getDate() + 1);
+                  setSelectedDate(d);
+                }}
+              >
+                {t('pharmacies.tomorrow', 'Mañana')}
+              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="rounded-xl h-11 flex-1 justify-start bg-card min-w-0"
+                    aria-label={t('pharmacies.pickDateAria', 'Elegir fecha de guardia')}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                    <span className="truncate">
+                      {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(d) => d && setSelectedDate(d)}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
+          {mode === 'directory' && (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <label htmlFor="pharmacy-search" className="sr-only">
+                {t('pharmacies.searchAria', 'Buscar farmacia')}
+              </label>
+              <Input
+                id="pharmacy-search"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setDirLimit(30); }}
+                placeholder={t('pharmacies.searchPlaceholder', 'Buscar farmacia, dirección o zona…')}
+                className="pl-9 pr-9 h-11 rounded-xl bg-card"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full min-h-[32px] min-w-[32px] flex items-center justify-center"
+                  aria-label={t('common.clear', 'Limpiar')}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              type="button"
+              variant={userLoc ? 'default' : 'outline'}
+              className="rounded-full h-9 px-4 text-sm"
+              onClick={handleLocate}
+              disabled={locating}
+              aria-pressed={!!userLoc}
             >
-              farmaciasguardia.farmaceuticos.com
-            </a>
-            {lastSyncLabel && (
-              <span className="opacity-80">· {t('pharmacies.lastSync', 'Actualizado')} {lastSyncLabel}</span>
+              <LocateFixed className={cn('h-4 w-4 mr-1.5', locating && 'animate-pulse')} aria-hidden="true" />
+              {locating
+                ? t('pharmacies.locating', 'Localizando…')
+                : userLoc
+                ? t('pharmacies.clearDistanceSort', 'Quitar orden por distancia')
+                : t('pharmacies.nearMe', 'Cerca de mí')}
+            </Button>
+            {userLoc && (
+              <span className="text-[11px] text-muted-foreground">
+                {t('pharmacies.sortedByDistance', 'Ordenado por cercanía')}
+              </span>
             )}
           </div>
+        </div>
 
-          {isLoadingDuty ? (
-            <div className="space-y-2">
-              <PharmacyCardSkeleton />
-              <PharmacyCardSkeleton />
+        {/* ============== DUTY MODE ============== */}
+        {mode === 'duty' && (
+          <section aria-labelledby="duty-heading">
+            {/* Contextual summary */}
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-2">
+              <h2 id="duty-heading" className="text-base font-semibold">
+                {isLoadingDuty
+                  ? t('pharmacies.checkingOfficial', 'Consultando datos oficiales…')
+                  : dutyPharmacies.length > 0
+                  ? t('pharmacies.dutySummary', {
+                      defaultValue: '{{count}} guardia(s) verificada(s) en {{place}}',
+                      count: dutyPharmacies.length,
+                      place: municipality,
+                    })
+                  : t('pharmacies.dutySummaryEmpty', {
+                      defaultValue: 'Sin guardias verificadas en {{place}}',
+                      place: municipality,
+                    })}
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
+              </span>
             </div>
-          ) : dutyPharmacies.length > 0 ? (
-            <>
-              <div className="space-y-2">
-                {dutyPharmacies.map((p: any) => (
-                  <PharmacyCard
-                    key={p.id}
-                    pharmacy={{ ...p, municipality: p.municipality }}
-                    onDuty
-                    distanceKm={p._distance}
-                  />
-                ))}
-              </div>
-              <p className="mt-2 text-[11px] text-muted-foreground flex items-start gap-1.5">
-                <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 opacity-70" />
-                <span>
-                  {t(
-                    'pharmacies.phoneFirstAdvice',
-                    'Confirma por teléfono antes de desplazarte: los turnos oficiales pueden cambiar sin previo aviso.'
-                  )}
+
+            {/* Official source attribution */}
+            <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+              <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span>{t('pharmacies.officialSourceLabel', 'Fuente oficial:')}</span>
+              <a
+                href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary hover:underline underline-offset-2 inline-flex items-center gap-0.5"
+              >
+                farmaciasguardia.farmaceuticos.com
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              </a>
+              {lastSyncLabel && (
+                <span className="opacity-80">
+                  · {t('pharmacies.lastSync', 'Actualizado')} {lastSyncLabel}
                 </span>
-              </p>
-            </>
-          ) : (
-            <Card className="p-5 text-sm rounded-2xl border-dashed border-border/70 bg-card">
-              <div className="flex flex-col items-center text-center gap-2">
-                <AlertTriangle className="h-6 w-6 opacity-60" />
-                <p className="text-muted-foreground">
-                  {t(
-                    'pharmacies.noOfficialData',
-                    'No hay datos oficiales verificados de farmacias de guardia para esta fecha y localidad. Consulta directamente la fuente oficial antes de desplazarte.'
-                  )}
-                </p>
-                <Button asChild size="sm" variant="outline" className="rounded-full mt-1">
-                  <a
-                    href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {t('pharmacies.openOfficialSource', 'Abrir fuente oficial')}
-                  </a>
-                </Button>
-              </div>
-            </Card>
-          )}
-        </section>
-
-
-        {/* All pharmacies in locality */}
-        <section className="pt-2">
-          <h2 className="text-base font-semibold mb-2">
-            {t('pharmacies.allPharmaciesInLocation', 'Todas las farmacias en')} {municipality}
-          </h2>
-
-          {isLoadingDir ? (
-            <div className="space-y-2">
-              <PharmacyCardSkeleton />
-              <PharmacyCardSkeleton />
-              <PharmacyCardSkeleton />
-            </div>
-          ) : dirPharmacies.length > 0 ? (
-            <div className="space-y-2">
-              {dirPharmacies.map((p: any) => (
-                <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={AlertTriangle}
-              title={t('pharmacies.noPharmaciesFound', 'Sin resultados')}
-              description={t(
-                'pharmacies.directoryEmpty',
-                'No hay farmacias listadas en esta localidad. Prueba con otra.'
               )}
-            />
-          )}
-        </section>
+            </div>
+
+            {isLoadingDuty ? (
+              <div className="space-y-2">
+                <PharmacyCardSkeleton />
+                <PharmacyCardSkeleton />
+              </div>
+            ) : dutyPharmacies.length > 0 ? (
+              <>
+                <div className="space-y-2">
+                  {dutyPharmacies.map((p: any) => (
+                    <PharmacyCard
+                      key={p.id}
+                      pharmacy={{ ...p, municipality: p.municipality }}
+                      onDuty
+                      distanceKm={p._distance}
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground flex items-start gap-1.5">
+                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 opacity-70" aria-hidden="true" />
+                  <span>
+                    {t(
+                      'pharmacies.phoneFirstAdvice',
+                      'Confirma por teléfono antes de desplazarte: los turnos oficiales pueden cambiar sin previo aviso.'
+                    )}
+                  </span>
+                </p>
+              </>
+            ) : (
+              <Card className="p-5 rounded-2xl border-dashed bg-card">
+                <div className="flex flex-col items-center text-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                    <AlertTriangle className="h-5 w-5 opacity-70" aria-hidden="true" />
+                  </div>
+                  <p className="text-sm text-muted-foreground max-w-sm">
+                    {t(
+                      'pharmacies.noOfficialData',
+                      'No hay datos oficiales verificados para esta localidad y fecha. Esto no significa que no haya farmacias abiertas — consulta la fuente oficial antes de desplazarte.'
+                    )}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <Button asChild size="sm" className="rounded-full bg-emerald-600 hover:bg-emerald-600/90">
+                      <a
+                        href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1.5" aria-hidden="true" />
+                        {t('pharmacies.openOfficialSource', 'Consultar fuente oficial')}
+                      </a>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => setMode('directory')}
+                    >
+                      {t('pharmacies.switchToDirectory', 'Ver directorio')}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </section>
+        )}
+
+        {/* ============== DIRECTORY MODE ============== */}
+        {mode === 'directory' && (
+          <section aria-labelledby="dir-heading">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mb-2">
+              <h2 id="dir-heading" className="text-base font-semibold">
+                {isLoadingDir
+                  ? t('pharmacies.loadingDirectory', 'Cargando directorio…')
+                  : t('pharmacies.dirSummary', {
+                      defaultValue: '{{count}} farmacia(s) en {{place}}',
+                      count: dirPharmacies.length,
+                      place: municipality,
+                    })}
+              </h2>
+              <span className="text-[11px] text-muted-foreground">
+                {t('pharmacies.directoryLabel', 'Directorio informativo')}
+              </span>
+            </div>
+
+            {isLoadingDir ? (
+              <div className="space-y-2">
+                <PharmacyCardSkeleton />
+                <PharmacyCardSkeleton />
+                <PharmacyCardSkeleton />
+              </div>
+            ) : dirPharmacies.length > 0 ? (
+              <>
+                <div className="space-y-2">
+                  {dirPharmacies.slice(0, dirLimit).map((p: any) => (
+                    <PharmacyCard key={p.id} pharmacy={p} distanceKm={p._distance} />
+                  ))}
+                </div>
+                {dirPharmacies.length > dirLimit && (
+                  <div className="mt-3 flex justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDirLimit((n) => n + 30)}
+                      className="rounded-full"
+                    >
+                      {t('pharmacies.loadMore', 'Ver más')}{' '}
+                      <span className="ml-1 text-muted-foreground">
+                        ({dirPharmacies.length - dirLimit})
+                      </span>
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <EmptyState
+                icon={AlertTriangle}
+                title={t('pharmacies.noPharmaciesFound', 'Sin resultados')}
+                description={t(
+                  'pharmacies.directoryEmpty',
+                  'No hay farmacias listadas para tu búsqueda. Prueba con otra localidad o texto.'
+                )}
+              />
+            )}
+          </section>
+        )}
       </main>
     </div>
   );
 };
 
 export default PharmaciesPage;
+
