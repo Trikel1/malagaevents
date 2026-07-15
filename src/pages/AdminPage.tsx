@@ -76,6 +76,7 @@ import { EVENT_CATEGORIES } from '@/types';
 import CategoryChip from '@/components/events/CategoryChip';
 import IngestionRegistry from '@/components/admin/IngestionRegistry';
 import SourceHealth from '@/components/admin/SourceHealth';
+import CoverageMatrix from '@/components/admin/CoverageMatrix';
 
 // Small inline component to show sports_events count
 const SportsEventCount = () => {
