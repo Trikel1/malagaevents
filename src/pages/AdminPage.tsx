@@ -78,6 +78,7 @@ import IngestionRegistry from '@/components/admin/IngestionRegistry';
 import SourceHealth from '@/components/admin/SourceHealth';
 import CoverageMatrix from '@/components/admin/CoverageMatrix';
 import CitizenServiceRadar from '@/components/admin/CitizenServiceRadar';
+import SportsSourcesPanel from '@/components/admin/SportsSourcesPanel';
 
 // Small inline component to show sports_events count
 const SportsEventCount = () => {
