@@ -535,11 +535,11 @@ const CalendarPage = () => {
                           !isSelected && 'hover:bg-muted',
                         )}
                       >
-                        <span>{format(day, 'd')}</span>
+                        <span className="text-base font-semibold leading-none">{format(day, 'd')}</span>
                         {count > 0 && (
                           <span
                             className={cn(
-                              'text-[10px] leading-none font-semibold mt-0.5 tabular-nums',
+                              'text-[9px] leading-none font-medium mt-1 tabular-nums',
                               isSelected ? 'text-primary-foreground/90' : 'text-primary',
                             )}
                           >
