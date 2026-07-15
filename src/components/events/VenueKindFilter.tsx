@@ -104,7 +104,7 @@ function IconSalas({ className, size = 22 }: IconProps) {
   );
 }
 
-/** Elegant proscenium — pelmet, two arched drapes, stage line. */
+/** Theater mask — classic comedy mask, unmistakable and elegant. */
 function IconTeatros({ className, size = 22 }: IconProps) {
   return (
     <svg
@@ -113,26 +113,26 @@ function IconTeatros({ className, size = 22 }: IconProps) {
       height={size}
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.25}
+      strokeWidth={1.4}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       aria-hidden
     >
-      {/* pelmet */}
-      <path d="M3.5 5 h17" />
-      <path d="M4 5 c 1 1.6 3 1.6 4 0 c 1 1.6 3 1.6 4 0 c 1 1.6 3 1.6 4 0 c 1 1.6 3 1.6 4 0" />
-      {/* left drape */}
-      <path d="M5.5 6.5 C 5.5 11, 7 15, 8.5 19" />
-      {/* right drape */}
-      <path d="M18.5 6.5 C 18.5 11, 17 15, 15.5 19" />
-      {/* stage base */}
-      <path d="M4 20.5 h16" />
-      {/* soft center tie */}
-      <path d="M12 6.5 V11" opacity="0.4" />
+      {/* Mask outline — soft rounded oval, wider at top, tapered chin */}
+      <path d="M6 5.5 C 6 4.6, 7 4, 8 4 h8 c 1 0, 2 0.6, 2 1.5 V 12 c 0 4.4 -2.7 7.5 -6 7.5 s -6 -3.1 -6 -7.5 z" />
+      {/* Ribbon ties at the top corners */}
+      <path d="M6 5.5 c -1.2 -0.2 -2.2 0.2 -2.8 1.1" opacity="0.7" />
+      <path d="M18 5.5 c 1.2 -0.2 2.2 0.2 2.8 1.1" opacity="0.7" />
+      {/* Eyes */}
+      <path d="M9 10 c 0.4 -0.6 1.4 -0.6 1.8 0" />
+      <path d="M13.2 10 c 0.4 -0.6 1.4 -0.6 1.8 0" />
+      {/* Smile — upward curve */}
+      <path d="M9 14.5 c 1 1.5 4 1.5 6 0" />
     </svg>
   );
 }
+
 
 /** Two slender palms + sun on horizon — "recintos y exteriores". */
 function IconRecintos({ className, size = 22 }: IconProps) {
