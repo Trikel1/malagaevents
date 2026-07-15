@@ -170,7 +170,7 @@ export const useEvents = (options: UseEventsOptions = {}) => {
 export const useEventsPaginated = (options: UseEventsOptions = {}) => {
   return useQuery({
     queryKey: ['events-paginated', options],
-    queryFn: () => fetchEvents(options),
+    queryFn: ({ signal }) => fetchEvents(options, signal),
   });
 };
 
