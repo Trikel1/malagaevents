@@ -599,13 +599,27 @@ const CultureEventsPage = () => {
         ) : displayedEvents && displayedEvents.length > 0 ? (
           <>
             {!userCoords && (
-              <UpcomingHighlights events={displayedEvents} />
+              <UpcomingHighlights events={displayedEvents} maxItems={6} />
             )}
             <GroupedEventsList
               events={displayedEvents}
               isFavorite={isFavorite}
               onToggleFavorite={handleToggleFavorite}
             />
+            {!onlyFavorites && hasNextPage && (
+              <div className="mt-6 flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="rounded-full h-11 px-6"
+                >
+                  {isFetchingNextPage
+                    ? t('common.loading', 'Cargando…')
+                    : t('events.loadMore', 'Ver más eventos')}
+                </Button>
+              </div>
+            )}
           </>
         ) : (
           <EmptyState
