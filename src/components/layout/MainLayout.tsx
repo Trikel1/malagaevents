@@ -43,20 +43,7 @@ const MainLayout = () => {
   );
 };
 
-      <main
-        className="relative z-[1]"
-        style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)',
-        }}
-      >
-        <div key={routeKey} className="liquid-page-shell">
-          <Outlet />
-        </div>
-      </main>
-      <BottomNav />
-    </div>
-  );
-};
+
 
 
 export default MainLayout;
