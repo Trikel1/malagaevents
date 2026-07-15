@@ -661,6 +661,8 @@ type ListViewProps = {
   onLoadMore: () => void;
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (id: string) => void;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
   t: (key: string, opts?: any) => string;
 };
 
@@ -674,6 +676,8 @@ const ListView = ({
   onLoadMore,
   isFavorite,
   onToggleFavorite,
+  hasActiveFilters,
+  onClearFilters,
   t,
 }: ListViewProps) => {
   if (loading) {
@@ -686,17 +690,26 @@ const ListView = ({
     );
   }
 
+  const renderEmpty = () => (
+    <div className="space-y-3">
+      <EmptyState
+        icon={CalendarIcon}
+        title={hasActiveFilters ? 'Sin coincidencias con tus filtros' : t('calendar.monthEmpty')}
+        description={hasActiveFilters ? 'Prueba a quitar algún filtro para ver más planes.' : t('events.noEventsDesc')}
+      />
+      {hasActiveFilters && (
+        <div className="flex justify-center">
+          <Button variant="outline" onClick={onClearFilters} className="h-11 px-5">
+            Limpiar filtros
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   if (appMode === 'deportes') {
     const items = (monthSportEvents ?? []).slice(0, listLimit);
-    if (items.length === 0) {
-      return (
-        <EmptyState
-          icon={CalendarIcon}
-          title={t('calendar.monthEmpty')}
-          description={t('events.noEventsDesc')}
-        />
-      );
-    }
+    if (items.length === 0) return renderEmpty();
     const grouped = groupByDayKey(items, (e) => getMadridDateKey(e.start_at));
     return (
       <div className="space-y-6">
@@ -724,15 +737,8 @@ const ListView = ({
   }
 
   const items = monthOccurrences.slice(0, listLimit);
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={CalendarIcon}
-        title={t('calendar.monthEmpty')}
-        description={t('events.noEventsDesc')}
-      />
-    );
-  }
+  if (items.length === 0) return renderEmpty();
+
   const grouped = groupByDayKey(items, (occ) => getMadridDateKey(occ.start_datetime));
 
   return (
