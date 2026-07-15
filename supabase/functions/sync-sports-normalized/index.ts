@@ -247,13 +247,8 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
   if (!checkAuth(req)) return json({ error: "unauthorized" }, 401);
 
-  let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" } = {};
+  let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" | "html" | "ics" | "rss" } = {};
   try { body = await req.json(); } catch { /* empty body OK */ }
-
-  const adapter = body.adapter ?? "json";
-  if (adapter !== "json") {
-    return json({ error: "adapter_not_implemented", adapter, phase: "A" }, 501);
-  }
 
   const sb = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -265,19 +260,22 @@ Deno.serve(async (req) => {
   let sourceId: string | null = null;
   let sourceName = (body.sourceName ?? "malaga-sports-normalized").trim();
   let feedUrl = (body.feedUrl ?? "").trim();
+  let sourceType: "json" | "html" | "ics" | "rss" = body.adapter ?? "json";
   const slug = (body.slug ?? "").trim();
 
   if (slug) {
     const { data: srcRow } = await sb.from("sports_sources")
-      .select("id, slug, name, primary_url, enabled")
+      .select("id, slug, name, primary_url, source_type, enabled")
       .eq("slug", slug).maybeSingle();
     if (!srcRow) return json({ error: "source_not_found", slug }, 404);
-    if (!(srcRow as { enabled: boolean }).enabled) {
-      return json({ error: "source_disabled", slug }, 409);
+    const r = srcRow as { id: string; slug: string; primary_url: string | null; source_type: string; enabled: boolean };
+    if (!r.enabled) return json({ error: "source_disabled", slug }, 409);
+    sourceId = r.id;
+    sourceName = r.slug;
+    if (!feedUrl) feedUrl = (r.primary_url ?? "").trim();
+    if (r.source_type === "html" || r.source_type === "ics" || r.source_type === "json" || r.source_type === "rss") {
+      sourceType = r.source_type;
     }
-    sourceId = (srcRow as { id: string }).id;
-    sourceName = (srcRow as { slug: string }).slug;
-    if (!feedUrl) feedUrl = ((srcRow as { primary_url: string | null }).primary_url ?? "").trim();
   }
 
   if (!feedUrl) feedUrl = (Deno.env.get("SPORTS_NORMALIZED_FEED_URL") ?? "").trim();
@@ -287,11 +285,40 @@ Deno.serve(async (req) => {
       hint: "Pass body.slug (registered source) or body.feedUrl, or set SPORTS_NORMALIZED_FEED_URL",
     }, 400);
   }
+  if (sourceType === "rss") {
+    return json({ error: "adapter_not_implemented", adapter: "rss" }, 501);
+  }
+
+  // Robots.txt check when we scrape a public site (html/ics only).
+  let robotsAllowed: boolean | null = null;
+  let robotsReason: string | null = null;
+  if (sourceType === "html" || sourceType === "ics") {
+    const rc = await checkRobots(feedUrl);
+    robotsAllowed = rc.allowed;
+    robotsReason = rc.reason;
+    if (sourceId) {
+      await sb.from("sports_sources").update({
+        robots_checked_at: rc.fetchedAt, robots_allowed: rc.allowed,
+      }).eq("id", sourceId);
+    }
+    if (!rc.allowed) {
+      if (sourceId) {
+        await sb.from("sports_sources").update({
+          last_status: "skipped_robots",
+          last_error: `robots_disallow:${rc.reason}`.slice(0, 500),
+        }).eq("id", sourceId);
+      }
+      return json({
+        ok: false, skipped: true, reason: "robots_disallow", robots: rc,
+        sourceName, adapter: sourceType,
+      }, 200);
+    }
+  }
 
   const startedAt = Date.now();
   const attemptIso = new Date().toISOString();
   const { data: runRow } = await sb.from("sports_sync_runs")
-    .insert({ status: "running", source_slug: sourceName, source_id: sourceId, adapter })
+    .insert({ status: "running", source_slug: sourceName, source_id: sourceId, adapter: sourceType })
     .select("id").maybeSingle();
   const runId = (runRow as { id: string } | null)?.id ?? null;
   if (sourceId) {
@@ -301,7 +328,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { counters, feedCount } = await processSource(sb, sourceName, feedUrl);
+    const { counters, feedCount, adapterUsed, fetchNotes } =
+      await processSource(sb, sourceName, feedUrl, sourceType, slug || null);
     const durationMs = Date.now() - startedAt;
     const finalStatus = counters.errors === 0 ? "success" : "partial";
     if (runId) {
@@ -311,6 +339,7 @@ Deno.serve(async (req) => {
         items_upserted: counters.inserted + counters.updated,
         items_failed: counters.errors,
         finished_at: new Date().toISOString(),
+        error_sample: fetchNotes.length ? fetchNotes.join(" | ").slice(0, 500) : null,
       }).eq("id", runId);
     }
     if (sourceId) {
@@ -325,8 +354,12 @@ Deno.serve(async (req) => {
       }).eq("id", sourceId);
     }
     return json({
-      ok: true, sourceName, adapter, feedCount, counters, durationMs, runId,
+      ok: true, sourceName, adapter: sourceType, adapterUsed,
+      feedCount, counters, durationMs, runId,
+      robots: { allowed: robotsAllowed, reason: robotsReason },
+      notes: fetchNotes,
     });
+
   } catch (e) {
     const msg = ((e as Error).message ?? "unknown_error").slice(0, 500);
     if (runId) {
