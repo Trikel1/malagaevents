@@ -727,6 +727,49 @@ const PharmaciesPage = () => {
             )}
           </section>
         )}
+
+        {/* ============== Información y procedencia (bottom, collapsible) ============== */}
+        <details className="mt-6 rounded-2xl border border-border/60 bg-card/40 open:bg-card">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium flex items-center justify-between gap-2 min-h-[44px]">
+            <span className="inline-flex items-center gap-2">
+              <Info className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              {t('pharmacies.provenanceTitle', 'Información y procedencia')}
+            </span>
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" aria-hidden="true" />
+          </summary>
+          <div className="px-4 pb-4 pt-1 space-y-2 text-[12.5px] text-muted-foreground">
+            <p className="flex items-start gap-1.5">
+              <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 opacity-70" aria-hidden="true" />
+              <span>
+                {t(
+                  'pharmacies.phoneFirstAdvice',
+                  'Confirma por teléfono antes de desplazarte: los turnos oficiales pueden cambiar sin previo aviso.'
+                )}
+              </span>
+            </p>
+            <p>
+              {t('pharmacies.officialSourceLabel', 'Fuente oficial:')}{' '}
+              <a
+                href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-primary hover:underline underline-offset-2 inline-flex items-center gap-0.5"
+              >
+                farmaciasguardia.farmaceuticos.com
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              </a>
+              {lastSyncLabel && (
+                <> · {t('pharmacies.lastSync', 'Actualizado')} {lastSyncLabel}</>
+              )}
+            </p>
+            <p>
+              {t(
+                'pharmacies.provenanceBody',
+                'Las guardias mostradas provienen del portal público del Consejo General de Colegios Oficiales de Farmacéuticos para la provincia de Málaga (ID 29). No inventamos rotaciones: si no hay datos publicados para la fecha o localidad, verás un aviso honesto.'
+              )}
+            </p>
+          </div>
+        </details>
       </main>
     </div>
   );
