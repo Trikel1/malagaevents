@@ -4,147 +4,153 @@
 
 @layer base {
   :root {
-    /* Málaga Mediterranean Theme - Warm, sunny, coastal */
-    --background: 45 33% 97%;
-    --foreground: 220 25% 15%;
+    /* Mediterranean Liquid Glass — deep sea blue anchor, coral as accent,
+       warm cal/arena neutrals. Reduced saturation for institutional tone. */
+    --background: 200 30% 98%;
+    --foreground: 215 40% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 15%;
+    --card-foreground: 215 40% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 15%;
+    --popover-foreground: 215 40% 14%;
 
-    --primary: 24 95% 53%;
+    /* Primary — deep Mediterranean blue (institutional tone) */
+    --primary: 210 78% 32%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 199 89% 48%;
+    /* Secondary — contained turquoise/aqua */
+    --secondary: 188 62% 42%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 45 20% 92%;
-    --muted-foreground: 220 15% 45%;
+    --muted: 205 25% 93%;
+    --muted-foreground: 215 15% 42%;
 
-    --accent: 339 76% 59%;
+    /* Accent — coral / terracotta, used sparingly */
+    --accent: 14 78% 58%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 45 20% 88%;
-    --input: 45 20% 88%;
-    --ring: 24 95% 53%;
+    --border: 205 25% 88%;
+    --input: 205 25% 88%;
+    --ring: 210 78% 42%;
 
     --radius: 0.75rem;
 
-    /* Category colors */
-    --category-music: 262 83% 58%;
-    --category-theater: 339 76% 59%;
-    --category-cinema: 220 70% 50%;
-    --category-art: 45 93% 47%;
-    --category-sports: 142 71% 45%;
-    --category-gastronomy: 24 95% 53%;
-    --category-festivals: 280 65% 60%;
-    --category-family: 199 89% 48%;
-    --category-nightlife: 262 83% 40%;
-    --category-workshops: 160 60% 45%;
-    --category-conferences: 220 50% 45%;
-    --category-markets: 35 80% 50%;
-    --category-other: 220 15% 50%;
+    /* Category colors — semantic per event category */
+    --category-music: 262 70% 55%;
+    --category-theater: 339 60% 55%;
+    --category-cinema: 220 65% 45%;
+    --category-art: 42 85% 48%;
+    --category-sports: 142 65% 40%;
+    --category-gastronomy: 14 78% 58%;
+    --category-festivals: 280 55% 58%;
+    --category-family: 199 78% 45%;
+    --category-nightlife: 262 65% 38%;
+    --category-workshops: 165 55% 42%;
+    --category-conferences: 215 50% 40%;
+    --category-markets: 35 75% 48%;
+    --category-other: 215 15% 50%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 24 95% 53%;
+    --sidebar-background: 200 30% 98%;
+    --sidebar-foreground: 215 30% 26%;
+    --sidebar-primary: 210 78% 32%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 20% 95%;
-    --sidebar-accent-foreground: 220 25% 15%;
-    --sidebar-border: 45 20% 90%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-accent: 205 25% 94%;
+    --sidebar-accent-foreground: 215 40% 14%;
+    --sidebar-border: 205 25% 90%;
+    --sidebar-ring: 210 78% 42%;
 
     /* Editorial surfaces & shadows */
-    --surface: 45 40% 99%;
+    --surface: 200 40% 99%;
     --surface-elevated: 0 0% 100%;
-    --shadow-soft: 0 1px 2px hsl(220 25% 15% / 0.04), 0 2px 8px hsl(220 25% 15% / 0.04);
-    --shadow-card: 0 4px 16px hsl(220 25% 15% / 0.06);
-    --shadow-lift: 0 10px 30px hsl(24 95% 53% / 0.18);
+    --shadow-soft: 0 1px 2px hsl(215 40% 14% / 0.05), 0 2px 8px hsl(215 40% 14% / 0.04);
+    --shadow-card: 0 4px 16px hsl(215 40% 14% / 0.07);
+    --shadow-lift: 0 10px 30px hsl(210 78% 32% / 0.16);
 
-    /* Warm Mediterranean gradients */
-    --gradient-warm: linear-gradient(180deg, hsl(24 90% 96%) 0%, hsl(45 33% 97%) 100%);
-    --gradient-hero: linear-gradient(160deg, hsl(199 89% 48%) 0%, hsl(24 95% 53%) 100%);
-    --gradient-hero-sports: linear-gradient(160deg, hsl(142 71% 35%) 0%, hsl(199 70% 40%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(339 76% 59%) 0%, hsl(24 95% 53%) 100%);
+    /* Mediterranean gradients — deep blue → aqua, coral only as pinpoint */
+    --gradient-warm: linear-gradient(180deg, hsl(200 45% 96%) 0%, hsl(200 30% 98%) 100%);
+    --gradient-hero: linear-gradient(160deg, hsl(212 78% 26%) 0%, hsl(200 65% 38%) 55%, hsl(188 58% 52%) 100%);
+    --gradient-hero-sports: linear-gradient(160deg, hsl(142 55% 30%) 0%, hsl(195 60% 38%) 100%);
+    --gradient-sunset: linear-gradient(135deg, hsl(14 78% 60%) 0%, hsl(210 65% 40%) 100%);
 
-    /* Liquid glass tokens */
-    --glass-background: 0 0% 100% / 0.62;
-    --glass-surface: 0 0% 100% / 0.55;
-    --glass-surface-strong: 0 0% 100% / 0.78;
-    --glass-border: 220 30% 90% / 0.6;
-    --glass-highlight: 0 0% 100% / 0.7;
-    --glass-shadow: 220 40% 20% / 0.08;
-    --glass-blur: 22px;
+    /* Liquid glass tokens — cooler, less saturated, controlled blur */
+    --glass-background: 0 0% 100% / 0.66;
+    --glass-surface: 0 0% 100% / 0.58;
+    --glass-surface-strong: 0 0% 100% / 0.82;
+    --glass-border: 205 40% 78% / 0.55;
+    --glass-highlight: 0 0% 100% / 0.72;
+    --glass-shadow: 210 45% 20% / 0.10;
+    --glass-blur: 18px;
     --liquid-radius: 1rem;
     --liquid-radius-lg: 1.5rem;
-    --liquid-transition: 320ms cubic-bezier(0.22, 1, 0.36, 1);
-    --liquid-ring: 24 95% 53% / 0.35;
+    --liquid-transition: 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    --liquid-ring: 210 78% 42% / 0.4;
   }
+
 
 
   .dark {
-    --background: 220 25% 10%;
-    --foreground: 45 20% 95%;
+    --background: 215 38% 8%;
+    --foreground: 200 20% 95%;
 
-    --card: 220 25% 13%;
-    --card-foreground: 45 20% 95%;
+    --card: 215 35% 12%;
+    --card-foreground: 200 20% 95%;
 
-    --popover: 220 25% 13%;
-    --popover-foreground: 45 20% 95%;
+    --popover: 215 35% 12%;
+    --popover-foreground: 200 20% 95%;
 
-    --primary: 24 95% 55%;
-    --primary-foreground: 220 25% 10%;
+    --primary: 200 82% 60%;
+    --primary-foreground: 215 40% 10%;
 
-    --secondary: 199 70% 45%;
+    --secondary: 188 55% 50%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 45 15% 60%;
+    --muted: 215 25% 18%;
+    --muted-foreground: 200 15% 68%;
 
-    --accent: 339 70% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 14 72% 62%;
+    --accent-foreground: 215 40% 10%;
 
-    --destructive: 0 62% 45%;
+    --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 24 95% 55%;
+    --border: 215 20% 22%;
+    --input: 215 20% 22%;
+    --ring: 200 82% 60%;
 
-    --sidebar-background: 220 25% 12%;
-    --sidebar-foreground: 45 20% 90%;
-    --sidebar-primary: 24 95% 55%;
-    --sidebar-primary-foreground: 220 25% 10%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 45 20% 90%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 24 95% 55%;
+    --sidebar-background: 215 35% 11%;
+    --sidebar-foreground: 200 20% 90%;
+    --sidebar-primary: 200 82% 60%;
+    --sidebar-primary-foreground: 215 40% 10%;
+    --sidebar-accent: 215 25% 18%;
+    --sidebar-accent-foreground: 200 20% 90%;
+    --sidebar-border: 215 25% 18%;
+    --sidebar-ring: 200 82% 60%;
 
     /* Editorial surfaces & shadows (dark) */
-    --surface: 220 25% 12%;
-    --surface-elevated: 220 25% 15%;
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.3), 0 2px 8px hsl(0 0% 0% / 0.25);
-    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.35);
-    --shadow-lift: 0 10px 30px hsl(24 95% 53% / 0.28);
+    --surface: 215 32% 10%;
+    --surface-elevated: 215 30% 14%;
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.35), 0 2px 8px hsl(0 0% 0% / 0.28);
+    --shadow-card: 0 4px 16px hsl(0 0% 0% / 0.38);
+    --shadow-lift: 0 10px 30px hsl(200 82% 55% / 0.22);
 
-    --gradient-warm: linear-gradient(180deg, hsl(220 25% 13%) 0%, hsl(220 25% 10%) 100%);
-    --gradient-hero: linear-gradient(160deg, hsl(199 60% 25%) 0%, hsl(24 70% 30%) 100%);
-    --gradient-hero-sports: linear-gradient(160deg, hsl(142 50% 20%) 0%, hsl(199 50% 25%) 100%);
-    --gradient-sunset: linear-gradient(135deg, hsl(339 50% 35%) 0%, hsl(24 70% 35%) 100%);
+    --gradient-warm: linear-gradient(180deg, hsl(215 32% 12%) 0%, hsl(215 38% 8%) 100%);
+    --gradient-hero: linear-gradient(160deg, hsl(212 60% 18%) 0%, hsl(196 55% 22%) 55%, hsl(188 50% 26%) 100%);
+    --gradient-hero-sports: linear-gradient(160deg, hsl(142 45% 18%) 0%, hsl(199 50% 22%) 100%);
+    --gradient-sunset: linear-gradient(135deg, hsl(14 55% 32%) 0%, hsl(210 55% 28%) 100%);
 
     /* Liquid glass tokens (dark) */
-    --glass-background: 220 25% 18% / 0.55;
-    --glass-surface: 220 25% 20% / 0.5;
-    --glass-surface-strong: 220 25% 18% / 0.78;
-    --glass-border: 220 20% 60% / 0.18;
-    --glass-highlight: 45 20% 95% / 0.08;
-    --glass-shadow: 0 0% 0% / 0.45;
+    --glass-background: 215 35% 16% / 0.6;
+    --glass-surface: 215 30% 20% / 0.5;
+    --glass-surface-strong: 215 35% 16% / 0.82;
+    --glass-border: 200 25% 55% / 0.2;
+    --glass-highlight: 200 30% 90% / 0.08;
+    --glass-shadow: 0 0% 0% / 0.5;
   }
+
 
 
   [data-mode="deportes"] {
@@ -290,23 +296,24 @@
 
   .glass-nav {
     background:
-      linear-gradient(180deg, hsl(0 0% 100% / 0.75) 0%, hsl(0 0% 100% / 0.62) 100%),
-      hsl(var(--surface-elevated) / 0.5);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    border: 1px solid hsl(var(--border) / 0.55);
+      linear-gradient(180deg, hsl(0 0% 100% / 0.82) 0%, hsl(200 30% 98% / 0.72) 100%),
+      hsl(var(--surface-elevated) / 0.55);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid hsl(var(--border) / 0.6);
     box-shadow:
       0 1px 0 hsl(0 0% 100% / 0.6) inset,
-      0 12px 40px -18px hsl(220 40% 20% / 0.18);
+      0 10px 34px -20px hsl(210 45% 20% / 0.18);
   }
   .dark .glass-nav {
     background:
-      linear-gradient(180deg, hsl(220 22% 28% / 0.92) 0%, hsl(220 22% 22% / 0.88) 100%);
-    border-color: hsl(220 20% 45% / 0.6);
+      linear-gradient(180deg, hsl(215 35% 18% / 0.92) 0%, hsl(215 35% 14% / 0.88) 100%);
+    border-color: hsl(200 25% 45% / 0.35);
     box-shadow:
-      0 1px 0 hsl(220 20% 70% / 0.18) inset,
+      0 1px 0 hsl(200 25% 70% / 0.14) inset,
       0 12px 40px -18px hsl(0 0% 0% / 0.6);
   }
+
 
 
   .glass-dropdown,
@@ -370,18 +377,18 @@
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(60% 45% at 15% 8%, hsl(24 90% 88% / 0.55) 0%, transparent 60%),
-    radial-gradient(55% 45% at 90% 18%, hsl(340 75% 90% / 0.45) 0%, transparent 62%),
-    radial-gradient(70% 55% at 50% 100%, hsl(200 75% 90% / 0.5) 0%, transparent 65%),
-    linear-gradient(180deg, hsl(45 40% 99%) 0%, hsl(40 30% 98%) 100%);
+    radial-gradient(60% 45% at 15% 8%, hsl(200 85% 92% / 0.55) 0%, transparent 60%),
+    radial-gradient(55% 45% at 90% 18%, hsl(45 55% 92% / 0.42) 0%, transparent 62%),
+    radial-gradient(70% 55% at 50% 100%, hsl(188 75% 90% / 0.5) 0%, transparent 65%),
+    linear-gradient(180deg, hsl(200 40% 99%) 0%, hsl(200 30% 98%) 100%);
   transition: background var(--liquid-motion-slow) var(--liquid-ease);
 }
 .dark .liquid-backdrop {
   background:
-    radial-gradient(60% 45% at 15% 8%, hsl(24 60% 30% / 0.35) 0%, transparent 60%),
-    radial-gradient(55% 45% at 90% 18%, hsl(340 55% 30% / 0.30) 0%, transparent 62%),
-    radial-gradient(70% 55% at 50% 100%, hsl(200 55% 25% / 0.35) 0%, transparent 65%),
-    linear-gradient(180deg, hsl(220 28% 10%) 0%, hsl(220 30% 7%) 100%);
+    radial-gradient(60% 45% at 15% 8%, hsl(210 55% 22% / 0.4) 0%, transparent 60%),
+    radial-gradient(55% 45% at 90% 18%, hsl(188 45% 22% / 0.32) 0%, transparent 62%),
+    radial-gradient(70% 55% at 50% 100%, hsl(200 55% 22% / 0.38) 0%, transparent 65%),
+    linear-gradient(180deg, hsl(215 32% 10%) 0%, hsl(215 38% 7%) 100%);
 }
 
 /* Legacy blob elements kept for compatibility but rendered as extremely subtle
@@ -398,13 +405,14 @@
 }
 .liquid-blob-1 {
   width: 60vw; height: 60vw; top: 10%; left: 55%;
-  background: hsl(24 90% 72% / 0.55);
+  background: hsl(200 78% 72% / 0.5);
 }
 .liquid-blob-2 {
   width: 55vw; height: 55vw; bottom: 5%; left: -15%;
-  background: hsl(200 75% 72% / 0.5);
+  background: hsl(188 68% 70% / 0.5);
 }
 .dark .liquid-blob { opacity: 0.08; }
+
 
 [data-mode="deportes"] .liquid-backdrop {
   background:
@@ -731,4 +739,60 @@
     border-radius: 12px;
   }
 }
+
+/* Accessibility fallbacks — reduced transparency & no backdrop-filter support.
+   Ensures Liquid Glass surfaces stay legible on all devices/OS settings. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  .glass-card,
+  .glass-card-strong,
+  .glass-button,
+  .glass-chip,
+  .glass-nav,
+  .glass-dropdown,
+  .glass-modal,
+  .glass-input {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: hsl(var(--surface-elevated)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  .dark .glass-panel,
+  .dark .glass-card,
+  .dark .glass-card-strong,
+  .dark .glass-button,
+  .dark .glass-chip,
+  .dark .glass-nav,
+  .dark .glass-dropdown,
+  .dark .glass-modal,
+  .dark .glass-input {
+    background: hsl(var(--card)) !important;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel,
+  .glass-card,
+  .glass-card-strong,
+  .glass-button,
+  .glass-chip,
+  .glass-nav,
+  .glass-dropdown,
+  .glass-modal,
+  .glass-input {
+    background: hsl(var(--surface-elevated) / 0.96);
+  }
+  .dark .glass-panel,
+  .dark .glass-card,
+  .dark .glass-card-strong,
+  .dark .glass-button,
+  .dark .glass-chip,
+  .dark .glass-nav,
+  .dark .glass-dropdown,
+  .dark .glass-modal,
+  .dark .glass-input {
+    background: hsl(var(--card) / 0.96);
+  }
+}
+
 
