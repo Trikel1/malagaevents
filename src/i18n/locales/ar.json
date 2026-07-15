@@ -334,7 +334,18 @@
     "allEvents": "جميع الفعاليات",
     "myFavorites": "مفضلاتي",
     "exportEvent": "تصدير الفعالية",
-    "noEventsDay": "لا توجد فعاليات في هذا اليوم"
+    "noEventsDay": "لا توجد فعاليات في هذا اليوم",
+    "today": "اليوم",
+    "prevMonth": "الشهر السابق",
+    "nextMonth": "الشهر التالي",
+    "prevYear": "السنة السابقة",
+    "nextYear": "السنة التالية",
+    "openMonthSelector": "تغيير الشهر",
+    "eventsCount_one": "{{count}} فعالية",
+    "eventsCount_other": "{{count}} فعاليات",
+    "loadError": "تعذّر تحميل الفعاليات",
+    "seeMore": "عرض المزيد",
+    "monthEmpty": "لا توجد فعاليات هذا الشهر"
   },
   "pharmacies": {
     "title": "صيدليات المناوبة",
