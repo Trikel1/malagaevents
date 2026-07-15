@@ -294,47 +294,60 @@ const SportsContent = () => {
       </form>
 
 
-      {/* Big quick-action cards — compact, opaque */}
+      {/* Quick-action segmented control — compact, visual, always 3-up */}
       <section aria-label={t('sportsHome.quickAria', 'Accesos rápidos')}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <div
+          role="tablist"
+          className={cn(
+            'relative grid grid-cols-3 gap-1 p-1 rounded-2xl',
+            'bg-[hsl(160_28%_97%)]/80 dark:bg-[hsl(190_28%_11%)]/70',
+            'border border-emerald-700/15 backdrop-blur-md',
+            'shadow-[0_1px_0_hsl(0_0%_100%/0.6)_inset,0_10px_30px_-20px_hsl(160_60%_20%/0.35)]',
+          )}
+        >
           {bigCards.map((c) => {
             const active = timeFilter === c.key;
             return (
               <button
                 key={c.key}
                 type="button"
+                role="tab"
                 onClick={() => handleQuickAction(c.key)}
                 aria-pressed={active}
+                aria-label={`${c.title} — ${c.subtitle}`}
+                title={c.subtitle}
                 className={cn(
-                  'relative rounded-xl text-left min-h-[88px] px-3.5 py-3',
-                  'border transition-colors liquid-press',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-1',
+                  'group relative flex flex-col items-center justify-center gap-1',
+                  'min-h-[56px] px-2 py-2 rounded-xl',
+                  'transition-all duration-200 ease-out liquid-press',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60',
                   active
-                    ? 'bg-emerald-600 text-white border-emerald-600'
-                    : 'bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] border-emerald-700/20 hover:border-emerald-600/40',
+                    ? 'bg-gradient-to-br from-emerald-600 to-emerald-500 text-white shadow-[0_6px_20px_-8px_hsl(160_70%_35%/0.7)] scale-[1.02]'
+                    : 'text-foreground hover:bg-emerald-600/8 dark:hover:bg-emerald-400/10',
                 )}
               >
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    'h-10 w-10 rounded-lg flex items-center justify-center shrink-0',
-                    active ? 'bg-white/15 text-white' : 'bg-emerald-600/12 text-emerald-700 dark:text-emerald-200',
-                  )}>
-                    <c.icon className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className={cn('text-sm font-semibold leading-tight', active ? 'text-white' : 'text-foreground')}>
-                      {c.title}
-                    </p>
-                    <p className={cn('text-[12px] mt-0.5 leading-snug', active ? 'text-white/85' : 'text-muted-foreground')}>
-                      {c.subtitle}
-                    </p>
-                  </div>
-                </div>
+                <c.icon
+                  className={cn(
+                    'h-[18px] w-[18px] transition-transform duration-200',
+                    active ? 'text-white' : 'text-emerald-700 dark:text-emerald-300',
+                    'group-hover:-translate-y-0.5',
+                  )}
+                  aria-hidden="true"
+                />
+                <span
+                  className={cn(
+                    'text-[11.5px] font-semibold leading-none tracking-tight text-center line-clamp-1',
+                    active ? 'text-white' : 'text-foreground',
+                  )}
+                >
+                  {c.title}
+                </span>
               </button>
             );
           })}
         </div>
       </section>
+
 
 
       {/* Agenda deportiva verificada — antes de las categorías genéricas */}
