@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useSportsAgenda, type AgendaWindow } from '@/hooks/useSportsAgenda';
+import { useSportsCalendarSources } from '@/hooks/useSportsCalendarSources';
 import SportIcon from '@/components/sports/SportIcon';
 import type { SportsEntity } from '@/types/sportsEntities';
 
@@ -28,15 +29,10 @@ const TYPES = [
   { key: 'activity' as const, labelKey: 'sportsAgenda.type.activity', fallback: 'Actividades' },
 ];
 
-// Federative calendars that we haven't imported yet — surfaced honestly as
-// external pending sources rather than fabricated matches.
-const FEDERATIONS = [
-  { name: 'RFAF', sport: 'Fútbol', url: 'https://www.rfaf.es/' },
-  { name: 'FAB', sport: 'Baloncesto', url: 'https://www.andaluzabaloncesto.org/' },
-  { name: 'FAndBM', sport: 'Balonmano', url: 'https://fandaluzabm.org/' },
-  { name: 'FAVoley', sport: 'Voleibol', url: 'https://favoley.es/es/calendar' },
-  { name: 'Bádminton Andalucía', sport: 'Bádminton', url: 'https://www.badmintonandalucia.es/calendario/' },
-];
+function formatLastChecked(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  return formatInTimeZone(new Date(iso), TIMEZONE, "d MMM yyyy", { locale: es });
+}
 
 function formatDate(iso: string): string {
   return formatInTimeZone(new Date(iso + 'T12:00:00Z'), TIMEZONE, "EEE d 'de' MMM", { locale: es });
