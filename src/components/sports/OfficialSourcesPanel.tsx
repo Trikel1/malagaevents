@@ -49,24 +49,20 @@ const OfficialSourcesPanel = () => {
         <CardContent className="p-2.5">
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
             {sources.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={s.source_url ?? s.official_url ?? '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-sportsx-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <ExternalLink
-                    className="h-3.5 w-3.5 shrink-0 text-sportsx-accent"
-                    aria-hidden="true"
-                  />
-                  <span className="text-[13px] font-medium truncate flex-1">{s.name}</span>
-                  {s.sport && (
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
-                      {s.sport}
-                    </span>
-                  )}
-                </a>
+              <li
+                key={s.id}
+                className="flex items-center gap-2 px-2 py-2 rounded-lg bg-sportsx-elevated/40"
+              >
+                <ShieldCheck
+                  className="h-3.5 w-3.5 shrink-0 text-sportsx-accent"
+                  aria-hidden="true"
+                />
+                <span className="text-[13px] font-medium truncate flex-1">{s.name}</span>
+                {s.sport && (
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
+                    {s.sport}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
