@@ -198,7 +198,6 @@ const SportsContent = () => {
     return upcoming[0] ?? null;
   }, [events, todayDate]);
 
-  const nextEventUrl = nextEvent?.ticketsUrl || nextEvent?.source_url || null;
 
 
   const featuredVenues = useMemo(() => allVenues.slice(0, 6), [allVenues]);
@@ -374,23 +373,13 @@ const SportsContent = () => {
                 </span>
               )}
             </p>
-            {nextEventUrl ? (
-              <Button
-                onClick={scrollToResults}
-                className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-              >
-                {t('sportsHome.next.cta', 'Ver evento')}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            ) : (
-              <Button
-                onClick={scrollToResults}
-                className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-              >
-                {t('sportsHome.next.cta', 'Ver evento')}
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            )}
+            <Button
+              onClick={scrollToResults}
+              className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+            >
+              {t('sportsHome.next.cta', 'Ver evento')}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
 
           </article>
         ) : (

@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Clock, ExternalLink, Navigation, Tag } from 'lucide-react';
+import { MapPin, Clock, Ticket, Tag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ import {
   cleanSportTitle,
   isRegistrationUrl,
   isFreeEvent,
-  buildDirectionsUrl,
 } from '@/lib/sports';
 
 const locales: Record<string, Locale> = {
@@ -33,14 +32,14 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
   const cleanTitle = cleanSportTitle(event.teams || event.title);
   const isFree = isFreeEvent(event.price_info);
   const isRegister = isRegistrationUrl(event.ticketsUrl);
-  const directions = buildDirectionsUrl(event.venue, event.city, event.address ?? null);
-
-  const ctaLabel = event.ticketsUrl
-    ? isRegister
-      ? t('sports.cta.register', 'Inscribirme')
-      : t('sports.cta.tickets', 'Entradas')
-    : t('sports.cta.view', 'Ver actividad');
-  const ctaUrl = event.ticketsUrl || event.source_url || null;
+  // Internal ticket information only — no external checkout or map handoff.
+  const ticketInfo = event.price_info
+    ? event.price_info
+    : isFree
+    ? t('sports.free', 'Gratis')
+    : isRegister
+    ? t('sports.cta.registrationRequired', 'Requiere inscripción previa')
+    : t('sports.cta.ticketsUnknown', 'Información de entradas no disponible');
 
   return (
     <Card className="overflow-hidden border-border/60 hover:border-primary/30 transition-colors">
@@ -91,52 +90,25 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
               {event.venue} · {event.city}
             </span>
           </div>
-          {event.source_url && (() => {
-            try {
-              const host = new URL(event.source_url).hostname.replace(/^www\./, '');
-              return (
-                <div className="flex items-center gap-1 pt-0.5">
-                  <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-60" />
-                  <a
-                    href={event.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-muted-foreground hover:text-primary underline-offset-2 hover:underline truncate"
-                    title={event.source_url}
-                  >
-                    {t('sports.source', 'Fuente')}: {host}
-                  </a>
-                </div>
-              );
-            } catch {
-              return null;
-            }
-          })()}
+          {event.source_url && (
+            <div className="flex items-center gap-1 pt-0.5">
+              <Tag className="h-3 w-3 flex-shrink-0 opacity-60" aria-hidden="true" />
+              <span className="text-[11px] text-muted-foreground">
+                {t('sports.verifiedSource', 'Fuente oficial verificada')}
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* CTAs */}
-        <div className="flex gap-1.5 pt-1">
-          {ctaUrl && (
-            <Button
-              size="sm"
-              className="flex-1 h-7 text-xs"
-              onClick={() => window.open(ctaUrl, '_blank', 'noopener,noreferrer')}
-            >
-              <ExternalLink className="h-3 w-3 mr-1" />
-              {ctaLabel}
-            </Button>
-          )}
-          {directions && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 text-xs px-2"
-              aria-label={t('sports.cta.directions', 'Cómo llegar')}
-              onClick={() => window.open(directions, '_blank', 'noopener,noreferrer')}
-            >
-              <Navigation className="h-3 w-3" />
-            </Button>
-          )}
+        {/* Información de entradas — sin salidas externas */}
+        <div className="flex items-start gap-1.5 pt-1 text-xs text-muted-foreground">
+          <Ticket className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <span>
+            <span className="font-medium text-foreground">
+              {t('sports.ticketInfo', 'Información de entradas')}:
+            </span>{' '}
+            {ticketInfo}
+          </span>
         </div>
       </CardContent>
     </Card>
