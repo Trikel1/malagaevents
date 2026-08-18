@@ -126,8 +126,9 @@ const Index = () => {
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
         'relative text-white px-4 sm:px-6 pt-4 overflow-hidden',
-        isSports ? 'bg-gradient-hero-sports pb-8' : 'bg-gradient-hero pb-20'
+        isSports ? 'sports-hero pb-5' : 'bg-gradient-hero pb-20'
       )}>
+
 
         {/* Subtle depth layer — only in Eventos to keep Deportes hero clean */}
         {!isSports && (
