@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Building2, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ import SEO from '@/components/common/SEO';
 
 const VenuesPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
   const [selectedCity, setSelectedCity] = useState('all');
