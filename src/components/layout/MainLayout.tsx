@@ -1,6 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useAppMode } from '@/contexts/AppModeContext';
+import { cn } from '@/lib/utils';
+
 import BottomNav from './BottomNav';
 import LiquidGlassBackdrop from './LiquidGlassBackdrop';
 
