@@ -83,7 +83,9 @@ const MapPage = () => {
   const isMobile = useIsMobile();
 
   const [view, setView] = useState<'map' | 'list'>('map');
-  const [filter, setFilter] = useState<FilterKind>('all');
+  const [filter, setFilter] = useState<FilterKind>('events');
+  const [scope, setScope] = useState<MapTimeScope>('today');
+
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<MapMarker | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -199,34 +201,40 @@ const MapPage = () => {
     [eventMarkers, sportMarkers, venueMarkers, pharmacyMarkers]
   );
 
-  const counts = useMemo(
-    () => ({
-      all: allMarkers.length,
-      events: eventMarkers.length,
-      sports: sportMarkers.length,
-      venues: venueMarkers.length,
-      pharmacies: pharmacyMarkers.length,
-    }),
-    [allMarkers, eventMarkers, sportMarkers, venueMarkers, pharmacyMarkers]
-  );
+  /** Time scope only narrows dated items (events / sports). */
+  const scopedMarkers = useMemo<MapMarker[]>(() => {
+    const now = new Date();
+    return allMarkers.filter((m) => isWithinScope(m.startAt, scope, now));
+  }, [allMarkers, scope]);
+
+  const searchedMarkers = useMemo<MapMarker[]>(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return scopedMarkers;
+    return scopedMarkers.filter(
+      (m) =>
+        m.title.toLowerCase().includes(q) ||
+        (m.subtitle ?? '').toLowerCase().includes(q) ||
+        (m.address ?? '').toLowerCase().includes(q)
+    );
+  }, [scopedMarkers, search]);
+
+  const counts = useMemo(() => {
+    const by = (k: MarkerKind) => searchedMarkers.filter((m) => m.kind === k).length;
+    return {
+      all: searchedMarkers.length,
+      events: by('event'),
+      sports: by('sport'),
+      venues: by('venue'),
+      pharmacies: by('pharmacy'),
+    };
+  }, [searchedMarkers]);
 
   const filteredMarkers = useMemo<MapMarker[]>(() => {
-    let list = allMarkers;
-    if (filter !== 'all') {
-      const wanted = KIND_OF[filter];
-      list = list.filter((m) => m.kind === wanted);
-    }
-    const q = search.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (m) =>
-          m.title.toLowerCase().includes(q) ||
-          (m.subtitle ?? '').toLowerCase().includes(q) ||
-          (m.address ?? '').toLowerCase().includes(q)
-      );
-    }
+    const list =
+      filter === 'all' ? searchedMarkers : searchedMarkers.filter((m) => m.kind === KIND_OF[filter]);
     return list.slice(0, MAX_MARKERS);
-  }, [allMarkers, filter, search]);
+  }, [searchedMarkers, filter]);
+
 
   const handleSelect = useCallback(
     (id: string) => {
