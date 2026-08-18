@@ -372,9 +372,9 @@ END:VCALENDAR`;
               ? t('eventDetail.ticketsAvailable', 'Entradas disponibles a través del organizador.')
               : t('eventDetail.ticketsUnknown', 'No disponemos de información de entradas para este evento.')}
           </p>
-          {event.venue && (
+          {event.venue?.name && (
             <p className="text-xs text-muted-foreground mt-1">
-              {t('eventDetail.organizer', 'Organizador')}: {event.venue}
+              {t('eventDetail.organizer', 'Organizador')}: {event.venue.name}
             </p>
           )}
         </Card>
