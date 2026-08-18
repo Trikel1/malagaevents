@@ -483,30 +483,25 @@
 .dark .liquid-blob { opacity: 0.08; }
 
 
-[data-mode="deportes"] .liquid-backdrop {
+/* Sports mode on shared routes (calendar, map, pharmacies…) keeps the light
+   liquid backdrop. The Deportes module itself opts out via `.sports-theme`. */
+[data-mode="deportes"]:not(.sports-theme) .liquid-backdrop {
   background:
     radial-gradient(60% 45% at 15% 8%, hsl(160 55% 90% / 0.45) 0%, transparent 60%),
     radial-gradient(55% 45% at 90% 18%, hsl(200 65% 90% / 0.45) 0%, transparent 62%),
     radial-gradient(70% 55% at 50% 100%, hsl(210 65% 92% / 0.5) 0%, transparent 65%),
     linear-gradient(180deg, hsl(160 30% 98%) 0%, hsl(200 30% 98%) 100%);
 }
-[data-mode="deportes"] .liquid-blob-1 { background: hsl(190 80% 65% / 0.35); }
-[data-mode="deportes"] .liquid-blob-2 { background: hsl(150 60% 60% / 0.32); }
+[data-mode="deportes"]:not(.sports-theme) .liquid-blob-1 { background: hsl(190 80% 65% / 0.35); }
+[data-mode="deportes"]:not(.sports-theme) .liquid-blob-2 { background: hsl(150 60% 60% / 0.32); }
 
-/* Sports HOME: backdrop is fully opaque teal so no white strip is ever
-   revealed behind the safe-area / bottom-nav padding. Scoped to the home
-   route so other sports pages keep their own surfaces. */
-[data-mode="deportes"][data-route="home"] .liquid-backdrop {
-  background:
-    radial-gradient(60% 45% at 15% 8%, hsl(174 30% 82%) 0%, hsl(168 30% 92%) 55%, hsl(178 28% 90%) 100%),
-    linear-gradient(180deg, hsl(174 22% 85%) 0%, hsl(184 24% 83%) 100%);
+/* Deportes module: single opaque cinematic ramp, covers the safe area too. */
+.sports-theme .liquid-backdrop,
+.dark .sports-theme .liquid-backdrop {
+  background: linear-gradient(180deg, hsl(175 50% 9%) 0%, hsl(174 48% 12%) 100%);
 }
-.dark [data-mode="deportes"][data-route="home"] .liquid-backdrop {
-  background:
-    radial-gradient(60% 45% at 15% 8%, hsl(190 40% 14%) 0%, hsl(190 32% 10%) 55%, hsl(180 30% 8%) 100%),
-    linear-gradient(180deg, hsl(190 32% 9%) 0%, hsl(180 30% 8%) 100%);
-}
-[data-mode="deportes"][data-route="home"] .liquid-blob { display: none; }
+.sports-theme .liquid-blob { display: none; }
+
 
 
 
