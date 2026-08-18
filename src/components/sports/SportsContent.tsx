@@ -199,6 +199,9 @@ const SportsContent = () => {
     return upcoming[0] ?? null;
   }, [events, todayDate]);
 
+  const nextEventUrl = nextEvent?.ticketsUrl || nextEvent?.source_url || null;
+
+
   const featuredVenues = useMemo(() => allVenues.slice(0, 6), [allVenues]);
   const municipalitiesWithEvents = useMemo(() => {
     const set = new Set(events.map((e) => e.city).filter(Boolean));
