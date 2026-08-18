@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import SEO from '@/components/common/SEO';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { mapVenueToCoords, MALAGA_CENTER } from '@/lib/venueCoords';
+import { isWithinScope, SCOPE_LABEL, type MapTimeScope } from '@/lib/mapTimeScope';
 import { cn } from '@/lib/utils';
 
 const MAX_MARKERS = 200;
@@ -42,20 +43,28 @@ const KIND_OF: Record<Exclude<FilterKind, 'all'>, MarkerKind> = {
   pharmacies: 'pharmacy',
 };
 
-const FILTERS: { id: FilterKind; label: string }[] = [
-  { id: 'all', label: 'Todos' },
-  { id: 'events', label: 'Eventos' },
-  { id: 'sports', label: 'Deportes' },
-  { id: 'venues', label: 'Recintos' },
-  { id: 'pharmacies', label: 'Farmacias' },
+const COLOR_OF: Record<MarkerKind, string> = {
+  event: 'hsl(173, 80%, 38%)',
+  sport: 'hsl(150, 70%, 40%)',
+  venue: 'hsl(265, 70%, 55%)',
+  pharmacy: 'hsl(0, 75%, 55%)',
+  demo: 'hsl(215, 15%, 50%)',
+};
+
+const FILTERS: { id: FilterKind; label: string; icon: typeof CalendarDays; color?: string }[] = [
+  { id: 'all', label: 'Todos', icon: MapPin },
+  { id: 'events', label: 'Eventos', icon: CalendarDays, color: COLOR_OF.event },
+  { id: 'sports', label: 'Deportes', icon: Trophy, color: COLOR_OF.sport },
+  { id: 'venues', label: 'Recintos', icon: Building2, color: COLOR_OF.venue },
+  { id: 'pharmacies', label: 'Farmacias', icon: Cross, color: COLOR_OF.pharmacy },
 ];
 
-const LEGEND: { kind: MarkerKind; label: string; icon: typeof CalendarDays; color: string }[] = [
-  { kind: 'event', label: 'Evento', icon: CalendarDays, color: 'hsl(173, 80%, 38%)' },
-  { kind: 'sport', label: 'Deporte', icon: Trophy, color: 'hsl(150, 70%, 40%)' },
-  { kind: 'venue', label: 'Recinto', icon: Building2, color: 'hsl(265, 70%, 55%)' },
-  { kind: 'pharmacy', label: 'Farmacia', icon: Cross, color: 'hsl(0, 75%, 55%)' },
+const SCOPES: { id: MapTimeScope; label: string }[] = [
+  { id: 'today', label: 'Hoy' },
+  { id: 'week', label: 'Esta semana' },
+  { id: 'all', label: 'Todos' },
 ];
+
 
 const fmtWhen = (iso?: string | null) => {
   if (!iso) return '';
