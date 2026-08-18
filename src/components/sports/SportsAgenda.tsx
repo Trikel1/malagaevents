@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { formatInTimeZone } from 'date-fns-tz';
 import { es } from 'date-fns/locale';
 import {
-  CalendarDays, MapPin, Ticket, ExternalLink, Radar, ChevronRight,
+  CalendarDays, MapPin, Ticket, Radar,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
