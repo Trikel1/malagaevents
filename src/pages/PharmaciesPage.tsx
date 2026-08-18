@@ -59,15 +59,16 @@ const ALL_PHARMACY_LOCALITIES: string[] = PHARMACY_LOCALITY_GROUPS.flatMap((g) =
 const stripDiacritics = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+/** Internal map route — pharmacies are located inside the app map. */
 const getMapsUrl = (p: { lat?: number | null; lng?: number | null; address: string; municipality?: string }) => {
+  const params = new URLSearchParams({ kind: 'pharmacy' });
   if (p.lat && p.lng) {
-    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
-    return isIOS
-      ? `maps://maps.apple.com/?daddr=${p.lat},${p.lng}`
-      : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+    params.set('lat', String(p.lat));
+    params.set('lng', String(p.lng));
+  } else {
+    params.set('q', `${p.address}, ${p.municipality ?? 'Málaga'}`);
   }
-  const full = `${p.address}, ${p.municipality ?? 'Málaga'}, España`;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(full)}`;
+  return `/map?${params.toString()}`;
 };
 
 const formatPhoneForLink = (phone: string) => phone.replace(/[^\d+]/g, '');
@@ -139,10 +140,10 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
           )}
           {pharmacy.address && (
             <Button asChild size="sm" variant="outline" className="flex-1">
-              <a href={getMapsUrl(pharmacy)}>
+              <Link to={getMapsUrl(pharmacy)}>
                 <Navigation className="h-4 w-4 mr-1.5" />
-                {t('pharmacies.directions', 'Cómo llegar')}
-              </a>
+                {t('pharmacies.directions', 'Ver en el mapa')}
+              </Link>
             </Button>
           )}
         </div>
@@ -587,9 +588,8 @@ const PharmaciesPage = () => {
           // the province selector with the correct date pre-populated.
           const dISO = formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd');
           const [yy, mm, dd] = dISO.split('-').map((x) => parseInt(x, 10));
-          const officialQueryUrl =
-            `https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29`;
           const officialDateLabel = `${dd}/${mm}/${yy}`;
+          void officialDateLabel;
           const syncFailed = !!syncStatus && syncStatus.status === 'sync_error';
           const heading = isAllProvince
             ? t('pharmacies.dutyHeadingProvince', 'Farmacias de guardia en la provincia de Málaga')
