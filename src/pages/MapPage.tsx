@@ -512,19 +512,31 @@ const MapPage = () => {
             ))}
           </div>
 
-          <ul className="flex flex-wrap items-center gap-x-3 gap-y-1.5" aria-label="Leyenda del mapa">
-            {LEGEND.map(({ kind, label, icon: Icon, color }) => (
-              <li key={kind} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span
-                  className="h-2.5 w-2.5 rounded-full ring-1 ring-border"
-                  style={{ backgroundColor: color }}
-                  aria-hidden="true"
-                />
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                {label}
+          <ul className="flex flex-wrap items-center gap-2" aria-label="Leyenda del mapa">
+            {FILTERS.filter((f) => f.id !== 'all').map(({ id, label, icon: Icon, color }) => (
+              <li key={id}>
+                <button
+                  type="button"
+                  onClick={() => setFilter(id)}
+                  aria-pressed={filter === id}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 min-h-11 px-3 rounded-full border text-xs font-medium transition-colors duration-200 motion-reduce:transition-none',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    filter === id ? 'border-primary bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full ring-1 ring-border"
+                    style={{ backgroundColor: color }}
+                    aria-hidden="true"
+                  />
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {label}
+                </button>
               </li>
             ))}
           </ul>
+
         </div>
 
         {locError && (
