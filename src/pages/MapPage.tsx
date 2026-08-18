@@ -307,21 +307,31 @@ const MapPage = () => {
       ) : filteredMarkers.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-8 text-center">
           <MapPin className="h-9 w-9 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
-          <p className="text-sm font-medium">Aún no hay puntos verificados con coordenadas</p>
+          <p className="text-sm font-medium">
+            {scope === 'today'
+              ? 'No hay puntos con coordenadas para hoy'
+              : 'No hay puntos con coordenadas para este alcance'}
+          </p>
           <p className="text-xs text-muted-foreground mt-1 mb-4">
-            Prueba a quitar los filtros o vuelve a intentarlo en unos minutos.
+            Amplía el alcance temporal o quita los filtros.
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
+            {scope === 'today' && (
+              <Button className="min-h-11" onClick={() => setScope('week')}>
+                Ver esta semana
+              </Button>
+            )}
             <Button variant="outline" className="min-h-11" onClick={clearFilters}>
               Limpiar filtros
             </Button>
-            <Button className="min-h-11" onClick={retry}>
+            <Button variant="outline" className="min-h-11" onClick={retry}>
               <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
               Reintentar
             </Button>
           </div>
         </div>
       ) : (
+
         filteredMarkers.map((m) => {
           const when = fmtWhen(m.startAt);
           const active = selected?.id === m.id;
