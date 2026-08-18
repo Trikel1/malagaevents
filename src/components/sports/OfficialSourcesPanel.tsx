@@ -31,7 +31,7 @@ const OfficialSourcesPanel = () => {
     <section aria-label={t('sportsHome.sources.aria', 'Fuentes oficiales de datos deportivos')}>
       <div className="flex items-baseline justify-between mb-2">
         <h2 className="text-base font-semibold tracking-tight flex items-center gap-1.5">
-          <ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-300" aria-hidden="true" />
+          <ShieldCheck className="h-4 w-4 text-sportsx-accent" aria-hidden="true" />
           {t('sportsHome.sources.title', 'Fuentes oficiales')}
         </h2>
         {lastChecked && (
@@ -45,7 +45,7 @@ const OfficialSourcesPanel = () => {
           </span>
         )}
       </div>
-      <Card className="border-emerald-700/20 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)]">
+      <Card className="border-sportsx-line bg-sportsx-surface">
         <CardContent className="p-2.5">
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
             {sources.map((s) => (
@@ -54,10 +54,10 @@ const OfficialSourcesPanel = () => {
                   href={s.source_url ?? s.official_url ?? '#'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-emerald-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+                  className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-sportsx-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <ExternalLink
-                    className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-300"
+                    className="h-3.5 w-3.5 shrink-0 text-sportsx-accent"
                     aria-hidden="true"
                   />
                   <span className="text-[13px] font-medium truncate flex-1">{s.name}</span>
