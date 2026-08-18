@@ -284,14 +284,9 @@
   background-color: hsl(var(--background));
 }
 
-/* Opaque cinematic gradient. Covers the whole viewport including the area
-   behind the bottom navigation, so the scroll can never end on a white band. */
-.sports-theme .liquid-backdrop,
-[data-mode="deportes"][data-route="home"].sports-theme .liquid-backdrop,
-.dark [data-mode="deportes"][data-route="home"].sports-theme .liquid-backdrop {
-  background: linear-gradient(180deg, hsl(175 50% 9%) 0%, hsl(174 48% 12%) 100%);
-}
-.sports-theme .liquid-blob { display: none; }
+/* (The opaque cinematic backdrop for `.sports-theme` is declared further down,
+   after the generic `.liquid-backdrop` rules, so it always wins.) */
+
 
 /* Bottom navigation: fully opaque inside the sports module. */
 .sports-theme .glass-nav,
