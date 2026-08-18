@@ -274,55 +274,62 @@ const PendingSourcesBlock = () => {
     };
   }, [sources]);
 
+  /**
+   * Informational, non-interactive card. No external navigation: federative and
+   * club calendars are described with internal metadata only.
+   */
   const renderItem = (s: (typeof sources)[number]) => {
     const checked = formatLastChecked(s.lastChecked);
     return (
-      <li key={s.id}>
-        <a
-          href={s.officialUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-sportsx-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ExternalLink
-            className="h-3.5 w-3.5 shrink-0 text-sportsx-accent"
-            aria-hidden="true"
-          />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[13px] font-medium truncate">{s.shortName}</span>
-              <Badge
-                variant="outline"
-                className="text-[9.5px] px-1 py-0 border-sportsx-line uppercase tracking-wide"
-              >
-                {s.scope === 'federation'
-                  ? t('sportsAgenda.scope.federation', 'Federación')
-                  : t('sportsAgenda.scope.club', 'Club')}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-1.5 text-[10.5px] text-muted-foreground mt-0.5">
-              <span className="uppercase tracking-wide">{s.sport}</span>
-              <span aria-hidden="true">·</span>
-              <span>
-                {s.syncState === 'linked'
-                  ? t('sportsAgenda.state.linked', 'Enlace oficial')
-                  : t('sportsAgenda.state.pending', 'Sincronización pendiente')}
-              </span>
-              {checked && (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span>
-                    {t('sportsAgenda.checked', 'Comprobado')} {checked}
-                  </span>
-                </>
-              )}
-            </div>
+      <li
+        key={s.id}
+        className="rounded-lg border border-sportsx-line bg-sportsx-elevated/40 px-2.5 py-2"
+      >
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[13px] font-medium">{s.shortName}</span>
+          <Badge
+            variant="outline"
+            className="text-[9.5px] px-1 py-0 border-sportsx-line uppercase tracking-wide"
+          >
+            {s.scope === 'federation'
+              ? t('sportsAgenda.scope.federation', 'Federación')
+              : t('sportsAgenda.scope.club', 'Club')}
+          </Badge>
+        </div>
+        <dl className="mt-1 space-y-0.5 text-[10.5px] text-muted-foreground">
+          <div className="flex gap-1.5">
+            <dt className="uppercase tracking-wide">{t('sportsAgenda.sportLabel', 'Deporte')}:</dt>
+            <dd className="text-foreground/80">{s.sport}</dd>
           </div>
-          <ChevronRight
-            className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
-            aria-hidden="true"
-          />
-        </a>
+          <div className="flex gap-1.5">
+            <dt className="uppercase tracking-wide">{t('sportsAgenda.stateLabel', 'Estado')}:</dt>
+            <dd className="text-foreground/80">
+              {s.syncState === 'linked'
+                ? t('sportsAgenda.state.verifiedSource', 'Fuente oficial verificada')
+                : t('sportsAgenda.state.pending', 'Sincronización pendiente')}
+            </dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="uppercase tracking-wide">
+              {t('sportsAgenda.checkedLabel', 'Última comprobación')}:
+            </dt>
+            <dd className="text-foreground/80">
+              {checked ?? t('sportsAgenda.checkedNever', 'Sin registrar')}
+            </dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="uppercase tracking-wide">
+              {t('sportsAgenda.importedLabel', 'Eventos importados')}:
+            </dt>
+            <dd className="text-foreground/80">0</dd>
+          </div>
+        </dl>
+        <p className="mt-1 text-[10.5px] text-muted-foreground leading-snug">
+          {t(
+            'sportsAgenda.availabilityNote',
+            'Sin feed público estable: los partidos se publicarán aquí cuando la sincronización esté disponible.',
+          )}
+        </p>
       </li>
     );
   };
