@@ -5,7 +5,6 @@ import {
   Search, Building2, ChevronRight, CalendarDays, Sparkles,
   MapPin, Megaphone, CalendarClock, Trophy, Waves, Trees, Dumbbell,
   Footprints, Zap, Navigation, AlertTriangle, RotateCcw, ArrowRight,
-  ExternalLink,
 } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
@@ -377,13 +376,11 @@ const SportsContent = () => {
             </p>
             {nextEventUrl ? (
               <Button
-                asChild
+                onClick={scrollToResults}
                 className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
               >
-                <a href={nextEventUrl} target="_blank" rel="noopener noreferrer">
-                  {t('sportsHome.next.cta', 'Ver evento')}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </a>
+                {t('sportsHome.next.cta', 'Ver evento')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             ) : (
               <Button
@@ -407,15 +404,9 @@ const SportsContent = () => {
                 'Solo publicamos actividades verificadas. Consulta las fuentes oficiales mientras sincronizamos.',
               )}
             </p>
-            <a
-              href="https://www.malaga.eu/areas-tematicas/deporte/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-1.5 min-h-11 text-sm font-semibold text-sportsx-info hover:underline"
-            >
-              {t('sportsHome.next.officialLink', 'Ver agenda oficial del Ayuntamiento')}
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            </a>
+            <p className="mt-3 text-sm font-semibold text-sportsx-info">
+              {t('sportsHome.next.verifiedSources', 'Fuentes oficiales verificadas')}
+            </p>
           </article>
         )}
       </section>
