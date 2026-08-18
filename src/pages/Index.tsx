@@ -291,9 +291,10 @@ const Index = () => {
 
 
       <main className={cn(
-        'px-4 sm:px-6 pb-8 relative z-10 max-w-6xl mx-auto',
-        isSports ? 'pt-5 space-y-5' : '-mt-14 space-y-6'
+        'px-4 sm:px-6 pb-8 relative z-10 mx-auto',
+        isSports ? 'pt-4 space-y-4 max-w-[1180px]' : '-mt-14 space-y-6 max-w-6xl'
       )}>
+
         {isSports ? (
           <Suspense fallback={<div className="h-40" />}>
             <SportsContent />
