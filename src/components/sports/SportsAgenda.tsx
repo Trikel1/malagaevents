@@ -98,39 +98,22 @@ const AgendaCard = ({ e }: { e: SportsEntity }) => {
                   </span>
                 </p>
               )}
-              {(e.price || e.registration_url) && (
-                <p className="flex items-center gap-1.5">
-                  <Ticket className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span className="truncate">
-                    {e.price ?? t('sportsAgenda.registrationOpen', 'Inscripción')}
-                  </span>
-                </p>
-              )}
+              <p className="flex items-center gap-1.5">
+                <Ticket className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">
+                  {e.price
+                    ? e.price
+                    : e.registration_url
+                    ? t('sportsAgenda.registrationRequired', 'Requiere inscripción previa')
+                    : t('sportsAgenda.ticketsUnknown', 'Información de entradas no disponible')}
+                </span>
+              </p>
             </div>
-            <div className="mt-2 flex items-center gap-3 text-[12px]">
-              {e.source_url && (
-                <a
-                  href={e.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-sportsx-accent hover:underline min-h-11 py-2"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                  {t('sportsAgenda.officialSource', 'Fuente oficial')}
-                </a>
-              )}
-              {e.registration_url && e.registration_url !== e.source_url && (
-                <a
-                  href={e.registration_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-sportsx-accent hover:underline min-h-11 py-2"
-                >
-                  {t('sportsAgenda.register', 'Inscribirse')}
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </a>
-              )}
-            </div>
+            {e.source_url && (
+              <p className="mt-2 text-[11.5px] font-medium text-sportsx-accent">
+                {t('sportsAgenda.verifiedSource', 'Fuente oficial verificada')}
+              </p>
+            )}
           </div>
         </div>
       </CardContent>
