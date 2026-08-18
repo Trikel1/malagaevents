@@ -238,6 +238,78 @@
 }
 
 /* ============================================================
+   DEPORTES — "Modern Dark / Cinema Mobile" scoped design system.
+   Every token below lives inside `.sports-theme`, which is only applied to
+   the Deportes module routes. Cultural Eventos pages never see these values.
+   The palette is opaque on purpose: no decorative blur, no translucency that
+   could reveal a white strip behind the safe area.
+   ============================================================ */
+.sports-theme {
+  /* #0B211F base, #102D2A deep */
+  --background: 175 50% 9%;
+  --foreground: 210 40% 98%;          /* #F8FAFC */
+
+  /* #153A35 surface, #1B4740 elevated */
+  --card: 172 47% 15%;
+  --card-foreground: 210 40% 98%;
+  --popover: 170 45% 19%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 161 94% 30%;             /* #059669 */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 170 45% 19%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 172 47% 15%;
+  --muted-foreground: 165 16% 76%;    /* #B8CCC7 */
+
+  --accent: 170 45% 22%;
+  --accent-foreground: 156 72% 67%;
+
+  --border: 169 37% 28%;              /* #2D6258 */
+  --input: 169 37% 28%;
+  --ring: 156 72% 67%;                /* #6EE7B7 */
+
+  --destructive: 4 78% 62%;
+  --destructive-foreground: 210 40% 98%;
+
+  --sportsx-surface: 172 47% 15%;
+  --sportsx-elevated: 170 45% 19%;
+  --sportsx-line: 169 37% 28%;
+  --sportsx-accent: 156 72% 67%;      /* #6EE7B7 */
+  --sportsx-info: 188 86% 53%;        /* #22D3EE */
+
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+/* Opaque cinematic gradient. Covers the whole viewport including the area
+   behind the bottom navigation, so the scroll can never end on a white band. */
+.sports-theme .liquid-backdrop,
+[data-mode="deportes"][data-route="home"].sports-theme .liquid-backdrop,
+.dark [data-mode="deportes"][data-route="home"].sports-theme .liquid-backdrop {
+  background: linear-gradient(180deg, hsl(175 50% 9%) 0%, hsl(174 48% 12%) 100%);
+}
+.sports-theme .liquid-blob { display: none; }
+
+/* Bottom navigation: fully opaque inside the sports module. */
+.sports-theme .glass-nav,
+.dark .sports-theme .glass-nav {
+  background: hsl(var(--sportsx-elevated));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid hsl(var(--sportsx-line));
+  box-shadow: 0 -2px 18px -12px hsl(0 0% 0% / 0.8);
+}
+
+/* Compact sports hero sits on the same opaque ramp as the page body. */
+.sports-theme .sports-hero {
+  background: linear-gradient(165deg, hsl(174 48% 12%) 0%, hsl(175 50% 9%) 100%);
+}
+
+
+/* ============================================================
    Liquid Glass utilities
    ============================================================ */
 @layer components {
