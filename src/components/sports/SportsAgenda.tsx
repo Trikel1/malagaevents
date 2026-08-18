@@ -328,7 +328,7 @@ const PendingSourcesBlock = () => {
           <p className="text-[12.5px] text-muted-foreground mb-2 leading-snug">
             {t(
               'sportsAgenda.pendingSubtitle',
-              'Ninguno de estos calendarios expone un feed público estable. Enlazamos siempre a la fuente oficial y registramos la última comprobación.',
+              'Ninguno de estos calendarios expone un feed público estable. Verificamos la fuente oficial y registramos la última comprobación; los datos se publicarán aquí al sincronizarse.',
             )}
           </p>
           {isLoading ? (
