@@ -114,8 +114,10 @@ const Index = () => {
     <div
       className={cn(
         'min-h-screen',
-        isSports && 'bg-[hsl(174_22%_85%)] dark:bg-[hsl(190_32%_9%)]'
+        // Deportes: the opaque cinematic ramp is owned by `.sports-theme`.
+        isSports && 'bg-transparent'
       )}
+
     >
       <SEO
         title={t('home.seo.title')}
