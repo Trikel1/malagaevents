@@ -5,7 +5,7 @@ import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/lo
 import {
   Phone, MapPin, Calendar as CalendarIcon, AlertTriangle,
   Search, ChevronDown, Check, Navigation, X, Pill, LocateFixed, Info,
-  ShieldCheck, ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -139,7 +139,7 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
           )}
           {pharmacy.address && (
             <Button asChild size="sm" variant="outline" className="flex-1">
-              <a href={getMapsUrl(pharmacy)} target="_blank" rel="noreferrer">
+              <a href={getMapsUrl(pharmacy)}>
                 <Navigation className="h-4 w-4 mr-1.5" />
                 {t('pharmacies.directions', 'Cómo llegar')}
               </a>
@@ -645,16 +645,6 @@ const PharmaciesPage = () => {
                           )}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      <Button asChild size="sm" className="rounded-full bg-emerald-600 hover:bg-emerald-600/90">
-                        <a href={officialQueryUrl} target="_blank" rel="noreferrer">
-                          <ExternalLink className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                          {t('pharmacies.consultOfficial', {
-                            defaultValue: 'Consultar guardias oficiales para {{place}} · {{date}}',
-                            place: municipality,
-                            date: officialDateLabel,
-                          })}
-                        </a>
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -751,15 +741,9 @@ const PharmaciesPage = () => {
             </p>
             <p>
               {t('pharmacies.officialSourceLabel', 'Fuente oficial:')}{' '}
-              <a
-                href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-primary hover:underline underline-offset-2 inline-flex items-center gap-0.5"
-              >
-                farmaciasguardia.farmaceuticos.com
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              </a>
+              <span className="font-medium text-foreground/80">
+                {t('pharmacies.officialSourceName', 'Consejo General de Colegios Oficiales de Farmacéuticos (Málaga)')}
+              </span>
               {lastSyncLabel && (
                 <> · {t('pharmacies.lastSync', 'Actualizado')} {lastSyncLabel}</>
               )}
