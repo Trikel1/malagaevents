@@ -353,10 +353,10 @@ const SportsContent = () => {
               {nextEvent.title}
             </h2>
             <p className="mt-1.5 text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
-              {nextEvent.sport_category && (
+              {nextEvent.sport && (
                 <span className="inline-flex items-center gap-1">
-                  <SportIcon sport={nextEvent.sport_category} className="h-3.5 w-3.5" />
-                  {t(`sports.${nextEvent.sport_category}`, nextEvent.sport_category)}
+                  <SportIcon sport={nextEvent.sport} className="h-3.5 w-3.5" />
+                  {t(`sports.${nextEvent.sport}`, nextEvent.sport)}
                 </span>
               )}
               {nextEvent.city && (
@@ -365,20 +365,33 @@ const SportsContent = () => {
                   {nextEvent.city}
                 </span>
               )}
-              {nextEvent.venue_name && (
+              {nextEvent.venue && (
                 <span className="inline-flex items-center gap-1">
                   <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  {nextEvent.venue_name}
+                  {nextEvent.venue}
                 </span>
               )}
             </p>
-            <Button
-              onClick={() => navigate(`/sports/${nextEvent.id}`)}
-              className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
-            >
-              {t('sportsHome.next.cta', 'Ver evento')}
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
+            {nextEventUrl ? (
+              <Button
+                asChild
+                className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              >
+                <a href={nextEventUrl} target="_blank" rel="noopener noreferrer">
+                  {t('sportsHome.next.cta', 'Ver evento')}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </Button>
+            ) : (
+              <Button
+                onClick={scrollToResults}
+                className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              >
+                {t('sportsHome.next.cta', 'Ver evento')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            )}
+
           </article>
         ) : (
           <article className="rounded-2xl border border-dashed border-sportsx-line bg-sportsx-surface p-4">
