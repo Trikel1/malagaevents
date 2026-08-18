@@ -272,7 +272,8 @@ const MapPage = () => {
 
   useEffect(() => {
     setSelected(null);
-  }, [filter]);
+  }, [filter, scope]);
+
 
   const focusMarker = (m: MapMarker) => {
     setFlyTo({ lat: m.lat, lng: m.lng, zoom: 16 });
@@ -402,13 +403,23 @@ const MapPage = () => {
       />
 
       {!isLoading && filteredMarkers.length === 0 && (
-        <div className="absolute inset-x-4 top-4 z-[400] rounded-xl border border-border bg-background/95 p-3 text-center">
-          <p className="text-sm font-medium">Aún no hay puntos verificados con coordenadas</p>
-          <Button variant="outline" size="sm" className="mt-2 min-h-11" onClick={clearFilters}>
-            Limpiar filtros
-          </Button>
+        <div className="absolute inset-x-4 top-4 z-[400] rounded-xl border border-border bg-background p-3 text-center">
+          <p className="text-sm font-medium">
+            {scope === 'today' ? 'Hoy no hay puntos en el mapa' : 'No hay puntos para este alcance'}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2 justify-center">
+            {scope === 'today' && (
+              <Button size="sm" className="min-h-11" onClick={() => setScope('week')}>
+                Ver esta semana
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="min-h-11" onClick={clearFilters}>
+              Limpiar filtros
+            </Button>
+          </div>
         </div>
       )}
+
 
       <div className="absolute bottom-20 left-3 lg:bottom-3 z-[400]">
         <Button
