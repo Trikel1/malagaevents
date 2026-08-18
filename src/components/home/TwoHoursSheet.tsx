@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
-import { Clock, MapPin, ExternalLink, Sparkles, Info, ChevronRight } from 'lucide-react';
+import { Clock, MapPin, Sparkles, Info, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -413,7 +413,7 @@ function ResultCard(props: {
             )}
           </div>
         </div>
-        <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 mt-2" aria-hidden />
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-2" aria-hidden />
       </button>
     </li>
   );

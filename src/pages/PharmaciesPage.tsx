@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import {
   Phone, MapPin, Calendar as CalendarIcon, AlertTriangle,
   Search, ChevronDown, Check, Navigation, X, Pill, LocateFixed, Info,
-  ShieldCheck, ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -59,15 +60,16 @@ const ALL_PHARMACY_LOCALITIES: string[] = PHARMACY_LOCALITY_GROUPS.flatMap((g) =
 const stripDiacritics = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
+/** Internal map route — pharmacies are located inside the app map. */
 const getMapsUrl = (p: { lat?: number | null; lng?: number | null; address: string; municipality?: string }) => {
+  const params = new URLSearchParams({ kind: 'pharmacy' });
   if (p.lat && p.lng) {
-    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
-    return isIOS
-      ? `maps://maps.apple.com/?daddr=${p.lat},${p.lng}`
-      : `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+    params.set('lat', String(p.lat));
+    params.set('lng', String(p.lng));
+  } else {
+    params.set('q', `${p.address}, ${p.municipality ?? 'Málaga'}`);
   }
-  const full = `${p.address}, ${p.municipality ?? 'Málaga'}, España`;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(full)}`;
+  return `/map?${params.toString()}`;
 };
 
 const formatPhoneForLink = (phone: string) => phone.replace(/[^\d+]/g, '');
@@ -139,10 +141,10 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
           )}
           {pharmacy.address && (
             <Button asChild size="sm" variant="outline" className="flex-1">
-              <a href={getMapsUrl(pharmacy)} target="_blank" rel="noreferrer">
+              <Link to={getMapsUrl(pharmacy)}>
                 <Navigation className="h-4 w-4 mr-1.5" />
-                {t('pharmacies.directions', 'Cómo llegar')}
-              </a>
+                {t('pharmacies.directions', 'Ver en el mapa')}
+              </Link>
             </Button>
           )}
         </div>
@@ -587,9 +589,8 @@ const PharmaciesPage = () => {
           // the province selector with the correct date pre-populated.
           const dISO = formatInTimeZone(selectedDate, TIMEZONE, 'yyyy-MM-dd');
           const [yy, mm, dd] = dISO.split('-').map((x) => parseInt(x, 10));
-          const officialQueryUrl =
-            `https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29`;
           const officialDateLabel = `${dd}/${mm}/${yy}`;
+          void officialDateLabel;
           const syncFailed = !!syncStatus && syncStatus.status === 'sync_error';
           const heading = isAllProvince
             ? t('pharmacies.dutyHeadingProvince', 'Farmacias de guardia en la provincia de Málaga')
@@ -645,16 +646,6 @@ const PharmaciesPage = () => {
                           )}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      <Button asChild size="sm" className="rounded-full bg-emerald-600 hover:bg-emerald-600/90">
-                        <a href={officialQueryUrl} target="_blank" rel="noreferrer">
-                          <ExternalLink className="h-4 w-4 mr-1.5" aria-hidden="true" />
-                          {t('pharmacies.consultOfficial', {
-                            defaultValue: 'Consultar guardias oficiales para {{place}} · {{date}}',
-                            place: municipality,
-                            date: officialDateLabel,
-                          })}
-                        </a>
-                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -751,15 +742,9 @@ const PharmaciesPage = () => {
             </p>
             <p>
               {t('pharmacies.officialSourceLabel', 'Fuente oficial:')}{' '}
-              <a
-                href="https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29"
-                target="_blank"
-                rel="noreferrer"
-                className="font-medium text-primary hover:underline underline-offset-2 inline-flex items-center gap-0.5"
-              >
-                farmaciasguardia.farmaceuticos.com
-                <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              </a>
+              <span className="font-medium text-foreground/80">
+                {t('pharmacies.officialSourceName', 'Consejo General de Colegios Oficiales de Farmacéuticos (Málaga)')}
+              </span>
               {lastSyncLabel && (
                 <> · {t('pharmacies.lastSync', 'Actualizado')} {lastSyncLabel}</>
               )}

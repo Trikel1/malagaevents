@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Building2, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ import SEO from '@/components/common/SEO';
 
 const VenuesPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedSport, setSelectedSport] = useState<SportCategory | 'all'>('all');
   const [selectedCity, setSelectedCity] = useState('all');
@@ -38,16 +40,9 @@ const VenuesPage = () => {
     return result;
   }, [search, selectedSport, selectedCity, venues]);
 
+  /** Internal navigation only — the venue is shown on the in-app map. */
   const openMap = (venue: typeof venues[0]) => {
-    if (venue.lat && venue.lng) {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const url = isIOS
-        ? `maps://maps.apple.com/?daddr=${venue.lat},${venue.lng}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lng}`;
-      window.open(url, '_blank');
-    } else if (venue.address) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.name + ' ' + venue.city)}`, '_blank');
-    }
+    navigate(`/map?venue=${encodeURIComponent(venue.name)}`);
   };
 
   return (

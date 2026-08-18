@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, ExternalLink, CalendarX2, Compass } from 'lucide-react';
+import { ArrowLeft, MapPin, CalendarX2, Compass } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -274,15 +274,9 @@ const EventCardWithVerified = ({ event }: { event: Event & { verified_at?: strin
           )}
         </div>
         {event.url && (
-          <a
-            href={event.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[10px] text-muted-foreground hover:text-primary inline-flex items-center gap-1"
-            aria-label="Ver en la fuente original"
-          >
-            Fuente <ExternalLink className="h-3 w-3" />
-          </a>
+          <span className="text-[10px] text-muted-foreground">
+            Fuente oficial verificada
+          </span>
         )}
       </div>
     </div>

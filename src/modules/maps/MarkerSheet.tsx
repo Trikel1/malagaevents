@@ -16,10 +16,6 @@ export const MarkerSheet = ({ marker, onClose }: MarkerSheetProps) => {
   const { t } = useTranslation();
 
   const kind = marker?.kind ?? 'event';
-  const directionsUrl = marker
-    ? `https://www.google.com/maps/dir/?api=1&destination=${marker.lat},${marker.lng}`
-    : '#';
-
   return (
     <Drawer open={!!marker} onOpenChange={(o) => !o && onClose()}>
       <DrawerContent>
@@ -56,12 +52,12 @@ export const MarkerSheet = ({ marker, onClose }: MarkerSheetProps) => {
               <a href={`tel:${marker.phone}`}><Phone className="h-4 w-4 mr-2" />{marker.phone}</a>
             </Button>
           )}
-          <Button asChild variant="outline" className="w-full">
-            <a href={directionsUrl} target="_blank" rel="noreferrer">
-              <Navigation className="h-4 w-4 mr-2" />
-              {t('map.openDirections')}
-            </a>
-          </Button>
+          {marker?.address && (
+            <p className="text-xs text-muted-foreground text-center pt-1">
+              <Navigation className="h-3.5 w-3.5 inline mr-1" aria-hidden="true" />
+              {marker.address}
+            </p>
+          )}
         </div>
       </DrawerContent>
     </Drawer>

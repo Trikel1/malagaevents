@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
 import { 
   ArrowLeft, Calendar, MapPin, Euro, Users, Baby, 
-  Accessibility, Heart, Share2, ExternalLink, Navigation, Loader2
+  Accessibility, Heart, Share2, Ticket, Navigation, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -130,18 +130,9 @@ const EventDetailPage = () => {
     ? format(new Date(event.end_at), 'HH:mm', { locale })
     : null;
 
+  /** Internal map only — no handoff to external map providers. */
   const handleOpenMaps = () => {
-    if (event.lat && event.lng) {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const url = isIOS
-        ? `maps://maps.apple.com/?daddr=${event.lat},${event.lng}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`;
-      window.open(url, '_blank');
-    } else {
-      // Fallback to address search
-      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`;
-      window.open(url, '_blank');
-    }
+    navigate(`/map?event=${event.id}`);
   };
 
   const handleAddToCalendar = () => {
@@ -368,16 +359,25 @@ END:VCALENDAR`;
           </Button>
         </div>
 
-        {event.ticket_url && (
-          <Button 
-            className="w-full" 
-            size="lg"
-            onClick={() => window.open(event.ticket_url, '_blank')}
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            {t('eventDetail.buyTickets')}
-          </Button>
-        )}
+        {/* Información de entradas — informativa, sin checkout externo */}
+        <Card className="p-4">
+          <h2 className="font-semibold text-sm mb-1.5 flex items-center gap-2">
+            <Ticket className="h-4 w-4 text-primary" aria-hidden="true" />
+            {t('eventDetail.ticketInfoTitle', 'Información de entradas')}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {event.price_info
+              ? event.price_info
+              : event.ticket_url
+              ? t('eventDetail.ticketsAvailable', 'Entradas disponibles a través del organizador.')
+              : t('eventDetail.ticketsUnknown', 'No disponemos de información de entradas para este evento.')}
+          </p>
+          {event.venue?.name && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('eventDetail.organizer', 'Organizador')}: {event.venue.name}
+            </p>
+          )}
+        </Card>
 
         <Separator />
 
@@ -477,14 +477,9 @@ END:VCALENDAR`;
               {host && (
                 <>
                   <span>{t('eventDetail.source', 'Fuente:')}</span>
-                  <a
-                    href={rawUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-medium text-foreground/80 hover:text-primary hover:underline underline-offset-2 truncate max-w-[240px]"
-                  >
+                  <span className="font-medium text-foreground/80 truncate max-w-[240px]">
                     {host}
-                  </a>
+                  </span>
                 </>
               )}
               {updated && (
@@ -515,26 +510,15 @@ END:VCALENDAR`;
           >
             <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
           </Button>
-          {event.ticket_url ? (
-            <Button
-              size="lg"
-              className="flex-1 shadow-lift"
-              onClick={() => window.open(event.ticket_url, '_blank')}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {t('eventDetail.buyTickets')}
-            </Button>
-          ) : (
-            <Button
-              size="lg"
-              variant="secondary"
-              className="flex-1"
-              onClick={handleAddToCalendar}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              {t('eventDetail.addToCalendar')}
-            </Button>
-          )}
+          <Button
+            size="lg"
+            variant="secondary"
+            className="flex-1"
+            onClick={handleAddToCalendar}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            {t('eventDetail.addToCalendar')}
+          </Button>
         </div>
       </div>
     </div>
