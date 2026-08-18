@@ -192,19 +192,20 @@ const Index = () => {
             <h1 className={cn(
               'font-bold tracking-tight max-w-xl',
               isSports
-                ? 'text-[24px] sm:text-[32px] leading-[1.1]'
+                ? 'text-[24px] sm:text-[30px] leading-[1.1]'
                 : 'text-[26px] sm:text-[38px] leading-[1.08]'
             )}>
-              {isSports ? t('sportsHome.heroTitle', 'Deportes en Málaga') : t('home.hero.title')}
+              {isSports ? t('sportsHome.heroTitle', 'Deporte en Málaga') : t('home.hero.title')}
             </h1>
             <p className={cn(
-              'text-[13.5px] sm:text-sm text-white/90 mt-1.5 max-w-md leading-snug',
-              isSports ? 'line-clamp-2' : 'truncate'
+              'text-[13.5px] sm:text-sm mt-1.5 max-w-md leading-snug',
+              isSports ? 'line-clamp-2 text-sportsx-accent' : 'truncate text-white/90'
             )}>
               {isSports
-                ? t('sportsHome.heroSubtitle', 'Instalaciones, actividades y eventos deportivos cerca de ti')
+                ? t('sportsHome.heroSubtitle', 'Agenda, instalaciones y clubes verificados de la provincia')
                 : t('home.hero.subtitle')}
             </p>
+
           </div>
 
           {!isSports && (
