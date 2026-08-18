@@ -282,8 +282,10 @@ const MapPage = () => {
 
   const clearFilters = () => {
     setFilter('all');
+    setScope('all');
     setSearch('');
   };
+
 
   const resultsList = (
     <div className="space-y-2.5">
@@ -459,10 +461,35 @@ const MapPage = () => {
           )}
         </div>
 
+        {/* Time scope */}
+        <div className="mt-3 flex rounded-full border border-border bg-card p-1" role="group" aria-label="Alcance temporal">
+          {SCOPES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setScope(s.id)}
+              aria-pressed={scope === s.id}
+              className={cn(
+                'flex-1 min-h-11 px-3 rounded-full text-sm font-medium transition-colors duration-200 motion-reduce:transition-none',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                scope === s.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        <p role="status" className="mt-2 text-xs text-muted-foreground">
+          {SCOPE_LABEL[scope]} · {filteredMarkers.length}{' '}
+          {filteredMarkers.length === 1 ? 'resultado' : 'resultados'}
+        </p>
+
         {/* Filters */}
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="toolbar" aria-label="Filtros del mapa">
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="toolbar" aria-label="Filtros del mapa">
           {FILTERS.map((f) => {
             const active = filter === f.id;
+            const Icon = f.icon;
             return (
               <button
                 key={f.id}
@@ -470,21 +497,30 @@ const MapPage = () => {
                 onClick={() => setFilter(f.id)}
                 aria-pressed={active}
                 className={cn(
-                  'shrink-0 min-h-11 px-4 rounded-full border text-sm font-medium whitespace-nowrap transition-colors duration-200 motion-reduce:transition-none',
+                  'shrink-0 inline-flex items-center gap-1.5 min-h-11 px-4 rounded-full border text-sm font-medium whitespace-nowrap transition-colors duration-200 motion-reduce:transition-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   active
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-card text-foreground border-border hover:bg-muted'
                 )}
               >
+                {f.color && (
+                  <span
+                    className="h-2.5 w-2.5 rounded-full ring-1 ring-border"
+                    style={{ backgroundColor: f.color }}
+                    aria-hidden="true"
+                  />
+                )}
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {f.label}
-                <span className={cn('ml-1.5 tabular-nums', active ? 'opacity-90' : 'text-muted-foreground')}>
+                <span className={cn('tabular-nums', active ? 'opacity-90' : 'text-muted-foreground')}>
                   {counts[f.id]}
                 </span>
               </button>
             );
           })}
         </div>
+
 
         {/* View toggle + legend */}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
