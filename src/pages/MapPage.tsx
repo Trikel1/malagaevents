@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import SEO from '@/components/common/SEO';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { mapVenueToCoords, MALAGA_CENTER } from '@/lib/venueCoords';
+import { isWithinScope, SCOPE_LABEL, type MapTimeScope } from '@/lib/mapTimeScope';
 import { cn } from '@/lib/utils';
 
 const MAX_MARKERS = 200;
@@ -42,20 +43,28 @@ const KIND_OF: Record<Exclude<FilterKind, 'all'>, MarkerKind> = {
   pharmacies: 'pharmacy',
 };
 
-const FILTERS: { id: FilterKind; label: string }[] = [
-  { id: 'all', label: 'Todos' },
-  { id: 'events', label: 'Eventos' },
-  { id: 'sports', label: 'Deportes' },
-  { id: 'venues', label: 'Recintos' },
-  { id: 'pharmacies', label: 'Farmacias' },
+const COLOR_OF: Record<MarkerKind, string> = {
+  event: 'hsl(173, 80%, 38%)',
+  sport: 'hsl(150, 70%, 40%)',
+  venue: 'hsl(265, 70%, 55%)',
+  pharmacy: 'hsl(0, 75%, 55%)',
+  demo: 'hsl(215, 15%, 50%)',
+};
+
+const FILTERS: { id: FilterKind; label: string; icon: typeof CalendarDays; color?: string }[] = [
+  { id: 'all', label: 'Todos', icon: MapPin },
+  { id: 'events', label: 'Eventos', icon: CalendarDays, color: COLOR_OF.event },
+  { id: 'sports', label: 'Deportes', icon: Trophy, color: COLOR_OF.sport },
+  { id: 'venues', label: 'Recintos', icon: Building2, color: COLOR_OF.venue },
+  { id: 'pharmacies', label: 'Farmacias', icon: Cross, color: COLOR_OF.pharmacy },
 ];
 
-const LEGEND: { kind: MarkerKind; label: string; icon: typeof CalendarDays; color: string }[] = [
-  { kind: 'event', label: 'Evento', icon: CalendarDays, color: 'hsl(173, 80%, 38%)' },
-  { kind: 'sport', label: 'Deporte', icon: Trophy, color: 'hsl(150, 70%, 40%)' },
-  { kind: 'venue', label: 'Recinto', icon: Building2, color: 'hsl(265, 70%, 55%)' },
-  { kind: 'pharmacy', label: 'Farmacia', icon: Cross, color: 'hsl(0, 75%, 55%)' },
+const SCOPES: { id: MapTimeScope; label: string }[] = [
+  { id: 'today', label: 'Hoy' },
+  { id: 'week', label: 'Esta semana' },
+  { id: 'all', label: 'Todos' },
 ];
+
 
 const fmtWhen = (iso?: string | null) => {
   if (!iso) return '';
@@ -74,7 +83,9 @@ const MapPage = () => {
   const isMobile = useIsMobile();
 
   const [view, setView] = useState<'map' | 'list'>('map');
-  const [filter, setFilter] = useState<FilterKind>('all');
+  const [filter, setFilter] = useState<FilterKind>('events');
+  const [scope, setScope] = useState<MapTimeScope>('today');
+
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<MapMarker | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -190,34 +201,40 @@ const MapPage = () => {
     [eventMarkers, sportMarkers, venueMarkers, pharmacyMarkers]
   );
 
-  const counts = useMemo(
-    () => ({
-      all: allMarkers.length,
-      events: eventMarkers.length,
-      sports: sportMarkers.length,
-      venues: venueMarkers.length,
-      pharmacies: pharmacyMarkers.length,
-    }),
-    [allMarkers, eventMarkers, sportMarkers, venueMarkers, pharmacyMarkers]
-  );
+  /** Time scope only narrows dated items (events / sports). */
+  const scopedMarkers = useMemo<MapMarker[]>(() => {
+    const now = new Date();
+    return allMarkers.filter((m) => isWithinScope(m.startAt, scope, now));
+  }, [allMarkers, scope]);
+
+  const searchedMarkers = useMemo<MapMarker[]>(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return scopedMarkers;
+    return scopedMarkers.filter(
+      (m) =>
+        m.title.toLowerCase().includes(q) ||
+        (m.subtitle ?? '').toLowerCase().includes(q) ||
+        (m.address ?? '').toLowerCase().includes(q)
+    );
+  }, [scopedMarkers, search]);
+
+  const counts = useMemo(() => {
+    const by = (k: MarkerKind) => searchedMarkers.filter((m) => m.kind === k).length;
+    return {
+      all: searchedMarkers.length,
+      events: by('event'),
+      sports: by('sport'),
+      venues: by('venue'),
+      pharmacies: by('pharmacy'),
+    };
+  }, [searchedMarkers]);
 
   const filteredMarkers = useMemo<MapMarker[]>(() => {
-    let list = allMarkers;
-    if (filter !== 'all') {
-      const wanted = KIND_OF[filter];
-      list = list.filter((m) => m.kind === wanted);
-    }
-    const q = search.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (m) =>
-          m.title.toLowerCase().includes(q) ||
-          (m.subtitle ?? '').toLowerCase().includes(q) ||
-          (m.address ?? '').toLowerCase().includes(q)
-      );
-    }
+    const list =
+      filter === 'all' ? searchedMarkers : searchedMarkers.filter((m) => m.kind === KIND_OF[filter]);
     return list.slice(0, MAX_MARKERS);
-  }, [allMarkers, filter, search]);
+  }, [searchedMarkers, filter]);
+
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -255,7 +272,8 @@ const MapPage = () => {
 
   useEffect(() => {
     setSelected(null);
-  }, [filter]);
+  }, [filter, scope]);
+
 
   const focusMarker = (m: MapMarker) => {
     setFlyTo({ lat: m.lat, lng: m.lng, zoom: 16 });
@@ -265,8 +283,10 @@ const MapPage = () => {
 
   const clearFilters = () => {
     setFilter('all');
+    setScope('all');
     setSearch('');
   };
+
 
   const resultsList = (
     <div className="space-y-2.5">
@@ -288,21 +308,31 @@ const MapPage = () => {
       ) : filteredMarkers.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-8 text-center">
           <MapPin className="h-9 w-9 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
-          <p className="text-sm font-medium">Aún no hay puntos verificados con coordenadas</p>
+          <p className="text-sm font-medium">
+            {scope === 'today'
+              ? 'No hay puntos con coordenadas para hoy'
+              : 'No hay puntos con coordenadas para este alcance'}
+          </p>
           <p className="text-xs text-muted-foreground mt-1 mb-4">
-            Prueba a quitar los filtros o vuelve a intentarlo en unos minutos.
+            Amplía el alcance temporal o quita los filtros.
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
+            {scope === 'today' && (
+              <Button className="min-h-11" onClick={() => setScope('week')}>
+                Ver esta semana
+              </Button>
+            )}
             <Button variant="outline" className="min-h-11" onClick={clearFilters}>
               Limpiar filtros
             </Button>
-            <Button className="min-h-11" onClick={retry}>
+            <Button variant="outline" className="min-h-11" onClick={retry}>
               <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
               Reintentar
             </Button>
           </div>
         </div>
       ) : (
+
         filteredMarkers.map((m) => {
           const when = fmtWhen(m.startAt);
           const active = selected?.id === m.id;
@@ -373,13 +403,23 @@ const MapPage = () => {
       />
 
       {!isLoading && filteredMarkers.length === 0 && (
-        <div className="absolute inset-x-4 top-4 z-[400] rounded-xl border border-border bg-background/95 p-3 text-center">
-          <p className="text-sm font-medium">Aún no hay puntos verificados con coordenadas</p>
-          <Button variant="outline" size="sm" className="mt-2 min-h-11" onClick={clearFilters}>
-            Limpiar filtros
-          </Button>
+        <div className="absolute inset-x-4 top-4 z-[400] rounded-xl border border-border bg-background p-3 text-center">
+          <p className="text-sm font-medium">
+            {scope === 'today' ? 'Hoy no hay puntos en el mapa' : 'No hay puntos para este alcance'}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2 justify-center">
+            {scope === 'today' && (
+              <Button size="sm" className="min-h-11" onClick={() => setScope('week')}>
+                Ver esta semana
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="min-h-11" onClick={clearFilters}>
+              Limpiar filtros
+            </Button>
+          </div>
         </div>
       )}
+
 
       <div className="absolute bottom-20 left-3 lg:bottom-3 z-[400]">
         <Button
@@ -442,10 +482,35 @@ const MapPage = () => {
           )}
         </div>
 
+        {/* Time scope */}
+        <div className="mt-3 flex rounded-full border border-border bg-card p-1" role="group" aria-label="Alcance temporal">
+          {SCOPES.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setScope(s.id)}
+              aria-pressed={scope === s.id}
+              className={cn(
+                'flex-1 min-h-11 px-3 rounded-full text-sm font-medium transition-colors duration-200 motion-reduce:transition-none',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                scope === s.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        <p role="status" className="mt-2 text-xs text-muted-foreground">
+          {SCOPE_LABEL[scope]} · {filteredMarkers.length}{' '}
+          {filteredMarkers.length === 1 ? 'resultado' : 'resultados'}
+        </p>
+
         {/* Filters */}
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="toolbar" aria-label="Filtros del mapa">
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="toolbar" aria-label="Filtros del mapa">
           {FILTERS.map((f) => {
             const active = filter === f.id;
+            const Icon = f.icon;
             return (
               <button
                 key={f.id}
@@ -453,21 +518,30 @@ const MapPage = () => {
                 onClick={() => setFilter(f.id)}
                 aria-pressed={active}
                 className={cn(
-                  'shrink-0 min-h-11 px-4 rounded-full border text-sm font-medium whitespace-nowrap transition-colors duration-200 motion-reduce:transition-none',
+                  'shrink-0 inline-flex items-center gap-1.5 min-h-11 px-4 rounded-full border text-sm font-medium whitespace-nowrap transition-colors duration-200 motion-reduce:transition-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   active
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-card text-foreground border-border hover:bg-muted'
                 )}
               >
+                {f.color && (
+                  <span
+                    className="h-2.5 w-2.5 rounded-full ring-1 ring-border"
+                    style={{ backgroundColor: f.color }}
+                    aria-hidden="true"
+                  />
+                )}
+                <Icon className="h-4 w-4" aria-hidden="true" />
                 {f.label}
-                <span className={cn('ml-1.5 tabular-nums', active ? 'opacity-90' : 'text-muted-foreground')}>
+                <span className={cn('tabular-nums', active ? 'opacity-90' : 'text-muted-foreground')}>
                   {counts[f.id]}
                 </span>
               </button>
             );
           })}
         </div>
+
 
         {/* View toggle + legend */}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -495,19 +569,31 @@ const MapPage = () => {
             ))}
           </div>
 
-          <ul className="flex flex-wrap items-center gap-x-3 gap-y-1.5" aria-label="Leyenda del mapa">
-            {LEGEND.map(({ kind, label, icon: Icon, color }) => (
-              <li key={kind} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span
-                  className="h-2.5 w-2.5 rounded-full ring-1 ring-border"
-                  style={{ backgroundColor: color }}
-                  aria-hidden="true"
-                />
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                {label}
+          <ul className="flex flex-wrap items-center gap-2" aria-label="Leyenda del mapa">
+            {FILTERS.filter((f) => f.id !== 'all').map(({ id, label, icon: Icon, color }) => (
+              <li key={id}>
+                <button
+                  type="button"
+                  onClick={() => setFilter(id)}
+                  aria-pressed={filter === id}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 min-h-11 px-3 rounded-full border text-xs font-medium transition-colors duration-200 motion-reduce:transition-none',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    filter === id ? 'border-primary bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full ring-1 ring-border"
+                    style={{ backgroundColor: color }}
+                    aria-hidden="true"
+                  />
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {label}
+                </button>
               </li>
             ))}
           </ul>
+
         </div>
 
         {locError && (
