@@ -1647,6 +1647,54 @@ export type Database = {
           },
         ]
       }
+      url_health_checks: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_table: string
+          error: string | null
+          field_name: string
+          http_status: number | null
+          id: string
+          last_checked_at: string
+          latency_ms: number | null
+          ok: boolean
+          robots_allowed: boolean | null
+          url: string
+          url_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_table: string
+          error?: string | null
+          field_name: string
+          http_status?: number | null
+          id?: string
+          last_checked_at?: string
+          latency_ms?: number | null
+          ok?: boolean
+          robots_allowed?: boolean | null
+          url: string
+          url_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_table?: string
+          error?: string | null
+          field_name?: string
+          http_status?: number | null
+          id?: string
+          last_checked_at?: string
+          latency_ms?: number | null
+          ok?: boolean
+          robots_allowed?: boolean | null
+          url?: string
+          url_hash?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1908,6 +1956,7 @@ export type Database = {
       normalize_text: { Args: { text_input: string }; Returns: string }
       sports_is_admin: { Args: never; Returns: boolean }
       unaccent: { Args: { "": string }; Returns: string }
+      verify_sync_sports_key: { Args: { _key: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

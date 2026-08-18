@@ -34,11 +34,36 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function checkAuth(req: Request): boolean {
-  const expected = Deno.env.get("SYNC_SPORTS_KEY");
+/**
+ * Accept the shared key either from the function env var or, as a fallback,
+ * from the vault-stored value used by the scheduled job. Keeping both paths
+ * prevents the cron from silently 401-ing when the two copies drift apart.
+ */
+async function checkAuth(req: Request): Promise<boolean> {
   const provided = req.headers.get("x-sync-key");
-  return !!expected && !!provided && expected === provided;
+  if (!provided) return false;
+
+  const expected = Deno.env.get("SYNC_SPORTS_KEY");
+  if (expected && expected === provided) return true;
+
+  try {
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
+    const { data, error } = await admin.rpc("verify_sync_sports_key", { _key: provided });
+    if (error) {
+      console.error("[auth] vault key check failed:", error.message);
+      return false;
+    }
+    return data === true;
+  } catch (e) {
+    console.error("[auth] vault key check threw:", (e as Error).message);
+    return false;
+  }
 }
+
 
 async function loadExistingBySourceExternal(
   sb: SB, source_name: string, externalIds: string[],
@@ -245,7 +270,7 @@ async function processSource(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
-  if (!checkAuth(req)) return json({ error: "unauthorized" }, 401);
+  if (!(await checkAuth(req))) return json({ error: "unauthorized" }, 401);
 
   let body: { sourceName?: string; slug?: string; feedUrl?: string; adapter?: "json" | "html" | "ics" | "rss"; all?: boolean } = {};
   try { body = await req.json(); } catch { /* empty body OK */ }
@@ -268,7 +293,10 @@ Deno.serve(async (req) => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-sync-key": Deno.env.get("SYNC_SPORTS_KEY") ?? "",
+          // Reuse the caller's key so batch fan-out works regardless of which
+          // of the two accepted key sources authenticated this request.
+          "x-sync-key": req.headers.get("x-sync-key") ?? Deno.env.get("SYNC_SPORTS_KEY") ?? "",
+
         },
         body: JSON.stringify({ slug: r.slug }),
       });
@@ -355,26 +383,41 @@ Deno.serve(async (req) => {
     const { counters, feedCount, adapterUsed, fetchNotes } =
       await processSource(sb, sourceName, feedUrl, sourceType, slug || null);
     const durationMs = Date.now() - startedAt;
-    const finalStatus = counters.errors === 0 ? "success" : "partial";
+    // Honest statuses: a run that parsed nothing is NOT a success.
+    // - error/partial: some rows failed to write
+    // - empty: the fetch worked but the page yielded 0 usable events
+    // - success: at least one event parsed and written without errors
+    const finalStatus = counters.errors > 0
+      ? "partial"
+      : feedCount === 0
+        ? "empty"
+        : "success";
+    const nowIso2 = new Date().toISOString();
     if (runId) {
       await sb.from("sports_sync_runs").update({
         status: finalStatus,
         items_fetched: feedCount,
+        items_parsed: feedCount,
         items_upserted: counters.inserted + counters.updated,
         items_failed: counters.errors,
-        finished_at: new Date().toISOString(),
+        finished_at: nowIso2,
         error_sample: fetchNotes.length ? fetchNotes.join(" | ").slice(0, 500) : null,
       }).eq("id", runId);
     }
     if (sourceId) {
       await sb.from("sports_sources").update({
         last_status: finalStatus,
-        last_success_at: counters.errors === 0 ? new Date().toISOString() : undefined,
-        last_error: counters.errors === 0 ? null : `errors=${counters.errors}`,
-        consecutive_failures: counters.errors === 0 ? 0 : undefined,
+        // Only a real success (>=1 parsed event, no errors) refreshes last_success_at.
+        last_success_at: finalStatus === "success" ? nowIso2 : undefined,
+        last_error: finalStatus === "success"
+          ? null
+          : finalStatus === "empty"
+            ? `no_events: la fuente respondió pero no expuso eventos legibles${fetchNotes.length ? ` (${fetchNotes.join(" | ").slice(0, 200)})` : ""}`
+            : `errors=${counters.errors}`,
+        consecutive_failures: finalStatus === "success" ? 0 : undefined,
         items_fetched: feedCount,
         items_upserted: counters.inserted + counters.updated,
-        last_sync_at: new Date().toISOString(),
+        last_sync_at: nowIso2,
       }).eq("id", sourceId);
     }
     return json({

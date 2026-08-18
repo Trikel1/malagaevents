@@ -738,15 +738,34 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Auth: ONLY x-sync-key header (used by cron AND admin-sync-sports)
+  // Auth: ONLY x-sync-key header (used by cron AND admin-sync-sports).
+  // The key may come from the function env var or from the vault copy that the
+  // scheduled job reads; both are accepted so the cron cannot silently 401.
   const syncKey = req.headers.get("x-sync-key");
   const expectedKey = Deno.env.get("SYNC_SPORTS_KEY");
 
-  if (!expectedKey || syncKey !== expectedKey) {
+  let authorized = !!expectedKey && !!syncKey && syncKey === expectedKey;
+  if (!authorized && syncKey) {
+    try {
+      const authClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        { auth: { autoRefreshToken: false, persistSession: false } },
+      );
+      const { data, error } = await authClient.rpc("verify_sync_sports_key", { _key: syncKey });
+      if (error) console.error("[auth] vault key check failed:", error.message);
+      authorized = data === true;
+    } catch (e) {
+      console.error("[auth] vault key check threw:", (e as Error).message);
+    }
+  }
+
+  if (!authorized) {
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
     );
+
   }
 
   const firecrawlApiKey = Deno.env.get("FIRECRAWL_API_KEY") || "";
