@@ -381,7 +381,7 @@ const MapPage = () => {
         </div>
       )}
 
-      <div className="absolute bottom-3 left-3 z-[400]">
+      <div className="absolute bottom-20 left-3 lg:bottom-3 z-[400]">
         <Button
           onClick={handleMyLocation}
           disabled={locating}
@@ -518,7 +518,7 @@ const MapPage = () => {
 
         {/* Body */}
         <div className="mt-3 pb-6 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-4 lg:items-start">
-          <div className={cn(view === 'map' ? 'block' : 'hidden', 'lg:block')}>{mapPanel}</div>
+          <div className={cn(view === 'map' ? 'block' : 'hidden', 'lg:block lg:sticky lg:top-3')}>{mapPanel}</div>
 
           <aside className={cn(view === 'list' ? 'block' : 'hidden', 'lg:block')}>
             {!isMobile && selected && (
