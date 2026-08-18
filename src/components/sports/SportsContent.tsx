@@ -2,15 +2,20 @@ import { useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  Search, Loader2, Building2, ChevronRight, CalendarDays, Sparkles,
+  Search, Building2, ChevronRight, CalendarDays, Sparkles,
   MapPin, Megaphone, CalendarClock, Trophy, Waves, Trees, Dumbbell,
-  Footprints, Zap, Map as MapIcon, Navigation,
+  Footprints, Zap, Navigation, AlertTriangle, RotateCcw, ArrowRight,
+  ExternalLink,
 } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import SportEventCard from '@/components/sports/SportEventCard';
 import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
@@ -122,6 +127,7 @@ const SportsContent = () => {
   const [searchQ, setSearchQ] = useState('');
   const [searchDraft, setSearchDraft] = useState('');
   const resultsRef = useRef<HTMLDivElement>(null);
+  const municipalityRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -165,7 +171,7 @@ const SportsContent = () => {
     return f;
   }, [activeTile, timeFilter, selectedVenueNames, selectedMunicipality, searchQ]);
 
-  const { data: events = [], isLoading, isError } = useSportsEvents(filters);
+  const { data: events = [], isLoading, isError, refetch } = useSportsEvents(filters);
 
   const todayDate = todayMadrid();
   const weekend = useMemo(getWeekendDates, []);
@@ -181,15 +187,31 @@ const SportsContent = () => {
     [events, weekend],
   );
 
+  /**
+   * "Próximo evento": derived from the events already fetched by the hook
+   * above — no extra request. Placeholders without a real date are excluded so
+   * the hero card never shows unverified content.
+   */
+  const nextEvent = useMemo(() => {
+    const upcoming = events
+      .filter((e) => Boolean(e.start_at) && e.start_at.slice(0, 10) >= todayDate)
+      .sort((a, b) => a.start_at.localeCompare(b.start_at));
+    return upcoming[0] ?? null;
+  }, [events, todayDate]);
+
+  const nextEventUrl = nextEvent?.ticketsUrl || nextEvent?.source_url || null;
+
+
   const featuredVenues = useMemo(() => allVenues.slice(0, 6), [allVenues]);
   const municipalitiesWithEvents = useMemo(() => {
     const set = new Set(events.map((e) => e.city).filter(Boolean));
     return set.size;
   }, [events]);
 
-  const scrollToResults = () => {
-    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const scrollTo = (ref: React.RefObject<HTMLElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const scrollToResults = () => scrollTo(resultsRef);
 
   const handleQuickAction = (key: TimeFilter) => {
     setTimeFilter(key);
@@ -207,42 +229,54 @@ const SportsContent = () => {
   // Reusable UI
   // -------------------------------------------------------------------------
   const renderEmpty = (msg: string) => (
-    <Card className="bg-emerald-50/40 dark:bg-emerald-900/10 border-dashed border-emerald-700/20">
+    <Card className="bg-sportsx-surface border-dashed border-sportsx-line">
       <CardContent className="py-8 text-center text-muted-foreground">
-        <CalendarClock className="h-10 w-10 mx-auto mb-2 opacity-50 text-emerald-700 dark:text-emerald-300" />
+        <CalendarClock className="h-10 w-10 mx-auto mb-2 text-sportsx-accent" aria-hidden="true" />
         <p className="text-sm">{msg}</p>
       </CardContent>
     </Card>
   );
 
-  // Big touchable time-window cards.
-  const bigCards: {
-    key: TimeFilter;
+  const surfaceBtn =
+    'bg-sportsx-surface border border-sportsx-line hover:bg-sportsx-elevated ' +
+    'transition-[transform,opacity,background-color] duration-200 ease-out ' +
+    'motion-reduce:transition-none active:scale-[0.99] ' +
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ' +
+    'focus-visible:ring-offset-background';
+
+  // 2×2 quick access grid.
+  const quickAccess: {
+    key: string;
     icon: typeof Sparkles;
-    title: string;
-    subtitle: string;
-    tone: string;
+    label: string;
+    onClick: () => void;
+    active?: boolean;
   }[] = [
     {
       key: 'today',
       icon: Sparkles,
-      title: t('sportsHome.big.todayTitle', 'Hoy en Málaga'),
-      subtitle: t('sportsHome.big.todaySubtitle', 'Actividades activas hoy'),
-      tone: 'from-emerald-500/25 to-teal-500/10',
-    },
-    {
-      key: 'weekend',
-      icon: CalendarDays,
-      title: t('sportsHome.big.weekendTitle', 'Este fin de semana'),
-      subtitle: t('sportsHome.big.weekendSubtitle', 'Planes de viernes a domingo'),
-      tone: 'from-teal-500/25 to-cyan-600/10',
+      label: t('sportsHome.quick.today', 'Hoy'),
+      onClick: () => handleQuickAction('today'),
+      active: timeFilter === 'today',
     },
     {
       key: 'upcoming',
-      icon: CalendarClock,
-      title: t('sportsHome.big.upcomingTitle', 'Próximos 14 días'),
-      subtitle: t('sportsHome.big.upcomingSubtitle', 'Toda la agenda deportiva'),
-      tone: 'from-lime-500/20 to-emerald-600/15',
+      icon: CalendarDays,
+      label: t('sportsHome.quick.upcoming', 'Próximos 14 días'),
+      onClick: () => handleQuickAction('upcoming'),
+      active: timeFilter === 'upcoming',
+    },
+    {
+      key: 'venues',
+      icon: Building2,
+      label: t('sportsHome.quick.venues', 'Instalaciones'),
+      onClick: () => navigate('/venues'),
+    },
+    {
+      key: 'municipalities',
+      icon: MapPin,
+      label: t('sportsHome.quick.municipalities', 'Municipios'),
+      onClick: () => scrollTo(municipalityRef),
     },
   ];
 
@@ -264,96 +298,165 @@ const SportsContent = () => {
     },
   ];
 
+  const formatEventDate = (iso: string) =>
+    formatInTimeZone(new Date(iso), TIMEZONE, "d MMM · HH:mm'h'");
+
   return (
     <div className="relative space-y-5 pt-1 pb-4">
-      {/* Compact search bar — opaque petrol/teal surface for AA contrast */}
+      {/* Compact 48px search bar */}
       <form
         onSubmit={handleSearchSubmit}
         role="search"
         aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
-        className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-emerald-700/25 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] shadow-sm"
+        className="flex items-center gap-2 h-12 px-3 rounded-2xl border border-sportsx-line bg-sportsx-surface"
       >
-        <Search className="h-5 w-5 text-emerald-700 dark:text-emerald-300 shrink-0" aria-hidden="true" />
+        <Search className="h-5 w-5 text-sportsx-accent shrink-0" aria-hidden="true" />
         <input
           type="search"
           value={searchDraft}
           onChange={(e) => setSearchDraft(e.target.value)}
           placeholder={t('sportsHome.searchPlaceholder', 'Busca un deporte, instalación o municipio')}
-          className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground min-h-11"
+          className="flex-1 min-w-0 h-full bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground"
           aria-label={t('sportsHome.searchAria', 'Buscar deportes, instalaciones o municipios')}
         />
         {searchDraft && (
           <button
             type="button"
             onClick={() => { setSearchDraft(''); setSearchQ(''); }}
-            className="text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:underline min-h-11 px-2"
+            className="text-xs font-semibold text-sportsx-accent hover:underline h-9 px-2"
           >
             {t('common.clear', 'Limpiar')}
           </button>
         )}
+        <Button
+          type="submit"
+          size="sm"
+          className="h-9 px-3 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          {t('common.search', 'Buscar')}
+        </Button>
       </form>
 
+      {/* Próximo evento destacado */}
+      <section aria-label={t('sportsHome.next.aria', 'Próximo evento deportivo')}>
+        {isLoading ? (
+          <Skeleton className="h-[148px] w-full rounded-2xl bg-sportsx-surface" />
+        ) : nextEvent ? (
+          <article className="rounded-2xl border border-sportsx-line bg-sportsx-elevated p-4">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <Badge className="bg-primary text-primary-foreground border-0 gap-1">
+                <Sparkles className="h-3 w-3" aria-hidden="true" />
+                {t('sportsHome.next.badge', 'Próximo evento')}
+              </Badge>
+              <span className="text-xs font-semibold text-sportsx-accent">
+                {formatEventDate(nextEvent.start_at)}
+              </span>
+            </div>
+            <h2 className="text-lg font-bold leading-tight text-foreground">
+              {nextEvent.title}
+            </h2>
+            <p className="mt-1.5 text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
+              {nextEvent.sport && (
+                <span className="inline-flex items-center gap-1">
+                  <SportIcon sport={nextEvent.sport} className="h-3.5 w-3.5" />
+                  {t(`sports.${nextEvent.sport}`, nextEvent.sport)}
+                </span>
+              )}
+              {nextEvent.city && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                  {nextEvent.city}
+                </span>
+              )}
+              {nextEvent.venue && (
+                <span className="inline-flex items-center gap-1">
+                  <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  {nextEvent.venue}
+                </span>
+              )}
+            </p>
+            {nextEventUrl ? (
+              <Button
+                asChild
+                className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              >
+                <a href={nextEventUrl} target="_blank" rel="noopener noreferrer">
+                  {t('sportsHome.next.cta', 'Ver evento')}
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </Button>
+            ) : (
+              <Button
+                onClick={scrollToResults}
+                className="mt-3 min-h-11 w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              >
+                {t('sportsHome.next.cta', 'Ver evento')}
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            )}
 
-      {/* Quick-action segmented control — compact, visual, always 3-up */}
+          </article>
+        ) : (
+          <article className="rounded-2xl border border-dashed border-sportsx-line bg-sportsx-surface p-4">
+            <h2 className="text-base font-semibold text-foreground">
+              {t('sportsHome.next.emptyTitle', 'Todavía no hay un próximo evento confirmado')}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t(
+                'sportsHome.next.emptyBody',
+                'Solo publicamos actividades verificadas. Consulta las fuentes oficiales mientras sincronizamos.',
+              )}
+            </p>
+            <a
+              href="https://www.malaga.eu/areas-tematicas/deporte/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 min-h-11 text-sm font-semibold text-sportsx-info hover:underline"
+            >
+              {t('sportsHome.next.officialLink', 'Ver agenda oficial del Ayuntamiento')}
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </article>
+        )}
+      </section>
+
+      {/* Accesos rápidos 2×2 */}
       <section aria-label={t('sportsHome.quickAria', 'Accesos rápidos')}>
-        <div
-          role="tablist"
-          className={cn(
-            'relative grid grid-cols-3 gap-1 p-1 rounded-2xl',
-            'bg-[hsl(160_28%_97%)]/80 dark:bg-[hsl(190_28%_11%)]/70',
-            'border border-emerald-700/15 backdrop-blur-md',
-            'shadow-[0_1px_0_hsl(0_0%_100%/0.6)_inset,0_10px_30px_-20px_hsl(160_60%_20%/0.35)]',
-          )}
-        >
-          {bigCards.map((c) => {
-            const active = timeFilter === c.key;
-            return (
-              <button
-                key={c.key}
-                type="button"
-                role="tab"
-                onClick={() => handleQuickAction(c.key)}
-                aria-pressed={active}
-                aria-label={`${c.title} — ${c.subtitle}`}
-                title={c.subtitle}
+        <div className="grid grid-cols-2 gap-2.5">
+          {quickAccess.map((q) => (
+            <button
+              key={q.key}
+              type="button"
+              onClick={q.onClick}
+              aria-pressed={q.active}
+              className={cn(
+                'flex items-center gap-2.5 rounded-2xl px-3 min-h-[64px] text-left',
+                q.active
+                  ? 'bg-primary text-primary-foreground border border-primary'
+                  : surfaceBtn,
+              )}
+            >
+              <span
                 className={cn(
-                  'group relative flex flex-col items-center justify-center gap-1',
-                  'min-h-[56px] px-2 py-2 rounded-xl',
-                  'transition-all duration-200 ease-out liquid-press',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60',
-                  active
-                    ? 'bg-gradient-to-br from-emerald-600 to-emerald-500 text-white shadow-[0_6px_20px_-8px_hsl(160_70%_35%/0.7)] scale-[1.02]'
-                    : 'text-foreground hover:bg-emerald-600/8 dark:hover:bg-emerald-400/10',
+                  'h-9 w-9 rounded-xl flex items-center justify-center shrink-0',
+                  q.active ? 'bg-primary-foreground/15' : 'bg-sportsx-elevated',
                 )}
               >
-                <c.icon
-                  className={cn(
-                    'h-[18px] w-[18px] transition-transform duration-200',
-                    active ? 'text-white' : 'text-emerald-700 dark:text-emerald-300',
-                    'group-hover:-translate-y-0.5',
-                  )}
+                <q.icon
+                  className={cn('h-[18px] w-[18px]', q.active ? '' : 'text-sportsx-accent')}
                   aria-hidden="true"
                 />
-                <span
-                  className={cn(
-                    'text-[11.5px] font-semibold leading-none tracking-tight text-center line-clamp-1',
-                    active ? 'text-white' : 'text-foreground',
-                  )}
-                >
-                  {c.title}
-                </span>
-              </button>
-            );
-          })}
+              </span>
+              <span className="text-[13px] font-semibold leading-tight">{q.label}</span>
+            </button>
+          ))}
         </div>
       </section>
 
-
-
-      {/* Agenda deportiva verificada — antes de las categorías genéricas */}
+      {/* Agenda deportiva verificada */}
       <SportsAgenda />
 
-      {/* Category grid */}
+      {/* Explora por deporte */}
       <section aria-label={t('sportsHome.categoriesAria', 'Categorías deportivas')}>
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="text-lg font-semibold tracking-tight">
@@ -363,7 +466,7 @@ const SportsContent = () => {
             <button
               type="button"
               onClick={() => setSelectedTile('all')}
-              className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:underline min-h-9 px-1"
+              className="text-xs font-semibold text-sportsx-accent hover:underline min-h-9 px-1"
             >
               {t('sportsHome.clearCategory', 'Ver todos')}
             </button>
@@ -382,271 +485,259 @@ const SportsContent = () => {
                   setTimeout(scrollToResults, 60);
                 }}
                 className={cn(
-                  'group relative flex flex-col items-start gap-2 rounded-2xl border p-3 min-h-[96px] text-left transition-all liquid-press',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60',
+                  'group flex items-center gap-2.5 rounded-2xl px-3 min-h-[56px] text-left',
                   active
-                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-[0_10px_28px_-14px_hsl(160_60%_25%/0.55)]'
-                    : 'bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] border-emerald-700/15 hover:border-emerald-600/40 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20',
+                    ? 'bg-primary text-primary-foreground border border-primary'
+                    : surfaceBtn,
                 )}
               >
-                <div
+                <span
                   className={cn(
-                    'h-9 w-9 rounded-lg flex items-center justify-center',
-                    active
-                      ? 'bg-white/15 text-white'
-                      : 'bg-emerald-600/12 text-emerald-700 dark:text-emerald-200',
+                    'h-8 w-8 rounded-lg flex items-center justify-center shrink-0',
+                    active ? 'bg-primary-foreground/15' : 'bg-sportsx-elevated text-sportsx-accent',
                   )}
                 >
-                  <tile.icon className="h-5 w-5" />
-                </div>
-                <p className={cn(
-                  'text-[13px] font-semibold leading-tight',
-                  active ? 'text-white' : 'text-foreground',
-                )}>
+                  <tile.icon className="h-[18px] w-[18px]" />
+                </span>
+                <span className="text-[13px] font-semibold leading-tight">
                   {t(tile.labelKey, tile.fallback)}
-                </p>
+                </span>
               </button>
             );
           })}
         </div>
       </section>
 
-      {/* Summary stats */}
-      <section aria-label={t('sportsHome.summaryAria', 'Resumen de actividad')}>
-        <div className="grid grid-cols-3 gap-2 rounded-2xl border border-emerald-700/20 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] p-3">
-          {summaryStats.map((s, i) => (
-            <div
-              key={i}
-              className="flex flex-col items-center text-center gap-1 rounded-xl py-2 px-1"
-            >
-              <div className="h-9 w-9 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center">
-                <s.icon className="h-4 w-4" aria-hidden="true" />
-              </div>
-              <span className="text-xl font-bold leading-none tabular-nums">
-                {isLoading ? '—' : s.value}
-              </span>
-              <span className="text-[11px] text-muted-foreground leading-tight">{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Today highlights */}
-      {timeFilter !== 'today' && todayEvents.length > 0 && (
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">{t('sports.todayInSport', 'Hoy en deporte')}</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-emerald-700 dark:text-emerald-300 gap-1 min-h-11"
-              onClick={() => handleQuickAction('today')}
-            >
-              {t('common.seeAll')}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {todayEvents.slice(0, 4).map((event) => (
-              <SportEventCard key={event.id} event={event} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Weekend highlights */}
-      {timeFilter !== 'weekend' && weekendEvents.length > 0 && (
-        <section>
-          <div className="flex justify-between items-center mb-3">
-            <h2 className="text-lg font-semibold">{t('sports.weekendSport', 'Deporte este finde')}</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-emerald-700 dark:text-emerald-300 gap-1 min-h-11"
-              onClick={() => handleQuickAction('weekend')}
-            >
-              {t('common.seeAll')}
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {weekendEvents.slice(0, 4).map((event) => (
-              <SportEventCard key={event.id} event={event} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Municipalities chips */}
-      <section>
-        <h2 className="text-lg font-semibold tracking-tight mb-3">
-          {t('sports.exploreByMunicipality', 'Explorar por municipio')}
-        </h2>
-        <div className="flex gap-2 overflow-x-auto pb-2 px-0.5 -mx-0.5 scrollbar-hide">
-          <button
-            onClick={() => setSelectedMunicipality('all')}
-            aria-pressed={selectedMunicipality === 'all'}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
-              selectedMunicipality === 'all'
-                ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
-            )}
-          >
-            <MapPin className="h-3.5 w-3.5" />
-            {t('sports.all')}
-          </button>
-          {municipalityNames.map((m) => {
-            const active = selectedMunicipality === m;
-            return (
-              <button
-                key={m}
-                onClick={() => setSelectedMunicipality(active ? 'all' : m)}
-                aria-pressed={active}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border',
-                  active
-                    ? 'bg-emerald-600 text-white border-emerald-600'
-                    : 'bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] border-emerald-700/15 text-muted-foreground hover:border-emerald-600/40',
-                )}
+      {/* Desktop: dos columnas a partir de 1024px */}
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-6 lg:items-start space-y-5 lg:space-y-0">
+        <div className="space-y-5">
+          {/* Por municipio */}
+          <section ref={municipalityRef} aria-label={t('sports.exploreByMunicipality', 'Explorar por municipio')}>
+            <h2 className="text-lg font-semibold tracking-tight mb-3">
+              {t('sports.exploreByMunicipality', 'Explorar por municipio')}
+            </h2>
+            <div className="flex flex-wrap items-center gap-3">
+              <Select
+                value={selectedMunicipality}
+                onValueChange={(v) => { setSelectedMunicipality(v); setTimeout(scrollToResults, 60); }}
               >
-                <MapPin className="h-3.5 w-3.5" />
-                {m}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+                <SelectTrigger
+                  aria-label={t('sports.municipalitySelectAria', 'Seleccionar municipio')}
+                  className="h-11 w-full sm:w-[260px] bg-sportsx-surface border-sportsx-line"
+                >
+                  <SelectValue placeholder={t('sports.all', 'Todos')} />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-sportsx-line">
+                  <SelectItem value="all">{t('sports.all', 'Todos')}</SelectItem>
+                  {municipalityNames.map((m) => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                {isLoading
+                  ? t('common.loading', 'Cargando…')
+                  : t('sportsHome.resultsSummary', '{{count}} resultados', { count: events.length })}
+              </p>
+            </div>
+          </section>
 
-      {/* Results block */}
-      <section ref={resultsRef}>
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <h2 className="text-lg font-semibold mr-auto">
-            {t('sports.upcomingEvents', 'Próximos eventos deportivos')}
-          </h2>
-          <SportsVenuesDropdown
-            selectedVenueNames={selectedVenueNames}
-            onSelectionChange={setSelectedVenueNames}
-          />
-          {!isLoading && (
-            <span className="text-xs text-muted-foreground">
-              {events.length} {t('sportsHome.results', 'resultados')}
-            </span>
+          {/* Próximos eventos */}
+          <section ref={resultsRef}>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <h2 className="text-lg font-semibold mr-auto">
+                {t('sports.upcomingEvents', 'Próximos eventos deportivos')}
+              </h2>
+              <SportsVenuesDropdown
+                selectedVenueNames={selectedVenueNames}
+                onSelectionChange={setSelectedVenueNames}
+              />
+            </div>
+
+            {isLoading ? (
+              <div className="grid grid-cols-2 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-40 w-full rounded-2xl bg-sportsx-surface" />
+                ))}
+              </div>
+            ) : isError ? (
+              <Card className="bg-sportsx-surface border-destructive/40">
+                <CardContent className="py-8 text-center space-y-3">
+                  <AlertTriangle className="h-8 w-8 mx-auto text-destructive" aria-hidden="true" />
+                  <p className="text-sm text-foreground">{t('errors.generic')}</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => refetch()}
+                    className="min-h-11 gap-2 border-sportsx-line"
+                  >
+                    <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                    {t('common.retry', 'Reintentar')}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : events.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {events.map((event) => (
+                  <SportEventCard key={event.id} event={event} />
+                ))}
+              </div>
+            ) : (
+              renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'))
+            )}
+          </section>
+
+          {/* Hoy / fin de semana destacados */}
+          {timeFilter !== 'today' && todayEvents.length > 0 && (
+            <section>
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-semibold">{t('sports.todayInSport', 'Hoy en deporte')}</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sportsx-accent gap-1 min-h-11"
+                  onClick={() => handleQuickAction('today')}
+                >
+                  {t('common.seeAll')}
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {todayEvents.slice(0, 4).map((event) => (
+                  <SportEventCard key={event.id} event={event} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {timeFilter !== 'weekend' && weekendEvents.length > 0 && (
+            <section>
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-lg font-semibold">{t('sports.weekendSport', 'Deporte este finde')}</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sportsx-accent gap-1 min-h-11"
+                  onClick={() => handleQuickAction('weekend')}
+                >
+                  {t('common.seeAll')}
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {weekendEvents.slice(0, 4).map((event) => (
+                  <SportEventCard key={event.id} event={event} />
+                ))}
+              </div>
+            </section>
           )}
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-700 dark:text-emerald-300" />
-          </div>
-        ) : isError ? (
-          <Card className="bg-destructive/10 border-destructive/20">
-            <CardContent className="py-8 text-center text-destructive">
-              <p className="text-sm">{t('errors.generic')}</p>
-            </CardContent>
-          </Card>
-        ) : events.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3">
-            {events.map((event) => (
-              <SportEventCard key={event.id} event={event} />
-            ))}
-          </div>
-        ) : (
-          renderEmpty(t('sports.empty.results', 'No encontramos actividades con estos filtros.'))
-        )}
-      </section>
+        {/* Columna lateral en escritorio */}
+        <aside className="space-y-5">
+          {/* Resumen de actividad */}
+          <section aria-label={t('sportsHome.summaryAria', 'Resumen de actividad')}>
+            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-sportsx-line bg-sportsx-surface p-3">
+              {summaryStats.map((s, i) => (
+                <div key={i} className="flex flex-col items-center text-center gap-1 rounded-xl py-2 px-1">
+                  <div className="h-9 w-9 rounded-full bg-sportsx-elevated text-sportsx-accent flex items-center justify-center">
+                    <s.icon className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                  <span className="text-xl font-bold leading-none tabular-nums">
+                    {isLoading ? '—' : s.value}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground leading-tight">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
-      {/* CTA: what do you want to do today */}
-      <section>
-        <div
-          className="rounded-2xl border border-emerald-700/20 p-4 sm:p-5"
-          style={{
-            backgroundImage:
-              'linear-gradient(135deg, hsl(160 55% 35% / 0.15), hsl(190 55% 40% / 0.10))',
-          }}
-        >
-          <h3 className="text-base font-semibold mb-1">
-            {t('sportsHome.cta.title', '¿Qué te apetece hacer hoy?')}
-          </h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            {t('sportsHome.cta.subtitle', 'Descubre lo que se mueve en tu entorno.')}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <Button
-              onClick={() => navigate('/map')}
-              className="min-h-11 bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
-            >
-              <Navigation className="h-4 w-4" />
-              {t('sportsHome.cta.near', 'Ver actividades cerca de mí')}
-            </Button>
-            <Button
-              onClick={() => navigate('/venues')}
-              variant="outline"
-              className="min-h-11 border-emerald-700/30 gap-2"
-            >
-              <Building2 className="h-4 w-4" />
-              {t('sportsHome.cta.venues', 'Explorar instalaciones')}
-            </Button>
-          </div>
-        </div>
-      </section>
+          {/* CTA */}
+          <section>
+            <div className="rounded-2xl border border-sportsx-line bg-sportsx-elevated p-4">
+              <h3 className="text-base font-semibold mb-1">
+                {t('sportsHome.cta.title', '¿Qué te apetece hacer hoy?')}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                {t('sportsHome.cta.subtitle', 'Descubre lo que se mueve en tu entorno.')}
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                <Button
+                  onClick={() => navigate('/map')}
+                  className="min-h-11 bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+                >
+                  <Navigation className="h-4 w-4" aria-hidden="true" />
+                  {t('sportsHome.cta.near', 'Ver actividades cerca de mí')}
+                </Button>
+                <Button
+                  onClick={() => navigate('/venues')}
+                  variant="outline"
+                  className="min-h-11 border-sportsx-line gap-2"
+                >
+                  <Building2 className="h-4 w-4" aria-hidden="true" />
+                  {t('sportsHome.cta.venues', 'Explorar instalaciones')}
+                </Button>
+              </div>
+            </div>
+          </section>
 
-      {/* Featured venues */}
-      <section>
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-semibold">{t('sports.venuesTitle', 'Recintos deportivos')}</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-emerald-700 dark:text-emerald-300 gap-1 min-h-11"
-            onClick={() => navigate('/venues')}
-          >
-            {t('common.seeAll')}
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        {featuredVenues.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {featuredVenues.map((v) => (
-              <button
-                key={v.id}
+          {/* Recintos destacados */}
+          <section>
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-semibold">{t('sports.venuesTitle', 'Recintos deportivos')}</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-sportsx-accent gap-1 min-h-11"
                 onClick={() => navigate('/venues')}
-                className="flex items-start gap-3 p-3 rounded-xl border border-emerald-700/15 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] hover:border-emerald-600/40 hover:bg-emerald-50/40 dark:hover:bg-emerald-900/20 transition-colors text-left min-h-[64px]"
               >
-                <div className="h-9 w-9 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center shrink-0">
-                  <Building2 className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold truncate">{v.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{v.city}</p>
-                  {v.sports?.length > 0 && (
-                    <div className="flex gap-1 mt-1.5 flex-wrap">
-                      {v.sports.slice(0, 3).map((s) => (
-                        <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1 border-emerald-700/25">
-                          <SportIcon sport={s} className="h-3 w-3" />
-                          {t(`sports.${s}`, s)}
-                        </Badge>
-                      ))}
+                {t('common.seeAll')}
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
+            {featuredVenues.length > 0 ? (
+              <div className="grid grid-cols-1 gap-2">
+                {featuredVenues.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => navigate('/venues')}
+                    className={cn('flex items-start gap-3 p-3 rounded-xl text-left min-h-[64px]', surfaceBtn)}
+                  >
+                    <div className="h-9 w-9 rounded-full bg-sportsx-elevated text-sportsx-accent flex items-center justify-center shrink-0">
+                      <Building2 className="h-4 w-4" aria-hidden="true" />
                     </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          renderEmpty(t('sports.empty.venuesSoon', 'Estamos incorporando recintos deportivos.'))
-        )}
-      </section>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate">{v.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{v.city}</p>
+                      {v.sports?.length > 0 && (
+                        <div className="flex gap-1 mt-1.5 flex-wrap">
+                          {v.sports.slice(0, 3).map((s) => (
+                            <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 gap-1 border-sportsx-line">
+                              <SportIcon sport={s} className="h-3 w-3" />
+                              {t(`sports.${s}`, s)}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              renderEmpty(t('sports.empty.venuesSoon', 'Estamos incorporando recintos deportivos.'))
+            )}
+          </section>
 
-      {/* Fuentes oficiales — compacto, sólo modo Deportes */}
-      <OfficialSourcesPanel />
+          {/* Fuentes oficiales */}
+          <OfficialSourcesPanel />
+        </aside>
+      </div>
 
-      {/* Organizers CTA */}
+      {/* Organizadores */}
       <section className="pb-2">
-        <Card className="border-dashed border-emerald-700/25 bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
+        <Card className="border-dashed border-sportsx-line bg-sportsx-surface">
           <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 rounded-full bg-emerald-600/15 text-emerald-700 dark:text-emerald-200">
-              <Megaphone className="h-6 w-6" />
+            <div className="p-3 rounded-full bg-sportsx-elevated text-sportsx-accent">
+              <Megaphone className="h-6 w-6" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-medium">
@@ -659,7 +750,7 @@ const SportsContent = () => {
             <Button
               size="sm"
               onClick={() => navigate('/submit-event')}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white min-h-11"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 min-h-11"
             >
               {t('sports.organizers.cta', 'Publicar')}
             </Button>

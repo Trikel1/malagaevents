@@ -114,8 +114,10 @@ const Index = () => {
     <div
       className={cn(
         'min-h-screen',
-        isSports && 'bg-[hsl(174_22%_85%)] dark:bg-[hsl(190_32%_9%)]'
+        // Deportes: the opaque cinematic ramp is owned by `.sports-theme`.
+        isSports && 'bg-transparent'
       )}
+
     >
       <SEO
         title={t('home.seo.title')}
@@ -126,8 +128,9 @@ const Index = () => {
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
         'relative text-white px-4 sm:px-6 pt-4 overflow-hidden',
-        isSports ? 'bg-gradient-hero-sports pb-8' : 'bg-gradient-hero pb-20'
+        isSports ? 'sports-hero pb-5' : 'bg-gradient-hero pb-20'
       )}>
+
 
         {/* Subtle depth layer — only in Eventos to keep Deportes hero clean */}
         {!isSports && (
@@ -191,19 +194,20 @@ const Index = () => {
             <h1 className={cn(
               'font-bold tracking-tight max-w-xl',
               isSports
-                ? 'text-[24px] sm:text-[32px] leading-[1.1]'
+                ? 'text-[24px] sm:text-[30px] leading-[1.1]'
                 : 'text-[26px] sm:text-[38px] leading-[1.08]'
             )}>
-              {isSports ? t('sportsHome.heroTitle', 'Deportes en Málaga') : t('home.hero.title')}
+              {isSports ? t('sportsHome.heroTitle', 'Deporte en Málaga') : t('home.hero.title')}
             </h1>
             <p className={cn(
-              'text-[13.5px] sm:text-sm text-white/90 mt-1.5 max-w-md leading-snug',
-              isSports ? 'line-clamp-2' : 'truncate'
+              'text-[13.5px] sm:text-sm mt-1.5 max-w-md leading-snug',
+              isSports ? 'line-clamp-2 text-sportsx-accent' : 'truncate text-white/90'
             )}>
               {isSports
-                ? t('sportsHome.heroSubtitle', 'Instalaciones, actividades y eventos deportivos cerca de ti')
+                ? t('sportsHome.heroSubtitle', 'Agenda, instalaciones y clubes verificados de la provincia')
                 : t('home.hero.subtitle')}
             </p>
+
           </div>
 
           {!isSports && (
@@ -289,9 +293,10 @@ const Index = () => {
 
 
       <main className={cn(
-        'px-4 sm:px-6 pb-8 relative z-10 max-w-6xl mx-auto',
-        isSports ? 'pt-5 space-y-5' : '-mt-14 space-y-6'
+        'px-4 sm:px-6 pb-8 relative z-10 mx-auto',
+        isSports ? 'pt-4 space-y-4 max-w-[1180px]' : '-mt-14 space-y-6 max-w-6xl'
       )}>
+
         {isSports ? (
           <Suspense fallback={<div className="h-40" />}>
             <SportsContent />

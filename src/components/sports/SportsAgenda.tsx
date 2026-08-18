@@ -48,10 +48,10 @@ const AgendaCard = ({ e }: { e: SportsEntity }) => {
   const timeEnd = formatTime(e.time_end);
 
   return (
-    <Card className="border-emerald-700/20 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)]">
+    <Card className="border-sportsx-line bg-sportsx-surface">
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
-          <div className="h-11 w-11 shrink-0 rounded-xl bg-emerald-600/15 text-emerald-700 dark:text-emerald-200 flex items-center justify-center">
+          <div className="h-11 w-11 shrink-0 rounded-xl bg-sportsx-elevated text-sportsx-accent flex items-center justify-center">
             {e.sport ? (
               <SportIcon sport={e.sport} className="h-5 w-5" />
             ) : (
@@ -62,7 +62,7 @@ const AgendaCard = ({ e }: { e: SportsEntity }) => {
             <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
               <Badge
                 variant="outline"
-                className="text-[10px] px-1.5 py-0 border-emerald-700/25 uppercase tracking-wide"
+                className="text-[10px] px-1.5 py-0 border-sportsx-line uppercase tracking-wide"
               >
                 {e.entity_type === 'tournament'
                   ? t('sportsAgenda.badge.tournament', 'Torneo')
@@ -113,7 +113,7 @@ const AgendaCard = ({ e }: { e: SportsEntity }) => {
                   href={e.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-300 hover:underline min-h-11 py-2"
+                  className="inline-flex items-center gap-1 font-semibold text-sportsx-accent hover:underline min-h-11 py-2"
                 >
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                   {t('sportsAgenda.officialSource', 'Fuente oficial')}
@@ -124,7 +124,7 @@ const AgendaCard = ({ e }: { e: SportsEntity }) => {
                   href={e.registration_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-300 hover:underline min-h-11 py-2"
+                  className="inline-flex items-center gap-1 font-semibold text-sportsx-accent hover:underline min-h-11 py-2"
                 >
                   {t('sportsAgenda.register', 'Inscribirse')}
                   <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -159,7 +159,7 @@ const SportsAgenda = () => {
     >
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg font-semibold tracking-tight flex items-center gap-1.5">
-          <CalendarDays className="h-5 w-5 text-emerald-700 dark:text-emerald-300" aria-hidden="true" />
+          <CalendarDays className="h-5 w-5 text-sportsx-accent" aria-hidden="true" />
           {t('sportsAgenda.title', 'Agenda deportiva')}
         </h2>
         <span className="text-[11px] text-muted-foreground">
@@ -180,8 +180,8 @@ const SportsAgenda = () => {
               className={cn(
                 'shrink-0 rounded-full px-3 min-h-11 text-[12.5px] font-semibold border transition-colors liquid-press',
                 active
-                  ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)] border-emerald-700/20 text-foreground',
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-sportsx-surface border-sportsx-line text-foreground',
               )}
             >
               {t(w.labelKey, w.fallback)}
@@ -203,8 +203,8 @@ const SportsAgenda = () => {
               className={cn(
                 'rounded-full px-2.5 min-h-9 text-[11.5px] font-medium border',
                 active
-                  ? 'bg-emerald-700 text-white border-emerald-700'
-                  : 'bg-transparent text-muted-foreground border-emerald-700/20 hover:text-foreground',
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-transparent text-muted-foreground border-sportsx-line hover:text-foreground',
               )}
             >
               {t(tp.labelKey, tp.fallback)}
@@ -216,7 +216,7 @@ const SportsAgenda = () => {
             value={sport}
             onChange={(e) => setSport(e.target.value)}
             aria-label={t('sportsAgenda.sportFilter', 'Filtrar por deporte')}
-            className="rounded-full px-2.5 min-h-9 text-[11.5px] font-medium border border-emerald-700/20 bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className="rounded-full px-2.5 min-h-9 text-[11.5px] font-medium border border-sportsx-line bg-transparent text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="all">{t('sportsAgenda.allSports', 'Todos los deportes')}</option>
             {sports.map((s) => (
@@ -230,17 +230,17 @@ const SportsAgenda = () => {
 
       {/* Verified events section */}
       <div>
-        <h3 className="text-[12px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 mb-2">
+        <h3 className="text-[12px] font-semibold uppercase tracking-wide text-sportsx-accent mb-2">
           {t('sportsAgenda.verifiedTitle', 'Eventos verificados')}
         </h3>
         {isLoading ? (
-          <Card className="border-emerald-700/20 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)]">
+          <Card className="border-sportsx-line bg-sportsx-surface">
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
               {t('common.loading', 'Cargando…')}
             </CardContent>
           </Card>
         ) : events.length === 0 ? (
-          <Card className="border-dashed border-emerald-700/25 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)]">
+          <Card className="border-dashed border-sportsx-line bg-sportsx-surface">
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
               {t(
                 'sportsAgenda.emptyWindow',
@@ -282,10 +282,10 @@ const PendingSourcesBlock = () => {
           href={s.officialUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-emerald-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+          className="flex items-center gap-2 px-2 py-2 rounded-lg min-h-11 hover:bg-sportsx-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ExternalLink
-            className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-300"
+            className="h-3.5 w-3.5 shrink-0 text-sportsx-accent"
             aria-hidden="true"
           />
           <div className="min-w-0 flex-1">
@@ -293,7 +293,7 @@ const PendingSourcesBlock = () => {
               <span className="text-[13px] font-medium truncate">{s.shortName}</span>
               <Badge
                 variant="outline"
-                className="text-[9.5px] px-1 py-0 border-emerald-700/25 uppercase tracking-wide"
+                className="text-[9.5px] px-1 py-0 border-sportsx-line uppercase tracking-wide"
               >
                 {s.scope === 'federation'
                   ? t('sportsAgenda.scope.federation', 'Federación')
@@ -333,7 +333,7 @@ const PendingSourcesBlock = () => {
         <Radar className="h-3.5 w-3.5" aria-hidden="true" />
         {t('sportsAgenda.pendingTitle', 'Calendarios externos pendientes de sincronización')}
       </h3>
-      <Card className="border-dashed border-emerald-700/20 bg-[hsl(160_28%_98%)] dark:bg-[hsl(190_28%_13%)]">
+      <Card className="border-dashed border-sportsx-line bg-sportsx-surface">
         <CardContent className="p-3">
           <p className="text-[12.5px] text-muted-foreground mb-2 leading-snug">
             {t(
@@ -349,7 +349,7 @@ const PendingSourcesBlock = () => {
             <div className="space-y-2.5">
               {grouped.federation.length > 0 && (
                 <div>
-                  <p className="text-[10.5px] font-semibold uppercase tracking-wide text-emerald-700/80 dark:text-emerald-300/80 mb-0.5">
+                  <p className="text-[10.5px] font-semibold uppercase tracking-wide text-sportsx-accent mb-0.5">
                     {t('sportsAgenda.scope.federations', 'Federaciones')}
                   </p>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">
@@ -359,7 +359,7 @@ const PendingSourcesBlock = () => {
               )}
               {grouped.club.length > 0 && (
                 <div>
-                  <p className="text-[10.5px] font-semibold uppercase tracking-wide text-emerald-700/80 dark:text-emerald-300/80 mb-0.5">
+                  <p className="text-[10.5px] font-semibold uppercase tracking-wide text-sportsx-accent mb-0.5">
                     {t('sportsAgenda.scope.clubs', 'Clubes')}
                   </p>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1">

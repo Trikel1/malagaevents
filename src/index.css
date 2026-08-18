@@ -238,6 +238,73 @@
 }
 
 /* ============================================================
+   DEPORTES — "Modern Dark / Cinema Mobile" scoped design system.
+   Every token below lives inside `.sports-theme`, which is only applied to
+   the Deportes module routes. Cultural Eventos pages never see these values.
+   The palette is opaque on purpose: no decorative blur, no translucency that
+   could reveal a white strip behind the safe area.
+   ============================================================ */
+.sports-theme {
+  /* #0B211F base, #102D2A deep */
+  --background: 175 50% 9%;
+  --foreground: 210 40% 98%;          /* #F8FAFC */
+
+  /* #153A35 surface, #1B4740 elevated */
+  --card: 172 47% 15%;
+  --card-foreground: 210 40% 98%;
+  --popover: 170 45% 19%;
+  --popover-foreground: 210 40% 98%;
+
+  --primary: 161 94% 30%;             /* #059669 */
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 170 45% 19%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 172 47% 15%;
+  --muted-foreground: 165 16% 76%;    /* #B8CCC7 */
+
+  --accent: 170 45% 22%;
+  --accent-foreground: 156 72% 67%;
+
+  --border: 169 37% 28%;              /* #2D6258 */
+  --input: 169 37% 28%;
+  --ring: 156 72% 67%;                /* #6EE7B7 */
+
+  --destructive: 4 78% 62%;
+  --destructive-foreground: 210 40% 98%;
+
+  --sportsx-surface: 172 47% 15%;
+  --sportsx-elevated: 170 45% 19%;
+  --sportsx-line: 169 37% 28%;
+  --sportsx-accent: 156 72% 67%;      /* #6EE7B7 */
+  --sportsx-info: 188 86% 53%;        /* #22D3EE */
+
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+/* (The opaque cinematic backdrop for `.sports-theme` is declared further down,
+   after the generic `.liquid-backdrop` rules, so it always wins.) */
+
+
+/* Bottom navigation: fully opaque inside the sports module. */
+.sports-theme .glass-nav,
+.dark .sports-theme .glass-nav {
+  background: hsl(var(--sportsx-elevated));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid hsl(var(--sportsx-line));
+  box-shadow: 0 -2px 18px -12px hsl(0 0% 0% / 0.8);
+}
+
+/* Compact sports hero sits on the same opaque ramp as the page body. */
+.sports-theme .sports-hero {
+  background: linear-gradient(165deg, hsl(174 48% 12%) 0%, hsl(175 50% 9%) 100%);
+}
+
+
+/* ============================================================
    Liquid Glass utilities
    ============================================================ */
 @layer components {
@@ -411,30 +478,25 @@
 .dark .liquid-blob { opacity: 0.08; }
 
 
-[data-mode="deportes"] .liquid-backdrop {
+/* Sports mode on shared routes (calendar, map, pharmacies…) keeps the light
+   liquid backdrop. The Deportes module itself opts out via `.sports-theme`. */
+[data-mode="deportes"]:not(.sports-theme) .liquid-backdrop {
   background:
     radial-gradient(60% 45% at 15% 8%, hsl(160 55% 90% / 0.45) 0%, transparent 60%),
     radial-gradient(55% 45% at 90% 18%, hsl(200 65% 90% / 0.45) 0%, transparent 62%),
     radial-gradient(70% 55% at 50% 100%, hsl(210 65% 92% / 0.5) 0%, transparent 65%),
     linear-gradient(180deg, hsl(160 30% 98%) 0%, hsl(200 30% 98%) 100%);
 }
-[data-mode="deportes"] .liquid-blob-1 { background: hsl(190 80% 65% / 0.35); }
-[data-mode="deportes"] .liquid-blob-2 { background: hsl(150 60% 60% / 0.32); }
+[data-mode="deportes"]:not(.sports-theme) .liquid-blob-1 { background: hsl(190 80% 65% / 0.35); }
+[data-mode="deportes"]:not(.sports-theme) .liquid-blob-2 { background: hsl(150 60% 60% / 0.32); }
 
-/* Sports HOME: backdrop is fully opaque teal so no white strip is ever
-   revealed behind the safe-area / bottom-nav padding. Scoped to the home
-   route so other sports pages keep their own surfaces. */
-[data-mode="deportes"][data-route="home"] .liquid-backdrop {
-  background:
-    radial-gradient(60% 45% at 15% 8%, hsl(174 30% 82%) 0%, hsl(168 30% 92%) 55%, hsl(178 28% 90%) 100%),
-    linear-gradient(180deg, hsl(174 22% 85%) 0%, hsl(184 24% 83%) 100%);
+/* Deportes module: single opaque cinematic ramp, covers the safe area too. */
+.sports-theme .liquid-backdrop,
+.dark .sports-theme .liquid-backdrop {
+  background: linear-gradient(180deg, hsl(175 50% 9%) 0%, hsl(174 48% 12%) 100%);
 }
-.dark [data-mode="deportes"][data-route="home"] .liquid-backdrop {
-  background:
-    radial-gradient(60% 45% at 15% 8%, hsl(190 40% 14%) 0%, hsl(190 32% 10%) 55%, hsl(180 30% 8%) 100%),
-    linear-gradient(180deg, hsl(190 32% 9%) 0%, hsl(180 30% 8%) 100%);
-}
-[data-mode="deportes"][data-route="home"] .liquid-blob { display: none; }
+.sports-theme .liquid-blob { display: none; }
+
 
 
 

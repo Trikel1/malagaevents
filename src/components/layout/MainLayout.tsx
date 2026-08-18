@@ -1,6 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useAppMode } from '@/contexts/AppModeContext';
+import { cn } from '@/lib/utils';
+
 import BottomNav from './BottomNav';
 import LiquidGlassBackdrop from './LiquidGlassBackdrop';
 
@@ -15,18 +17,23 @@ const MainLayout = () => {
   const location = useLocation();
   const routeKey = useMemo(() => routeKeyFromPath(location.pathname), [location.pathname]);
 
-  const isSportsHome = appMode === 'deportes' && (location.pathname === '/' || location.pathname === '');
+  /**
+   * Routes that belong to the (independent) Deportes module. Shared routes
+   * such as /map, /calendar or /pharmacies keep the global theme untouched.
+   */
+  const SPORTS_ROUTES = ['home', 'events', 'venues'];
+  const isSportsSection = appMode === 'deportes' && SPORTS_ROUTES.includes(routeKey);
 
   return (
     <div
-      className={
-        isSportsHome
-          ? 'min-h-screen relative bg-[hsl(174_22%_85%)] dark:bg-[hsl(190_32%_9%)]'
-          : 'min-h-screen relative bg-background'
-      }
+      className={cn(
+        'min-h-screen relative',
+        isSportsSection ? 'sports-theme bg-background' : 'bg-background',
+      )}
       data-mode={appMode}
       data-route={routeKey}
     >
+
       <LiquidGlassBackdrop />
       <main
         className="relative z-[1]"

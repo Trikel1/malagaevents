@@ -71,7 +71,7 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
             </Badge>
           )}
           {isFree && (
-            <Badge className="text-[10px] px-1.5 py-0 gap-1 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20">
+            <Badge className="text-[10px] px-1.5 py-0 gap-1 bg-sportsx-elevated text-sportsx-accent border-sportsx-line hover:bg-sportsx-elevated">
               <Tag className="h-2.5 w-2.5" />
               {t('sports.filter.free', 'Gratis')}
             </Badge>

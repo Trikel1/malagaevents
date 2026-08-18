@@ -55,7 +55,20 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        /**
+         * Sports module palette. These variables are only defined inside
+         * `.sports-theme`, so the utilities are scoped to the Deportes module
+         * and can never leak into the cultural Eventos pages.
+         */
+        sportsx: {
+          surface: "hsl(var(--sportsx-surface))",
+          elevated: "hsl(var(--sportsx-elevated))",
+          line: "hsl(var(--sportsx-line))",
+          accent: "hsl(var(--sportsx-accent))",
+          info: "hsl(var(--sportsx-info))",
+        },
         sidebar: {
+
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
           primary: "hsl(var(--sidebar-primary))",
