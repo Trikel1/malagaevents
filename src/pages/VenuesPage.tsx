@@ -38,16 +38,9 @@ const VenuesPage = () => {
     return result;
   }, [search, selectedSport, selectedCity, venues]);
 
+  /** Internal navigation only — the venue is shown on the in-app map. */
   const openMap = (venue: typeof venues[0]) => {
-    if (venue.lat && venue.lng) {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const url = isIOS
-        ? `maps://maps.apple.com/?daddr=${venue.lat},${venue.lng}`
-        : `https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lng}`;
-      window.open(url, '_blank');
-    } else if (venue.address) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.name + ' ' + venue.city)}`, '_blank');
-    }
+    navigate(`/map?venue=${encodeURIComponent(venue.name)}`);
   };
 
   return (
