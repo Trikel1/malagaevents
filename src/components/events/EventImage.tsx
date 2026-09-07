@@ -276,6 +276,10 @@ const EventImage = ({
   const [hasError, setHasError] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
+  // Insecure or generic source images never stand in for the real poster.
+  const src = useMemo(() => sanitizeEventImageUrl(rawSrc), [rawSrc]);
+
+
   // A new src must clear the previous error/loading state, otherwise a card
   // that recycles (list virtualisation, filter change) stays stuck on the
   // placeholder even though the new poster is perfectly fine.
