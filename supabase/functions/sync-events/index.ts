@@ -439,8 +439,8 @@ class DiagnosticLogger {
 // HELPER FUNCTIONS
 // ============================================================================
 
-function normalizeText(text: string): string {
-  return text
+function normalizeText(text: string | null | undefined): string {
+  return (text ?? '')
     .toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -449,11 +449,18 @@ function normalizeText(text: string): string {
     .trim();
 }
 
-function normalizeVenue(venueRaw: string, defaultVenue: string): string {
-  if (!venueRaw) return defaultVenue;
-  const lower = venueRaw.toLowerCase().trim();
-  return VENUE_ALIASES[lower] || defaultVenue;
+/**
+ * Returns the venue the source actually published. When neither the event nor
+ * the source configuration names one, it returns an empty string: a missing
+ * venue is recorded as missing, never replaced by an invented one.
+ */
+function normalizeVenue(venueRaw: string | null | undefined, defaultVenue: string | null | undefined): string {
+  const raw = (venueRaw ?? '').trim();
+  const fallback = (defaultVenue ?? '').trim();
+  if (!raw) return fallback;
+  return VENUE_ALIASES[raw.toLowerCase()] || fallback || raw;
 }
+
 
 /**
  * Legacy entry point kept for the existing extractors. The implementation now
@@ -1385,8 +1392,48 @@ async function fetchLaGarrapata(): Promise<DirectFetchResult> {
     strategy: 'la-garrapata-ticketandroll+qconciertos',
   };
 }
+/**
+ * Sites running The Events Calendar publish a complete JSON feed. Reading it is
+ * more reliable than the listing HTML, so it is tried first for every source;
+ * a 404 simply means the plugin is not installed and costs one fast request.
+ */
+async function tryTribeApi(source: any): Promise<DirectFetchResult | null> {
+  const entry = source?.chosen_entrypoint || source?.fallback_entrypoint;
+  if (!entry) return null;
+  const result = await fetchTribeEvents(entry, async (url: string) => {
+    const response = await fetchWithTimeout(url, 15000, { headers: { Accept: 'application/json' } });
+    return { ok: response.ok, status: response.status, json: () => response.json() };
+  });
+  if (!result.ok || result.events.length === 0) return null;
+
+  const events: NormalizedEvent[] = result.events
+    .filter((event) => event.scheduleStatus !== 'canceled')
+    .map((event) => ({
+      title: event.title,
+      description: event.description,
+      occurrences: event.occurrences,
+      venue: event.venue,
+      city: event.city,
+      image_url: event.imageUrl,
+      ticket_url: event.ticketUrl,
+      price: event.price,
+      is_free: event.isFree,
+    }));
+
+  return {
+    ok: true,
+    http_status: result.httpStatus ?? 200,
+    events,
+    strategy: `tribe-api${result.coverage === 'partial' ? '-partial' : ''}`,
+  };
+}
+
 async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchResult | null> {
+  const tribe = await tryTribeApi(source);
+  if (tribe) return tribe;
+
   switch (slug) {
+
     case 'la-garrapata':
       return fetchLaGarrapata();
     case 'sala-trinchera':
