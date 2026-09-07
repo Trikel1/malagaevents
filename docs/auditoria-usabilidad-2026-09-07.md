@@ -98,3 +98,24 @@ de autorización queda **implementado pero sin desplegar** (ver informe final).
 
 Cada archivo es independiente; revertir los archivos listados restaura el
 comportamiento previo. No hay migraciones que deshacer.
+
+## Fase 2 — Fiabilidad de ubicación, datos y autorización
+
+### Frontend
+- `src/lib/venueCoords.ts` (+ test): validación real de coordenadas (`null`, `''`, `NaN`, fuera de rango y "Null Island" 0,0 se descartan) y `resolvePoint()` con precisión `exact` / `approximate`.
+- `src/pages/MapPage.tsx`: los marcadores se filtran antes de pasarlos al mapa; los registros sin coordenadas fiables ya no se colocan en el centro de Málaga, sino que aparecen en un bloque honesto "Ubicación pendiente". Deep links `?kind`, `?q`, `?venue`, `?event`, `?lat&lng` (verificado en navegador: `?kind=pharmacy` activa Farmacias + alcance Todos).
+- `src/hooks/useEvents.ts`: se piden `address,lat,lng` para poder ubicar los eventos.
+- `src/pages/MunicipalityAgendaPage.tsx`: la agenda municipal ya no depende solo de `municipality_id` (NULL en los 250 eventos vigentes); usa también `location_normalized` y muestra un estado de error con reintento.
+- `src/pages/ProfilePage.tsx`: se elimina el enlace a `/profile/notifications`, ruta inexistente.
+- `src/lib/sportsAgendaMerge.ts` (+ test) y `useSportsAgenda.ts`: solo se muestran eventos deportivos con procedencia verificable (`status='confirmed'` y URL de fuente); deduplicación por nombre normalizado + fecha.
+
+### Funciones de servidor (solo endurecimiento, sin cambios de esquema ni de datos)
+- `_shared/security.ts`: `authorizeAdminRequest()` (clave `x-sync-key` de cron o JWT de administrador) y `unauthorizedResponse()`.
+- `sync-events`, `scrape-events`, `discover-sources`, `scrape-pharmacies`: quedaban abiertas al público y disparaban scraping de pago y escrituras; ahora exigen autorización antes de cualquier petición externa o escritura.
+- `sync-events`: la lista de dominios permitidos se aplicaba en un bucle que solo registraba el aviso; las fuentes bloqueadas se scrapeaban igualmente. Ahora se excluyen de verdad.
+- `scrape-events`: una fecha ilegible se sustituía por "dentro de 7 días a las 20:00" (evento inventado). Ahora se descarta y se contabiliza en `dates_unparseable`.
+- `scrape-pharmacies`: validación de la fecha `YYYY-MM-DD`, el barrido parcial ya no borra el día completo de toda la provincia, y el modo de prueba no deja ningún rastro en la base de datos.
+- `submit-event`: las categorías aceptadas coinciden con las del formulario, se rechaza una fecha de fin anterior al inicio, deja de registrarse el correo/IP del remitente y no se marca como superado un captcha que no se comprueba.
+
+### Validación
+TypeScript sin errores · 209/209 pruebas · build correcto · comprobación en navegador real a 375 y 1440 px.
