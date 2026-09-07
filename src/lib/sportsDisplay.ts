@@ -101,7 +101,7 @@ export function resolveSportImage(
 
 export type SportItemKind = 'match' | 'tournament' | 'activity';
 
-const TOURNAMENT_RE = /\b(liga|torneo|campeonato|copa|circuito|open|trofeo|championship|league)\b/i;
+const TOURNAMENT_RE = /\b(liga|torneo|campeonato|supercopa|copa|circuito|open|trofeo|championship|league|masters)\b/i;
 const MATCH_RE = /(\s-\s|\svs\.?\s|\sv\s)/i;
 
 /** What kind of thing this is, so matches, competitions and activities never blur. */

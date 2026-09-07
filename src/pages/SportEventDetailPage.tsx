@@ -151,7 +151,7 @@ const SportEventDetailPage = () => {
   const updatedAt = event.last_seen_at ?? event.updated_at;
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div className="sports-theme min-h-screen bg-background pb-28" data-mode="deportes">
       <SEO
         title={`${title} | Deportes Málaga`}
         description={`${title} — ${event.venue_name}, ${event.city}.`}
