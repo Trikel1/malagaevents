@@ -50,8 +50,8 @@ Orden de preferencia, sin ninguna salida que acabe en el recuadro con «Evento»
 ## 5. Las dos tarjetas del curso 3D
 
 - No se borra ni se fusiona nada por compartir título.
-- Se documenta la causa concreta (clave anti-duplicados aleatoria en la Agenda Municipal + hora inventada de las 20:00 en una recogida antigua) y se propone una corrección acotada de esa fuente para futuras recogidas: clave estable a partir de título + fecha + lugar.
-- Como los dos registros son del mismo día y el mismo curso, se propone además una revisión manual acotada de ese par; no se tocan datos históricos de forma masiva sin tu visto bueno.
+- Se corrige la causa en el extractor: la identidad usa el identificador original o la URL específica del evento cuando existen; solo si faltan se deriva una clave que incluye la fuente y los campos normalizados, distinguiendo evento y sesión. Se comprueba con casos: reimportar no duplica, completar hora o dirección no duplica, dos sesiones legítimas se conservan y dos eventos distintos con el mismo título no se fusionan. Se confirma además que ese extractor ya no inventa horas ni usa claves aleatorias.
+- Corrección puntual autorizada del par del curso 3D: se reconfirma la identidad y la ausencia de hora en la fuente, se conserva un registro canónico con su información válida y sus referencias (favoritos, enlaces, ocurrencias), se retira la hora inventada y se documentan los identificadores y los valores anteriores. Sin limpieza masiva.
 
 ## 6. Comprobación visual
 
