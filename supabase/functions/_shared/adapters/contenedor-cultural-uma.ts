@@ -1,5 +1,6 @@
 // Contenedor Cultural UMA (Universidad de Málaga) — dry-run only.
-// Source: https://www.uma.es/servicio-cultura/info/111568/contenedor-cultural/
+// Source: https://www.uma.es/contenedorcultural/ (the old /servicio-cultura/
+// info page returns HTTP 404 since the site was reorganised; verified 2026-09-07).
 
 import type { SourceAdapter, CanonicalEvent } from "../ingestion/types.ts";
 import {
@@ -11,9 +12,10 @@ import {
 
 const BASE = "https://www.uma.es";
 const LISTING_URLS = [
-  "https://www.uma.es/servicio-cultura/info/111568/contenedor-cultural/",
+  "https://www.uma.es/contenedorcultural/",
   "https://www.uma.es/servicio-cultura/",
 ];
+
 
 function inferCategory(title: string): string {
   const t = stripAccents(title.toLowerCase());

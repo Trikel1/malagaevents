@@ -257,17 +257,24 @@ function dedupeByExternalId(events: CanonicalSportsEvent[]): CanonicalSportsEven
 
 /**
  * Discover ICS export URLs in an HTML page by looking for hrefs ending in
- * `.ics` (case-insensitive) or containing common export tokens.
+ * `.ics`, `/ics`, an explicit calendar MIME type or common export tokens.
  */
 export function discoverIcsUrls(html: string, baseUrl: string): string[] {
   const out = new Set<string>();
-  const re = /href=["']([^"']+)["']/gi;
+  const re = /<(?:a|link)\b[^>]*>/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html))) {
-    const href = m[1];
-    if (/\.ics(\?|#|$)/i.test(href) || /format=ical/i.test(href) || /export.*ical/i.test(href)) {
-      try { out.add(new URL(href, baseUrl).toString()); } catch { /* skip */ }
-    }
+    const tag = m[0];
+    const href = tag.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1]?.replace(/&amp;/gi, '&');
+    if (!href) continue;
+    const calendarMime = /\btype\s*=\s*["']text\/calendar(?:;[^"']*)?["']/i.test(tag);
+    if (!calendarMime && !/(?:\.ics|\/ics\/?)(?:\?|#|$)/i.test(href) && !/format=ical|export.*ical/i.test(href)) continue;
+    try {
+      const url = new URL(href, baseUrl);
+      if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) continue;
+      url.hash = '';
+      out.add(url.toString());
+    } catch { /* skip malformed links */ }
   }
   return [...out];
 }

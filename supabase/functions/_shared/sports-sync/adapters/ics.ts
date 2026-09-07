@@ -7,7 +7,8 @@
 // - Naive local DTSTART without TZID is assumed Europe/Madrid.
 
 import type { CanonicalSportsEvent } from "../types.ts";
-import { parseIcs, type IcsDateTime, type IcsEvent } from "../../adapters/lib/ics.ts";
+import { parseIcs, type IcsEvent } from "../../adapters/lib/ics.ts";
+import { sportsIcsDateToIso } from './ics-date.ts';
 
 export interface IcsAdapterOptions {
   sourceName: string;
@@ -16,22 +17,6 @@ export interface IcsAdapterOptions {
   defaultCategory: string;
   /** Optional filter to drop irrelevant events (e.g. training-only). */
   keep?: (ev: CanonicalSportsEvent) => boolean;
-}
-
-function icsDateToIso(dt: IcsDateTime | null): string | null {
-  if (!dt) return null;
-  if (dt.iso) {
-    // date-only "YYYY-MM-DD" → 00:00 Europe/Madrid
-    if (dt.kind === "date" && /^\d{4}-\d{2}-\d{2}$/.test(dt.iso)) {
-      return `${dt.iso}T00:00:00+01:00`;
-    }
-    if (dt.kind === "date-time-local") {
-      // Naive local → assume Europe/Madrid (+01:00 canonical)
-      if (/T\d{2}:\d{2}:\d{2}$/.test(dt.iso)) return `${dt.iso}+01:00`;
-    }
-    return dt.iso;
-  }
-  return null;
 }
 
 function mapStatus(raw: string): CanonicalSportsEvent["status"] {
@@ -43,10 +28,11 @@ function mapStatus(raw: string): CanonicalSportsEvent["status"] {
 
 function toCanonical(e: IcsEvent, opts: IcsAdapterOptions): CanonicalSportsEvent | null {
   const title = e.summary?.trim();
-  const starts = icsDateToIso(e.dtstart);
+  const starts = sportsIcsDateToIso(e.dtstart);
   if (!title || !starts) return null;
 
-  const ends = icsDateToIso(e.dtend);
+  const ends = sportsIcsDateToIso(e.dtend);
+  if (ends && Date.parse(ends) < Date.parse(starts)) return null;
   const uid = e.uid?.trim();
   const url = e.url?.trim() || null;
   const external_id = uid && uid.length > 0
@@ -67,7 +53,11 @@ function toCanonical(e: IcsEvent, opts: IcsAdapterOptions): CanonicalSportsEvent
     timezone: "Europe/Madrid",
     municipality: opts.defaultMunicipality,
     province: "Málaga",
-    venue_name: e.location?.trim() || opts.defaultMunicipality,
+    // A calendar without LOCATION does not tell us where the match is played.
+    // Leave it empty (downstream eligibility treats it as unknown) instead of
+    // fabricating the source's default municipality as a venue.
+    venue_name: e.location?.trim() || "",
+
     address: e.location?.trim() || null,
     lat: e.geo?.lat ?? null,
     lng: e.geo?.lng ?? null,

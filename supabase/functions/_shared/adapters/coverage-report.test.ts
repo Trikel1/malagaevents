@@ -82,7 +82,7 @@ const KNOWN: Record<string, { slug: string; baseUrl: string }> = {
   "la-cochera-cabaret": { slug: "cochera-cabaret", baseUrl: "https://www.lacocheracabaret.com/" },
   "contenedor-cultural-uma": {
     slug: "contenedor-uma",
-    baseUrl: "https://www.uma.es/servicio-cultura/info/111568/contenedor-cultural/",
+    baseUrl: "https://www.uma.es/contenedorcultural/",
   },
   "cine-albeniz": { slug: "cine-albeniz", baseUrl: "https://cinealbeniz.com/" },
 };
