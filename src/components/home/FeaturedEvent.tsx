@@ -100,7 +100,7 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
           <div className="mt-2 space-y-1 text-[13px] text-muted-foreground">
             <p className="flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="capitalize">
+              <span className="first-letter:uppercase">
                 {formattedDate} · {formattedTime}
               </span>
             </p>
