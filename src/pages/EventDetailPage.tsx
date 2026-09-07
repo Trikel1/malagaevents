@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
 import { 
-  ArrowLeft, Calendar, MapPin, Euro, Users, Baby, 
+  ArrowLeft, Calendar, Clock, MapPin, Euro, Users, Baby, Monitor,
   Accessibility, Heart, Share2, Ticket, Navigation, Loader2, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { formatMadrid } from '@/lib/madridTime';
 import { buildEventIcs, icsFileName } from '@/lib/calendarExport';
 import { resolveTicketAction, buildDirectionsUrl } from '@/lib/eventLinks';
 import { resolvePoint } from '@/lib/venueCoords';
+import { isOnlineEvent } from '@/lib/eventPlace';
 import EventCard from '@/components/events/EventCard';
 import EventImage, { EventImageSkeleton } from '@/components/events/EventImage';
 import EmptyState from '@/components/common/EmptyState';
@@ -157,13 +158,14 @@ const EventDetailPage = () => {
     address: event.address,
     venueName: event.venue_name,
   });
+  const isOnline = isOnlineEvent({ venue_name: event.venue_name, address: event.address });
 
   const ticketLabel =
     ticketAction.kind === 'tickets'
       ? t('eventDetail.viewTickets', 'Ver entradas')
       : ticketAction.kind === 'register'
       ? t('eventDetail.register', 'Inscribirme')
-      : t('eventDetail.officialSite', 'Consultar en la web oficial');
+      : t('eventDetail.officialSiteShort', 'Web oficial');
 
   /** External maps app when the location is verified; internal map otherwise. */
   const handleOpenMaps = () => {
