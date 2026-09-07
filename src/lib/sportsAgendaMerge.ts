@@ -95,7 +95,7 @@ export function toAgendaEntity(row: SportsEventRow): SportsEntity | null {
     source_name: row.source_name ?? null,
     source_url: row.source_url ?? row.canonical_url ?? null,
     source_last_checked: row.last_seen_at ?? null,
-    status: 'verified',
+    status: verdict.tier === 'verified' ? 'verified' : 'needs_review',
     notes: row.venue_name ?? null,
     tags: null,
     created_at: row.created_at ?? new Date().toISOString(),
