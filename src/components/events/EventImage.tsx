@@ -261,7 +261,7 @@ const getEventTypeFromCategory = (category?: string): EventType => {
 };
 
 const EventImage = ({
-  src,
+  src: rawSrc,
   alt,
   variant = 'card',
   aspectRatio,
