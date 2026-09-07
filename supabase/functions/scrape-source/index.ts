@@ -30,6 +30,7 @@ import {
   stableHash,
   normalizeTitle,
   normalizeVenueName,
+  canonicalCategory,
 } from "../_shared/ingestion/normalize.ts";
 import { parseSpanishDateToMadrid } from "../_shared/ingestion/dates.ts";
 import { resolveVenueAlias } from "../_shared/ingestion/venues.ts";
@@ -379,7 +380,7 @@ Deno.serve(async (req) => {
           title: ev.title,
           description: ev.description ?? "",
           description_full: ev.description ?? null,
-          category: ev.category ?? "general",
+          category: canonicalCategory(ev.category),
           start_at: ev.startAt,
           end_at: ev.endAt ?? null,
           venue_name: canonicalVenue ?? ev.venueName ?? null,

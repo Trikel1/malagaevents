@@ -83,7 +83,7 @@ export function parseJuntaDetailPage(
   const title = safeString(ldjson.name);
   if (!title) return null;
   const description = safeString(ldjson.description) ?? null;
-  const imageUrl = pickImageUrl(ldjson.image);
+  const imageUrl = pickImageUrl(ldjson.image, detailUrl);
   const location = (ldjson.location ?? {}) as Record<string, unknown>;
   const address = (location.address ?? {}) as Record<string, unknown>;
   const venueName = safeString(location.name);
@@ -148,13 +148,29 @@ function coerceNumber(v: unknown): number | null {
   return null;
 }
 
-function pickImageUrl(v: unknown): string | null {
-  if (typeof v === "string") return v.trim() || null;
-  if (v && typeof v === "object") {
-    const url = (v as Record<string, unknown>).url;
-    return safeString(url);
+function pickImageUrl(v: unknown, baseUrl?: string): string | null {
+  let raw: string | null = null;
+  if (typeof v === "string") raw = v.trim() || null;
+  else if (Array.isArray(v)) {
+    for (const item of v) {
+      raw = pickImageUrl(item, baseUrl);
+      if (raw) break;
+    }
+    return raw;
+  } else if (v && typeof v === "object") {
+    raw = safeString((v as Record<string, unknown>).url);
   }
-  return null;
+  if (!raw) return null;
+  // Auditoría 2026-09-07: el JSON-LD devuelve rutas relativas ("/export/...")
+  // que llegaban a la app como imágenes rotas. Se resuelven contra la URL de
+  // detalle; si no se puede resolver, se descarta antes que guardar algo roto.
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (!baseUrl) return null;
+  try {
+    return new URL(raw, baseUrl).toString();
+  } catch {
+    return null;
+  }
 }
 
 function joinStreetAddress(v: unknown): string | null {

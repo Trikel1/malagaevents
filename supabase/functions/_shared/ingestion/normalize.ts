@@ -48,3 +48,55 @@ export function stableHash(input: string): Promise<string> {
     return hex;
   });
 }
+
+// ---------------------------------------------------------------------------
+// Category canonicalisation.
+//
+// Auditoría 2026-09-07: varias fuentes (sobre todo el CSV de datos abiertos del
+// Ayuntamiento) escribían la categoría en crudo y en español ("Cursos y
+// talleres", "Fiestas populares", "Música"...). Los filtros de la app consultan
+// `category` con las claves canónicas en inglés, así que esos eventos quedaban
+// fuera de cualquier filtro. Esta función traduce la categoría de origen a la
+// clave canónica antes de escribir.
+// ---------------------------------------------------------------------------
+
+export const CANONICAL_CATEGORIES = [
+  "music",
+  "theater",
+  "exhibitions",
+  "kids",
+  "sports",
+  "festivals",
+  "workshops",
+  "conferences",
+  "nightlife",
+  "other",
+] as const;
+
+export type CanonicalCategory = (typeof CANONICAL_CATEGORIES)[number];
+
+const CATEGORY_KEYWORDS: Array<{ id: CanonicalCategory; keywords: string[] }> = [
+  { id: "kids", keywords: ["kids", "infantil", "familia", "familiar", "ninos", "publico infantil"] },
+  { id: "workshops", keywords: ["workshop", "taller", "curso", "formacion", "cursos y talleres"] },
+  { id: "conferences", keywords: ["conference", "conferencia", "charla", "congreso", "jornada", "presentacion", "encuentro"] },
+  { id: "exhibitions", keywords: ["exhibition", "exposicion", "museo", "muestra", "arte", "galeria", "ferias exposiciones y museos"] },
+  { id: "festivals", keywords: ["festival", "fiesta", "feria", "verbena", "romeria", "carnaval", "procesion", "actos religiosos"] },
+  { id: "sports", keywords: ["sport", "deporte", "carrera", "maraton", "torneo"] },
+  { id: "nightlife", keywords: ["nightlife", "ocio nocturno", "discoteca", "club nocturno", "dj"] },
+  { id: "music", keywords: ["music", "musica", "concierto", "flamenco", "recital", "opera", "zarzuela"] },
+  { id: "theater", keywords: ["theater", "theatre", "teatro", "espectaculo", "danza", "circo", "cine", "magia", "monologo", "artes escenicas"] },
+];
+
+export function canonicalCategory(raw: string | null | undefined): CanonicalCategory {
+  const normalized = normalizeText(raw);
+  if (!normalized) return "other";
+  if ((CANONICAL_CATEGORIES as readonly string[]).includes(normalized)) {
+    return normalized as CanonicalCategory;
+  }
+  for (const { id, keywords } of CATEGORY_KEYWORDS) {
+    for (const keyword of keywords) {
+      if (normalized.includes(normalizeText(keyword))) return id;
+    }
+  }
+  return "other";
+}

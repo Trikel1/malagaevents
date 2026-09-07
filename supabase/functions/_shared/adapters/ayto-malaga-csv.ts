@@ -135,8 +135,12 @@ export function canonicalizeRow(
   const ticketUrl =
     pick(row, ["url_entradas", "entradas", "ticket_url", "url_tickets"]) || null;
   const priceText = pick(row, ["precio", "price", "coste"]) || null;
-  const eventUrl =
-    pick(row, ["direccion_web", "url", "enlace", "link", "web"]) || sourceUrl;
+  // Auditoría 2026-09-07: el CSV trae `DIRECCION_WEB` vacía o sin esquema en
+  // muchas filas, así que sólo se acepta como URL canónica si es http(s)
+  // absoluta; en caso contrario se conserva la URL del recurso oficial.
+  const rawEventUrl =
+    pick(row, ["direccion_web", "url", "enlace", "link", "web"]) || "";
+  const eventUrl = /^https?:\/\//i.test(rawEventUrl) ? rawEventUrl : sourceUrl;
   const organizer = pick(row, ["organiza", "organizer", "productor"]) || null;
   const externalId =
     pick(row, ["id_evento", "id_actividad", "id"]) || null;

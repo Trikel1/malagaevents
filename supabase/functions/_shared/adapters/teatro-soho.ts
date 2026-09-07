@@ -433,6 +433,16 @@ export const teatroSohoAdapter: SourceAdapter = {
       }
 
       const cands = parseListingMarkdown(markdown);
+      if (cands.length === 0 && /<html[\s>]|<!doctype html/i.test(markdown)) {
+        // Auditoría 2026-09-07: sin FIRECRAWL_API_KEY el adaptador recibe HTML
+        // crudo y el parser (que espera markdown) devolvía 0 sin explicar nada.
+        // Se registra el motivo real en lugar de simular una fuente vacía.
+        ctx.logger.error("teatro-soho: respuesta HTML sin convertir a markdown", {
+          url,
+          reason: "requires_firecrawl",
+        });
+        continue;
+      }
       ctx.logger.info("teatro-soho: candidates parsed", {
         season: season.slug,
         count: cands.length,
