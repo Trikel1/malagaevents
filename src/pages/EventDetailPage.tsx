@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
 import { 
   ArrowLeft, Calendar, MapPin, Euro, Users, Baby, 
-  Accessibility, Heart, Share2, Ticket, Navigation, Loader2
+  Accessibility, Heart, Share2, Ticket, Navigation, Loader2, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
