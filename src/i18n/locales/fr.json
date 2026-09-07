@@ -697,7 +697,10 @@
       "martialArts": "Martial arts",
       "hiking": "Hiking",
       "familySports": "Family sport"
-    }
+    },
+    "deviceBlocked": "Cet appareil n'autorise pas l'enregistrement de vos centres d'intérêt (mode privé ou stockage plein).",
+    "syncFailed": "Impossible d'enregistrer vos centres d'intérêt dans votre compte. Ceux de cet appareil sont affichés.",
+    "importConflict": "Votre compte avait déjà des centres d'intérêt enregistrés sur un autre appareil. Ils ont été conservés, rien n'a été écrasé."
   },
   "sportsAgenda": {
     "registrationRequired": "Registration required",

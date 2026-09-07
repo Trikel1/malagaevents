@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Ticket, ChevronRight } from 'lucide-react';
 
 import EventImage from '@/components/events/EventImage';
-import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEvents } from '@/hooks/useEvents';
 import { formatMadrid } from '@/lib/madridTime';
 
