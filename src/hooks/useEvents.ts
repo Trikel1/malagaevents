@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Event } from '@/types';
 import type { EventFilters } from '@/components/events/FilterDrawer';
-import { madridPresetRange, madridStartOfToday, sanitizeIlikeTerm } from '@/lib/madridTime';
+import { madridPresetRange, sanitizeIlikeTerm } from '@/lib/madridTime';
 import {
   mergeCalendarEntries,
   groupCalendarEntries,
@@ -61,13 +61,14 @@ const fetchEvents = async (
   // Date filters — real Europe/Madrid calendar boundaries (DST aware).
   const now = new Date();
 
-  if (options.todayOnly) {
-    const [start, end] = madridPresetRange('today', now);
-    query = query
-      .gte('start_at', start.toISOString())
-      .lt('start_at', end.toISOString());
-  } else if (options.weekendOnly) {
-    const [start, end] = madridPresetRange('weekend', now);
+  // Preset scope (today / tomorrow / thisWeek / weekend / next30) wins over an
+  // explicit date range; the legacy todayOnly / weekendOnly flags map onto it.
+  const activePreset =
+    options.filters?.datePreset ??
+    (options.todayOnly ? 'today' : options.weekendOnly ? 'weekend' : undefined);
+
+  if (activePreset) {
+    const [start, end] = madridPresetRange(activePreset, now);
     query = query
       .gte('start_at', start.toISOString())
       .lt('start_at', end.toISOString());
@@ -93,6 +94,11 @@ const fetchEvents = async (
   // Free filter
   if (options.filters?.isFree) {
     query = query.eq('is_free', true);
+  }
+
+  // Outdoor filter
+  if (options.filters?.isOutdoor) {
+    query = query.eq('is_outdoor', true);
   }
 
   // Venue filter
