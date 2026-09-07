@@ -1,74 +1,66 @@
-## Pulido visual — Inicio + Eventos
+# Fase 1 — Cierre técnico, datos verificados y miniaturas nuevas
 
-Objetivo: elevar la calidad visual a nivel institucional (Ayuntamiento de Málaga) sin rediseñar. Solo micro-ajustes de espaciado, jerarquía, tipografía, contraste y consistencia. Cero cambios de datos, hooks, rutas o textos funcionales.
+Un solo documento de seguimiento: `docs/fase1-seguimiento.md` (problema, evidencia, causa, cambio, validación). Sin publicar, sin sincronizaciones masivas, sin pasarela de pago.
 
-### Auditoría (hallazgos concretos)
+## 1. Hora del evento de Estepona (corrección puntual autorizada)
 
-**Inicio (`src/pages/Index.tsx`)**
-1. Densidad heterogénea: `space-y-8` alterna con paneles de padding muy distintos (`p-3`, `p-5`, `p-6`, `p-8`) — rompe el ritmo vertical.
-2. Iconos con clase inválida `h-4.5 w-4.5` (Tailwind no la resuelve — se cae al tamaño por defecto). Aparece en Discover, Culture e Institutional.
-3. Header hero: `-mt-9` sobre `pb-14` deja el panel de Quick Actions con un solape correcto, pero el `pt-5` superior queda apretado en escritorio; falta un `max-w` central en desktop (todo el contenido a 100% del ancho hasta 1280px se ve poco institucional).
-4. "Cultura viva": tarjetas puramente decorativas sin acción — visualmente huecas.
-5. Stats de cobertura: números en `text-base sm:text-lg` — poco jerárquicos frente al peso del bloque.
-6. Section titles inconsistentes: unos con `px-1`, otros dentro de `glass-panel` — micro-desalineación en el eje izquierdo.
-7. Botones "Ver todo" con `text-primary` sin subrayado hover — pierden affordance en modo claro.
+- Consultas de solo lectura para localizar el evento y sus ocurrencias: valor guardado, franja horaria y origen.
+- Determinar la causa real entre las cuatro posibles (valor guardado, extractor, conversión de zona, presentación) comparando con la ficha oficial de esa edición.
+- Corregir solo ese registro (y sus ocurrencias) con migración revisable; registrar valor anterior, corregido y fuente.
+- Comprobar coherencia tarjeta / ficha / exportación de calendario.
+- Consulta de candidatos con posible desfase (horas exactas en punto sospechosas, medianoche UTC): se entrega la lista, no se modifica en volumen.
+- Confirmar que el extractor actual ya no reintroduce el fallo (pruebas existentes de fechas).
 
-**Eventos (`src/pages/EventsPage.tsx` + subcomponentes)**
-1. Header `glass-nav` sticky: buena base, pero la fila búsqueda+location+near-me+filtros se apiña en móvil <360px (5 elementos en línea).
-2. `LocationFilter` sin `showLabel` no señala visualmente que es un filtro geográfico — solo icono; hay ambigüedad con "Cerca de mí".
-3. Preset chips (`Hoy / Mañana / Finde / 30 días`): altura 8 (32px) — por debajo del target táctil de 44px recomendado. `min-h-[36px]` como en el hero mejoraría.
-4. Chips activos (fila de filtros aplicados) con `text-[11px]` muy pequeños; el botón "Limpiar" queda al final de la fila sin peso visual.
-5. `EventCard` (grid denso): gap `mb-0.5` y `text-[11px]` para meta — legibilidad justa. Buena en móvil, pero en tablet/desktop se ve infantil por no escalar.
-6. `GroupedEventsList` sticky header usa `--events-header-h` que **no está definido** en ningún sitio → sticky day-labels se pegan a `top: 0` sin offset y quedan tapadas por el `glass-nav`. Bug visual real.
-7. `UpcomingHighlights` marquee: bien, pero el botón Pausar/Reanudar y el contador quedan en la misma línea sin separación consistente en móvil pequeño.
-8. `EmptyState` de error no diferenciado del vacío estándar (variant existe pero puede afinarse solo con tokens actuales).
-9. Sin `max-w` central en desktop → el listado se estira demasiado en ≥1200px.
+## 2. Dependencias y seguridad
 
-**Compartido / Navegación**
-- `BottomNav`: fuera de scope salvo variable CSS `--events-header-h` (afecta a Eventos), que se puede definir localmente en `EventsPage`. No se toca BottomNav.
+- Leer versiones realmente instaladas en el archivo de bloqueo para React Router, Supabase (ws) y Recharts (lodash).
+- Para cada alerta: aviso vigente, si aplica al uso concreto de esta aplicación, versión corregida y compatibilidad.
+- Actualizaciones selectivas y mínimas; nada forzado ni masivo. Lo que exija migración mayor se delimita y se deja fuera de esta fase.
+- Playwright y axe: ya hay `axe-core` y `vitest-axe`; se comprueba qué falta y solo se añade configuración útil si es imprescindible. No se añade Sentry.
 
-### Cambios propuestos (mínimos, reversibles)
+## 3. Mapa
 
-**`src/pages/Index.tsx`**
-- Corregir `h-4.5 w-4.5` → `h-5 w-5` (3 ocurrencias) [bug].
-- Añadir wrapper `max-w-6xl mx-auto` al `<main>` para acotar en desktop.
-- Homogeneizar padding de secciones panel: usar `p-5 sm:p-6` de forma consistente (quitar el `p-3` del Quick Actions → `p-4 sm:p-5`).
-- Unificar títulos de sección: quitar `px-1` cuando la sección no está dentro de un panel (o añadirlo siempre). Elegir: siempre sin `px-1`, con `main` ya con padding.
-- Botón "Ver todo": añadir `hover:underline underline-offset-4`.
-- Stats: subir a `text-lg sm:text-xl` el número y `font-semibold` en la label.
-- Hero: añadir `max-w-6xl mx-auto` al contenido interior del header (título + búsqueda) para centrar en desktop sin tocar el fondo.
+- Verificar el servicio de baldosas actual y su política vigente de uso/caché; documentar límites para un uso municipal. No se cambia de proveedor sin motivo.
+- Comprobar en la aplicación: puntos reales, distinción entre ubicación confirmada, dirección publicada y aproximada, selección desde ficha, filtros, cierre de tarjeta, geolocalización denegada, atribución visible. Móvil y escritorio.
+- Sin coordenadas inventadas: si no hay ubicación fiable, se explica y no se ofrecen indicaciones.
+- Revisar el uso real de `leaflet`, `react-leaflet` y `maplibre-gl`; eliminar solo lo que se compruebe sin uso.
 
-**`src/pages/EventsPage.tsx`**
-- Definir `--events-header-h` en el header (`style={{ ['--events-header-h' as any]: '...' }}`) o mediante `ref` + `useLayoutEffect` mínimo para exponerlo al body — **preferido: valor fijo aproximado** `calc(env(safe-area-inset-top,0px) + 148px)` en móvil, con media query. Sin JS nuevo. Alternativa: aplicar la variable en el `<main>` de esta página únicamente.
-- `max-w-6xl mx-auto` en `<main>` del listado.
-- Preset chips: subir a `h-9` (36px) y `text-sm`.
-- Chips activos: `text-[12px]` y separar "Limpiar" con `ml-auto`.
-- Fila búsqueda en móvil pequeño: envolver LocationFilter + near-me + filtros en un grupo con `flex-shrink-0` y garantizar que `form` tenga `min-w-0` (ya existe) — verificar. Reducir a `gap-1.5` en `<380px`.
-- `EventCard` denso: escalar meta a `text-xs sm:text-[13px]` para tablet/desktop; título a `text-sm sm:text-[15px]`.
-- `UpcomingHighlights`: en móvil <380px poner el contador debajo del botón (wrap natural con `flex-wrap`).
+## 4. Fuentes y extracción
 
-**Sin cambios** (conservar):
-- Toda la lógica de filtros, presets, geolocalización, favoritos, orden por cercanía.
-- Sistema `glass-*`, tokens de color, gradientes.
-- Estructura y orden de secciones en Inicio.
-- SEO, JSON-LD, i18n keys, rutas, hooks, Supabase.
-- Componentes de subcategoría (FilterDrawer, VenueKindFilter, LocationFilter internos).
-- Nada de Calendar, Map, Sports, Pharmacies, Profile, Admin.
+- Consolidar el inventario existente (CSV de `docs/fuentes/`) con las URL configuradas, indicando la cobertura exacta y lo no accesible.
+- Por fuente: URL y entidad, extractor y activación, última comprobación, resultado y campos, bloqueos, muestra verificable.
+- Contraste de muestras acotadas (no un rastreo completo): título, fecha, hora, recinto, municipio, imagen y entradas; zona Europe/Madrid, varios días, duplicados, capital frente a provincia.
 
-### Archivos a modificar
+## 5. Entradas e inscripciones
 
-1. `src/pages/Index.tsx` — micro-ajustes de clases Tailwind.
-2. `src/pages/EventsPage.tsx` — micro-ajustes de header, sticky offset, max-width.
-3. `src/components/events/EventCard.tsx` — solo variante `dense`: escalado tipográfico responsive.
-4. `src/components/events/GroupedEventsList.tsx` — valor por defecto para `--events-header-h` inline (fallback si no se define).
-5. `src/components/events/UpcomingHighlights.tsx` — `flex-wrap` en la fila de encabezado.
+- Revisar destinos de "Ver entradas", "Inscribirme" y "Consultar en la web oficial"; mostrar el dominio de destino y no presentar una web general como página de entradas ni afirmar disponibilidad sin respaldo.
 
-### Verificación
+## 6. Miniaturas (entregable prioritario)
 
-- Tras editar: revisión visual con Playwright a 375px, 768px y 1280px de `/` y `/events`.
-- Comprobar contraste de chips y botones "Ver todo" en claro y oscuro.
-- Confirmar que los sticky day-labels de `GroupedEventsList` no quedan tapados por el header.
-- `bunx vitest run` para asegurar que no rompemos pruebas.
-- Sin cambios de dependencias ni de esquema.
+Recuperación de imágenes reales
+- Ampliar la resolución de cartel en la ingesta y en el cliente: página del evento, datos estructurados, Open Graph, web oficial y plataforma de entradas; comprobar versión HTTPS antes de descartar por HTTP.
+- Guardar procedencia, tipo de imagen y estado de verificación. No sobrescribir imágenes buenas por peores.
+- Cervantes se mantiene como "no comprobado por bloqueo de acceso" mientras corresponda.
 
-Reversión: cada cambio es una clase Tailwind aislada — revert trivial fichero a fichero.
+Colección editorial por categoría
+- Generar un conjunto pequeño y coherente (música en directo, electrónica, teatro, exposiciones, familia, y reutilizando las deportivas existentes), primero una muestra de 2 para aprobar el estilo y luego el resto. Se guardan como recursos del proyecto; nunca se generan por visita.
+- Sin textos ni marcas dentro de la imagen; no simulan artista, recinto ni evento real.
+
+Presentación
+- El componente compartido de imagen pasa a: imagen protagonista, proporción consistente, carteles verticales completos sobre fondo derivado del propio cartel, etiqueta "Imagen ilustrativa" discreta y no invasiva, procedencia consultable en la ficha.
+- Se elimina el fondo con la palabra "Evento"/icono como resultado visible.
+- Dimensiones reservadas, tamaños adaptados, carga diferida fuera de la primera pantalla, prioridad en la imagen principal, sin bucles de recarga.
+- Se aplica en inicio, agenda, favoritos, recomendaciones, deportes y fichas mediante el componente ya compartido.
+
+## 7. Validación y cierre
+
+- Recorrido en español dentro de la aplicación (sin forzar el idioma a los demás), revisando 12 eventos reales que cubran cartel vertical, fotografía horizontal, imagen ausente, enlace roto, hora desconocida, ubicación aproximada y enlace externo de entradas.
+- Capturas antes/después en móvil y escritorio.
+- Tipos, pruebas y compilación ejecutados de verdad.
+- Resumen breve con los 8 puntos pedidos y la fase 2 preparada.
+
+## Notas técnicas
+
+- Cambios acotados por área (hora, mapa, dependencias, imágenes), revisables por separado.
+- Backend en modo lectura salvo la migración puntual del evento de Estepona.
+- Sin dependencias nuevas salvo que una necesidad no quede cubierta por las existentes.
