@@ -224,7 +224,7 @@ const Index = () => {
               aria-expanded={searchOpen}
               aria-controls="global-search-panel"
               title={t('home.hero.searchAria')}
-              className="liquid-press glass-button shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-3 sm:px-4 rounded-full text-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              className="liquid-press shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-4 rounded-full bg-primary text-primary-foreground shadow-md ring-1 ring-primary/30 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               {searchOpen ? (
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -234,7 +234,7 @@ const Index = () => {
               <span className="text-sm font-semibold">
                 {searchOpen
                   ? t('common.close', 'Cerrar')
-                  : t('home.hero.searchLabel', 'Buscar')}
+                  : t('common.search', 'Buscar')}
               </span>
             </button>
           )}
