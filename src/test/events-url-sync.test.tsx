@@ -122,11 +122,12 @@ describe('EventsPage URL synchronization', () => {
     expect(lastOptions.filters.datePreset).toBe('today');
   });
 
-  it('search commits to the URL after the debounce and survives back/forward', () => {
+  it('debounced search replaces the URL (no history spam) and back/forward restore committed searches', () => {
     renderAt('/events');
-    const input = screen.getByLabelText('Buscar') as HTMLInputElement;
+    const input = () => screen.getByLabelText('Buscar') as HTMLInputElement;
 
-    fireEvent.change(input, { target: { value: 'jazz' } });
+    // Typing commits with `replace`: the URL updates but no history entry is added.
+    fireEvent.change(input(), { target: { value: 'jazz' } });
     act(() => {
       vi.advanceTimersByTime(350);
     });
@@ -134,19 +135,27 @@ describe('EventsPage URL synchronization', () => {
     expect(lastOptions.searchQuery).toBe('jazz');
 
     fireEvent.click(screen.getByText('go-back'));
+    expect(new URLSearchParams(url()).get('q')).toBe('jazz');
+
+    // Enter pushes a new entry.
+    fireEvent.change(input(), { target: { value: 'flamenco' } });
+    fireEvent.submit(input().closest('form')!);
+    expect(new URLSearchParams(url()).get('q')).toBe('flamenco');
+
+    fireEvent.click(screen.getByText('go-back'));
     act(() => {
       vi.advanceTimersByTime(350);
     });
-    expect(new URLSearchParams(url()).get('q')).toBeNull();
-    expect((screen.getByLabelText('Buscar') as HTMLInputElement).value).toBe('');
-    expect(lastOptions.searchQuery).toBeUndefined();
+    expect(new URLSearchParams(url()).get('q')).toBe('jazz');
+    expect(input().value).toBe('jazz');
+    expect(lastOptions.searchQuery).toBe('jazz');
 
     fireEvent.click(screen.getByText('go-forward'));
     act(() => {
       vi.advanceTimersByTime(350);
     });
-    expect(new URLSearchParams(url()).get('q')).toBe('jazz');
-    expect((screen.getByLabelText('Buscar') as HTMLInputElement).value).toBe('jazz');
+    expect(new URLSearchParams(url()).get('q')).toBe('flamenco');
+    expect(input().value).toBe('flamenco');
   });
 
   it('Enter commits the search immediately without waiting for the debounce', () => {
