@@ -453,78 +453,57 @@ function normalizeVenue(venueRaw: string, defaultVenue: string): string {
   return VENUE_ALIASES[lower] || defaultVenue;
 }
 
+/**
+ * Legacy entry point kept for the existing extractors, now delegating to the
+ * strict shared Europe/Madrid helper.
+ *
+ * Rules (no exceptions):
+ * - never invent an hour: a source that only publishes a day yields the
+ *   "day known, hour unknown" sentinel (UTC midnight of that Madrid day);
+ * - never roll a date to the next year without the source stating the year:
+ *   an ambiguous dd/mm is rejected (null) so the caller skips and reports it;
+ * - an explicit offset or Z in the source is preserved as the real instant;
+ * - impossible dates and times (30/02, 25:00) are rejected, never wrapped.
+ */
+const ISO_WITH_EXPLICIT_ZONE =
+  /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/i;
+const DATE_TEXT_HAS_CLOCK = /\d{1,2}\s*[:h]\s*\d{2}/i;
+
+function parseClockText(timeText?: string): { hour: number; minute: number } | null {
+  if (!timeText) return null;
+  const match = timeText.match(/(\d{1,2})(?:[:.](\d{2}))?\s*h?/i);
+  if (!match) return null;
+  const hour = parseInt(match[1], 10);
+  const minute = match[2] ? parseInt(match[2], 10) : 0;
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  if (hour > 23 || minute > 59) return null;
+  return { hour, minute };
+}
+
 function parseSpanishDate(dateText: string, timeText?: string): Date | null {
   if (!dateText) return null;
-  
-  const months: Record<string, number> = {
-    'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
-    'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11,
-    'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
-    'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
-  };
-  
-  let hour = 20, minute = 0;
-  
-  if (timeText) {
-    // Accept HH:MM, HH.MM, "20h", "20 h", "20:00 h"
-    const timeMatch = timeText.match(/(\d{1,2})(?:[:\.](\d{2}))?\s*h?/i);
-    if (timeMatch) {
-      hour = parseInt(timeMatch[1]);
-      minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-    }
-  }
-  
-  // ISO first (YYYY-MM-DD or full ISO)
-  const isoMatch = dateText.match(/(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{1,2}):(\d{2}))?/);
-  if (isoMatch) {
-    const h = isoMatch[4] ? parseInt(isoMatch[4]) : hour;
-    const m = isoMatch[5] ? parseInt(isoMatch[5]) : minute;
-    return new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]), h, m);
-  }
-  
-  const spanishMatch = dateText.match(/(\d{1,2})\s+(?:de\s+)?(\w+)(?:\s+(?:de\s+)?(\d{4}))?/i);
-  if (spanishMatch) {
-    const day = parseInt(spanishMatch[1]);
-    const monthStr = spanishMatch[2].toLowerCase();
-    const month = months[monthStr];
-    if (!isNaN(day) && month !== undefined) {
-      let year = spanishMatch[3] ? parseInt(spanishMatch[3]) : new Date().getFullYear();
-      const date = new Date(year, month, day, hour, minute);
-      if (date < new Date() && !spanishMatch[3]) {
-        date.setFullYear(year + 1);
-      }
-      return date;
-    }
-  }
-  
-  // DD/MM/YYYY or DD-MM-YYYY
-  const numericMatch = dateText.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
-  if (numericMatch) {
-    const day = parseInt(numericMatch[1]);
-    const month = parseInt(numericMatch[2]) - 1;
-    let year = parseInt(numericMatch[3]);
-    if (year < 100) year += 2000;
-    return new Date(year, month, day, hour, minute);
-  }
-  
-  // DD/MM only — infer year (next future occurrence)
-  const shortMatch = dateText.match(/^\s*(\d{1,2})[\/\-\.](\d{1,2})\b/);
-  if (shortMatch) {
-    const day = parseInt(shortMatch[1]);
-    const month = parseInt(shortMatch[2]) - 1;
-    if (day >= 1 && day <= 31 && month >= 0 && month <= 11) {
-      const now = new Date();
-      let year = now.getFullYear();
-      let date = new Date(year, month, day, hour, minute);
-      // If already past by more than 1 day, assume next year
-      if (date.getTime() < now.getTime() - 24 * 3600 * 1000) {
-        date = new Date(year + 1, month, day, hour, minute);
-      }
-      return date;
-    }
-  }
-  
-  return null;
+  const raw = String(dateText).trim();
+  if (!raw) return null;
+
+  const base = parseSpanishDateToMadrid(raw);
+  if (!base) return null;
+
+  // The source declared a real instant (Z or ±hh:mm): keep it untouched.
+  if (ISO_WITH_EXPLICIT_ZONE.test(raw)) return base;
+  // The clock travelled with the date text: already read as Madrid wall time.
+  if (DATE_TEXT_HAS_CLOCK.test(raw)) return base;
+
+  const clock = parseClockText(timeText);
+  // No hour anywhere: keep the unknown-hour sentinel rather than fabricate one.
+  if (!clock) return base;
+
+  return madridWallTimeToDate(
+    base.getUTCFullYear(),
+    base.getUTCMonth() + 1,
+    base.getUTCDate(),
+    clock.hour,
+    clock.minute,
+  );
 }
 
 /**
