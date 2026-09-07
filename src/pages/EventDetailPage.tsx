@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
 import { 
   ArrowLeft, Calendar, MapPin, Euro, Users, Baby, 
-  Accessibility, Heart, Share2, Ticket, Navigation, Loader2
+  Accessibility, Heart, Share2, Ticket, Navigation, Loader2, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { hasExplicitTime } from '@/lib/eventTime';
 import { formatMadrid } from '@/lib/madridTime';
 import { buildEventIcs, icsFileName } from '@/lib/calendarExport';
+import { resolveTicketAction, buildDirectionsUrl } from '@/lib/eventLinks';
+import { resolvePoint } from '@/lib/venueCoords';
 import EventCard from '@/components/events/EventCard';
 import EventImage, { EventImageSkeleton } from '@/components/events/EventImage';
 import EmptyState from '@/components/common/EmptyState';
@@ -140,8 +142,34 @@ const EventDetailPage = () => {
     ? formatMadrid(new Date(event.end_at), 'HH:mm', locale)
     : null;
 
-  /** Internal map only — no handoff to external map providers. */
+  // Real outbound destinations for this event, or nothing at all.
+  const ticketAction = resolveTicketAction(event as unknown as Parameters<typeof resolveTicketAction>[0]);
+  const point = resolvePoint({
+    lat: event.lat,
+    lng: event.lng,
+    venueLat: (event as any).venue?.lat,
+    venueLng: (event as any).venue?.lng,
+    venueName: event.venue_name,
+  });
+  const directions = buildDirectionsUrl({
+    point,
+    address: event.address,
+    venueName: event.venue_name,
+  });
+
+  const ticketLabel =
+    ticketAction.kind === 'tickets'
+      ? t('eventDetail.viewTickets', 'Ver entradas')
+      : ticketAction.kind === 'register'
+      ? t('eventDetail.register', 'Inscribirme')
+      : t('eventDetail.officialSite', 'Consultar en la web oficial');
+
+  /** External maps app when the location is verified; internal map otherwise. */
   const handleOpenMaps = () => {
+    if (directions) {
+      window.open(directions.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
     navigate(`/map?event=${event.id}`);
   };
 
@@ -371,27 +399,64 @@ const EventDetailPage = () => {
             <Calendar className="h-4 w-4 mr-2" />
             {t('eventDetail.addToCalendar')}
           </Button>
-          <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
-            <Navigation className="h-4 w-4 mr-2" />
-            {t('eventDetail.howToGet')}
-          </Button>
+          {directions ? (
+            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
+              <Navigation className="h-4 w-4 mr-2" />
+              {t('eventDetail.howToGet')}
+            </Button>
+          ) : (
+            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
+              <MapPin className="h-4 w-4 mr-2" />
+              {t('eventDetail.seeOnMap', 'Ver en el mapa')}
+            </Button>
+          )}
         </div>
+        <p className="-mt-4 text-xs text-muted-foreground">
+          {directions
+            ? directions.basis === 'coords'
+              ? t('eventDetail.locationExact', 'Ubicación verificada.')
+              : t('eventDetail.locationAddress', 'Indicaciones a partir de la dirección publicada.')
+            : t('eventDetail.locationPending', 'Ubicación pendiente de confirmar: no podemos dar indicaciones.')}
+        </p>
 
-        {/* Información de entradas — informativa, sin checkout externo */}
+        {/* Entradas — acción real cuando la fuente publica un enlace */}
         <Card className="p-4">
           <h2 className="font-semibold text-sm mb-1.5 flex items-center gap-2">
             <Ticket className="h-4 w-4 text-primary" aria-hidden="true" />
             {t('eventDetail.ticketInfoTitle', 'Información de entradas')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {event.price_info
+            {event.is_free
+              ? t('common.free', 'Gratis')
+              : event.price_info
               ? event.price_info
-              : event.ticket_url
-              ? t('eventDetail.ticketsAvailable', 'Entradas disponibles a través del organizador.')
+              : ticketAction.url
+              ? t('eventDetail.priceOnSite', 'Precio y disponibilidad en la web del organizador.')
               : t('eventDetail.ticketsUnknown', 'No disponemos de información de entradas para este evento.')}
           </p>
+
+          {ticketAction.url ? (
+            <>
+              <Button asChild className="mt-3 w-full min-h-11">
+                <a href={ticketAction.url} target="_blank" rel="noopener noreferrer">
+                  {ticketLabel}
+                  <ExternalLink className="h-4 w-4 ml-2" aria-hidden="true" />
+                </a>
+              </Button>
+              {ticketAction.host && (
+                <p className="text-xs text-muted-foreground mt-1.5 text-center">
+                  {ticketAction.host}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="mt-3 text-sm font-medium">
+              {t('eventDetail.ticketPending', 'Enlace de entradas pendiente de confirmar.')}
+            </p>
+          )}
+
           {event.venue?.name && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-2">
               {t('eventDetail.organizer', 'Organizador')}: {event.venue.name}
             </p>
           )}
@@ -528,15 +593,35 @@ const EventDetailPage = () => {
           >
             <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
           </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="flex-1"
-            onClick={handleAddToCalendar}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            {t('eventDetail.addToCalendar')}
-          </Button>
+          {ticketAction.url ? (
+            <>
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-shrink-0"
+                onClick={handleAddToCalendar}
+                aria-label={t('eventDetail.addToCalendar')}
+              >
+                <Calendar className="h-5 w-5" />
+              </Button>
+              <Button asChild size="lg" className="flex-1">
+                <a href={ticketAction.url} target="_blank" rel="noopener noreferrer">
+                  {ticketLabel}
+                  <ExternalLink className="h-4 w-4 ml-2" aria-hidden="true" />
+                </a>
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="lg"
+              variant="secondary"
+              className="flex-1"
+              onClick={handleAddToCalendar}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              {t('eventDetail.addToCalendar')}
+            </Button>
+          )}
         </div>
       </div>
     </div>

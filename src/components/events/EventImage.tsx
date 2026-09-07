@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles, Image as ImageIcon, Palette, Baby, Trophy, Wrench, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeEventImageUrl } from '@/lib/eventImageSource';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -260,7 +261,7 @@ const getEventTypeFromCategory = (category?: string): EventType => {
 };
 
 const EventImage = ({
-  src,
+  src: rawSrc,
   alt,
   variant = 'card',
   aspectRatio,
@@ -274,6 +275,10 @@ const EventImage = ({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
+  // Insecure or generic source images never stand in for the real poster.
+  const src = useMemo(() => sanitizeEventImageUrl(rawSrc), [rawSrc]);
+
 
   // A new src must clear the previous error/loading state, otherwise a card
   // that recycles (list virtualisation, filter change) stays stuck on the
@@ -325,12 +330,12 @@ const EventImage = ({
 
     const config = CATEGORY_FALLBACKS[resolvedEventType];
     const IconComponent = config.icon;
-    const noPoster = !src;
+
 
     return (
       <div
         role="img"
-        aria-label={`${config.label} — ${noPoster ? 'sin cartel disponible' : 'imagen de categoría'}`}
+        aria-label={`${config.label} — imagen ilustrativa, no es el cartel oficial`}
         className={cn(
           'relative w-full h-full overflow-hidden flex flex-col items-center justify-center',
           'bg-gradient-to-br',
@@ -359,7 +364,7 @@ const EventImage = ({
         </span>
         {!isCompact && (
           <span className="relative mt-1 text-[10.5px] font-medium text-foreground/60">
-            {noPoster ? 'Sin cartel disponible' : 'Imagen de categoría'}
+            Imagen ilustrativa
           </span>
         )}
       </div>

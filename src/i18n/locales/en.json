@@ -358,7 +358,19 @@
     "calendarError": "We could not create the calendar file.",
     "shareUnavailable": "Sharing is not available in this browser.",
     "shareError": "We could not share this event.",
-    "linkCopied": "Link copied"
+    "linkCopied": "Link copied",
+    "viewTickets": "View tickets",
+    "register": "Register",
+    "officialSite": "Check the official website",
+    "ticketPending": "Ticket link pending confirmation.",
+    "priceOnSite": "Price and availability on the organiser's website.",
+    "ticketsUnknown": "We have no ticket information for this event.",
+    "ticketInfoTitle": "Ticket information",
+    "organizer": "Organiser",
+    "seeOnMap": "See on the map",
+    "locationExact": "Verified location.",
+    "locationAddress": "Directions based on the published address.",
+    "locationPending": "Location pending confirmation: we cannot give directions."
   },
   "calendar": {
     "title": "Calendar",
