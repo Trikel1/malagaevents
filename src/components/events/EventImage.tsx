@@ -330,7 +330,7 @@ const EventImage = ({
 
     const config = CATEGORY_FALLBACKS[resolvedEventType];
     const IconComponent = config.icon;
-    const noPoster = !src;
+
 
     return (
       <div
