@@ -67,7 +67,7 @@ describe('ranking', () => {
       { id: 'b', kind: 'sports', title: 'Partido de baloncesto', category: 'baloncesto', tags: [], startAt: soon(3) },
       { id: 'c', kind: 'culture', title: 'Recital de poesía', category: 'literatura', tags: [], startAt: soon(1) },
     ];
-    const ranked = rankItems(items, ['electronic_music', 'basketball'], 10);
+    const ranked = rankItems(items, ['electronic_music', 'basketball'], { limit: 10 });
     expect(ranked.map((r) => r.item.id)).toEqual(['a', 'b']);
     expect(ranked[0].reasonInterestId).toBe('electronic_music');
   });
@@ -76,7 +76,7 @@ describe('ranking', () => {
     const items: RankableItem[] = [
       { id: 'c', kind: 'culture', title: 'Recital de poesía', category: 'literatura', tags: [], startAt: soon(1) },
     ];
-    expect(rankItems(items, ['motorcycling'], 10)).toEqual([]);
+    expect(rankItems(items, ['motorcycling'], { limit: 10 })).toEqual([]);
   });
 
   it('breaks ties chronologically', () => {
@@ -84,7 +84,7 @@ describe('ranking', () => {
       { id: 'late', kind: 'culture', title: 'Concierto', category: 'conciertos', tags: [], startAt: soon(20) },
       { id: 'early', kind: 'culture', title: 'Concierto', category: 'conciertos', tags: [], startAt: soon(19) },
     ];
-    expect(rankItems(items, ['concerts'], 10)[0].item.id).toBe('early');
+    expect(rankItems(items, ['concerts'], { limit: 10 })[0].item.id).toBe('early');
   });
 });
 
