@@ -28,6 +28,7 @@ const SportsContent = lazy(() => import('@/components/sports/SportsContent'));
 
 const FeaturedEvent = lazy(() => import('@/components/home/FeaturedEvent'));
 const ForYouSection = lazy(() => import('@/components/home/ForYouSection'));
+const TwoHoursSheet = lazy(() => import('@/components/home/TwoHoursSheet'));
 
 
 const Index = () => {
@@ -341,6 +342,11 @@ const Index = () => {
               <ForYouSection />
             </Suspense>
 
+
+            {/* ============== Tengo dos horas — planificador real ============== */}
+            <Suspense fallback={null}>
+              <TwoHoursSheet />
+            </Suspense>
 
             {/* ============== Este finde ============== */}
             <section>
