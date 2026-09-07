@@ -623,3 +623,87 @@ Capturas reales en español con datos actuales: `docs/audit-preview/home-375.png
 (destacado: "MÁLAGA CREA 2026. MUESTRA JOVEN DE CORTOMETRAJES", La Caja Blanca, 9 de septiembre 22:00).
 
 Sin cambios en datos históricos, sin sincronizaciones y sin publicar el frontend.
+
+---
+
+## Farmacias — regresión de la sección "De guardia" (2026-09-08)
+
+### Causa concreta
+
+`pharmacies_guard.municipality` se guarda tal cual lo publica el portal oficial
+(farmaciasguardia.farmaceuticos.com, provincia 29): sin tildes, con capitalización
+propia y con erratas de origen —`Alhaurin De La Torre`, `Velez-Malaga`, `Cartama`,
+`Coin`, `Casarabonela.`, `Burgo (El)`, `Fuengilora` (sic)—. La interfaz filtra por el
+nombre canónico del catálogo (`Alhaurín de la Torre`, `Vélez-Málaga`…) y la consulta
+usaba `.eq('municipality', <nombre del catálogo>)`.
+
+Resultado: el único municipio que coincidía carácter a carácter era **Málaga**. Los
+otros 28 municipios con guardias publicadas devolvían **cero resultados** aunque las
+filas existían. El mismo defecto afectaba al directorio, que además contiene variantes
+acentuadas del mismo pueblo (`Benalmadena` / `Benalmádena`) y localidades
+(`Torre del Mar`, `Arroyo de la Miel`).
+
+Segundo fallo, independiente: la sincronización oficial se ejecuta de madrugada, así
+que entre las 00:00 y la publicación del turno **no hay fila para "hoy"** y la pantalla
+quedaba vacía sin explicar por qué.
+
+### Corrección aplicada
+
+- `src/lib/pharmacyMunicipality.ts` — normalización (tildes, puntuación, artículo
+  invertido) y resolución contra el catálogo existente `LOCALITIES_CATALOG`. No se crea
+  ningún catálogo paralelo. Localidades y erratas conocidas se mapean explícitamente;
+  las etiquetas ambiguas (`Costa`, `Estacion`) **no** se atribuyen a ningún municipio.
+- `src/hooks/usePharmacies.ts` — el filtro de municipio deja de ser SQL exacto y pasa a
+  aplicarse en memoria con ese emparejador, tanto en guardias como en directorio.
+  `usePharmaciesOnDuty` devuelve ahora `{ rows, sourceDate, isPreviousDay,
+  hasProvinceDataForDate }`.
+- Ventana de madrugada: si la fuente aún no ha publicado el día de hoy, se muestra el
+  turno del día anterior **etiquetado como "Guardia sin confirmar"**, con su fecha real
+  y aviso de llamar antes de ir. Nunca se presenta como guardia vigente y nunca ocurre
+  para fechas pasadas o futuras.
+- `src/lib/pharmacyAddressMatch.ts` — el portal de guardias solo publica dirección. Se
+  enlaza cada guardia con su ficha del directorio (mismo municipio, mismo número de
+  portal, alto solapamiento de calle, candidato único) para ofrecer nombre real,
+  "Llamar" y "Cómo llegar" con coordenadas. **37 de 117** filas del 7-sep enlazan;
+  aportan coordenadas a 37 y teléfono a 7. Las no enlazadas se muestran tal cual.
+- Tarjeta: estado con texto además de color, fecha del turno, aviso de ubicación
+  aproximada cuando no hay coordenadas, "No tenemos teléfono verificado" en lugar de
+  botón muerto, y enlace a la fuente oficial de esa fila.
+- Mensajes vacíos diferenciados: "publicado para otras zonas pero no para X" frente a
+  "todavía no hay información para esta fecha". Nunca "no hay farmacias de guardia".
+- Deduplicación de filas repetidas del portal (ALAMEDA PRINCIPAL, 2 aparecía dos veces
+  en Málaga el 7-sep).
+
+### Pruebas de regresión
+
+- `src/lib/pharmacyMunicipality.test.ts` (8) — usa las cadenas reales de la tabla y
+  documenta la comparación exacta que fallaba.
+- `src/lib/pharmacyAddressMatch.test.ts` (7) — direcciones reales de Marbella; no
+  confunde el nº 4 con el 44 ni cruza municipios.
+- `src/test/pharmacies-no-fallback.test.ts` actualizado al nuevo contrato.
+- Total: 383 pruebas en verde, tipos limpios, build correcto.
+
+### Cobertura real (consultada el 2026-09-08)
+
+- Directorio: 697 farmacias, 135 etiquetas de municipio/localidad. Contiene duplicados
+  por variante ortográfica; el emparejador los absorbe en la vista, **no** están
+  limpiados en la tabla.
+- Guardias: 117 filas para el 7-sep en 29 municipios (93 zonas consultadas, 25 con
+  datos). Sin teléfono ni coordenadas en origen.
+- Municipios del catálogo sin guardias publicadas: la mayoría. La pantalla lo dice.
+
+### Verificado en pantalla (es-ES, móvil 390 y escritorio 1440)
+
+- Málaga capital, Marbella (costa), Ronda (interior), Alozaina (pequeño, sin datos).
+- Marbella pasa de 0 a 6 guardias y muestra "Farmacia Berdaguer"/"Farmacia Mingorance"
+  con su ubicación del directorio.
+- Alozaina muestra el aviso honesto y acceso al directorio.
+- Capturas en `/tmp/browser/pharm/` (390-*.png, 1440-*.png).
+
+### Pendiente / no hecho
+
+- No se ha tocado ni un dato guardado: no hay limpieza de duplicados en
+  `pharmacies_directory` ni relleno de teléfonos/coordenadas.
+- La programación del `pg_cron` de guardias sigue igual; la ventana de madrugada se
+  mitiga en la interfaz, no adelantando la sincronización.
+- Cambios activos solo en vista previa; nada publicado.
