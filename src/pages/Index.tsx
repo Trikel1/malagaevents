@@ -400,14 +400,16 @@ const Index = () => {
               )}
             </section>
 
-            {/* ============== Málaga ciudad y provincia — agrupado por zona ============== */}
-            <section className="glass-panel p-5 sm:p-6">
+            {/* ============== Málaga ciudad y provincia — selector simple ============== */}
+            <section className="glass-panel p-5 sm:p-6" aria-labelledby="city-province-title">
               <div className="flex items-start gap-3 mb-4">
                 <div className="h-11 w-11 shrink-0 rounded-2xl bg-secondary/15 flex items-center justify-center">
                   <Landmark className="h-5 w-5 text-secondary" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.cityProvince.title')}</h2>
+                  <h2 id="city-province-title" className="text-lg sm:text-xl font-bold tracking-tight">
+                    {t('home.cityProvince.title')}
+                  </h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                     {t('home.cityProvince.subtitle')}
                   </p>
@@ -417,31 +419,82 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {VENUE_ZONES.map((zone) => {
-                  const items = MUNICIPALITIES.filter((m) => m.zone === zone.id);
-                  if (items.length === 0) return null;
-                  return (
-                    <div key={zone.id}>
-                      <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-muted-foreground mb-2">
-                        {zone.label}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {items.map((loc) => (
-                          <button
-                            key={loc.name}
-                            onClick={() => goLocality(loc.name)}
-                            className="glass-chip liquid-press px-3.5 py-1.5 text-sm font-medium hover:bg-secondary/10"
-                          >
-                            {loc.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => goLocality('Málaga')}
+                  aria-pressed={areaScope === 'capital'}
+                  className={cn(
+                    'liquid-press rounded-2xl border p-4 text-left min-h-[76px] transition-colors',
+                    areaScope === 'capital'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border/60 bg-background/40 hover:bg-primary/5',
+                  )}
+                >
+                  <span className="block text-sm font-semibold text-foreground">
+                    {t('home.cityProvince.capital', 'Málaga capital')}
+                  </span>
+                  <span className="block text-[12.5px] text-muted-foreground mt-0.5">
+                    {t('home.cityProvince.capitalHelp', 'Planes en la ciudad')}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAreaScope('province')}
+                  aria-pressed={areaScope === 'province'}
+                  className={cn(
+                    'liquid-press rounded-2xl border p-4 text-left min-h-[76px] transition-colors',
+                    areaScope === 'province'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border/60 bg-background/40 hover:bg-primary/5',
+                  )}
+                >
+                  <span className="block text-sm font-semibold text-foreground">
+                    {t('home.cityProvince.province', 'Resto de la provincia')}
+                  </span>
+                  <span className="block text-[12.5px] text-muted-foreground mt-0.5">
+                    {t('home.cityProvince.provinceHelp', 'Elige tu municipio')}
+                  </span>
+                </button>
               </div>
+
+              {areaScope === 'province' && (
+                <div className="mt-4 flex flex-col sm:flex-row gap-2.5">
+                  <label className="flex-1 min-w-0">
+                    <span className="sr-only">{t('home.cityProvince.selectLabel', 'Municipio')}</span>
+                    <select
+                      value={municipality}
+                      onChange={(e) => setMunicipality(e.target.value)}
+                      className="w-full h-12 rounded-2xl border border-border/60 bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    >
+                      <option value="">{t('home.cityProvince.selectPlaceholder', 'Elige un municipio…')}</option>
+                      {VENUE_ZONES.map((zone) => {
+                        const items = MUNICIPALITIES.filter((m) => m.zone === zone.id);
+                        if (items.length === 0) return null;
+                        return (
+                          <optgroup key={zone.id} label={zone.label}>
+                            {items.map((loc) => (
+                              <option key={loc.name} value={loc.name}>
+                                {loc.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
+                    </select>
+                  </label>
+                  <Button
+                    className="h-12 px-5 font-semibold shrink-0"
+                    disabled={!municipality}
+                    onClick={() => municipality && goLocality(municipality)}
+                  >
+                    {t('home.cityProvince.go', 'Ver planes')}
+                  </Button>
+                </div>
+              )}
             </section>
+
 
             {/* ============== Deportes teaser ============== */}
             <section className="glass-card-strong p-5 sm:p-6">
