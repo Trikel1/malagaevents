@@ -2,6 +2,11 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { madridDayKey, formatMadrid, addDaysToKey } from '@/lib/madridTime';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+
+const HIGHLIGHT_LOCALES: Record<string, Locale> = {
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
+};
 import { Sparkles, Pause, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EventImage from '@/components/events/EventImage';
