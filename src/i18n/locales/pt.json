@@ -358,7 +358,19 @@
     "calendarError": "Não foi possível criar o ficheiro de calendário.",
     "shareUnavailable": "A partilha não está disponível neste navegador.",
     "shareError": "Não foi possível partilhar o evento.",
-    "linkCopied": "Ligação copiada"
+    "linkCopied": "Ligação copiada",
+    "viewTickets": "Ver bilhetes",
+    "register": "Inscrever-me",
+    "officialSite": "Consultar o site oficial",
+    "ticketPending": "Link de bilhetes por confirmar.",
+    "priceOnSite": "Preço e disponibilidade no site do organizador.",
+    "ticketsUnknown": "Não temos informação de bilhetes para este evento.",
+    "ticketInfoTitle": "Informação de bilhetes",
+    "organizer": "Organizador",
+    "seeOnMap": "Ver no mapa",
+    "locationExact": "Localização verificada.",
+    "locationAddress": "Indicações a partir da morada publicada.",
+    "locationPending": "Localização por confirmar: não podemos dar indicações."
   },
   "calendar": {
     "title": "Calendário",

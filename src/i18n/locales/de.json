@@ -358,7 +358,19 @@
     "calendarError": "Die Kalenderdatei konnte nicht erstellt werden.",
     "shareUnavailable": "Teilen ist in diesem Browser nicht möglich.",
     "shareError": "Die Veranstaltung konnte nicht geteilt werden.",
-    "linkCopied": "Link kopiert"
+    "linkCopied": "Link kopiert",
+    "viewTickets": "Tickets ansehen",
+    "register": "Anmelden",
+    "officialSite": "Offizielle Website ansehen",
+    "ticketPending": "Ticket-Link noch nicht bestätigt.",
+    "priceOnSite": "Preis und Verfügbarkeit auf der Website des Veranstalters.",
+    "ticketsUnknown": "Für diese Veranstaltung liegen uns keine Ticketinformationen vor.",
+    "ticketInfoTitle": "Ticketinformationen",
+    "organizer": "Veranstalter",
+    "seeOnMap": "Auf der Karte ansehen",
+    "locationExact": "Bestätigter Standort.",
+    "locationAddress": "Wegbeschreibung anhand der veröffentlichten Adresse.",
+    "locationPending": "Standort noch nicht bestätigt: keine Wegbeschreibung möglich."
   },
   "calendar": {
     "title": "Kalender",

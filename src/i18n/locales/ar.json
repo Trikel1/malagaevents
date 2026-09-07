@@ -358,7 +358,19 @@
     "calendarError": "تعذر إنشاء ملف التقويم.",
     "shareUnavailable": "المشاركة غير متاحة في هذا المتصفح.",
     "shareError": "تعذرت مشاركة الفعالية.",
-    "linkCopied": "تم نسخ الرابط"
+    "linkCopied": "تم نسخ الرابط",
+    "viewTickets": "عرض التذاكر",
+    "register": "التسجيل",
+    "officialSite": "زيارة الموقع الرسمي",
+    "ticketPending": "رابط التذاكر قيد التأكيد.",
+    "priceOnSite": "السعر والتوافر على موقع المنظّم.",
+    "ticketsUnknown": "لا تتوفر لدينا معلومات عن تذاكر هذا الحدث.",
+    "ticketInfoTitle": "معلومات التذاكر",
+    "organizer": "المنظّم",
+    "seeOnMap": "عرض على الخريطة",
+    "locationExact": "موقع مؤكَّد.",
+    "locationAddress": "الاتجاهات بحسب العنوان المنشور.",
+    "locationPending": "الموقع قيد التأكيد: لا يمكننا تقديم الاتجاهات."
   },
   "calendar": {
     "title": "التقويم",

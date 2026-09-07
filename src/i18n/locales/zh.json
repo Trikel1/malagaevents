@@ -358,7 +358,19 @@
     "calendarError": "无法创建日历文件。",
     "shareUnavailable": "此浏览器不支持分享。",
     "shareError": "无法分享此活动。",
-    "linkCopied": "链接已复制"
+    "linkCopied": "链接已复制",
+    "viewTickets": "查看门票",
+    "register": "我要报名",
+    "officialSite": "查看官方网站",
+    "ticketPending": "购票链接待确认。",
+    "priceOnSite": "价格与余票请见主办方网站。",
+    "ticketsUnknown": "我们没有该活动的门票信息。",
+    "ticketInfoTitle": "门票信息",
+    "organizer": "主办方",
+    "seeOnMap": "在地图上查看",
+    "locationExact": "位置已核实。",
+    "locationAddress": "根据公布的地址提供路线。",
+    "locationPending": "位置待确认：无法提供路线。"
   },
   "calendar": {
     "title": "日历",
