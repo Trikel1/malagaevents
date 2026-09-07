@@ -60,8 +60,9 @@ Capturas reales de la aplicación a 320, 390 y 430 píxeles y en escritorio, en 
 ## Detalle técnico
 
 - `src/lib/categoryImages.ts`: catálogo ampliado + imagen general por defecto; nueva resolución por título para categoría `other`.
-- `src/components/events/EventImage.tsx`: el placeholder geométrico deja de ser la salida habitual; queda solo como último recurso si faltara un recurso.
-- `src/pages/EventDetailPage.tsx`: bloque práctico compacto, iconos (`Clock` para la hora), formato de fecha, modo online, barra inferior con una acción y `min-w-0` + recorte controlado.
+- `src/components/events/EventImage.tsx`: se elimina el placeholder geométrico con la palabra «Evento». Toda salida acaba en una imagen editorial local del proyecto (temática o general), incluido el caso de fallo de carga del cartel principal.
+- `src/lib/categoryImages.ts`: la clasificación por título solo elige la ilustración; no altera la categoría del evento ni los filtros. Ante ambigüedad, imagen general.
+- `src/pages/EventDetailPage.tsx`: bloque práctico compacto, iconos (`Clock` para la hora), formato de fecha, modo online, y barra inferior con una sola acción cuyo texto se ve completo («Web oficial», «Ver entradas», «Inscribirme»), con ajuste de distribución o salto de línea en vez de puntos suspensivos, tamaño de letra legible con ampliación de texto y el dominio en línea secundaria.
 - Nuevo ayudante `src/lib/eventPlace.ts` con `isOnlineEvent` y sus pruebas.
 - Pruebas nuevas: resolución de imagen por categoría y título, detección online, formato de fecha en español.
 - No se publica nada; comprobación con tipos, pruebas y compilación además de las capturas.
