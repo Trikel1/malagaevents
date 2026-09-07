@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { categoryI18nKey } from '@/lib/categoryLabel';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
@@ -330,7 +331,7 @@ const EventDetailPage = () => {
         {/* Title & Category */}
         <div>
           <Badge variant="secondary" className="mb-2">
-            {t(`categories.${event.category}`)}
+            {t(`categories.${categoryI18nKey(event.category)}`)}
           </Badge>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">{event.title}</h1>
         </div>

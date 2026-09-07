@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { categoryI18nKey } from '@/lib/categoryLabel';
 import { cn } from '@/lib/utils';
 import type { EventCategory } from '@/types';
 
@@ -89,7 +90,7 @@ const CategoryChip = ({ category, isSelected, onClick, size = 'default' }: Categ
           isSelected ? 'bg-primary' : styles.dot,
         )}
       />
-      <span>{t(`categories.${category}`)}</span>
+      <span>{t(`categories.${categoryI18nKey(category)}`)}</span>
     </button>
   );
 };
