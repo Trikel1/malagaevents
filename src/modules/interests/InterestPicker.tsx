@@ -24,7 +24,8 @@ const SEARCH_THRESHOLD = 12;
 
 const InterestPicker = ({ open, onOpenChange }: InterestPickerProps) => {
   const { t } = useTranslation();
-  const { interests, isGuest, status, save, reset, isLoading } = useInterests();
+  const { interests, isGuest, status, save, reset, isLoading, remoteFailed, storageBlocked } =
+    useInterests();
   const [draft, setDraft] = useState<string[]>(interests);
   const [query, setQuery] = useState('');
   const [saveFailed, setSaveFailed] = useState(false);
@@ -135,7 +136,13 @@ const InterestPicker = ({ open, onOpenChange }: InterestPickerProps) => {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          {isGuest ? t('interests.savedOnDevice') : t('interests.syncedWithAccount')}
+          {isGuest
+            ? storageBlocked
+              ? t('interests.deviceBlocked')
+              : t('interests.savedOnDevice')
+            : remoteFailed
+            ? t('interests.syncFailed')
+            : t('interests.syncedWithAccount')}
         </p>
 
         {(status === 'error' || saveFailed) && (
