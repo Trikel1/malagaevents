@@ -43,8 +43,14 @@ describe('Teatro Auditorio Felipe VI (Estepona) — hours from the Tribe extract
     expect(parseSpanishDate('2026-09-12')!.toISOString()).toBe('2026-09-12T00:00:00.000Z');
   });
 
-  it('rejects impossible values instead of wrapping them', () => {
+  it('rejects an impossible date instead of wrapping it', () => {
     expect(parseSpanishDate('2026-02-30', '21:00')).toBeNull();
-    expect(parseSpanishDate('2026-09-12', '25:00')).toBeNull();
+  });
+
+  it('falls back to "hour unknown" when the published time is corrupt, keeping the day', () => {
+    // 25:00 is not a time: the day stays, the hour is not invented.
+    expect(parseSpanishDate('2026-09-12', '25:00')!.toISOString()).toBe(
+      '2026-09-12T00:00:00.000Z',
+    );
   });
 });
