@@ -24,7 +24,8 @@ const SEARCH_THRESHOLD = 12;
 
 const InterestPicker = ({ open, onOpenChange }: InterestPickerProps) => {
   const { t } = useTranslation();
-  const { interests, isGuest, status, save, reset, isLoading } = useInterests();
+  const { interests, isGuest, status, save, reset, isLoading, remoteFailed, storageBlocked } =
+    useInterests();
   const [draft, setDraft] = useState<string[]>(interests);
   const [query, setQuery] = useState('');
   const [saveFailed, setSaveFailed] = useState(false);
@@ -64,9 +65,12 @@ const InterestPicker = ({ open, onOpenChange }: InterestPickerProps) => {
     if (ok) onOpenChange(false);
   };
 
+  // Only empty the draft once the deletion actually succeeded: a blocked write
+  // must not look like a cleared selection.
   const handleReset = async () => {
-    setDraft([]);
-    await reset();
+    const ok = await reset();
+    setSaveFailed(!ok);
+    if (ok) setDraft([]);
   };
 
   const noResults = groups.every((g) => g.items.length === 0);
@@ -134,9 +138,18 @@ const InterestPicker = ({ open, onOpenChange }: InterestPickerProps) => {
           )}
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          {isGuest ? t('interests.savedOnDevice') : t('interests.syncedWithAccount')}
-        </p>
+        {/* Only claim a persisted state when something is actually committed. */}
+        {(interests.length > 0 || storageBlocked || remoteFailed) && (
+          <p className="text-xs text-muted-foreground">
+            {isGuest
+              ? storageBlocked
+                ? t('interests.deviceBlocked')
+                : t('interests.savedOnDevice')
+              : remoteFailed
+              ? t('interests.syncFailed')
+              : t('interests.syncedWithAccount')}
+          </p>
+        )}
 
         {(status === 'error' || saveFailed) && (
           <p className="flex items-start gap-2 text-sm text-destructive" role="alert">

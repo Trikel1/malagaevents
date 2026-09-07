@@ -41,12 +41,27 @@ const resources = {
   ar: { translation: ar },
 };
 
+export const supportedLanguages: string[] = languages.map((l) => l.code);
+
+/**
+ * Regional codes (`en-US`, `es-ES`, `ar-EG`…) must resolve to the one locale we
+ * actually ship, otherwise the selector and the content disagree: the badge
+ * showed ES while every string rendered in English.
+ */
+export const normalizeLanguage = (lng: string | undefined | null): LanguageCode => {
+  const base = (lng || '').split('-')[0].toLowerCase();
+  return (supportedLanguages.includes(base) ? base : 'es') as LanguageCode;
+};
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
     fallbackLng: 'es',
+    supportedLngs: supportedLanguages,
+    nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
     interpolation: {
       escapeValue: false,
     },
@@ -54,13 +69,14 @@ i18n
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
       lookupLocalStorage: 'malaga-events-lang',
+      convertDetectedLanguage: (lng: string) => normalizeLanguage(lng),
     },
   });
 
 // Sync <html lang> and <html dir> with the active language for proper RTL support.
 const applyHtmlLangDir = (lng: string) => {
   if (typeof document === 'undefined') return;
-  const base = (lng || 'es').split('-')[0];
+  const base = normalizeLanguage(lng);
   const meta = languages.find((l) => l.code === base);
   document.documentElement.lang = base;
   document.documentElement.dir = meta?.dir === 'rtl' ? 'rtl' : 'ltr';

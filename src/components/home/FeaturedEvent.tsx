@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Ticket, ChevronRight } from 'lucide-react';
 
 import EventImage from '@/components/events/EventImage';
-import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEvents } from '@/hooks/useEvents';
 import { formatMadrid } from '@/lib/madridTime';
 
@@ -29,7 +28,22 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
     onSelect?.(featured?.id ?? null);
   }, [featured?.id, onSelect]);
 
-  if (isLoading) return <EventCardSkeleton />;
+  // Compact placeholder: the old one reserved a full-width 21:9 block that
+  // pushed everything below the fold on a desktop screen.
+  if (isLoading) {
+    return (
+      <div className="glass-card overflow-hidden p-3 sm:p-4" aria-hidden>
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,320px)_1fr] md:items-center">
+          <div className="aspect-[16/9] w-full rounded-xl bg-muted animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+            <div className="h-5 w-3/4 rounded bg-muted animate-pulse" />
+            <div className="h-4 w-1/2 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (!featured) return null;
 
   const isToday =
@@ -39,15 +53,21 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
     <section aria-labelledby="featured-event-title" className="glass-card overflow-hidden">
       <Link
         to={`/events/${featured.id}`}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
+        className="grid md:grid-cols-[minmax(0,340px)_1fr] md:items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
       >
-        <EventImage
-          src={featured.image_url}
-          alt={featured.title}
-          variant="hero"
-          category={featured.category}
-          priority
-        />
+        {/* Real poster only; on desktop it sits beside the text instead of
+            filling the whole first screen. */}
+        <div className="md:p-3 md:pr-0">
+          <div className="md:rounded-xl md:overflow-hidden">
+            <EventImage
+              src={featured.image_url}
+              alt={featured.title}
+              variant="card"
+              category={featured.category}
+              priority
+            />
+          </div>
+        </div>
         <div className="p-4 sm:p-5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/12 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
             {isToday ? t('home.featured.badgeToday') : t('home.featured.badgeNext')}

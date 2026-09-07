@@ -697,7 +697,10 @@
       "martialArts": "Martial arts",
       "hiking": "Hiking",
       "familySports": "Family sport"
-    }
+    },
+    "deviceBlocked": "この端末では興味を保存できません（プライベートモードまたは容量不足）。",
+    "syncFailed": "アカウントに興味を保存できませんでした。この端末に保存された内容を表示しています。",
+    "importConflict": "アカウントには別の端末で保存された興味がすでにありました。そちらを保持し、上書きはしていません。"
   },
   "sportsAgenda": {
     "registrationRequired": "Registration required",

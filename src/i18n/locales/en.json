@@ -697,7 +697,10 @@
       "martialArts": "Martial arts",
       "hiking": "Hiking",
       "familySports": "Family sport"
-    }
+    },
+    "deviceBlocked": "This device will not let us save your interests (private mode or storage full).",
+    "syncFailed": "We couldn't save your interests to your account. Showing the ones stored on this device.",
+    "importConflict": "Your account already had interests saved on another device. We kept those and overwrote nothing."
   },
   "sportsAgenda": {
     "registrationRequired": "Registration required",

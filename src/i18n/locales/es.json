@@ -722,7 +722,10 @@
       "martialArts": "Artes marciales",
       "hiking": "Senderismo",
       "familySports": "Deporte en familia"
-    }
+    },
+    "deviceBlocked": "Este dispositivo no permite guardar tus gustos (modo privado o almacenamiento lleno).",
+    "syncFailed": "No hemos podido guardar tus gustos en tu cuenta. Se muestran los de este dispositivo.",
+    "importConflict": "Tu cuenta ya tenía gustos guardados en otro dispositivo. Hemos mantenido esos y no se ha sobrescrito nada."
   },
   "sportsAgenda": {
     "registrationRequired": "Inscripción requerida",

@@ -697,7 +697,10 @@
       "martialArts": "Martial arts",
       "hiking": "Hiking",
       "familySports": "Family sport"
-    }
+    },
+    "deviceBlocked": "Это устройство не позволяет сохранить ваши интересы (приватный режим или нет места).",
+    "syncFailed": "Не удалось сохранить интересы в вашем аккаунте. Показаны сохранённые на этом устройстве.",
+    "importConflict": "В вашем аккаунте уже были интересы, сохранённые на другом устройстве. Мы оставили их и ничего не перезаписали."
   },
   "sportsAgenda": {
     "registrationRequired": "Registration required",

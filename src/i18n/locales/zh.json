@@ -697,7 +697,10 @@
       "martialArts": "Martial arts",
       "hiking": "Hiking",
       "familySports": "Family sport"
-    }
+    },
+    "deviceBlocked": "此设备无法保存你的兴趣（隐私模式或存储已满）。",
+    "syncFailed": "无法将你的兴趣保存到账户。当前显示的是此设备上的内容。",
+    "importConflict": "你的账户已在另一台设备保存过兴趣。我们保留了那些内容，没有覆盖任何数据。"
   },
   "sportsAgenda": {
     "registrationRequired": "Registration required",

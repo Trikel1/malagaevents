@@ -697,7 +697,10 @@
       "martialArts": "Martial arts",
       "hiking": "Hiking",
       "familySports": "Family sport"
-    }
+    },
+    "deviceBlocked": "لا يسمح هذا الجهاز بحفظ اهتماماتك (الوضع الخاص أو امتلاء التخزين).",
+    "syncFailed": "تعذّر حفظ اهتماماتك في حسابك. نعرض المحفوظة على هذا الجهاز.",
+    "importConflict": "كان حسابك يحتوي بالفعل على اهتمامات محفوظة من جهاز آخر. أبقينا عليها ولم نستبدل أي شيء."
   },
   "sportsAgenda": {
     "registrationRequired": "Registration required",

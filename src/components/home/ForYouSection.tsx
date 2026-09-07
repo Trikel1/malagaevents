@@ -89,8 +89,18 @@ const ForYouSection = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthContext();
-  const { interests, isGuest, isLoading: interestsLoading, pendingImport, acceptImport, dismissImport } =
-    useInterests();
+  const {
+    interests,
+    isGuest,
+    isLoading: interestsLoading,
+    pendingImport,
+    acceptImport,
+    dismissImport,
+    status,
+    remoteFailed,
+    storageBlocked,
+    importConflict,
+  } = useInterests();
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const { recommendations, isLoading, isError } = useRecommendations(interests, 6);
@@ -216,11 +226,30 @@ const ForYouSection = () => {
         </div>
       )}
 
-      {interests.length > 0 && (
-        <p className="mt-2 text-[11.5px] text-muted-foreground">
-          {isGuest ? t('interests.savedOnDevice') : t('interests.syncedWithAccount')}
+      {importConflict && (
+        <p className="mt-2 text-[11.5px] text-muted-foreground" role="status">
+          {t('interests.importConflict')}
         </p>
       )}
+
+      {(() => {
+        const failed = isGuest ? storageBlocked : remoteFailed || status === 'error';
+        if (!failed && interests.length === 0) return null;
+        return (
+          <p
+            className={`mt-2 text-[11.5px] ${failed ? 'text-destructive' : 'text-muted-foreground'}`}
+            role={failed ? 'alert' : undefined}
+          >
+            {failed
+              ? isGuest
+                ? t('interests.deviceBlocked')
+                : t('interests.syncFailed')
+              : isGuest
+              ? t('interests.savedOnDevice')
+              : t('interests.syncedWithAccount')}
+          </p>
+        );
+      })()}
 
       <InterestPicker open={pickerOpen} onOpenChange={setPickerOpen} />
     </section>
