@@ -15,30 +15,45 @@ export const MALAGA_CENTER = { lat: 36.7213, lng: -4.4214 };
 
 
 // Curated venue coordinates (real venues in Málaga). Keys are normalized.
+// Entries marked (OSM) were checked against OpenStreetMap/Nominatim on
+// 2026-09-07; several previous values pointed at the wrong street and were
+// corrected. Nothing here is generated or guessed: a venue we cannot verify
+// stays out of the list and the UI says "Ubicación pendiente".
 const VENUE_COORDS: Record<string, { lat: number; lng: number }> = {
-  'teatro cervantes': { lat: 36.7245, lng: -4.4170 },
+  'teatro cervantes': { lat: 36.7248, lng: -4.4185 }, // OSM
   'teatro echegaray': { lat: 36.7203, lng: -4.4202 },
   'teatro del soho': { lat: 36.7193, lng: -4.4254 },
   'teatro soho': { lat: 36.7193, lng: -4.4254 },
   'soho caixabank theatre': { lat: 36.7193, lng: -4.4254 },
-  'la trinchera': { lat: 36.7196, lng: -4.4302 },
-  'paris 15': { lat: 36.7178, lng: -4.4195 },
-  'parís 15': { lat: 36.7178, lng: -4.4195 },
-  'la cochera cabaret': { lat: 36.7008, lng: -4.4438 },
-  'la cochera': { lat: 36.7008, lng: -4.4438 },
-  'la garrapata': { lat: 36.7228, lng: -4.4295 },
-  'fycma': { lat: 36.6859, lng: -4.4760 },
-  'palacio de ferias y congresos de málaga': { lat: 36.6859, lng: -4.4760 },
-  'la térmica': { lat: 36.7165, lng: -4.4477 },
-  'la termica': { lat: 36.7165, lng: -4.4477 },
+  // Sala Trinchera: Polígono La Estrella, not the city centre. (OSM)
+  'la trinchera': { lat: 36.7013, lng: -4.4676 },
+  'sala trinchera': { lat: 36.7013, lng: -4.4676 },
+  // Sala París 15: Calle La Orotava, Polígono San Luis. (OSM)
+  'paris 15': { lat: 36.7049, lng: -4.4763 },
+  'parís 15': { lat: 36.7049, lng: -4.4763 },
+  'sala paris 15': { lat: 36.7049, lng: -4.4763 },
+  'la cochera cabaret': { lat: 36.6923, lng: -4.4510 }, // OSM
+  'la cochera': { lat: 36.6923, lng: -4.4510 },
+  'fycma': { lat: 36.7061, lng: -4.4598 }, // OSM
+  'fycma palacio de ferias y congresos': { lat: 36.7061, lng: -4.4598 },
+  'palacio de ferias y congresos de málaga': { lat: 36.7061, lng: -4.4598 },
+  'la térmica': { lat: 36.6895, lng: -4.4458 }, // OSM
+  'la termica': { lat: 36.6895, lng: -4.4458 },
   'marenostrum fuengirola': { lat: 36.5394, lng: -4.6213 },
   'marenostrum castle park': { lat: 36.5394, lng: -4.6213 },
   'teatro estepona': { lat: 36.4286, lng: -5.1454 },
   'auditorio municipal de estepona': { lat: 36.4286, lng: -5.1454 },
+  'teatro auditorio felipe vi': { lat: 36.4310, lng: -5.1550 }, // OSM
   'centro cultural maría victoria atencia': { lat: 36.7228, lng: -4.4220 },
-  'museo picasso málaga': { lat: 36.7223, lng: -4.4178 },
+  'museo picasso málaga': { lat: 36.7216, lng: -4.4183 }, // OSM
+  'museo picasso': { lat: 36.7216, lng: -4.4183 },
   'museo carmen thyssen málaga': { lat: 36.7211, lng: -4.4225 },
-  'centre pompidou málaga': { lat: 36.7173, lng: -4.4136 },
+  'centre pompidou málaga': { lat: 36.7190, lng: -4.4133 }, // OSM
+  'la caja blanca': { lat: 36.7269, lng: -4.4749 }, // OSM
+  'salas mingorance del archivo municipal': { lat: 36.7171, lng: -4.4231 }, // OSM
+  'archivo municipal de málaga': { lat: 36.7171, lng: -4.4231 },
+  'plaza de la marina puerto de málaga': { lat: 36.7177, lng: -4.4205 }, // OSM
+  'plaza de la marina': { lat: 36.7177, lng: -4.4205 },
   'auditorio municipal cortijo de torres': { lat: 36.6862, lng: -4.4734 },
   'martín carpena': { lat: 36.6912, lng: -4.4828 },
   'palacio de los deportes martín carpena': { lat: 36.6912, lng: -4.4828 },
@@ -60,6 +75,7 @@ const VENUE_COORDS: Record<string, { lat: number; lng: number }> = {
   'palacio de deportes josé maría martín carpena': { lat: 36.6912, lng: -4.4828 },
   'ciudad deportiva de carranque': { lat: 36.7172, lng: -4.4499 },
 };
+
 
 const normalize = (s: string): string =>
   s
