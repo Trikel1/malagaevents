@@ -149,7 +149,7 @@ interface HighlightCardProps {
 
 const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language;
+  const locale = HIGHLIGHT_LOCALES[i18n.language] || es;
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
 
