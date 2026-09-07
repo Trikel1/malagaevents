@@ -66,6 +66,7 @@ describe('interests shared state and async lifecycle', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     resetStoreForTests();
   });
 
@@ -79,11 +80,11 @@ describe('interests shared state and async lifecycle', () => {
     );
 
     await act(async () => {
-      await apiA!.save(['music', 'theatre']);
+      await apiA!.save(['concerts', 'theater']);
     });
 
-    expect(screen.getByTestId('a-ids').textContent).toBe('music,theatre');
-    expect(screen.getByTestId('b-ids').textContent).toBe('music,theatre');
+    expect(screen.getByTestId('a-ids').textContent).toBe('concerts,theater');
+    expect(screen.getByTestId('b-ids').textContent).toBe('concerts,theater');
     expect(screen.getByTestId('b-status').textContent).toBe('saved');
   });
 
@@ -110,7 +111,7 @@ describe('interests shared state and async lifecycle', () => {
     let api: ReturnType<typeof useInterests> | null = null;
     const view = render(<Consumer label="a" onReady={(a) => (api = a)} />);
     await act(async () => {
-      fetchA.resolve({ exists: true, interestIds: ['music'] });
+      fetchA.resolve({ exists: true, interestIds: ['concerts'] });
     });
 
     let savePromise: Promise<boolean>;
@@ -140,10 +141,10 @@ describe('interests shared state and async lifecycle', () => {
 
   it('never shows the previous account data while the new identity loads', async () => {
     currentUserId = 'user-a';
-    vi.mocked(service.fetchRemoteInterests).mockResolvedValue({ exists: true, interestIds: ['music'] });
+    vi.mocked(service.fetchRemoteInterests).mockResolvedValue({ exists: true, interestIds: ['concerts'] });
     let api: ReturnType<typeof useInterests> | null = null;
     const view = render(<Consumer label="a" onReady={(a) => (api = a)} />);
-    await waitFor(() => expect(screen.getByTestId('a-ids').textContent).toBe('music'));
+    await waitFor(() => expect(screen.getByTestId('a-ids').textContent).toBe('concerts'));
 
     currentUserId = 'user-b';
     const fetchB = deferred<{ exists: boolean; interestIds: string[] }>();
@@ -168,21 +169,21 @@ describe('interests shared state and async lifecycle', () => {
     render(<Consumer label="a" onReady={(a) => (api = a)} />);
 
     await act(async () => {
-      await api!.save(['jazz']);
+      await api!.save(['flamenco']);
     });
-    expect(screen.getByTestId('a-ids').textContent).toBe('jazz');
+    expect(screen.getByTestId('a-ids').textContent).toBe('flamenco');
 
     await act(async () => {
-      fetch.resolve({ exists: true, interestIds: ['music'] });
+      fetch.resolve({ exists: true, interestIds: ['concerts'] });
     });
-    expect(screen.getByTestId('a-ids').textContent).toBe('jazz');
+    expect(screen.getByTestId('a-ids').textContent).toBe('flamenco');
   });
 
   it('reports failure when device storage refuses the write, keeping the stored selection', async () => {
     let api: ReturnType<typeof useInterests> | null = null;
     render(<Consumer label="a" onReady={(a) => (api = a)} />);
     await act(async () => {
-      await api!.save(['music']);
+      await api!.save(['concerts']);
     });
 
     const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
@@ -195,7 +196,7 @@ describe('interests shared state and async lifecycle', () => {
     expect(ok).toBe(false);
     expect(screen.getByTestId('a-status').textContent).toBe('error');
     expect(screen.getByTestId('a-blocked').textContent).toBe('true');
-    expect(screen.getByTestId('a-ids').textContent).toBe('music');
+    expect(screen.getByTestId('a-ids').textContent).toBe('concerts');
     setItem.mockRestore();
   });
 
@@ -203,7 +204,7 @@ describe('interests shared state and async lifecycle', () => {
     let api: ReturnType<typeof useInterests> | null = null;
     render(<Consumer label="a" onReady={(a) => (api = a)} />);
     await act(async () => {
-      await api!.save(['music']);
+      await api!.save(['concerts']);
     });
 
     const removeItem = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
@@ -215,7 +216,7 @@ describe('interests shared state and async lifecycle', () => {
     });
     expect(ok).toBe(false);
     expect(screen.getByTestId('a-status').textContent).toBe('error');
-    expect(screen.getByTestId('a-ids').textContent).toBe('music');
+    expect(screen.getByTestId('a-ids').textContent).toBe('concerts');
     removeItem.mockRestore();
   });
 
@@ -230,7 +231,7 @@ describe('interests shared state and async lifecycle', () => {
   it('explicit import leaves an account row created meanwhile intact', async () => {
     localStorage.setItem(
       guestStorageKey(),
-      JSON.stringify({ version: 1, interestIds: ['music'], updatedAt: new Date().toISOString() }),
+      JSON.stringify({ version: 1, interestIds: ['concerts'], updatedAt: new Date().toISOString() }),
     );
     currentUserId = 'user-a';
     vi.mocked(service.fetchRemoteInterests).mockResolvedValue({ exists: false, interestIds: [] });
@@ -241,7 +242,7 @@ describe('interests shared state and async lifecycle', () => {
 
     let api: ReturnType<typeof useInterests> | null = null;
     render(<Consumer label="a" onReady={(a) => (api = a)} />);
-    await waitFor(() => expect(screen.getByTestId('a-pending').textContent).toBe('music'));
+    await waitFor(() => expect(screen.getByTestId('a-pending').textContent).toBe('concerts'));
 
     let ok = true;
     await act(async () => {
@@ -256,12 +257,12 @@ describe('interests shared state and async lifecycle', () => {
   it('import is never implicit: nothing is written without accepting', async () => {
     localStorage.setItem(
       guestStorageKey(),
-      JSON.stringify({ version: 1, interestIds: ['music'], updatedAt: new Date().toISOString() }),
+      JSON.stringify({ version: 1, interestIds: ['concerts'], updatedAt: new Date().toISOString() }),
     );
     currentUserId = 'user-a';
     vi.mocked(service.fetchRemoteInterests).mockResolvedValue({ exists: false, interestIds: [] });
     render(<Consumer label="a" />);
-    await waitFor(() => expect(screen.getByTestId('a-pending').textContent).toBe('music'));
+    await waitFor(() => expect(screen.getByTestId('a-pending').textContent).toBe('concerts'));
     expect(vi.mocked(service.insertRemoteInterestsIfAbsent)).not.toHaveBeenCalled();
     expect(vi.mocked(service.saveRemoteInterests)).not.toHaveBeenCalled();
     expect(getState(guestIdentity()).interests).toEqual([]);
