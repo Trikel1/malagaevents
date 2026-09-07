@@ -19,8 +19,9 @@
 //   listing nor the detail page expose an explicit time. Recorded as
 //   raw.timeAssumed = true and raw.timeSource = 'fallback'.
 
-import type { SourceAdapter, CanonicalEvent } from "../ingestion/types.ts";
+import type { SourceAdapter, CanonicalEvent, AdapterContext } from "../ingestion/types.ts";
 import { madridWallTimeToDate } from "../ingestion/dates.ts";
+import { fetchWpCptEvents } from "../ingestion/wpEventsCpt.ts";
 
 const DEFAULT_BASE = "https://teatrodelsoho.com";
 const MAX_DETAIL_FOLLOWS = 50;
