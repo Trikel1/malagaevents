@@ -77,15 +77,21 @@ export const LeafletMap = ({
       attributionControl: true,
       // No external outbound links in public UI: drop Leaflet's linked prefix.
     });
+    /**
+     * CARTO's Voyager basemap now stamps "API KEY REQUIRED" across every tile
+     * for unregistered use, which is exactly the warning reported on the map.
+     * The standard OpenStreetMap tile server needs no key and no account, so
+     * the map works out of the box; the ODbL credit stays visible.
+     */
     L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       {
-        subdomains: 'abcd',
         maxZoom: 19,
-        // Legally required data credit (ODbL for OSM, CARTO tiles). Always visible.
-        attribution: '© OpenStreetMap contributors · © CARTO',
+        // Legally required data credit (ODbL). Always visible.
+        attribution: '© OpenStreetMap contributors',
       }
     ).addTo(map);
+
     // No outbound links in public UI: remove Leaflet's linked attribution prefix.
     map.attributionControl.setPrefix('');
     L.control.zoom({ position: 'topright' }).addTo(map);
