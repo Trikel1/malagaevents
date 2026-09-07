@@ -473,8 +473,10 @@ const EventImage = ({
               <img
                 src={lightboxSrc!}
                 alt={alt}
+                referrerPolicy="no-referrer"
                 className="max-w-full max-h-full object-contain"
               />
+
             </div>
           </DialogContent>
         </Dialog>
