@@ -338,7 +338,8 @@
     "theaters": "Theater",
     "halls": "Hallen",
     "otherVenues": "Andere",
-    "timeTBC": "Uhrzeit folgt"
+    "timeTBC": "Uhrzeit folgt",
+    "countPartialA11y": "{{loaded}} von {{total}} Veranstaltungen angezeigt"
   },
   "eventDetail": {
     "when": "Wann",
@@ -701,5 +702,32 @@
   "sportsAgenda": {
     "registrationRequired": "Registration required",
     "ticketsUnknown": "Tickets to be confirmed"
+  },
+  "twoHours": {
+    "title": "Ich habe zwei Stunden",
+    "subtitle": "Echte Pläne, die in deine Lücke passen. Keine erfundenen Dauern.",
+    "cta": "Plan finden",
+    "sheetDescription": "Deterministische Berechnung über veröffentlichte Veranstaltungen. Wir bestätigen nur, dass ein Plan passt, wenn die Veranstaltung eine echte Endzeit hat.",
+    "durationLegend": "Verfügbare Zeit",
+    "budget60": "1 Stunde",
+    "budget120": "2 Stunden",
+    "budget180": "3 Stunden",
+    "whenLegend": "Wann",
+    "horizonNow": "Jetzt gleich",
+    "horizonToday": "Heute",
+    "free": "Kostenlos",
+    "family": "Familie",
+    "nearMe": "In meiner Nähe",
+    "nearMeHint": "Standort im Browser erlauben",
+    "searching": "Pläne werden gesucht…",
+    "emptyTitle": "Gerade passt nichts",
+    "emptyDesc": "Keine veröffentlichte Veranstaltung passt mit diesen Filtern in {{hours}} Std.",
+    "emptyCta": "Gesamtes Programm von heute ansehen",
+    "fitsTitle": "Passende Pläne ({{count}})",
+    "unconfirmedTitle": "Dauer nicht bestätigt",
+    "unconfirmedHelp": "Sie beginnen rechtzeitig, aber das Ende ist unbekannt. Bitte im Detail prüfen.",
+    "source": "Quelle",
+    "updated": "Aktualisiert {{date}}",
+    "minutes": "{{count}} Min."
   }
 }
