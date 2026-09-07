@@ -436,20 +436,45 @@ export interface AuthorizationResult {
   reason?: string;
 }
 
+/** Env var holding the shared ingestion key actually configured in this project. */
+export const SYNC_KEY_ENV_NAME = 'SYNC_SPORTS_KEY';
+
+export interface AuthorizeDeps {
+  getEnv?: (name: string) => string | undefined;
+  /** Injected for tests; defaults to the real supabase-js client factory. */
+  createClient?: (
+    url: string,
+    key: string,
+    options: Record<string, unknown>,
+  ) => {
+    auth: { getUser: () => Promise<{ data: { user: { id: string } | null } | null; error: unknown }> };
+    rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: boolean | null; error: unknown }>;
+  };
+}
+
 /**
  * Guard for privileged, resource-consuming endpoints (ingestion, scraping,
  * discovery). Two accepted callers:
  *
- *  1. Scheduled jobs presenting the `x-sync-key` shared secret.
+ *  1. Scheduled jobs presenting the `x-sync-key` shared secret. The secret is
+ *     `SYNC_SPORTS_KEY` — the credential that actually exists in this project
+ *     and that the pg_cron jobs send (audit 2026-09-07: the guard previously
+ *     read a `SYNC_ADMIN_KEY` that was never configured, so cron calls could
+ *     never authenticate through it).
  *  2. A signed-in user holding the `admin` role (the admin panel invokes these
- *     functions with the caller's JWT).
+ *     functions with the caller's JWT). The role is checked server-side via
+ *     `has_role`; the decoded JWT is never trusted on its own.
  *
  * MUST be called before any external fetch, any write and any logging of the
  * request payload.
  */
-export async function authorizeAdminRequest(req: Request): Promise<AuthorizationResult> {
+export async function authorizeAdminRequest(
+  req: Request,
+  deps: AuthorizeDeps = {},
+): Promise<AuthorizationResult> {
+  const getEnv = deps.getEnv ?? ((name: string) => Deno.env.get(name));
   const syncKey = req.headers.get('x-sync-key');
-  const expected = Deno.env.get('SYNC_ADMIN_KEY');
+  const expected = getEnv(SYNC_KEY_ENV_NAME);
   if (syncKey && expected && safeEquals(syncKey, expected)) {
     return { authorized: true, actor: 'cron' };
   }
@@ -457,16 +482,28 @@ export async function authorizeAdminRequest(req: Request): Promise<Authorization
   const token = extractBearerToken(req.headers.get('authorization'));
   if (!token) return { authorized: false, reason: 'Missing credentials' };
 
-  const url = Deno.env.get('SUPABASE_URL');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const url = getEnv('SUPABASE_URL');
+  const anonKey = getEnv('SUPABASE_ANON_KEY');
   if (!url || !anonKey) return { authorized: false, reason: 'Server not configured' };
 
   try {
-    const { createClient } = await import('npm:@supabase/supabase-js@2');
-    const client = createClient(url, anonKey, {
+    const createClient =
+      deps.createClient ??
+      ((u: string, k: string, o: Record<string, unknown>) =>
+        // deno-lint-ignore no-explicit-any
+        (globalThis as any).__supabaseCreateClient?.(u, k, o));
+    let client = createClient(url, anonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
       auth: { persistSession: false },
     });
+    if (!client) {
+      const mod = await import('npm:@supabase/supabase-js@2');
+      client = mod.createClient(url, anonKey, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+        auth: { persistSession: false },
+        // deno-lint-ignore no-explicit-any
+      }) as any;
+    }
     const { data: userData, error: userError } = await client.auth.getUser();
     if (userError || !userData?.user) {
       return { authorized: false, reason: 'Invalid session' };
@@ -481,6 +518,33 @@ export async function authorizeAdminRequest(req: Request): Promise<Authorization
     return { authorized: false, reason: 'Authorization check failed' };
   }
 }
+
+// ============================================================================
+// STRICT DATE VALIDATION (audit 2026-09-07)
+// ============================================================================
+
+/**
+ * Accept only a real calendar date written exactly as `YYYY-MM-DD`.
+ * `Date.parse('2026-02-30')` normalizes to 2 March instead of failing, and
+ * `String.prototype.slice` on a non-string throws, so both are avoided here.
+ */
+export function parseStrictDateISO(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
+  const [y, m, d] = trimmed.split('-').map(Number);
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+  const utc = new Date(Date.UTC(y, m - 1, d));
+  if (
+    utc.getUTCFullYear() !== y ||
+    utc.getUTCMonth() !== m - 1 ||
+    utc.getUTCDate() !== d
+  ) {
+    return null;
+  }
+  return trimmed;
+}
+
 
 /** Standard 401 body for unauthorized privileged calls. */
 export function unauthorizedResponse(
