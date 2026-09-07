@@ -455,3 +455,19 @@ Sólo afecta a ingestas futuras; no se han desplazado datos históricos.
 `docs/fuentes/extractores-22.csv` distingue explícitamente: disponibilidad HTTP, extractor probado con fixture, ensayo real ejecutado, bloqueado/desconocido y sin extractor. **No se afirma que todas las fuentes sean correctas ni que ninguna esté certificada por los ayuntamientos.**
 
 Limitación observada al revisar la portada: los eventos con día pero sin hora se muestran como «02:00» (medianoche UTC vista en Madrid). Es una consecuencia visible de la convención de hora desconocida y queda anotada, no corregida en este pase.
+
+## 14. Fase 6 — Defectos de integración reproducidos y corregidos
+
+Evidencia real ejecutada tras los cambios: `bunx tsgo --noEmit` sin errores, `bunx vitest run` 36 ficheros / 303 pruebas en verde, `bunx vite build` correcto.
+
+1. **Estado compartido de gustos.** `src/modules/interests/store.ts` mantiene el estado por identidad (`guest`, `user:<uid>`) y `useInterests` lo lee con `useSyncExternalStore`. Dos consumidores montados (selector y "Para ti") ven el mismo cambio en el mismo render tras guardar, reiniciar o importar.
+2. **Cambios de identidad y respuestas tardías.** Cada carga lleva ticket y cada escritura número de secuencia: una carga o guardado de la cuenta A que resuelve después de cambiar a B se descarta; una carga inicial que llega después de un guardado más nuevo no lo pisa; al cambiar de identidad nunca se muestran los ids del anterior.
+3. **Honestidad del guardado.** `clearInterests` devuelve `false` cuando el dispositivo rechaza el borrado; el guardado no actualiza la selección si la escritura falla y se conserva la anterior; el aviso de estado solo aparece cuando hay algo realmente guardado y distingue "guardado en este dispositivo", "el dispositivo no permite guardar" y "no se pudo sincronizar" — un fallo de cuenta ya no dice "sincronizado".
+4. **Importación explícita.** `insertRemoteInterestsIfAbsent` inserta solo si no existe fila; ante conflicto (`23505`) devuelve la fila ajena intacta y la interfaz avisa del conflicto. No hay importación implícita.
+5. **Pruebas de ciclo de vida.** `src/modules/interests/interests-lifecycle.test.tsx` (10 pruebas con promesas diferidas) cubre los seis escenarios pedidos.
+6. **Idioma.** `normalizeLanguage` en `src/i18n/index.ts` reduce códigos regionales (`en-US`, `es-ES`, `ar-EG`, `pt-BR`) al idioma que sí publicamos, con `es` como respaldo; el selector y `document.lang/dir` usan la misma función. `src/test/i18n-locale-normalization.test.ts` (4 pruebas) lo verifica, incluido `dir=rtl` en árabe. Comprobado en navegador: con `en-US` el selector marca EN y el contenido sale en inglés.
+7. **Portada.** El destacado es ahora compacto y responsivo: cartel real en columna lateral en escritorio con título, fecha, lugar y llamada a la acción visibles; el esqueleto de carga es del mismo tamaño que el bloque final, sin banda blanca gigante. El botón de búsqueda pasa a color sólido y usa `common.search`, presente en los 10 idiomas (antes salía "Buscar" en la interfaz inglesa).
+
+Capturas con datos reales asentados: `docs/audit-preview/home-375.png`, `home-1440.png`, `intereses-375.png`.
+
+Limitaciones que siguen sin resolver y no se ocultan: los eventos cuya fuente solo publica el día se muestran como «02:00» en la ficha; el calendario del Unicaja no trae recinto y por eso sus partidos siguen sin aparecer; UMA `contenedorcultural` responde 200 pero el extractor no reconoce estructura de eventos; 21 direcciones siguen sin poder comprobarse, 11 dan 404, 7 bloqueadas por sus reglas y 3 dan 403. El frontend no se ha publicado.
