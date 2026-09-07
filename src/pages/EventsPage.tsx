@@ -22,7 +22,13 @@ import { useLocations } from '@/hooks/useLocations';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SportsEventsPage from '@/components/sports/SportsEventsPage';
-import { EVENT_CATEGORIES, type EventCategory } from '@/types';
+import {
+  parseEventsUrl,
+  serializeEventsUrl,
+  clearedEventsUrl,
+  isSameSearch,
+  type EventsUrlState,
+} from '@/pages/events/eventsUrlState';
 import SEO from '@/components/common/SEO';
 
 const EventsPage = () => {
@@ -242,13 +248,12 @@ const CultureEventsPage = () => {
   }, [userCoords, t]);
 
   const clearAllFilters = useCallback(() => {
-    updateFilters({ categories: [] });
-    setSelectedVenueIds([]);
-    setSelectedLocationIds([]);
     setSearchQuery('');
     setUserCoords(null);
-    setSearchParams({});
-  }, [setSearchParams]);
+    const current = new URLSearchParams(search);
+    const next = clearedEventsUrl(current);
+    if (!isSameSearch(current, next)) setSearchParams(next);
+  }, [search, setSearchParams]);
 
   // ── Active-filter chip descriptors ────────────────────────────────────────
   type Chip = { key: string; label: string; onRemove: () => void };
@@ -260,7 +265,7 @@ const CultureEventsPage = () => {
         label: `“${debouncedSearch}”`,
         onRemove: () => {
           setSearchQuery('');
-          setSearchParams((sp) => patchParams(sp, { q: null }));
+          commit({ q: '' });
         },
       });
     }
@@ -452,7 +457,7 @@ const CultureEventsPage = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                setSearchParams((sp) => patchParams(sp, { q: searchQuery.trim() || null }));
+                commit({ q: searchQuery.trim() });
               }}
               className="relative flex-1 min-w-0"
               role="search"
@@ -481,7 +486,7 @@ const CultureEventsPage = () => {
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
                   onClick={() => {
                     setSearchQuery('');
-                    setSearchParams((sp) => patchParams(sp, { q: null }));
+                    commit({ q: '' });
                   }}
                   aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
                 >
@@ -655,7 +660,7 @@ const CultureEventsPage = () => {
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
         filters={filters}
-        onApplyFilters={setFilters}
+        onApplyFilters={updateFilters}
         showFavoritesFilter={isAuthenticated}
       />
     </div>
