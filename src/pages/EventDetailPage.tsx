@@ -15,6 +15,8 @@ import { toast } from 'sonner';
 import { hasExplicitTime } from '@/lib/eventTime';
 import { formatMadrid } from '@/lib/madridTime';
 import { buildEventIcs, icsFileName } from '@/lib/calendarExport';
+import { resolveTicketAction, buildDirectionsUrl } from '@/lib/eventLinks';
+import { resolvePoint } from '@/lib/venueCoords';
 import EventCard from '@/components/events/EventCard';
 import EventImage, { EventImageSkeleton } from '@/components/events/EventImage';
 import EmptyState from '@/components/common/EmptyState';
