@@ -44,7 +44,10 @@ export const INTEREST_CATALOG: InterestDefinition[] = [
     domain: 'culture',
     labelKey: 'nightlife',
     legacyValues: ['nightlife', 'noche'],
-    keywords: ['nocturna', 'nocturno', 'noche', 'club', 'discoteca', 'sala', 'afterwork', 'fiesta', 'nightlife'],
+    // Deliberately narrow: bare "noche" or "sala" appear in countless daytime
+    // listings ("Noche de AOVE", "Sala María Cristina") and produced false
+    // matches, so nightlife needs an unambiguous signal.
+    keywords: ['vida nocturna', 'discoteca', 'club nocturno', 'after', 'dj', 'nightlife'],
   },
   {
     id: 'theater',
@@ -130,7 +133,9 @@ export const INTEREST_CATALOG: InterestDefinition[] = [
     domain: 'sports',
     labelKey: 'basketball',
     legacyValues: ['basketball', 'baloncesto'],
-    keywords: ['baloncesto', 'basket', 'basketball', 'unicaja', 'acb', 'canasta'],
+    // "unicaja" also names a cultural foundation, so it is not a basketball
+    // signal on its own.
+    keywords: ['baloncesto', 'basket', 'basketball', 'acb'],
   },
   {
     id: 'football',
