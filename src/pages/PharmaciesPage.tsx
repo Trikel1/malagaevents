@@ -174,7 +174,9 @@ const PharmacyCard = ({
 
         {onDuty && contactFromDirectory && (
           <p className="text-[11px] text-muted-foreground mt-1.5">
-            {t('pharmacies.contactFromDirectory', 'Nombre, teléfono y ubicación tomados del directorio oficial (coincidencia por dirección).')}
+            {pharmacy.phone
+              ? t('pharmacies.contactFromDirectory', 'Nombre, teléfono y ubicación tomados del directorio oficial (coincidencia por dirección).')
+              : t('pharmacies.dataFromDirectory', 'Nombre y ubicación tomados del directorio oficial (coincidencia por dirección).')}
           </p>
         )}
 
