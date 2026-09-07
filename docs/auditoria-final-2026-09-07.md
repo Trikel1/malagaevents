@@ -597,3 +597,29 @@ propietario.
 - Desplegada únicamente `sync-sports-normalized` (auth y cron sin cambios). Sin sincronización masiva: las reglas se aplican en la próxima ejecución programada.
 - **Datos históricos**: no se han modificado. Las filas ya guardadas con municipio o provincia inferidos siguen tal cual y continúan documentadas más arriba; su reparación exigiría comprobación fuente a fuente.
 - Frontend sin publicar.
+
+## Fase 14 — Bloqueadores visuales de portada (2026-09-07)
+
+Corregidos exactamente los tres defectos observados en las capturas commiteadas:
+
+1. `src/components/home/FeaturedEvent.tsx` usaba `formatMadrid(..., "EEEE d 'de' MMMM · HH:mm")`
+   sin locale ni `hasExplicitTime`: en inglés se leía "Tuesday 8 De September · 02:00" para un
+   evento sin hora publicada. Ahora resuelve el locale de date-fns igual que EventDetail
+   (incluye árabe y códigos regionales `en-US`/`ar-MA`), usa el patrón español solo en español y
+   muestra la etiqueta traducida `events.timeTBC` cuando la fuente no publicó hora.
+   Capitalización de la fecha por primera letra, no por palabra.
+2. Nueva selección del destacado en `src/lib/featuredEvent.ts` (`scoreFeatured`, `pickFeaturedEvent`):
+   se puntúan título real, recinto no genérico, dirección, coordenadas, hora explícita y cartel;
+   los planes exclusivamente en línea se despriorizan (siguen accesibles en la agenda). Sin IDs
+   fijados ni datos inventados; candidatos ampliados de 8 a 24; si nada puntúa mejor, gana el
+   más próximo en el tiempo.
+3. `buildEventIcs` solo emite `DTEND` cuando el fin existe y tiene la misma precisión que el
+   inicio: un inicio con hora + fin solo-fecha ya no exporta un falso 00:00Z, y un inicio de día
+   completo + fin con hora ya no añade un día extra.
+
+Puertas: `bunx tsgo --noEmit` limpio, `bunx vitest run` 347 pruebas en 40 archivos (todas en verde,
++8: 2 regresiones de DTEND y 6 de portada/selección), `npm run build` correcto con sitemap y PWA.
+Capturas reales en español con datos actuales: `docs/audit-preview/home-375.png` y `home-1440.png`
+(destacado: "MÁLAGA CREA 2026. MUESTRA JOVEN DE CORTOMETRAJES", La Caja Blanca, 9 de septiembre 22:00).
+
+Sin cambios en datos históricos, sin sincronizaciones y sin publicar el frontend.

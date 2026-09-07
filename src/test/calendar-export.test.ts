@@ -117,3 +117,22 @@ describe('buildEventIcs', () => {
     expect(buildEventIcs({ ...base, start_at: 'no-es-fecha' }, { now: NOW })).toBeNull();
   });
 });
+
+describe('DTEND precision', () => {
+  it('omits DTEND when a timed start has a date-only end (no fake 00:00Z finish)', () => {
+    const ics = buildEventIcs(
+      { ...base, end_at: '2026-09-14T00:00:00.000Z' },
+      { now: NOW },
+    )!;
+    expect(ics).not.toContain('DTEND');
+  });
+
+  it('omits DTEND when an all-day start has a timed end (no invented extra day)', () => {
+    const ics = buildEventIcs(
+      { ...base, start_at: '2026-09-12T00:00:00.000Z', end_at: '2026-09-14T21:00:00.000Z' },
+      { now: NOW },
+    )!;
+    expect(lines(ics)).toContain('DTSTART;VALUE=DATE:20260912');
+    expect(ics).not.toContain('DTEND');
+  });
+});
