@@ -111,8 +111,13 @@ async function fetchSportsEvents(filters: SportsEventsFilters): Promise<SportEve
 
   const { data, error } = await query;
   if (error) throw error;
-  return (data || []).map(mapToSportEvent);
+  // Audit 2026-09-07: `status = scheduled AND is_in_malaga_province` also
+  // matched arts/religious content, away fixtures and placeholder venues.
+  // Only rows with a real discipline and locality evidence are published.
+  const { eligible } = filterEligibleSports(data ?? []);
+  return eligible.map(mapToSportEvent);
 }
+
 
 export function useSportsEvents(filters: SportsEventsFilters) {
   const { enabled = true, ...rest } = filters;
