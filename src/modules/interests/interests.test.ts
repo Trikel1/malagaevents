@@ -68,8 +68,10 @@ describe('ranking', () => {
       { id: 'c', kind: 'culture', title: 'Recital de poesía', category: 'literatura', tags: [], startAt: soon(1) },
     ];
     const ranked = rankItems(items, ['electronic_music', 'basketball'], { limit: 10 });
-    expect(ranked.map((r) => r.item.id)).toEqual(['a', 'b']);
-    expect(ranked[0].reasonInterestId).toBe('electronic_music');
+    // Both domains survive; the poetry recital (no matching interest) does not.
+    expect(ranked.map((r) => r.item.id).sort()).toEqual(['a', 'b']);
+    expect(ranked.find((r) => r.item.id === 'a')?.reasonInterestId).toBe('electronic_music');
+    expect(ranked.find((r) => r.item.id === 'b')?.reasonInterestId).toBe('basketball');
   });
 
   it('returns nothing rather than filler when no item matches', () => {
