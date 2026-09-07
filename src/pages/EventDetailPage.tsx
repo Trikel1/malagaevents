@@ -399,27 +399,64 @@ const EventDetailPage = () => {
             <Calendar className="h-4 w-4 mr-2" />
             {t('eventDetail.addToCalendar')}
           </Button>
-          <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
-            <Navigation className="h-4 w-4 mr-2" />
-            {t('eventDetail.howToGet')}
-          </Button>
+          {directions ? (
+            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
+              <Navigation className="h-4 w-4 mr-2" />
+              {t('eventDetail.howToGet')}
+            </Button>
+          ) : (
+            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
+              <MapPin className="h-4 w-4 mr-2" />
+              {t('eventDetail.seeOnMap', 'Ver en el mapa')}
+            </Button>
+          )}
         </div>
+        <p className="-mt-4 text-xs text-muted-foreground">
+          {directions
+            ? directions.basis === 'coords'
+              ? t('eventDetail.locationExact', 'Ubicación verificada.')
+              : t('eventDetail.locationAddress', 'Indicaciones a partir de la dirección publicada.')
+            : t('eventDetail.locationPending', 'Ubicación pendiente de confirmar: no podemos dar indicaciones.')}
+        </p>
 
-        {/* Información de entradas — informativa, sin checkout externo */}
+        {/* Entradas — acción real cuando la fuente publica un enlace */}
         <Card className="p-4">
           <h2 className="font-semibold text-sm mb-1.5 flex items-center gap-2">
             <Ticket className="h-4 w-4 text-primary" aria-hidden="true" />
             {t('eventDetail.ticketInfoTitle', 'Información de entradas')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {event.price_info
+            {event.is_free
+              ? t('common.free', 'Gratis')
+              : event.price_info
               ? event.price_info
-              : event.ticket_url
-              ? t('eventDetail.ticketsAvailable', 'Entradas disponibles a través del organizador.')
+              : ticketAction.url
+              ? t('eventDetail.priceOnSite', 'Precio y disponibilidad en la web del organizador.')
               : t('eventDetail.ticketsUnknown', 'No disponemos de información de entradas para este evento.')}
           </p>
+
+          {ticketAction.url ? (
+            <>
+              <Button asChild className="mt-3 w-full min-h-11">
+                <a href={ticketAction.url} target="_blank" rel="noopener noreferrer">
+                  {ticketLabel}
+                  <ExternalLink className="h-4 w-4 ml-2" aria-hidden="true" />
+                </a>
+              </Button>
+              {ticketAction.host && (
+                <p className="text-xs text-muted-foreground mt-1.5 text-center">
+                  {ticketAction.host}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="mt-3 text-sm font-medium">
+              {t('eventDetail.ticketPending', 'Enlace de entradas pendiente de confirmar.')}
+            </p>
+          )}
+
           {event.venue?.name && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-2">
               {t('eventDetail.organizer', 'Organizador')}: {event.venue.name}
             </p>
           )}
