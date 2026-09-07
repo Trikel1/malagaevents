@@ -40,3 +40,33 @@ export const saveRemoteInterests = async (
   if (error) throw error;
   return clean;
 };
+
+export interface InsertOutcome {
+  /** False when a row already existed: the account copy wins, nothing overwritten. */
+  inserted: boolean;
+  interestIds: string[];
+}
+
+/**
+ * Insert-if-absent, used only by the explicit guest → account import.
+ * If another device created the row between the initial load and the import,
+ * the existing row is returned untouched.
+ */
+export const insertRemoteInterestsIfAbsent = async (
+  userId: string,
+  interestIds: string[],
+): Promise<InsertOutcome> => {
+  const clean = sanitizeInterestIds(interestIds);
+  const { error } = await supabase.from('user_interest_preferences').insert({
+    user_id: userId,
+    interest_ids: clean,
+    catalog_version: INTEREST_CATALOG_VERSION,
+  });
+
+  if (!error) return { inserted: true, interestIds: clean };
+  // 23505 = unique violation on the primary key: a row appeared meanwhile.
+  if (error.code !== '23505') throw error;
+
+  const existing = await fetchRemoteInterests(userId);
+  return { inserted: false, interestIds: existing.interestIds };
+};

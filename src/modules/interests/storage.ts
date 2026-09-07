@@ -69,13 +69,15 @@ export const writeInterests = (key: string, interestIds: string[]): boolean => {
   }
 };
 
-export const clearInterests = (key: string): void => {
+/** Returns false when the device refused the delete: never claim a fake success. */
+export const clearInterests = (key: string): boolean => {
   const store = safeStorage();
-  if (!store) return;
+  if (!store) return false;
   try {
     store.removeItem(key);
+    return true;
   } catch {
-    /* ignore */
+    return false;
   }
 };
 
