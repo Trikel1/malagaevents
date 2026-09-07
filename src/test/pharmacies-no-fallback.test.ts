@@ -70,8 +70,12 @@ describe('usePharmaciesOnDuty — no synthetic rotations', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(Array.isArray(result.current.data)).toBe(true);
-    expect(result.current.data).toHaveLength(0);
+    expect(Array.isArray(result.current.data?.rows)).toBe(true);
+    expect(result.current.data?.rows).toHaveLength(0);
+    // No official rows for that date: the UI must be told so, not shown a
+    // fabricated or stale rota.
+    expect(result.current.data?.isPreviousDay).toBe(false);
+    expect(result.current.data?.hasProvinceDataForDate).toBe(false);
   });
 
   it('never generates fallback ids or source_ref="fallback-rotation" from the directory', async () => {
@@ -82,7 +86,7 @@ describe('usePharmaciesOnDuty — no synthetic rotations', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    const data = (result.current.data ?? []) as unknown as Array<Record<string, unknown>>;
+    const data = (result.current.data?.rows ?? []) as unknown as Array<Record<string, unknown>>;
     for (const row of data) {
       expect(String(row.id ?? '')).not.toMatch(/^fallback-/);
       expect(row.source_ref).not.toBe('fallback-rotation');
