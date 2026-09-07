@@ -3,7 +3,7 @@ import { useEvents } from '@/hooks/useEvents';
 import { useSportsAgenda } from '@/hooks/useSportsAgenda';
 import type { Event } from '@/types';
 import type { SportsEntity } from '@/types/sportsEntities';
-import { rankItems, type RankableItem, type RankedItem } from './ranking';
+import { pickStarterSelection, rankItems, type RankableItem, type RankedItem } from './ranking';
 
 export type Recommendation =
   | { kind: 'culture'; id: string; reasonInterestId: string | null; event: Event }
@@ -32,16 +32,18 @@ const toSportsRankable = (e: SportsEntity): RankableItem => ({
 /**
  * Combines the two public datasets at the UI layer only — no row is copied
  * between tables — and ranks the whole candidate set before slicing.
+ *
+ * With no saved tastes it still returns something useful: a varied starter
+ * selection of the soonest plans, flagged as `isStarter` so the UI can say so
+ * instead of implying it knows the visitor.
  */
 export function useRecommendations(interestIds: string[], limit = 6) {
-  const enabled = interestIds.length > 0;
+  const personalized = interestIds.length > 0;
 
-  const culture = useEvents({ limit: CANDIDATE_LIMIT, enabled });
+  const culture = useEvents({ limit: CANDIDATE_LIMIT });
   const sports = useSportsAgenda({ window: '30d' });
 
   const { recommendations, hasCandidates } = useMemo(() => {
-    if (!enabled) return { recommendations: [] as Recommendation[], hasCandidates: false };
-
     const cultureEvents = culture.data ?? [];
     const sportsEntities = (sports.data ?? []).filter((e) => Boolean(e.date_start));
 
@@ -57,7 +59,13 @@ export function useRecommendations(interestIds: string[], limit = 6) {
       rankable.push({ ...toSportsRankable(e), id: `s:${e.id}` });
     }
 
-    const ranked: RankedItem[] = rankItems(rankable, interestIds, { limit });
+    const ranked: RankedItem[] = personalized
+      ? rankItems(rankable, interestIds, { limit, diversify: true })
+      : pickStarterSelection(rankable, { limit }).map((item) => ({
+          item,
+          score: 0,
+          reasonInterestId: null,
+        }));
 
     const recommendations = ranked.map<Recommendation>((r) => {
       const raw = byId.get(r.item.id)!;
@@ -70,12 +78,13 @@ export function useRecommendations(interestIds: string[], limit = 6) {
       recommendations,
       hasCandidates: cultureEvents.length + sportsEntities.length > 0,
     };
-  }, [enabled, culture.data, sports.data, interestIds, limit]);
+  }, [personalized, culture.data, sports.data, interestIds, limit]);
 
   return {
     recommendations,
     hasCandidates,
-    isLoading: enabled && (culture.isLoading || sports.isLoading),
-    isError: enabled && (culture.isError || sports.isError),
+    isStarter: !personalized,
+    isLoading: culture.isLoading || sports.isLoading,
+    isError: culture.isError || sports.isError,
   };
 }
