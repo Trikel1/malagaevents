@@ -1695,6 +1695,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_interest_preferences: {
+        Row: {
+          catalog_version: number
+          interest_ids: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          catalog_version?: number
+          interest_ids?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          catalog_version?: number
+          interest_ids?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

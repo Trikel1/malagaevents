@@ -119,3 +119,45 @@ comportamiento previo. No hay migraciones que deshacer.
 
 ### Validación
 TypeScript sin errores · 209/209 pruebas · build correcto · comprobación en navegador real a 375 y 1440 px.
+
+## Fase 4 — Inicio, gustos persistentes e imágenes (2026-09-07)
+
+### Cambios
+- **Gustos ("Mis gustos")**: nuevo dominio aislado `src/modules/interests/`
+  (catálogo versionado de 28 gustos en dos dominios, almacenamiento local por
+  identidad, servicio Supabase, hook, selector accesible, ranking).
+  - Tabla `user_interest_preferences` aplicada, RLS owner-only
+    (`auth.uid() = user_id` en USING y WITH CHECK, sin acceso anónimo).
+  - Invitado: `localStorage` con esquema versionado; claves separadas
+    `…guest` y `…user.<uid>` para que ninguna sesión herede gustos de otra.
+    Storage bloqueado o corrupto devuelve selección vacía sin romper la vista.
+  - Importación del invitado a la cuenta: sólo por decisión explícita y sólo
+    cuando la cuenta no tiene nada guardado.
+- **Inicio**: destacado real con cartel propio, "Para ti" (cultura + deporte
+  combinados, motivo traducido por recomendación), y el destacado ya no se
+  repite en "Este finde". Sin saludos, contadores inventados ni sellos.
+- **Ranking**: determinista (categoría 4 / etiqueta 3 / título 2 + frescura
+  ≤1.5, desempate cronológico). Coincidencia por palabra completa: "moto"
+  no coincide con "motor". Se retiraron señales ambiguas ("noche", "sala",
+  "unicaja") tras comprobar falsos positivos reales en el navegador.
+  Sin coincidencias → se dice claramente y se ofrece la agenda interna.
+- **Imágenes** (`EventImage`): eliminado el banco de fotos genéricas de
+  Unsplash. Fallback editorial dibujado en local (degradado de marca, trama
+  sobria, icono existente) etiquetado "Sin cartel disponible" / "Imagen de
+  categoría"; el texto alternativo nunca presenta una imagen genérica como el
+  cartel real. Las URL firmadas ya no se reescriben (sin srcset falso). El
+  estado se reinicia al cambiar `src`. La vista de detalle muestra el cartel
+  completo (`object-contain`) y la ampliación es un botón operable por teclado
+  con título accesible.
+
+### Verificación
+- TypeScript sin errores; 227/227 pruebas (29 ficheros); build correcto.
+- Navegador real (Playwright): 320 / 375 / 768 / 1440 sin desbordamiento
+  horizontal; selección de gustos guardada y recuperada tras recargar.
+- Capturas: `/tmp/browser/fase4/home-{320,375,768,1440}.png`,
+  `picker.png`, `foryou.png`.
+
+### Pendiente / limitaciones
+- La interfaz se muestra en inglés pese al selector "ES" en el navegador de
+  prueba (detección de idioma previa a esta fase, no modificada aquí).
+- Sin ubicación precisa ni geolocalización: el municipio sigue siendo manual.
