@@ -56,17 +56,22 @@ function pick(row: CsvRow, keys: string[]): string {
   return "";
 }
 
+/**
+ * Every date goes through the strict Europe/Madrid helper.
+ *
+ * The previous `new Date("2026-09-12T22:00")` shortcut read a timezone-less
+ * value as the runtime's local time (UTC on the edge), so an official 22:00
+ * Málaga start was stored as 22:00Z — two hours early. The helper reads
+ * timezone-less values as Madrid wall time, preserves explicit offsets and Z,
+ * keeps date-only values at the unknown-hour sentinel, and rejects impossible
+ * dates instead of wrapping them.
+ */
 function normaliseIso(input: string): string | null {
   if (!input) return null;
-  // ISO first
-  const iso = /\d{4}-\d{2}-\d{2}([T\s]\d{2}:\d{2})?/.exec(input);
-  if (iso) {
-    const parsed = new Date(iso[0].replace(" ", "T"));
-    if (!isNaN(parsed.getTime())) return parsed.toISOString();
-  }
-  // Spanish free-form or dd/mm/yyyy fallback (delegated to ingestion helper)
-  const spanish = parseSpanishDateToMadrid(input);
-  return spanish ? spanish.toISOString() : null;
+  const isoLike = /\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?/
+    .exec(input);
+  const parsed = parseSpanishDateToMadrid(isoLike ? isoLike[0] : input);
+  return parsed ? parsed.toISOString() : null;
 }
 
 /**
@@ -98,7 +103,11 @@ export function canonicalizeRow(
     "final",
     "fecha_fin_iso",
   ]);
-  const endAt = normaliseIso(endRaw);
+  const endAtRaw = normaliseIso(endRaw);
+  // A range whose end is at or before its start is not a range: drop the end
+  // rather than persist an impossible interval.
+  const endAt =
+    endAtRaw && Date.parse(endAtRaw) > Date.parse(startAt) ? endAtRaw : null;
 
   const venueName =
     pick(row, [

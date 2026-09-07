@@ -1238,13 +1238,10 @@ function laGarrapataParseDetail(html: string, sourceUrl: string): NormalizedEven
       const monthName = mesM[1].toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const month = LA_GARRAPATA_SPANISH_MONTHS[monthName];
-      if (month) {
-        let year = mesM[2] ? parseInt(mesM[2], 10) : new Date().getFullYear();
-        const candidate = new Date(year, month - 1, day);
-        // Infer next future occurrence if year missing and date already past
-        if (!mesM[2] && candidate.getTime() < Date.now() - 24 * 3600 * 1000) {
-          year += 1;
-        }
+      // Only accept the year when the source states it. Guessing "next year"
+      // for an already-past day invented dates that the venue never published.
+      if (month && mesM[2]) {
+        const year = parseInt(mesM[2], 10);
         date = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
       }
     }
