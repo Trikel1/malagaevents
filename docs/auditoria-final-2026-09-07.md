@@ -328,3 +328,70 @@ en el código.
 - El frontend **no** se ha publicado: el propietario revisará el resultado integrado.
 - El arreglo del lockfile npm y de los scripts (`bunx` → `tsx`) es trabajo paralelo del
   propietario; aquí no se tocaron `package.json`, lockfiles ni `README`.
+
+## 12. Integración del parche de build reproducible (cierre)
+
+Parche recibido (`malaga-reproducible-build.zip`): un único fichero
+`malaga-reproducible-build.patch` sobre `README.md`, `package.json` y
+`package-lock.json`. Sin credenciales, sin cambios de UI, sin cambios en rangos de
+dependencias de producción. Aplicado con `patch -p1` (verificado antes en simulación):
+README y lockfile limpios; el segundo hunk de `package.json` con `fuzz 2` porque las
+tareas previas habían añadido `drizzle-kit`, `drizzle-orm` y `postgres`.
+
+### 12.1 Adaptación mínima
+El lockfile del parche se generó contra el `package.json` de la fase 2 y por tanto no
+contenía esas tres dependencias añadidas después. En vez de sobrescribir, se regeneró
+con `npm install --package-lock-only --ignore-scripts`, que añadió sólo lo que faltaba
+(968 → 1026 entradas). Comprobación programática: los rangos de todas las dependencias
+y devDependencies del `package.json` coinciden con la raíz del lock y todas tienen
+entrada en el árbol.
+
+Cambios de scripts integrados tal cual:
+`test:a11y = vitest run a11y` (cubre `src/test/a11y.test.tsx` y el nuevo
+`src/test/a11y-components.test.tsx` con componentes reales),
+`generate:sitemap = node --import tsx scripts/generate-sitemap.ts`,
+`predev = npm run generate:sitemap`,
+`prebuild = npm run generate:sitemap && npm run test:a11y`,
+devDependency `tsx ^4.23.13`. README documenta `npm ci` y Node 24.
+
+### 12.2 Compatibilidad con Bun
+`bun install` actualizó el lockfile canónico sólo con `tsx@4.23.13`
+("Checked 948 installs across 1078 packages (no changes)"): ninguna otra versión
+cambió. `bunx tsgo --noEmit` limpio y `bunx vitest run` con **263 pruebas / 32 ficheros**
+en verde bajo Bun.
+
+### 12.3 Evidencia final (copia limpia en `/tmp/ciwork`, sin `node_modules` ni `dist`)
+Node v22.22.0 / npm 10.9.4 (el propietario validó en Node 24.19 / npm 11.9):
+- `npm ci --ignore-scripts --no-audit --no-fund` → **876 paquetes, correcto**
+  (antes fallaba por desajuste lock/package.json).
+- `npx tsc --noEmit -p tsconfig.app.json` → **sin errores**.
+- `npm run build` → **correcto**, incluyendo `prebuild` (sitemap + ambas suites a11y)
+  y la generación del service worker PWA (88 entradas precacheadas).
+- `npm run test:a11y` → 2 ficheros / 4 pruebas en verde.
+- `npm test` → **32 ficheros / 263 pruebas en verde**.
+
+El `public/sitemap.xml` real del repositorio **no** se ha tocado: conserva sus
+1817 URLs; el build de verificación se ejecutó en la copia temporal, donde sin
+variables de entorno el generador sólo emite las rutas estáticas.
+
+### 12.4 Comprobación visual posterior (390×1400, navegador real)
+`/` (Inicio: destacado, "Para ti" con invitación a elegir gustos, "Tengo dos horas",
+"Este finde"), `/events?filter=weekend` (el filtro heredado se traduce al canónico),
+`/events?family=1&free=1&preset=weekend` (los tres chips se restauran desde el enlace;
+el resultado vacío es real, no un fallo) y `/profile`. Sin errores nuevos de consola:
+sólo los avisos preexistentes de `react-helmet-async` sobre refs en componentes de
+función. Capturas en `/tmp/browser/smoke/`.
+
+### 12.5 Estado consolidado
+- **Backend**: `sync-events`, `scrape-events`, `discover-sources`, `scrape-pharmacies`
+  y `submit-event` desplegadas y verificadas (401 anónimo, 405 método no soportado).
+- **Base de datos**: cabeceras `x-sync-key` de los jobs 1, 2 y 5 actualizadas por el
+  propietario vía Vault (sección 11.2). No es una auditoría "sin cambios en BD".
+- **Gustos**: se guardan por invitado en el dispositivo y por cuenta en la tabla
+  `user_interest_preferences` con acceso exclusivo del propietario del registro.
+- **Frontend**: **no publicado**; queda a revisión del propietario.
+- Limitaciones abiertas: credencial antigua en otras funciones de ingesta,
+  clasificación y deduplicación deportiva en origen, hora UTC de `malaga.eu` y
+  adaptador ICS de Unicaja sin migrar.
+
+Commit de referencia previo a esta integración: `7e9ba79`.

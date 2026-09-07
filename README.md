@@ -18,7 +18,7 @@ Changes made via Lovable will be committed automatically to this repo.
 
 If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Use Node.js and npm (the audit was validated with Node 24). Bun is not required for development or builds.
 
 Follow these steps:
 
@@ -29,12 +29,18 @@ git clone <YOUR_GIT_URL>
 # Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install the exact dependency versions from the lockfile.
+npm ci
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+
+Run `npm test` for the full test suite and `npm run build` for the production build.
+The build first generates the sitemap and runs all accessibility test files, including
+the real event cards and bottom navigation. These automated checks do not replace
+manual accessibility evaluation. If Supabase environment variables are absent,
+the sitemap generator includes only the static public routes.
 
 **Edit a file directly in GitHub**
 
