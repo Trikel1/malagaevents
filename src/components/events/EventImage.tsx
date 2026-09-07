@@ -335,7 +335,7 @@ const EventImage = ({
     return (
       <div
         role="img"
-        aria-label={`${config.label} — ${noPoster ? 'sin cartel disponible' : 'imagen de categoría'}`}
+        aria-label={`${config.label} — imagen ilustrativa, no es el cartel oficial`}
         className={cn(
           'relative w-full h-full overflow-hidden flex flex-col items-center justify-center',
           'bg-gradient-to-br',
