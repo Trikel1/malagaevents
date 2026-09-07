@@ -748,5 +748,25 @@
     "source": "来源",
     "updated": "更新于 {{date}}",
     "minutes": "{{count}} 分钟"
+  },
+  "sportsDetail": {
+    "notFound": "未找到该体育活动",
+    "kind": {
+      "match": "比赛",
+      "tournament": "赛事",
+      "activity": "活动"
+    },
+    "illustrative": "示意图片，并非活动海报。",
+    "illustrativeAlt": "该项目的示意图片",
+    "venuePending": "场馆待确认",
+    "pricePending": "来源未标明价格",
+    "source": "来源：{{name}}",
+    "sourceUnknown": "来源未标明",
+    "updated": "更新于 {{date}}",
+    "status": {
+      "cancelled": "已取消",
+      "postponed": "已延期",
+      "pending": "待确认"
+    }
   }
 }

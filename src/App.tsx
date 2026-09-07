@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 // Lazy-load heavy / secondary routes to reduce initial bundle & TTI
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const EventDetailPage = lazy(() => import("./pages/EventDetailPage"));
+const SportEventDetailPage = lazy(() => import("./pages/SportEventDetailPage"));
 const CalendarPage = lazy(() => import("./pages/CalendarPage"));
 const PharmaciesPage = lazy(() => import("./pages/PharmaciesPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -76,6 +77,7 @@ const App = () => (
 
                 {/* Pages without bottom nav */}
                 <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/sports/:id" element={<SportEventDetailPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/auth/reset" element={<ResetPasswordPage />} />
                 <Route path="/tickets/add" element={<AddTicketPage />} />

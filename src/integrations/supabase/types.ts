@@ -1369,6 +1369,35 @@ export type Database = {
           },
         ]
       }
+      sports_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          sports_event_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sports_event_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sports_event_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sports_favorites_sports_event_id_fkey"
+            columns: ["sports_event_id"]
+            isOneToOne: false
+            referencedRelation: "sports_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sports_sources: {
         Row: {
           adapter_key: string | null

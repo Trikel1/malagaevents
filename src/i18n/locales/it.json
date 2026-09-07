@@ -748,5 +748,25 @@
     "source": "Fonte",
     "updated": "Aggiornato {{date}}",
     "minutes": "{{count}} min"
+  },
+  "sportsDetail": {
+    "notFound": "Non abbiamo trovato questa attività sportiva",
+    "kind": {
+      "match": "Partita",
+      "tournament": "Competizione",
+      "activity": "Attività"
+    },
+    "illustrative": "Immagine illustrativa: non è la locandina dell'evento.",
+    "illustrativeAlt": "Immagine illustrativa della disciplina",
+    "venuePending": "Sede da confermare",
+    "pricePending": "Prezzo non attestato dalla fonte",
+    "source": "Fonte: {{name}}",
+    "sourceUnknown": "Fonte non attestata",
+    "updated": "Aggiornato il {{date}}",
+    "status": {
+      "cancelled": "Annullato",
+      "postponed": "Rinviato",
+      "pending": "Da confermare"
+    }
   }
 }

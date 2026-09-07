@@ -748,5 +748,25 @@
     "source": "Source",
     "updated": "Updated {{date}}",
     "minutes": "{{count}} min"
+  },
+  "sportsDetail": {
+    "notFound": "We couldn't find this sports activity",
+    "kind": {
+      "match": "Match",
+      "tournament": "Competition",
+      "activity": "Activity"
+    },
+    "illustrative": "Illustrative image: not the event's own poster.",
+    "illustrativeAlt": "Illustrative image of the sport",
+    "venuePending": "Venue to be confirmed",
+    "pricePending": "Price not accredited by the source",
+    "source": "Source: {{name}}",
+    "sourceUnknown": "Source not accredited",
+    "updated": "Updated on {{date}}",
+    "status": {
+      "cancelled": "Cancelled",
+      "postponed": "Postponed",
+      "pending": "To be confirmed"
+    }
   }
 }

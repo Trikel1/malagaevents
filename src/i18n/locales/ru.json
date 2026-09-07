@@ -748,5 +748,25 @@
     "source": "Источник",
     "updated": "Обновлено {{date}}",
     "minutes": "{{count}} мин"
+  },
+  "sportsDetail": {
+    "notFound": "Мы не нашли это спортивное мероприятие",
+    "kind": {
+      "match": "Матч",
+      "tournament": "Соревнование",
+      "activity": "Активность"
+    },
+    "illustrative": "Иллюстративное изображение: это не афиша мероприятия.",
+    "illustrativeAlt": "Иллюстративное изображение вида спорта",
+    "venuePending": "Место уточняется",
+    "pricePending": "Цена не подтверждена источником",
+    "source": "Источник: {{name}}",
+    "sourceUnknown": "Источник не подтверждён",
+    "updated": "Обновлено {{date}}",
+    "status": {
+      "cancelled": "Отменено",
+      "postponed": "Перенесено",
+      "pending": "Уточняется"
+    }
   }
 }

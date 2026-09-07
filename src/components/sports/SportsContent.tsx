@@ -20,6 +20,7 @@ import SportEventCard from '@/components/sports/SportEventCard';
 import SportsVenuesDropdown from '@/components/sports/SportsVenuesDropdown';
 import { useSportsEvents, useSportsVenues } from '@/hooks/useSportsEvents';
 import { useMunicipalities } from '@/hooks/useMunicipalities';
+import { SPORT_IMAGES, type SportImageKey } from '@/lib/sportsDisplay';
 import SportIcon from '@/components/sports/SportIcon';
 import OfficialSourcesPanel from '@/components/sports/OfficialSourcesPanel';
 import SportsAgenda from '@/components/sports/SportsAgenda';
@@ -56,12 +57,15 @@ interface CategoryTile {
   labelKey: string;
   fallback: string;
   icon: (props: { className?: string }) => JSX.Element;
+  /** Reusable illustration family (never a fake real-match photo). */
+  image: SportImageKey;
   categories: string[];
 }
 
 const CATEGORY_TILES: CategoryTile[] = [
   {
     id: 'futbol',
+    image: 'futbol',
     labelKey: 'sportsHome.cat.futbol',
     fallback: 'Fútbol',
     icon: (p) => <SportIcon sport="futbol" className={p.className} />,
@@ -69,6 +73,7 @@ const CATEGORY_TILES: CategoryTile[] = [
   },
   {
     id: 'baloncesto',
+    image: 'baloncesto',
     labelKey: 'sportsHome.cat.baloncesto',
     fallback: 'Baloncesto',
     icon: (p) => <SportIcon sport="baloncesto" className={p.className} />,
@@ -76,6 +81,7 @@ const CATEGORY_TILES: CategoryTile[] = [
   },
   {
     id: 'atletismo',
+    image: 'atletismo',
     labelKey: 'sportsHome.cat.atletismo',
     fallback: 'Atletismo',
     icon: (p) => <Footprints className={p.className} aria-hidden="true" />,
@@ -83,6 +89,7 @@ const CATEGORY_TILES: CategoryTile[] = [
   },
   {
     id: 'natacion',
+    image: 'acuaticos',
     labelKey: 'sportsHome.cat.natacion',
     fallback: 'Natación',
     icon: (p) => <Waves className={p.className} aria-hidden="true" />,
@@ -90,6 +97,7 @@ const CATEGORY_TILES: CategoryTile[] = [
   },
   {
     id: 'padel_tenis',
+    image: 'raqueta',
     labelKey: 'sportsHome.cat.padelTenis',
     fallback: 'Pádel y tenis',
     icon: (p) => <Trophy className={p.className} aria-hidden="true" />,
@@ -97,6 +105,7 @@ const CATEGORY_TILES: CategoryTile[] = [
   },
   {
     id: 'raqueta',
+    image: 'raqueta',
     labelKey: 'sportsHome.cat.raqueta',
     fallback: 'Deportes de raqueta',
     icon: (p) => <Zap className={p.className} aria-hidden="true" />,
@@ -104,6 +113,7 @@ const CATEGORY_TILES: CategoryTile[] = [
   },
   {
     id: 'aire_libre',
+    image: 'ciclismo',
     labelKey: 'sportsHome.cat.aireLibre',
     fallback: 'Actividades al aire libre',
     icon: (p) => <Trees className={p.className} aria-hidden="true" />,
@@ -111,6 +121,7 @@ const CATEGORY_TILES: CategoryTile[] = [
   },
   {
     id: 'otros',
+    image: 'otros',
     labelKey: 'sportsHome.cat.otros',
     fallback: 'Otros deportes',
     icon: (p) => <Dumbbell className={p.className} aria-hidden="true" />,
@@ -465,22 +476,29 @@ const SportsContent = () => {
                   setTimeout(scrollToResults, 60);
                 }}
                 className={cn(
-                  'group flex items-center gap-2.5 rounded-2xl px-3 min-h-[56px] text-left',
-                  active
-                    ? 'bg-primary text-primary-foreground border border-primary'
-                    : surfaceBtn,
+                  'group overflow-hidden rounded-2xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  active ? 'border-2 border-primary' : 'border border-sportsx-line',
                 )}
               >
-                <span
-                  className={cn(
-                    'h-8 w-8 rounded-lg flex items-center justify-center shrink-0',
-                    active ? 'bg-primary-foreground/15' : 'bg-sportsx-elevated text-sportsx-accent',
-                  )}
-                >
-                  <tile.icon className="h-[18px] w-[18px]" />
+                <span className="relative block">
+                  <img
+                    src={SPORT_IMAGES[tile.image]}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    width={1088}
+                    height={608}
+                    className="h-24 w-full object-cover"
+                  />
                 </span>
-                <span className="text-[13px] font-semibold leading-tight">
-                  {t(tile.labelKey, tile.fallback)}
+                <span className={cn(
+                  'flex items-center gap-2 px-3 py-2.5 min-h-[52px]',
+                  active ? 'bg-primary text-primary-foreground' : 'bg-sportsx-surface',
+                )}>
+                  <tile.icon className="h-[18px] w-[18px] shrink-0" />
+                  <span className="text-[13px] font-semibold leading-tight">
+                    {t(tile.labelKey, tile.fallback)}
+                  </span>
                 </span>
               </button>
             );

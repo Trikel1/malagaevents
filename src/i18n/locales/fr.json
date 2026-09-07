@@ -748,5 +748,25 @@
     "source": "Source",
     "updated": "Mis à jour {{date}}",
     "minutes": "{{count}} min"
+  },
+  "sportsDetail": {
+    "notFound": "Nous n'avons pas trouvé cette activité sportive",
+    "kind": {
+      "match": "Match",
+      "tournament": "Compétition",
+      "activity": "Activité"
+    },
+    "illustrative": "Image d'illustration : ce n'est pas l'affiche de l'événement.",
+    "illustrativeAlt": "Image d'illustration de la discipline",
+    "venuePending": "Lieu à confirmer",
+    "pricePending": "Prix non attesté par la source",
+    "source": "Source : {{name}}",
+    "sourceUnknown": "Source non attestée",
+    "updated": "Mis à jour le {{date}}",
+    "status": {
+      "cancelled": "Annulé",
+      "postponed": "Reporté",
+      "pending": "À confirmer"
+    }
   }
 }
