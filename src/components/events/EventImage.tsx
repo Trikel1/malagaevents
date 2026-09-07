@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles, Image as ImageIcon, Palette, Baby, Trophy, Wrench, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeEventImageUrl } from '@/lib/eventImageSource';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
