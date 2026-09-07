@@ -338,7 +338,8 @@
     "theaters": "剧院",
     "halls": "大厅",
     "otherVenues": "其他",
-    "timeTBC": "时间待定"
+    "timeTBC": "时间待定",
+    "countPartialA11y": "已显示 {{total}} 个活动中的 {{loaded}} 个"
   },
   "eventDetail": {
     "when": "何时",
@@ -701,5 +702,32 @@
   "sportsAgenda": {
     "registrationRequired": "Registration required",
     "ticketsUnknown": "Tickets to be confirmed"
+  },
+  "twoHours": {
+    "title": "我有两小时",
+    "subtitle": "真正适合你空档的活动，不虚构时长。",
+    "cta": "寻找活动",
+    "sheetDescription": "基于已发布活动的确定性计算。只有活动有真实结束时间时，我们才确认它合适。",
+    "durationLegend": "可用时间",
+    "budget60": "1 小时",
+    "budget120": "2 小时",
+    "budget180": "3 小时",
+    "whenLegend": "时间",
+    "horizonNow": "现在",
+    "horizonToday": "今天",
+    "free": "免费",
+    "family": "亲子",
+    "nearMe": "我的附近",
+    "nearMeHint": "请在浏览器中允许定位",
+    "searching": "正在寻找…",
+    "emptyTitle": "目前没有合适的活动",
+    "emptyDesc": "在所选筛选条件下，没有可在 {{hours}} 小时内完成的已发布活动。",
+    "emptyCta": "查看今天的全部活动",
+    "fitsTitle": "合适的活动（{{count}}）",
+    "unconfirmedTitle": "时长未确认",
+    "unconfirmedHelp": "按时开始，但结束时间未知，请查看详情。",
+    "source": "来源",
+    "updated": "更新于 {{date}}",
+    "minutes": "{{count}} 分钟"
   }
 }

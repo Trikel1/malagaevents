@@ -18,7 +18,8 @@ const MAP_STYLE: any = {
         'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
       ],
       tileSize: 256,
-      attribution: '© OpenStreetMap © CARTO',
+      // Legally required data credit (ODbL for OSM, CARTO tiles). Always visible.
+        attribution: '© OpenStreetMap contributors · © CARTO',
     },
   },
   layers: [{ id: 'carto-voyager', type: 'raster', source: 'carto-voyager' }],

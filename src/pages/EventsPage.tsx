@@ -22,7 +22,13 @@ import { useLocations } from '@/hooks/useLocations';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SportsEventsPage from '@/components/sports/SportsEventsPage';
-import { EVENT_CATEGORIES, type EventCategory } from '@/types';
+import {
+  parseEventsUrl,
+  serializeEventsUrl,
+  clearedEventsUrl,
+  isSameSearch,
+  type EventsUrlState,
+} from '@/pages/events/eventsUrlState';
 import SEO from '@/components/common/SEO';
 
 const EventsPage = () => {
@@ -42,22 +48,6 @@ const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: strin
   { key: 'next30', labelKey: 'events.next30Days', labelFallback: 'Próximos 30 días' },
 ];
 
-const VALID_CATEGORIES = EVENT_CATEGORIES;
-
-const VALID_PRESETS = ['today', 'tomorrow', 'thisWeek', 'weekend', 'next30'] as const;
-const isValidPreset = (v: string | null): v is DatePreset =>
-  !!v && (VALID_PRESETS as readonly string[]).includes(v);
-
-/** Update only the given params, preserving every unrelated one. */
-const patchParams = (sp: URLSearchParams, patch: Record<string, string | null>) => {
-  const next = new URLSearchParams(sp);
-  Object.entries(patch).forEach(([k, v]) => {
-    if (v === null || v === '') next.delete(k);
-    else next.set(k, v);
-  });
-  return next;
-};
-
 // ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
@@ -66,39 +56,41 @@ const CultureEventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthContext();
 
-  const initialQuery = searchParams.get('q') || '';
-  const rawCategory = searchParams.get('category');
-  const initialCategory = (VALID_CATEGORIES as readonly string[]).includes(rawCategory ?? '')
-    ? (rawCategory as EventCategory)
-    : null;
-  const initialFilter = searchParams.get('filter');
-  const initialAge = searchParams.get('age') as AgeRange | null;
-  const rawPreset = searchParams.get('preset');
-  const initialPreset: DatePreset | undefined = isValidPreset(rawPreset)
-    ? rawPreset
-    : initialFilter === 'today'
-      ? 'today'
-      : initialFilter === 'weekend'
-        ? 'weekend'
-        : undefined;
+  // ── URL is the single source of truth for committed filters ───────────────
+  const search = searchParams.toString();
+  const urlState = useMemo(() => parseEventsUrl(new URLSearchParams(search)), [search]);
+  const { filters, venueIds: selectedVenueIds, locationIds: selectedLocationIds } = urlState;
+  const committedSearch = urlState.q;
 
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [debouncedSearch, setDebouncedSearch] = useState(initialQuery);
+  const commit = useCallback(
+    (patch: Partial<EventsUrlState>, options?: { replace?: boolean }) => {
+      const current = new URLSearchParams(search);
+      const next = serializeEventsUrl(current, { ...parseEventsUrl(current), ...patch });
+      if (isSameSearch(current, next)) return; // no loops, no history spam
+      setSearchParams(next, { replace: options?.replace ?? false });
+    },
+    [search, setSearchParams],
+  );
+
+  const updateFilters = useCallback(
+    (updater: EventFilters | ((prev: EventFilters) => EventFilters)) => {
+      const current = parseEventsUrl(new URLSearchParams(search)).filters;
+      const nextFilters = typeof updater === 'function' ? updater(current) : updater;
+      commit({ filters: nextFilters });
+    },
+    [commit, search],
+  );
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<EventFilters>({
-    categories: initialCategory ? [initialCategory] : [],
-    datePreset: initialPreset,
-    familyKids: initialFilter === 'family' ? true : undefined,
-    isFree: initialFilter === 'free' ? true : undefined,
-    isOutdoor: initialFilter === 'outdoor' ? true : undefined,
-    ageRange: initialAge && ['0-3', '4-8', '9-12'].includes(initialAge) ? initialAge : undefined,
-  });
 
-  const filtersRef = useRef<EventFilters>(filters);
-  filtersRef.current = filters;
-
-  const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
-  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+  const setSelectedVenueIds = useCallback(
+    (ids: string[]) => commit({ venueIds: ids }),
+    [commit],
+  );
+  const setSelectedLocationIds = useCallback(
+    (ids: string[]) => commit({ locationIds: ids }),
+    [commit],
+  );
 
   const { data: allLocations = [] } = useLocations();
   const priorityCities = useMemo(
@@ -113,16 +105,24 @@ const CultureEventsPage = () => {
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
 
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Search box: local text, committed to the URL after a debounce or on Enter.
+  const [searchQuery, setSearchQuery] = useState(committedSearch);
+
+  // Back/forward (or any external URL change) re-hydrates the input.
   useEffect(() => {
-    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    debounceTimeout.current = setTimeout(() => setDebouncedSearch(searchQuery), 300);
-    return () => {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    };
-  }, [searchQuery]);
+    setSearchQuery(committedSearch);
+  }, [committedSearch]);
+
+  // Debounced commit. `replace` keeps typing out of the history stack.
+  useEffect(() => {
+    if (searchQuery.trim() === committedSearch) return;
+    const id = setTimeout(() => commit({ q: searchQuery.trim() }, { replace: true }), 300);
+    return () => clearTimeout(id);
+  }, [searchQuery, committedSearch, commit]);
+
+  const debouncedSearch = committedSearch;
 
   const onlyFavorites = !!filters.onlyFavorites;
 
@@ -145,14 +145,23 @@ const CultureEventsPage = () => {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
+    totalCount: totalMatching,
   } = useEventsOptimized(queryOptions);
 
   const { data: favorites } = useFavorites();
-  const { data: favoriteEvents, isLoading: loadingFavorites } = useFavoriteEvents(onlyFavorites);
+  const {
+    data: favoriteEvents,
+    isLoading: loadingFavorites,
+    isError: favoritesError,
+    refetch: refetchFavorites,
+  } = useFavoriteEvents(onlyFavorites);
   const toggleFavorite = useToggleFavorite();
 
   const baseDisplayed = onlyFavorites ? favoriteEvents : events;
   const isLoadingEvents = onlyFavorites ? loadingFavorites : isLoading;
+  // A failed favorites request must never be rendered as "no favourites yet".
+  const hasLoadError = onlyFavorites ? favoritesError : isError;
+  const retryLoad = onlyFavorites ? refetchFavorites : refetch;
 
   const displayedEvents = useMemo(() => {
     if (!userCoords || !baseDisplayed) return baseDisplayed;
@@ -203,32 +212,15 @@ const CultureEventsPage = () => {
 
   const setPreset = useCallback(
     (preset: DatePreset) => {
-      const willClear = filtersRef.current.datePreset === preset;
-      setFilters((prev) => ({
+      updateFilters((prev) => ({
         ...prev,
-        datePreset: willClear ? undefined : preset,
+        datePreset: prev.datePreset === preset ? undefined : preset,
         dateFrom: undefined,
         dateTo: undefined,
       }));
-      setSearchParams(
-        (sp) =>
-          patchParams(sp, {
-            filter: null,
-            preset: willClear ? null : preset,
-          }),
-        { replace: false },
-      );
     },
-    [setSearchParams],
+    [updateFilters],
   );
-
-  // Keep the preset in sync when the user navigates back/forward. The guard
-  // returns the same state object when nothing changed, so no update loop.
-  const urlPreset = searchParams.get('preset');
-  useEffect(() => {
-    const next = isValidPreset(urlPreset) ? urlPreset : undefined;
-    setFilters((f) => (f.datePreset === next ? f : { ...f, datePreset: next, dateFrom: undefined, dateTo: undefined }));
-  }, [urlPreset]);
 
   const handleNearMe = useCallback(() => {
     if (userCoords) {
@@ -265,13 +257,12 @@ const CultureEventsPage = () => {
   }, [userCoords, t]);
 
   const clearAllFilters = useCallback(() => {
-    setFilters({ categories: [] });
-    setSelectedVenueIds([]);
-    setSelectedLocationIds([]);
     setSearchQuery('');
     setUserCoords(null);
-    setSearchParams({});
-  }, [setSearchParams]);
+    const current = new URLSearchParams(search);
+    const next = clearedEventsUrl(current);
+    if (!isSameSearch(current, next)) setSearchParams(next);
+  }, [search, setSearchParams]);
 
   // ── Active-filter chip descriptors ────────────────────────────────────────
   type Chip = { key: string; label: string; onRemove: () => void };
@@ -283,7 +274,7 @@ const CultureEventsPage = () => {
         label: `“${debouncedSearch}”`,
         onRemove: () => {
           setSearchQuery('');
-          setSearchParams((sp) => patchParams(sp, { q: null }));
+          commit({ q: '' });
         },
       });
     }
@@ -292,7 +283,7 @@ const CultureEventsPage = () => {
       chips.push({
         key: 'preset',
         label: p ? t(p.labelKey, p.labelFallback) : String(filters.datePreset),
-        onRemove: () => setFilters((f) => ({ ...f, datePreset: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, datePreset: undefined })),
       });
     }
     if (filters.dateFrom || filters.dateTo) {
@@ -302,7 +293,7 @@ const CultureEventsPage = () => {
         key: 'daterange',
         label: `${from} – ${to}`,
         onRemove: () =>
-          setFilters((f) => ({ ...f, dateFrom: undefined, dateTo: undefined })),
+          updateFilters((f) => ({ ...f, dateFrom: undefined, dateTo: undefined })),
       });
     }
     for (const c of filters.categories) {
@@ -310,49 +301,49 @@ const CultureEventsPage = () => {
         key: `cat:${c}`,
         label: t(`categories.${c}`, c),
         onRemove: () =>
-          setFilters((f) => ({ ...f, categories: f.categories.filter((x) => x !== c) })),
+          updateFilters((f) => ({ ...f, categories: f.categories.filter((x) => x !== c) })),
       });
     }
     if (filters.isFree) {
       chips.push({
         key: 'free',
         label: t('events.freeOnly', 'Gratis'),
-        onRemove: () => setFilters((f) => ({ ...f, isFree: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, isFree: undefined })),
       });
     }
     if (filters.withTickets) {
       chips.push({
         key: 'tickets',
         label: t('events.withTickets', 'Con entradas'),
-        onRemove: () => setFilters((f) => ({ ...f, withTickets: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, withTickets: undefined })),
       });
     }
     if (filters.familyKids) {
       chips.push({
         key: 'family',
         label: t('events.familyKids', 'Infantil / Familiar'),
-        onRemove: () => setFilters((f) => ({ ...f, familyKids: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, familyKids: undefined })),
       });
     }
     if (filters.ageRange) {
       chips.push({
         key: 'age',
         label: `${filters.ageRange} ${t('events.yearsShort', 'años')}`,
-        onRemove: () => setFilters((f) => ({ ...f, ageRange: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, ageRange: undefined })),
       });
     }
     if (filters.isOutdoor) {
       chips.push({
         key: 'outdoor',
         label: t('events.outdoor', 'Al aire libre'),
-        onRemove: () => setFilters((f) => ({ ...f, isOutdoor: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, isOutdoor: undefined })),
       });
     }
     if (filters.onlyFavorites) {
       chips.push({
         key: 'fav',
         label: t('events.favorites', 'Favoritos'),
-        onRemove: () => setFilters((f) => ({ ...f, onlyFavorites: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, onlyFavorites: undefined })),
       });
     }
     if (selectedLocationIds.length > 0) {
@@ -392,10 +383,13 @@ const CultureEventsPage = () => {
     userCoords,
     allLocations,
     t,
-    setSearchParams,
+    commit,
   ]);
 
-  const totalCount = displayedEvents?.length ?? 0;
+  // Loaded on screen vs. total matching in the database (paginated list).
+  const loadedCount = displayedEvents?.length ?? 0;
+  const totalCount = onlyFavorites ? loadedCount : Math.max(totalMatching, loadedCount);
+  const isPartialList = !onlyFavorites && loadedCount < totalCount;
   const hasFilters = activeChips.length > 0;
 
   // Human-readable "range" summary shown in the header
@@ -458,9 +452,19 @@ const CultureEventsPage = () => {
             </div>
             <span
               className="shrink-0 inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
-              aria-label={`${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`}
+              aria-label={
+                isPartialList
+                  ? t('events.countPartialA11y', {
+                      loaded: loadedCount,
+                      total: totalCount,
+                      defaultValue: '{{loaded}} de {{total}} eventos mostrados',
+                    })
+                  : `${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`
+              }
             >
-              <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
+              <span className="tabular-nums text-sm">
+                {isLoadingEvents ? '…' : isPartialList ? `${loadedCount}/${totalCount}` : totalCount}
+              </span>
               <span className="text-[10px] uppercase tracking-wide opacity-80">
                 {totalCount === 1
                   ? t('events.eventSingular', 'evento')
@@ -475,7 +479,7 @@ const CultureEventsPage = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                setSearchParams((sp) => patchParams(sp, { q: searchQuery.trim() || null }));
+                commit({ q: searchQuery.trim() });
               }}
               className="relative flex-1 min-w-0"
               role="search"
@@ -504,7 +508,7 @@ const CultureEventsPage = () => {
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
                   onClick={() => {
                     setSearchQuery('');
-                    setSearchParams((sp) => patchParams(sp, { q: null }));
+                    commit({ q: '' });
                   }}
                   aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
                 >
@@ -618,7 +622,7 @@ const CultureEventsPage = () => {
         </div>
         {isLoadingEvents ? (
           <EventListSkeleton count={4} />
-        ) : isError ? (
+        ) : hasLoadError ? (
           <EmptyState
             icon={AlertTriangle}
             title={t('errors.loadFailed', 'Error al cargar')}
@@ -627,7 +631,7 @@ const CultureEventsPage = () => {
               'No se pudieron cargar los eventos. Comprueba tu conexión e inténtalo de nuevo.',
             )}
             actionLabel={t('common.retry', 'Reintentar')}
-            onAction={() => refetch()}
+            onAction={() => retryLoad()}
             variant="error"
           />
         ) : displayedEvents && displayedEvents.length > 0 ? (
@@ -678,7 +682,7 @@ const CultureEventsPage = () => {
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
         filters={filters}
-        onApplyFilters={setFilters}
+        onApplyFilters={updateFilters}
         showFavoritesFilter={isAuthenticated}
       />
     </div>

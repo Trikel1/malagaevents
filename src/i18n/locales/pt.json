@@ -338,7 +338,8 @@
     "theaters": "Teatros",
     "halls": "Salas",
     "otherVenues": "Outros",
-    "timeTBC": "Horário a confirmar"
+    "timeTBC": "Horário a confirmar",
+    "countPartialA11y": "{{loaded}} de {{total}} eventos mostrados"
   },
   "eventDetail": {
     "when": "Quando",
@@ -701,5 +702,32 @@
   "sportsAgenda": {
     "registrationRequired": "Registration required",
     "ticketsUnknown": "Tickets to be confirmed"
+  },
+  "twoHours": {
+    "title": "Tenho duas horas",
+    "subtitle": "Planos reais que cabem no seu tempo livre. Sem durações inventadas.",
+    "cta": "Procurar plano",
+    "sheetDescription": "Cálculo determinista sobre eventos publicados. Só confirmamos que um plano cabe se o evento tiver hora de fim real.",
+    "durationLegend": "Tempo disponível",
+    "budget60": "1 hora",
+    "budget120": "2 horas",
+    "budget180": "3 horas",
+    "whenLegend": "Quando",
+    "horizonNow": "Agora mesmo",
+    "horizonToday": "Hoje",
+    "free": "Grátis",
+    "family": "Família",
+    "nearMe": "Perto de mim",
+    "nearMeHint": "Permita a localização no navegador",
+    "searching": "A procurar planos…",
+    "emptyTitle": "Nada encaixa agora",
+    "emptyDesc": "Não há eventos publicados que caibam em {{hours}} h com estes filtros.",
+    "emptyCta": "Ver toda a agenda de hoje",
+    "fitsTitle": "Planos que cabem ({{count}})",
+    "unconfirmedTitle": "Duração por confirmar",
+    "unconfirmedHelp": "Começam a tempo mas não sabemos quando terminam. Confirme no detalhe.",
+    "source": "Fonte",
+    "updated": "Atualizado {{date}}",
+    "minutes": "{{count}} min"
   }
 }

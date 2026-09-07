@@ -338,7 +338,8 @@
     "theaters": "المسارح",
     "halls": "الصالات",
     "otherVenues": "أخرى",
-    "timeTBC": "الوقت قيد التأكيد"
+    "timeTBC": "الوقت قيد التأكيد",
+    "countPartialA11y": "عرض {{loaded}} من {{total}} فعالية"
   },
   "eventDetail": {
     "when": "متى",
@@ -701,5 +702,32 @@
   "sportsAgenda": {
     "registrationRequired": "Registration required",
     "ticketsUnknown": "Tickets to be confirmed"
+  },
+  "twoHours": {
+    "title": "لديّ ساعتان",
+    "subtitle": "خطط حقيقية تناسب وقتك المتاح، دون مدد مُختلقة.",
+    "cta": "ابحث عن خطة",
+    "sheetDescription": "حساب دقيق اعتماداً على الفعاليات المنشورة. لا نؤكد أن الخطة تناسب وقتك إلا إذا كان للفعالية وقت انتهاء حقيقي.",
+    "durationLegend": "الوقت المتاح",
+    "budget60": "ساعة واحدة",
+    "budget120": "ساعتان",
+    "budget180": "ثلاث ساعات",
+    "whenLegend": "متى",
+    "horizonNow": "الآن",
+    "horizonToday": "اليوم",
+    "free": "مجاني",
+    "family": "عائلي",
+    "nearMe": "بالقرب مني",
+    "nearMeHint": "اسمح بالوصول إلى الموقع في متصفحك",
+    "searching": "جارٍ البحث عن خطط…",
+    "emptyTitle": "لا يوجد ما يناسبك الآن",
+    "emptyDesc": "لا توجد فعاليات منشورة تناسب {{hours}} ساعة بالفلاتر المختارة.",
+    "emptyCta": "عرض كل فعاليات اليوم",
+    "fitsTitle": "خطط مناسبة ({{count}})",
+    "unconfirmedTitle": "المدة غير مؤكدة",
+    "unconfirmedHelp": "تبدأ في الوقت المناسب لكننا لا نعرف موعد انتهائها. تحقق من التفاصيل.",
+    "source": "المصدر",
+    "updated": "آخر تحديث {{date}}",
+    "minutes": "{{count}} دقيقة"
   }
 }

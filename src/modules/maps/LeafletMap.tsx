@@ -82,7 +82,8 @@ export const LeafletMap = ({
       {
         subdomains: 'abcd',
         maxZoom: 19,
-        attribution: '© OpenStreetMap © CARTO',
+        // Legally required data credit (ODbL for OSM, CARTO tiles). Always visible.
+        attribution: '© OpenStreetMap contributors · © CARTO',
       }
     ).addTo(map);
     // No outbound links in public UI: remove Leaflet's linked attribution prefix.

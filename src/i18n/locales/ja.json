@@ -338,7 +338,8 @@
     "theaters": "劇場",
     "halls": "ホール",
     "otherVenues": "その他",
-    "timeTBC": "時間未定"
+    "timeTBC": "時間未定",
+    "countPartialA11y": "{{total}} 件中 {{loaded}} 件を表示"
   },
   "eventDetail": {
     "when": "いつ",
@@ -701,5 +702,32 @@
   "sportsAgenda": {
     "registrationRequired": "Registration required",
     "ticketsUnknown": "Tickets to be confirmed"
+  },
+  "twoHours": {
+    "title": "2時間あります",
+    "subtitle": "空き時間に収まる実際のプラン。所要時間は捏造しません。",
+    "cta": "プランを探す",
+    "sheetDescription": "公開済みイベントに基づく確定的な計算です。実際の終了時刻があるイベントのみ「収まる」と判定します。",
+    "durationLegend": "使える時間",
+    "budget60": "1時間",
+    "budget120": "2時間",
+    "budget180": "3時間",
+    "whenLegend": "いつ",
+    "horizonNow": "今すぐ",
+    "horizonToday": "今日",
+    "free": "無料",
+    "family": "ファミリー",
+    "nearMe": "近くで",
+    "nearMeHint": "ブラウザで位置情報を許可してください",
+    "searching": "プランを検索中…",
+    "emptyTitle": "今は合うものがありません",
+    "emptyDesc": "選択した条件で {{hours}} 時間に収まる公開イベントはありません。",
+    "emptyCta": "今日のイベント一覧を見る",
+    "fitsTitle": "収まるプラン（{{count}}）",
+    "unconfirmedTitle": "所要時間は未確認",
+    "unconfirmedHelp": "開始には間に合いますが、終了時刻は不明です。詳細をご確認ください。",
+    "source": "出典",
+    "updated": "更新日 {{date}}",
+    "minutes": "{{count}} 分"
   }
 }

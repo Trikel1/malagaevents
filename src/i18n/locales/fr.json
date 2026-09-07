@@ -338,7 +338,8 @@
     "theaters": "Théâtres",
     "halls": "Salles",
     "otherVenues": "Autres",
-    "timeTBC": "Horaire à confirmer"
+    "timeTBC": "Horaire à confirmer",
+    "countPartialA11y": "{{loaded}} sur {{total}} événements affichés"
   },
   "eventDetail": {
     "when": "Quand",
@@ -701,5 +702,32 @@
   "sportsAgenda": {
     "registrationRequired": "Registration required",
     "ticketsUnknown": "Tickets to be confirmed"
+  },
+  "twoHours": {
+    "title": "J'ai deux heures",
+    "subtitle": "Des plans réels qui tiennent dans votre créneau. Sans durées inventées.",
+    "cta": "Trouver un plan",
+    "sheetDescription": "Calcul déterministe sur les événements publiés. Nous confirmons qu'un plan tient uniquement si l'événement a une heure de fin réelle.",
+    "durationLegend": "Temps disponible",
+    "budget60": "1 heure",
+    "budget120": "2 heures",
+    "budget180": "3 heures",
+    "whenLegend": "Quand",
+    "horizonNow": "Maintenant",
+    "horizonToday": "Aujourd'hui",
+    "free": "Gratuit",
+    "family": "Famille",
+    "nearMe": "Près de moi",
+    "nearMeHint": "Autorisez la localisation dans votre navigateur",
+    "searching": "Recherche de plans…",
+    "emptyTitle": "Rien ne convient pour l'instant",
+    "emptyDesc": "Aucun événement publié ne tient en {{hours}} h avec ces filtres.",
+    "emptyCta": "Voir tout l'agenda d'aujourd'hui",
+    "fitsTitle": "Plans qui tiennent ({{count}})",
+    "unconfirmedTitle": "Durée non confirmée",
+    "unconfirmedHelp": "Ils commencent à temps mais nous ne savons pas quand ils finissent. Vérifiez le détail.",
+    "source": "Source",
+    "updated": "Mis à jour {{date}}",
+    "minutes": "{{count}} min"
   }
 }
