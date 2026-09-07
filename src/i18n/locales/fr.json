@@ -378,7 +378,12 @@
     "seeOnMap": "Voir sur la carte",
     "locationExact": "Localisation vérifiée.",
     "locationAddress": "Itinéraire à partir de l'adresse publiée.",
-    "locationPending": "Localisation à confirmer : itinéraire indisponible."
+    "locationPending": "Localisation à confirmer : itinéraire indisponible.",
+    "officialSiteShort": "Site officiel",
+    "ticketsOnSite": "Accès et disponibilité sur le site de l'organisateur.",
+    "onlineNote": "Activité en ligne : pas de lieu physique.",
+    "online": "En ligne",
+    "description": "Description"
   },
   "calendar": {
     "title": "Calendrier",

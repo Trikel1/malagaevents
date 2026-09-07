@@ -378,7 +378,12 @@
     "seeOnMap": "地図で見る",
     "locationExact": "確認済みの場所です。",
     "locationAddress": "公開された住所に基づく経路です。",
-    "locationPending": "場所が未確認のため、経路を案内できません。"
+    "locationPending": "場所が未確認のため、経路を案内できません。",
+    "officialSiteShort": "公式サイト",
+    "ticketsOnSite": "参加方法と空き状況は主催者のサイトでご確認ください。",
+    "onlineNote": "オンライン開催：会場はありません。",
+    "online": "オンライン",
+    "description": "Description"
   },
   "calendar": {
     "title": "カレンダー",

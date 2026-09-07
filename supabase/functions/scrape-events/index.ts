@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
+import { buildEventIdentity } from '../_shared/ingestion/identity.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -184,9 +185,28 @@ function detectLocation(text: string, defaultLocation: string): string {
   return defaultLocation;
 }
 
-function parseSpanishDate(dateText: string, timeText?: string): Date | null {
-  if (!dateText) return null;
-  
+/** Instant for a wall-clock Madrid date/time. */
+function madridInstant(year: number, month: number, day: number, hour: number, minute: number): Date | null {
+  const guess = Date.UTC(year, month, day, hour, minute);
+  const asMadrid = new Date(
+    new Date(guess).toLocaleString('en-US', { timeZone: 'Europe/Madrid' }),
+  ).getTime();
+  const asUtc = new Date(new Date(guess).toLocaleString('en-US', { timeZone: 'UTC' })).getTime();
+  const instant = new Date(guess - (asMadrid - asUtc));
+  if (Number.isNaN(instant.getTime())) return null;
+  return instant;
+}
+
+/** Rejects impossible calendar days such as 30 February. */
+function isRealDate(year: number, month: number, day: number): boolean {
+  const probe = new Date(Date.UTC(year, month, day));
+  return probe.getUTCFullYear() === year && probe.getUTCMonth() === month && probe.getUTCDate() === day;
+}
+
+function parsePublishedDate(dateText: string, timeText?: string): { date: Date | null; hasExplicitTime: boolean } {
+  const empty = { date: null, hasExplicitTime: false };
+  if (!dateText) return empty;
+
   const months: Record<string, number> = {
     'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
     'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
@@ -194,18 +214,33 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
     'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11,
   };
-  
-  let hour = 20, minute = 0;
-  
+
+  let hour: number | null = null;
+  let minute = 0;
+
   if (timeText) {
-    const timeMatch = timeText.match(/(\d{1,2})[:\.]?(\d{2})?/);
+    const timeMatch = timeText.match(/(\d{1,2})[:.]?(\d{2})?/);
     if (timeMatch) {
-      hour = parseInt(timeMatch[1]);
-      minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-      if (timeText.toLowerCase().includes('pm') && hour < 12) hour += 12;
+      let parsedHour = parseInt(timeMatch[1]);
+      const parsedMinute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+      if (timeText.toLowerCase().includes('pm') && parsedHour < 12) parsedHour += 12;
+      // A corrupt clock value is discarded; the day survives without a time.
+      if (parsedHour >= 0 && parsedHour <= 23 && parsedMinute >= 0 && parsedMinute <= 59) {
+        hour = parsedHour;
+        minute = parsedMinute;
+      }
     }
   }
-  
+
+  const build = (year: number, month: number, day: number): { date: Date | null; hasExplicitTime: boolean } => {
+    if (!isRealDate(year, month, day)) return empty;
+    if (hour === null) {
+      return { date: new Date(Date.UTC(year, month, day, 0, 0)), hasExplicitTime: false };
+    }
+    const instant = madridInstant(year, month, day, hour, minute);
+    return instant ? { date: instant, hasExplicitTime: true } : empty;
+  };
+
   // Spanish format
   const spanishMatch = dateText.match(/(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?/i);
   if (spanishMatch) {
@@ -213,15 +248,14 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     const monthStr = spanishMatch[2].toLowerCase();
     const month = months[monthStr];
     if (!isNaN(day) && month !== undefined) {
-      let year = spanishMatch[3] ? parseInt(spanishMatch[3]) : new Date().getFullYear();
-      const date = new Date(year, month, day, hour, minute);
-      if (date < new Date() && !spanishMatch[3]) {
-        date.setFullYear(year + 1);
+      // No year published: the year is never rolled over silently.
+      if (!spanishMatch[3]) {
+        return build(new Date().getFullYear(), month, day);
       }
-      return date;
+      return build(parseInt(spanishMatch[3]), month, day);
     }
   }
-  
+
   // Numeric format
   const numericMatch = dateText.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if (numericMatch) {
@@ -229,20 +263,18 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     const month = parseInt(numericMatch[2]) - 1;
     let year = parseInt(numericMatch[3]);
     if (year < 100) year += 2000;
-    return new Date(year, month, day, hour, minute);
+    return build(year, month, day);
   }
-  
+
   // ISO format
   const isoMatch = dateText.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
-    const year = parseInt(isoMatch[1]);
-    const month = parseInt(isoMatch[2]) - 1;
-    const day = parseInt(isoMatch[3]);
-    return new Date(year, month, day, hour, minute);
+    return build(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
   }
-  
-  return null;
+
+  return empty;
 }
+
 
 function cleanTitle(title: string): string {
   return title
@@ -283,17 +315,6 @@ function isValidEventTitle(title: string): boolean {
   return true;
 }
 
-function generateDedupeKey(title: string, startAt: string, venueNormalized: string, locationNormalized: string, url: string): string {
-  const combined = `${title}|${startAt}|${venueNormalized}|${locationNormalized}|${url}`;
-  // Simple hash - in production use a proper hash function
-  let hash = 0;
-  for (let i = 0; i < combined.length; i++) {
-    const char = combined.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return `dedupe_${Math.abs(hash).toString(36)}`;
-}
 
 async function getOrCreateVenue(supabase: any, venueRaw: string, city?: string): Promise<{ id: string; name: string } | null> {
   if (!venueRaw) return null;
@@ -468,7 +489,8 @@ Deno.serve(async (req) => {
           // Audit 2026-09-07: an unparseable date used to be replaced with
           // "in 7 days at 20:00", publishing a completely invented start time.
           // Unreadable dates are now discarded and counted instead.
-          const startAt = parseSpanishDate(event.date || '', event.time);
+          const parsedDate = parsePublishedDate(event.date || '', event.time);
+          const startAt = parsedDate.date;
           if (!startAt) {
             results.events_skipped++;
             results.dates_unparseable++;
@@ -483,26 +505,32 @@ Deno.serve(async (req) => {
             continue;
           }
           
-          // Generate dedupe key
-          const dedupeKey = generateDedupeKey(
-            cleanedTitle,
-            startAt.toISOString(),
+          // Stable identity: source id / event URL first, derived key otherwise.
+          const identity = buildEventIdentity({
+            sourceSlug: source.name,
+            externalId: (event as any).external_id ?? null,
+            eventUrl: (event as any).event_url ?? event.ticket_url ?? null,
+            sourceUrl: source.url,
+            title: cleanedTitle,
             venueNormalized,
             locationNormalized,
-            source.url
-          );
+            startAt: startAt.toISOString(),
+            hasExplicitTime: parsedDate.hasExplicitTime,
+          });
+          const dedupeKey = identity.key;
           
           // Check if event already exists
           const { data: existing } = await supabase
             .from('events')
             .select('id')
-            .eq('dedupe_key', dedupeKey)
+            .in('dedupe_key', identity.lookupKeys)
             .maybeSingle();
           
           if (existing) {
             results.events_skipped++;
             continue;
           }
+
           
           // Get or create venue
           const venue = await getOrCreateVenue(supabase, venueCanonical, locationRaw);

@@ -378,7 +378,12 @@
     "seeOnMap": "Ver no mapa",
     "locationExact": "Localização verificada.",
     "locationAddress": "Indicações a partir da morada publicada.",
-    "locationPending": "Localização por confirmar: não podemos dar indicações."
+    "locationPending": "Localização por confirmar: não podemos dar indicações.",
+    "officialSiteShort": "Site oficial",
+    "ticketsOnSite": "Acesso e disponibilidade no site do organizador.",
+    "onlineNote": "Atividade online: não há local físico.",
+    "online": "Online",
+    "description": "Descrição"
   },
   "calendar": {
     "title": "Calendário",

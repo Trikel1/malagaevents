@@ -378,7 +378,12 @@
     "seeOnMap": "Auf der Karte ansehen",
     "locationExact": "Bestätigter Standort.",
     "locationAddress": "Wegbeschreibung anhand der veröffentlichten Adresse.",
-    "locationPending": "Standort noch nicht bestätigt: keine Wegbeschreibung möglich."
+    "locationPending": "Standort noch nicht bestätigt: keine Wegbeschreibung möglich.",
+    "officialSiteShort": "Offizielle Website",
+    "ticketsOnSite": "Zugang und Verfügbarkeit auf der Website des Veranstalters.",
+    "onlineNote": "Online-Aktivität: kein physischer Veranstaltungsort.",
+    "online": "Online",
+    "description": "Beschreibung"
   },
   "calendar": {
     "title": "Kalender",

@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
 import { 
-  ArrowLeft, Calendar, MapPin, Euro, Users, Baby, 
+  ArrowLeft, Calendar, Clock, MapPin, Euro, Users, Baby, Monitor,
   Accessibility, Heart, Share2, Ticket, Navigation, Loader2, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { formatMadrid } from '@/lib/madridTime';
 import { buildEventIcs, icsFileName } from '@/lib/calendarExport';
 import { resolveTicketAction, buildDirectionsUrl } from '@/lib/eventLinks';
 import { resolvePoint } from '@/lib/venueCoords';
+import { isOnlineEvent } from '@/lib/eventPlace';
 import EventCard from '@/components/events/EventCard';
 import EventImage, { EventImageSkeleton } from '@/components/events/EventImage';
 import EmptyState from '@/components/common/EmptyState';
@@ -157,13 +158,14 @@ const EventDetailPage = () => {
     address: event.address,
     venueName: event.venue_name,
   });
+  const isOnline = isOnlineEvent({ venue_name: event.venue_name, address: event.address });
 
   const ticketLabel =
     ticketAction.kind === 'tickets'
       ? t('eventDetail.viewTickets', 'Ver entradas')
       : ticketAction.kind === 'register'
       ? t('eventDetail.register', 'Inscribirme')
-      : t('eventDetail.officialSite', 'Consultar en la web oficial');
+      : t('eventDetail.officialSiteShort', 'Web oficial');
 
   /** External maps app when the location is verified; internal map otherwise. */
   const handleOpenMaps = () => {
@@ -318,12 +320,8 @@ const EventDetailPage = () => {
           </Button>
         </div>
 
-        {/* Free badge */}
-        {event.is_free && (
-          <Badge className="absolute bottom-4 left-4 bg-green-500 hover:bg-green-500 text-white">
-            {t('common.free')}
-          </Badge>
-        )}
+        {/* El precio se muestra una sola vez, en el bloque de datos prácticos. */}
+
       </div>
 
       {/* Content */}
@@ -336,89 +334,84 @@ const EventDetailPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">{event.title}</h1>
         </div>
 
-        {/* Quick Info — ficha 2x2 */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                <Calendar className="h-4 w-4 text-primary" />
-              </div>
+        {/* Datos prácticos — una sola tarjeta ligera, icono + valor */}
+        <Card className="rounded-2xl shadow-soft">
+          <CardContent className="p-3 sm:p-4 space-y-2.5">
+            <div className="flex items-start gap-3">
+              <Calendar className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-sm font-medium leading-snug first-letter:uppercase">
+                <span className="sr-only">{t('eventDetail.date', 'Fecha')}: </span>
+                {formattedDate}
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <Clock className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-sm font-medium leading-snug">
+                <span className="sr-only">{t('eventDetail.time', 'Hora')}: </span>
+                {formattedTime}{formattedEndTime && ` – ${formattedEndTime}`}
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              {isOnline ? (
+                <Monitor className="h-4 w-4 text-secondary shrink-0 mt-0.5" aria-hidden="true" />
+              ) : (
+                <MapPin className="h-4 w-4 text-secondary shrink-0 mt-0.5" aria-hidden="true" />
+              )}
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.date', 'Fecha')}</p>
-                <p className="text-sm font-semibold capitalize leading-snug">{formattedDate}</p>
+                <p className="text-sm font-medium leading-snug break-words" style={{ overflowWrap: 'anywhere' }}>
+                  <span className="sr-only">{t('eventDetail.place', 'Lugar')}: </span>
+                  {isOnline ? t('eventDetail.online', 'Online') : event.venue_name}
+                </p>
+                {!isOnline && event.address && (
+                  <p className="text-xs text-muted-foreground break-words mt-0.5" style={{ overflowWrap: 'anywhere' }}>
+                    {event.address}
+                  </p>
+                )}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                <Calendar className="h-4 w-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.time', 'Hora')}</p>
-                <p className="text-sm font-semibold leading-snug">
-                  {formattedTime}{formattedEndTime && ` – ${formattedEndTime}`}
+            </div>
+            {(event.is_free || event.price_info) && (
+              <div className="flex items-start gap-3">
+                <Euro className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+                <p className="text-sm font-medium leading-snug">
+                  <span className="sr-only">{t('eventDetail.price', 'Precio')}: </span>
+                  {event.is_free ? t('common.free', 'Gratis') : event.price_info}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          <Card className="rounded-2xl shadow-soft col-span-2">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-secondary/10 shrink-0">
-                <MapPin className="h-4 w-4 text-secondary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.place', 'Lugar')}</p>
-                <p className="text-sm font-semibold break-words leading-snug" style={{ overflowWrap: 'anywhere' }}>{event.venue_name}</p>
-                <p className="text-xs text-muted-foreground break-words mt-0.5" style={{ overflowWrap: 'anywhere' }}>{event.address}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {(event.is_free || event.price_info) && (
-            <Card className="rounded-2xl shadow-soft col-span-2">
-              <CardContent className="p-3 flex items-start gap-3">
-                <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                  <Euro className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.price', 'Precio')}</p>
-                  <p className="text-sm font-semibold leading-snug">
-                    {event.is_free ? t('common.free', 'Gratis') : event.price_info}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button onClick={handleAddToCalendar} variant="outline" className="flex-1">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={handleAddToCalendar} variant="outline" className="flex-1 min-w-[9rem]">
             <Calendar className="h-4 w-4 mr-2" />
             {t('eventDetail.addToCalendar')}
           </Button>
-          {directions ? (
-            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
-              <Navigation className="h-4 w-4 mr-2" />
-              {t('eventDetail.howToGet')}
-            </Button>
-          ) : (
-            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
-              <MapPin className="h-4 w-4 mr-2" />
-              {t('eventDetail.seeOnMap', 'Ver en el mapa')}
-            </Button>
+          {!isOnline && (
+            directions ? (
+              <Button onClick={handleOpenMaps} variant="outline" className="flex-1 min-w-[9rem]">
+                <Navigation className="h-4 w-4 mr-2" />
+                {t('eventDetail.howToGet')}
+              </Button>
+            ) : (
+              <Button onClick={handleOpenMaps} variant="outline" className="flex-1 min-w-[9rem]">
+                <MapPin className="h-4 w-4 mr-2" />
+                {t('eventDetail.seeOnMap', 'Ver en el mapa')}
+              </Button>
+            )
           )}
         </div>
         <p className="-mt-4 text-xs text-muted-foreground">
-          {directions
+          {isOnline
+            ? t('eventDetail.onlineNote', 'Actividad online: no hay recinto físico.')
+            : directions
             ? directions.basis === 'coords'
               ? t('eventDetail.locationExact', 'Ubicación verificada.')
               : t('eventDetail.locationAddress', 'Indicaciones a partir de la dirección publicada.')
             : t('eventDetail.locationPending', 'Ubicación pendiente de confirmar: no podemos dar indicaciones.')}
         </p>
+
 
         {/* Entradas — acción real cuando la fuente publica un enlace */}
         <Card className="p-4">
@@ -427,14 +420,15 @@ const EventDetailPage = () => {
             {t('eventDetail.ticketInfoTitle', 'Información de entradas')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {event.is_free
-              ? t('common.free', 'Gratis')
-              : event.price_info
-              ? event.price_info
+            {event.is_free || event.price_info
+              ? ticketAction.url
+                ? t('eventDetail.ticketsOnSite', 'Acceso y disponibilidad en la web del organizador.')
+                : t('eventDetail.ticketPending', 'Enlace de entradas pendiente de confirmar.')
               : ticketAction.url
               ? t('eventDetail.priceOnSite', 'Precio y disponibilidad en la web del organizador.')
               : t('eventDetail.ticketsUnknown', 'No disponemos de información de entradas para este evento.')}
           </p>
+
 
           {ticketAction.url ? (
             <>
@@ -466,25 +460,19 @@ const EventDetailPage = () => {
         <Separator />
 
         {/* Description */}
-        <div>
-          <h2 className="font-semibold mb-2">{t('eventDetail.when')}</h2>
-          <p className="text-muted-foreground whitespace-pre-line">{event.description}</p>
-        </div>
+        {event.description && (
+          <div>
+            <h2 className="font-semibold mb-2">{t('eventDetail.description', 'Descripción')}</h2>
+            <p className="text-muted-foreground whitespace-pre-line">{event.description}</p>
+          </div>
+        )}
 
         {/* Additional Info */}
-        {(event.price_info || event.age_restriction || event.accessibility_info || event.capacity_info) && (
+        {(event.age_restriction || event.accessibility_info || event.capacity_info) && (
           <>
             <Separator />
             <div className="space-y-3">
-              {event.price_info && (
-                <div className="flex items-center gap-3">
-                  <Euro className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{t('eventDetail.price')}</p>
-                    <p className="text-sm text-muted-foreground">{event.price_info}</p>
-                  </div>
-                </div>
-              )}
+
               {event.age_restriction && (
                 <div className="flex items-center gap-3">
                   <Baby className="h-5 w-5 text-muted-foreground" />
@@ -583,47 +571,34 @@ const EventDetailPage = () => {
         "fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border/60 px-4 py-3 pb-safe shadow-soft transition-transform duration-300 ease-out",
         ctaHidden ? "translate-y-full" : "translate-y-0"
       )}>
-        <div className="max-w-lg mx-auto flex gap-2">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handleToggleFavorite}
-            disabled={toggleFavorite.isPending}
-            className="flex-shrink-0"
-            aria-label={isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Guardar')}
-          >
-            <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
-          </Button>
+        <div className="max-w-lg mx-auto">
           {ticketAction.url ? (
             <>
-              <Button
-                size="lg"
-                variant="outline"
-                className="flex-shrink-0"
-                onClick={handleAddToCalendar}
-                aria-label={t('eventDetail.addToCalendar')}
-              >
-                <Calendar className="h-5 w-5" />
-              </Button>
-              <Button asChild size="lg" className="flex-1">
+              <Button asChild size="lg" className="w-full h-auto min-h-12 py-2.5 whitespace-normal text-center leading-snug">
                 <a href={ticketAction.url} target="_blank" rel="noopener noreferrer">
-                  {ticketLabel}
-                  <ExternalLink className="h-4 w-4 ml-2" aria-hidden="true" />
+                  <span className="break-words">{ticketLabel}</span>
+                  <ExternalLink className="h-4 w-4 ml-2 shrink-0" aria-hidden="true" />
                 </a>
               </Button>
+              {ticketAction.host && (
+                <p className="mt-1 text-center text-xs text-muted-foreground break-words" style={{ overflowWrap: 'anywhere' }}>
+                  {ticketAction.host}
+                </p>
+              )}
             </>
           ) : (
             <Button
               size="lg"
               variant="secondary"
-              className="flex-1"
+              className="w-full h-auto min-h-12 py-2.5 whitespace-normal leading-snug"
               onClick={handleAddToCalendar}
             >
-              <Calendar className="h-4 w-4 mr-2" />
-              {t('eventDetail.addToCalendar')}
+              <Calendar className="h-4 w-4 mr-2 shrink-0" aria-hidden="true" />
+              <span className="break-words">{t('eventDetail.addToCalendar')}</span>
             </Button>
           )}
         </div>
+
       </div>
     </div>
   );
