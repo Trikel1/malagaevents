@@ -25,6 +25,7 @@ import { visitCostaDelSolAdapter } from "../adapters/visit-costa-del-sol.ts";
 import { axarquiaCostaDelSolAdapter } from "../adapters/axarquia-costa-del-sol.ts";
 import { serraniaDeRondaAdapter } from "../adapters/serrania-de-ronda.ts";
 import { fycmaAdapter } from "../adapters/fycma.ts";
+import { entradasFuengirolaAdapter } from "../adapters/entradas-fuengirola.ts";
 
 const REGISTRY = new Map<string, SourceAdapter>();
 
@@ -54,6 +55,7 @@ register(visitCostaDelSolAdapter);
 register(axarquiaCostaDelSolAdapter);
 register(serraniaDeRondaAdapter);
 register(fycmaAdapter);
+register(entradasFuengirolaAdapter);
 
 
 export function getAdapter(key: string | null | undefined): SourceAdapter | null {
