@@ -320,12 +320,8 @@ const EventDetailPage = () => {
           </Button>
         </div>
 
-        {/* Free badge */}
-        {event.is_free && (
-          <Badge className="absolute bottom-4 left-4 bg-green-500 hover:bg-green-500 text-white">
-            {t('common.free')}
-          </Badge>
-        )}
+        {/* El precio se muestra una sola vez, en el bloque de datos prácticos. */}
+
       </div>
 
       {/* Content */}
