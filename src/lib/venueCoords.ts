@@ -1,10 +1,18 @@
 /**
- * Venue → coordinates fallback for the Map view.
- * Used ONLY when an event lacks lat/lng so the map is not empty for demo.
- * Real coordinates from the database always take precedence.
+ * Venue → coordinates helpers for the Map view.
+ *
+ * Honesty rules (audit 2026-09-07):
+ * - Coordinates are NEVER invented. There is no jitter fallback.
+ * - Real coordinates stored with the event or its linked venue always win and
+ *   are reported as exact.
+ * - The curated catalogue below is a manual convenience list; a match is only
+ *   used on an EXACT normalized name and is always reported as approximate.
+ * - Anything else resolves to `null` so the UI can say "Ubicación pendiente"
+ *   instead of dropping a false pin.
  */
 
 export const MALAGA_CENTER = { lat: 36.7213, lng: -4.4214 };
+
 
 // Curated venue coordinates (real venues in Málaga). Keys are normalized.
 const VENUE_COORDS: Record<string, { lat: number; lng: number }> = {
@@ -66,41 +74,73 @@ const NORMALIZED_LOOKUP: Record<string, { lat: number; lng: number }> = Object.f
   Object.entries(VENUE_COORDS).map(([k, v]) => [normalize(k), v])
 );
 
-export interface ResolvedCoord {
+
+/** Precision reported to the user for a resolved point. */
+export type CoordPrecision = 'exact' | 'approximate';
+
+export interface ResolvedPoint {
   lat: number;
   lng: number;
-  approximate: boolean;
+  precision: CoordPrecision;
 }
 
 /**
- * Resolve coordinates for a venue name with small jittered fallback to
- * Málaga center so demo markers don't all stack on top of each other.
+ * Convert an unknown value into a usable coordinate number.
+ * Rejects null/undefined/'' (which `Number()` turns into 0) and out-of-range
+ * or non-finite values.
  */
-export function mapVenueToCoords(
-  venueName: string | null | undefined,
-  seed: string = ''
-): ResolvedCoord {
-  const norm = normalize(venueName ?? '');
-  if (norm) {
-    // Exact match first
-    const exact = NORMALIZED_LOOKUP[norm];
-    if (exact) return { ...exact, approximate: false };
-    // Partial match (contains)
-    for (const [key, coords] of Object.entries(NORMALIZED_LOOKUP)) {
-      if (norm.includes(key) || key.includes(norm)) {
-        return { ...coords, approximate: false };
-      }
-    }
-  }
-  // Deterministic jitter around Málaga center based on seed
-  let h = 0;
-  const src = (seed || venueName || 'malaga') + '';
-  for (let i = 0; i < src.length; i++) h = (h * 31 + src.charCodeAt(i)) | 0;
-  const dLat = ((h & 0xff) / 255 - 0.5) * 0.04; // ~ ±2km
-  const dLng = (((h >> 8) & 0xff) / 255 - 0.5) * 0.05;
-  return {
-    lat: MALAGA_CENTER.lat + dLat,
-    lng: MALAGA_CENTER.lng + dLng,
-    approximate: true,
-  };
+export function toCoordNumber(value: unknown, max: number): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'boolean') return null;
+  const n = typeof value === 'number' ? value : Number(String(value).trim());
+  if (!Number.isFinite(n)) return null;
+  if (Math.abs(n) > max) return null;
+  return n;
 }
+
+/** Validate a lat/lng pair. Returns null unless BOTH values are usable. */
+export function toLatLng(lat: unknown, lng: unknown): { lat: number; lng: number } | null {
+  const la = toCoordNumber(lat, 90);
+  const ln = toCoordNumber(lng, 180);
+  if (la === null || ln === null) return null;
+  // 0,0 (Null Island) is never a valid Málaga location and is the classic
+  // artefact of Number(null) === 0.
+  if (la === 0 && ln === 0) return null;
+  return { lat: la, lng: ln };
+}
+
+/** Curated catalogue lookup. Exact normalized name only — no partial matches. */
+export function lookupVenueCoords(venueName: string | null | undefined): { lat: number; lng: number } | null {
+  const norm = normalize(venueName ?? '');
+  if (!norm) return null;
+  return NORMALIZED_LOOKUP[norm] ?? null;
+}
+
+export interface CoordSources {
+  /** Coordinates stored on the record itself. */
+  lat?: unknown;
+  lng?: unknown;
+  /** Coordinates from the joined venue row. */
+  venueLat?: unknown;
+  venueLng?: unknown;
+  /** Venue name, used only for the curated catalogue. */
+  venueName?: string | null;
+}
+
+/**
+ * Resolve a point for a record, or `null` when there is no verified location.
+ * Order: own coordinates → linked venue coordinates → curated catalogue.
+ */
+export function resolvePoint(sources: CoordSources): ResolvedPoint | null {
+  const own = toLatLng(sources.lat, sources.lng);
+  if (own) return { ...own, precision: 'exact' };
+
+  const venue = toLatLng(sources.venueLat, sources.venueLng);
+  if (venue) return { ...venue, precision: 'exact' };
+
+  const curated = lookupVenueCoords(sources.venueName);
+  if (curated) return { ...curated, precision: 'approximate' };
+
+  return null;
+}
+

@@ -45,7 +45,8 @@ const normalizeSearchText = (text: string): string => {
 };
 
 const EVENT_LIST_FIELDS =
-  'id,title,category,start_at,venue_name,location_normalized,province,image_url,is_free,tags,venue_id,location_id, venues(id,name,lat,lng), locations(id,name)';
+  'id,title,category,start_at,venue_name,address,lat,lng,location_normalized,province,image_url,is_free,tags,venue_id,location_id, venues(id,name,lat,lng), locations(id,name)';
+
 
 const fetchEvents = async (
   options: UseEventsOptions,

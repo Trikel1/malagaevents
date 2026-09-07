@@ -8,6 +8,7 @@
 // ============================================================================
 
 const ALLOWED_ORIGINS = [
+  'https://malagaevents.lovable.app',
   'https://id-preview--e27fc85d-8f7a-4dbf-a4f6-bc1aa35b0665.lovable.app',
   'https://lovable.dev',
   'http://localhost:5173',
@@ -410,4 +411,84 @@ export function extractBearerToken(authHeader: string | null): string | null {
     return null;
   }
   return authHeader.substring(7);
+}
+
+// ============================================================================
+// REQUEST AUTHORIZATION (audit 2026-09-07)
+// ============================================================================
+
+/**
+ * Constant-time-ish string comparison so a wrong shared key cannot be guessed
+ * byte by byte from response timing.
+ */
+function safeEquals(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+export type Actor = 'cron' | 'admin';
+
+export interface AuthorizationResult {
+  authorized: boolean;
+  actor?: Actor;
+  reason?: string;
+}
+
+/**
+ * Guard for privileged, resource-consuming endpoints (ingestion, scraping,
+ * discovery). Two accepted callers:
+ *
+ *  1. Scheduled jobs presenting the `x-sync-key` shared secret.
+ *  2. A signed-in user holding the `admin` role (the admin panel invokes these
+ *     functions with the caller's JWT).
+ *
+ * MUST be called before any external fetch, any write and any logging of the
+ * request payload.
+ */
+export async function authorizeAdminRequest(req: Request): Promise<AuthorizationResult> {
+  const syncKey = req.headers.get('x-sync-key');
+  const expected = Deno.env.get('SYNC_ADMIN_KEY');
+  if (syncKey && expected && safeEquals(syncKey, expected)) {
+    return { authorized: true, actor: 'cron' };
+  }
+
+  const token = extractBearerToken(req.headers.get('authorization'));
+  if (!token) return { authorized: false, reason: 'Missing credentials' };
+
+  const url = Deno.env.get('SUPABASE_URL');
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  if (!url || !anonKey) return { authorized: false, reason: 'Server not configured' };
+
+  try {
+    const { createClient } = await import('npm:@supabase/supabase-js@2');
+    const client = createClient(url, anonKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false },
+    });
+    const { data: userData, error: userError } = await client.auth.getUser();
+    if (userError || !userData?.user) {
+      return { authorized: false, reason: 'Invalid session' };
+    }
+    const isAdmin = await verifyAdminRole(
+      client as unknown as { rpc: (fn: string, params: Record<string, unknown>) => Promise<{ data: boolean | null; error: unknown }> },
+      userData.user.id,
+    );
+    if (!isAdmin) return { authorized: false, reason: 'Admin role required' };
+    return { authorized: true, actor: 'admin' };
+  } catch {
+    return { authorized: false, reason: 'Authorization check failed' };
+  }
+}
+
+/** Standard 401 body for unauthorized privileged calls. */
+export function unauthorizedResponse(
+  result: AuthorizationResult,
+  headers: Record<string, string>,
+): Response {
+  return new Response(
+    JSON.stringify({ success: false, error: 'Unauthorized', reason: result.reason ?? 'Unauthorized' }),
+    { status: 401, headers: { ...headers, 'Content-Type': 'application/json' } },
+  );
 }

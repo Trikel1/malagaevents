@@ -29,24 +29,45 @@ function boundingBox(lat: number, lng: number, km: number) {
   };
 }
 
-const useMunicipalEvents = (municipalityId: string | null | undefined) => {
+/** Only slugs we generate ourselves are safe to inline in a PostgREST filter. */
+const SAFE_SLUG_RE = /^[a-z0-9-]{1,64}$/;
+
+/**
+ * Municipal agenda.
+ *
+ * Reconciliation note (audit 2026-09-07): most published events still have
+ * `municipality_id` NULL and are only geolocated through
+ * `location_normalized` (the municipality slug). Matching on the id alone
+ * returned an empty agenda for every municipality, so we also accept an exact
+ * `location_normalized` match. `lifecycle_status` is frequently NULL too, and
+ * `neq` drops NULLs in PostgREST, so it is filtered client-side.
+ */
+const useMunicipalEvents = (
+  municipalityId: string | null | undefined,
+  slug: string | null | undefined,
+) => {
+  const safeSlug = slug && SAFE_SLUG_RE.test(slug) ? slug : null;
   return useQuery({
-    queryKey: ['municipal-events', municipalityId],
+    queryKey: ['municipal-events', municipalityId, safeSlug],
     enabled: !!municipalityId,
     queryFn: async () => {
       if (!municipalityId) return [] as Event[];
       const nowIso = new Date().toISOString();
-      const { data, error } = await supabase
+      let query = supabase
         .from('events')
         .select('*')
         .eq('status', 'published')
-        .eq('municipality_id', municipalityId)
-        .gte('start_at', nowIso)
-        .neq('lifecycle_status', 'finished')
-        .order('start_at', { ascending: true })
-        .limit(60);
+        .gte('start_at', nowIso);
+
+      query = safeSlug
+        ? query.or(`municipality_id.eq.${municipalityId},location_normalized.eq.${safeSlug}`)
+        : query.eq('municipality_id', municipalityId);
+
+      const { data, error } = await query.order('start_at', { ascending: true }).limit(60);
       if (error) throw error;
-      return (data ?? []) as Event[];
+      return ((data ?? []) as Event[]).filter(
+        (e) => (e as { lifecycle_status?: string | null }).lifecycle_status !== 'finished',
+      );
     },
   });
 };
@@ -58,12 +79,13 @@ interface NearbyRow {
 
 const useNearbyEvents = (
   municipalityId: string | null | undefined,
+  slug: string | null | undefined,
   lat: number | null,
   lng: number | null,
   radiusKm: number,
 ) => {
   return useQuery<NearbyRow[]>({
-    queryKey: ['nearby-events', municipalityId, lat, lng, radiusKm],
+    queryKey: ['nearby-events', municipalityId, slug, lat, lng, radiusKm],
     enabled: !!municipalityId && lat != null && lng != null,
     queryFn: async (): Promise<NearbyRow[]> => {
       if (lat == null || lng == null || !municipalityId) return [];
@@ -74,8 +96,6 @@ const useNearbyEvents = (
         .select('*')
         .eq('status', 'published')
         .gte('start_at', nowIso)
-        .neq('lifecycle_status', 'finished')
-        .neq('municipality_id', municipalityId)
         .gte('lat', box.minLat)
         .lte('lat', box.maxLat)
         .gte('lng', box.minLng)
@@ -85,7 +105,18 @@ const useNearbyEvents = (
       if (error) throw error;
       const rows = (data ?? []) as Event[];
       return rows
-        .filter((e) => e.lat != null && e.lng != null)
+        .filter((e) => {
+          const row = e as Event & {
+            lifecycle_status?: string | null;
+            location_normalized?: string | null;
+            municipality_id?: string | null;
+          };
+          if (row.lifecycle_status === 'finished') return false;
+          // Exclude the municipality itself (id or slug), keeping NULL ids.
+          if (row.municipality_id && row.municipality_id === municipalityId) return false;
+          if (slug && row.location_normalized === slug) return false;
+          return e.lat != null && e.lng != null;
+        })
         .map<NearbyRow>((e) => ({
           event: e,
           distanceKm: haversineKm(lat, lng, Number(e.lat), Number(e.lng)),
@@ -96,15 +127,25 @@ const useNearbyEvents = (
   });
 };
 
+
 const MunicipalityAgendaPage = () => {
   const { municipalitySlug } = useParams();
   const [radiusKm, setRadiusKm] = useState<15 | 30 | 50>(15);
 
   const { data: municipality, isLoading: loadingM } = useMunicipalityBySlug(municipalitySlug);
   const { data: allMunicipalities } = useMunicipalities();
-  const { data: localEvents = [], isLoading: loadingEvents } = useMunicipalEvents(municipality?.id);
+  const {
+    data: localEvents = [],
+    isLoading: loadingEvents,
+    isError: localError,
+    refetch: refetchLocal,
+  } = useMunicipalEvents(
+    municipality?.id,
+    municipality?.slug,
+  );
   const { data: nearby = [] } = useNearbyEvents(
     municipality?.id,
+    municipality?.slug,
     municipality?.latitude != null ? Number(municipality.latitude) : null,
     municipality?.longitude != null ? Number(municipality.longitude) : null,
     radiusKm,
@@ -180,6 +221,15 @@ const MunicipalityAgendaPage = () => {
 
           {loadingEvents ? (
             <div className="text-sm text-muted-foreground">Cargando eventos…</div>
+          ) : localError ? (
+            <div className="rounded-2xl border border-border bg-card p-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                No hemos podido cargar la agenda de {municipality.name}.
+              </p>
+              <Button className="mt-3 min-h-11" onClick={() => refetchLocal()}>
+                Reintentar
+              </Button>
+            </div>
           ) : localEvents.length === 0 ? (
             <EmptyState
               icon={CalendarX2}

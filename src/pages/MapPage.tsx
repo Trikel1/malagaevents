@@ -1,4 +1,6 @@
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
+
 import {
   MapPin,
   List,
@@ -28,7 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import SEO from '@/components/common/SEO';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { mapVenueToCoords, MALAGA_CENTER } from '@/lib/venueCoords';
+import { resolvePoint, toLatLng, MALAGA_CENTER } from '@/lib/venueCoords';
 import { isWithinScope, SCOPE_LABEL, type MapTimeScope } from '@/lib/mapTimeScope';
 import { cn } from '@/lib/utils';
 
@@ -65,6 +67,21 @@ const SCOPES: { id: MapTimeScope; label: string }[] = [
   { id: 'all', label: 'Todos' },
 ];
 
+/** Accepted `?kind=` deep-link values. */
+const KIND_TO_FILTER: Record<string, FilterKind> = {
+  event: 'events',
+  events: 'events',
+  sport: 'sports',
+  sports: 'sports',
+  venue: 'venues',
+  venues: 'venues',
+  pharmacy: 'pharmacies',
+  pharmacies: 'pharmacies',
+};
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+
 
 const fmtWhen = (iso?: string | null) => {
   if (!iso) return '';
@@ -81,6 +98,9 @@ const fmtWhen = (iso?: string | null) => {
 
 const MapPage = () => {
   const isMobile = useIsMobile();
+  const [searchParams] = useSearchParams();
+  const [pendingEventId, setPendingEventId] = useState<string | null>(null);
+
 
   const [view, setView] = useState<'map' | 'list'>('map');
   const [filter, setFilter] = useState<FilterKind>('events');
@@ -114,135 +134,149 @@ const MapPage = () => {
     pharmaciesQuery.refetch();
   }, [eventsQuery, sportsQuery, venuesQuery, pharmaciesQuery]);
 
-  const eventMarkers = useMemo<MapMarker[]>(
+  /**
+   * A candidate point. `point === null` means we have no verified location:
+   * it is listed as "Ubicación pendiente" and never gets a pin on the map.
+   */
+  type Candidate = Omit<MapMarker, 'lat' | 'lng' | 'approximate'> & {
+    point: { lat: number; lng: number; precision: 'exact' | 'approximate' } | null;
+  };
+
+  const eventCandidates = useMemo<Candidate[]>(
     () =>
-      (cultureEvents as any[]).map((e) => {
-        const hasReal = Number.isFinite(Number(e.lat)) && Number.isFinite(Number(e.lng));
-        const c = hasReal
-          ? { lat: Number(e.lat), lng: Number(e.lng), approximate: false }
-          : mapVenueToCoords(e.venue_name, e.id);
-        return {
-          id: `ev-${e.id}`,
-          eventId: e.id,
-          kind: 'event' as MarkerKind,
-          title: e.title,
-          subtitle: [e.venue_name, e.city].filter(Boolean).join(' · '),
-          address: e.address ?? e.venue_name ?? '',
-          startAt: e.start_at ?? null,
-          lat: c.lat,
-          lng: c.lng,
-          approximate: c.approximate,
-        };
-      }),
+      (cultureEvents as any[]).map((e) => ({
+        id: `ev-${e.id}`,
+        eventId: e.id,
+        kind: 'event' as MarkerKind,
+        title: e.title,
+        subtitle: [e.venue_name, e.venues?.name, e.locations?.name].filter(Boolean)[0] ?? '',
+        address: e.address ?? e.venue_name ?? '',
+        startAt: e.start_at ?? null,
+        point: resolvePoint({
+          lat: e.lat,
+          lng: e.lng,
+          venueLat: e.venues?.lat,
+          venueLng: e.venues?.lng,
+          venueName: e.venue_name ?? e.venues?.name,
+        }),
+      })),
     [cultureEvents]
   );
 
-  const sportMarkers = useMemo<MapMarker[]>(
+  const sportCandidates = useMemo<Candidate[]>(
     () =>
-      (sportsEvents as any[]).map((e) => {
-        const hasReal = Number.isFinite(Number(e.lat)) && Number.isFinite(Number(e.lng));
-        const c = hasReal
-          ? { lat: Number(e.lat), lng: Number(e.lng), approximate: false }
-          : mapVenueToCoords(e.venue_name, e.id);
-        return {
-          id: `sp-${e.id}`,
-          eventId: e.id,
-          kind: 'sport' as MarkerKind,
-          title: e.title,
-          subtitle: [e.venue_name, e.city].filter(Boolean).join(' · '),
-          address: e.address ?? e.venue_name ?? '',
-          startAt: e.start_datetime ?? null,
-          lat: c.lat,
-          lng: c.lng,
-          approximate: c.approximate,
-        };
-      }),
+      (sportsEvents as any[]).map((e) => ({
+        id: `sp-${e.id}`,
+        eventId: e.id,
+        kind: 'sport' as MarkerKind,
+        title: e.title,
+        // useSportsEvents maps rows to SportEvent: { start_at, venue, city }.
+        subtitle: [e.venue, e.city].filter(Boolean).join(' · '),
+        address: e.address ?? e.venue ?? '',
+        startAt: e.start_at ?? null,
+        point: resolvePoint({ lat: e.lat, lng: e.lng, venueName: e.venue }),
+      })),
     [sportsEvents]
   );
 
-  const venueMarkers = useMemo<MapMarker[]>(
+  const venueCandidates = useMemo<Candidate[]>(
     () =>
-      (venues as any[])
-        .filter((v) => Number.isFinite(Number(v.lat)) && Number.isFinite(Number(v.lng)))
-        .map((v) => ({
-          id: `vn-${v.id}`,
-          kind: 'venue' as MarkerKind,
-          title: v.name,
-          subtitle: v.city ?? '',
-          address: v.address ?? '',
-          lat: Number(v.lat),
-          lng: Number(v.lng),
-          approximate: false,
-        })),
+      (venues as any[]).map((v) => ({
+        id: `vn-${v.id}`,
+        kind: 'venue' as MarkerKind,
+        title: v.name,
+        subtitle: v.city ?? '',
+        address: v.address ?? '',
+        point: resolvePoint({ lat: v.lat, lng: v.lng, venueName: v.name }),
+      })),
     [venues]
   );
 
-  const pharmacyMarkers = useMemo<MapMarker[]>(
+  const pharmacyCandidates = useMemo<Candidate[]>(
     () =>
-      (pharmacies as any[])
-        .filter((p) => Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)))
-        .map((p) => ({
-          id: `ph-${p.id}`,
-          kind: 'pharmacy' as MarkerKind,
-          title: p.name,
-          subtitle: p.municipality ?? '',
-          address: p.address ?? '',
-          phone: p.phone ?? undefined,
-          onDuty: true,
-          lat: Number(p.lat),
-          lng: Number(p.lng),
-          approximate: false,
-        })),
+      (pharmacies as any[]).map((p) => ({
+        id: `ph-${p.id}`,
+        kind: 'pharmacy' as MarkerKind,
+        title: p.name,
+        subtitle: p.municipality ?? '',
+        address: p.address ?? '',
+        phone: p.phone ?? undefined,
+        onDuty: true,
+        point: resolvePoint({ lat: p.lat, lng: p.lng }),
+      })),
     [pharmacies]
   );
 
-  const allMarkers = useMemo<MapMarker[]>(
-    () => [...eventMarkers, ...sportMarkers, ...venueMarkers, ...pharmacyMarkers],
-    [eventMarkers, sportMarkers, venueMarkers, pharmacyMarkers]
+  const allCandidates = useMemo<Candidate[]>(
+    () => [...eventCandidates, ...sportCandidates, ...venueCandidates, ...pharmacyCandidates],
+    [eventCandidates, sportCandidates, venueCandidates, pharmacyCandidates]
   );
 
   /** Time scope only narrows dated items (events / sports). */
-  const scopedMarkers = useMemo<MapMarker[]>(() => {
+  const scopedCandidates = useMemo<Candidate[]>(() => {
     const now = new Date();
-    return allMarkers.filter((m) => isWithinScope(m.startAt, scope, now));
-  }, [allMarkers, scope]);
+    return allCandidates.filter((m) => isWithinScope(m.startAt, scope, now));
+  }, [allCandidates, scope]);
 
-  const searchedMarkers = useMemo<MapMarker[]>(() => {
+  const searchedCandidates = useMemo<Candidate[]>(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return scopedMarkers;
-    return scopedMarkers.filter(
+    if (!q) return scopedCandidates;
+    return scopedCandidates.filter(
       (m) =>
         m.title.toLowerCase().includes(q) ||
         (m.subtitle ?? '').toLowerCase().includes(q) ||
         (m.address ?? '').toLowerCase().includes(q)
     );
-  }, [scopedMarkers, search]);
+  }, [scopedCandidates, search]);
 
   const counts = useMemo(() => {
-    const by = (k: MarkerKind) => searchedMarkers.filter((m) => m.kind === k).length;
+    const by = (k: MarkerKind) => searchedCandidates.filter((m) => m.kind === k).length;
     return {
-      all: searchedMarkers.length,
+      all: searchedCandidates.length,
       events: by('event'),
       sports: by('sport'),
       venues: by('venue'),
       pharmacies: by('pharmacy'),
     };
-  }, [searchedMarkers]);
+  }, [searchedCandidates]);
 
-  const filteredMarkers = useMemo<MapMarker[]>(() => {
-    const list =
-      filter === 'all' ? searchedMarkers : searchedMarkers.filter((m) => m.kind === KIND_OF[filter]);
-    return list.slice(0, MAX_MARKERS);
-  }, [searchedMarkers, filter]);
+  const filteredCandidates = useMemo<Candidate[]>(
+    () =>
+      filter === 'all'
+        ? searchedCandidates
+        : searchedCandidates.filter((m) => m.kind === KIND_OF[filter]),
+    [searchedCandidates, filter]
+  );
+
+  const toMarker = (c: Candidate): MapMarker => ({
+    ...c,
+    lat: c.point!.lat,
+    lng: c.point!.lng,
+    approximate: c.point!.precision === 'approximate',
+  });
+
+  /** Only located points reach the map. */
+  const filteredMarkers = useMemo<MapMarker[]>(
+    () => filteredCandidates.filter((c) => c.point).slice(0, MAX_MARKERS).map(toMarker),
+    [filteredCandidates]
+  );
+
+  /** Honest bucket: real records we cannot place on the map yet. */
+  const pendingLocation = useMemo(
+    () => filteredCandidates.filter((c) => !c.point),
+    [filteredCandidates]
+  );
+
 
 
   const handleSelect = useCallback(
     (id: string) => {
-      const m = allMarkers.find((mk) => mk.id === id);
-      if (m) setSelected(m);
+      const c = allCandidates.find((mk) => mk.id === id);
+      if (c?.point) setSelected(toMarker(c));
     },
-    [allMarkers]
+    [allCandidates]
   );
+
 
   const handleMyLocation = useCallback(() => {
     if (!('geolocation' in navigator)) {
@@ -273,6 +307,62 @@ const MapPage = () => {
   useEffect(() => {
     setSelected(null);
   }, [filter, scope]);
+
+  /**
+   * Deep links used by the cards elsewhere in the app:
+   * `/map?event=<uuid>`, `/map?venue=<name>`, `/map?kind=pharmacy`,
+   * `/map?lat=&lng=`, `/map?q=`. Every parameter is validated; we never fly to
+   * invented coordinates and we always widen the scope so the target is inside
+   * the current view instead of silently filtered out.
+   */
+  const deepLinkAppliedRef = useRef(false);
+  useEffect(() => {
+    if (deepLinkAppliedRef.current) return;
+
+    const kindParam = searchParams.get('kind');
+    if (kindParam && kindParam in KIND_TO_FILTER) {
+      setFilter(KIND_TO_FILTER[kindParam]);
+      setScope('all');
+    }
+
+    const q = searchParams.get('q');
+    if (q && q.trim()) setSearch(q.trim().slice(0, 120));
+
+    const venueParam = searchParams.get('venue');
+    if (venueParam && venueParam.trim()) {
+      setFilter('venues');
+      setScope('all');
+      setSearch(venueParam.trim().slice(0, 120));
+    }
+
+    const eventParam = searchParams.get('event');
+    if (eventParam && UUID_RE.test(eventParam)) {
+      setFilter('all');
+      setScope('all');
+      setPendingEventId(eventParam);
+    }
+
+    const point = toLatLng(searchParams.get('lat'), searchParams.get('lng'));
+    if (point) setFlyTo({ ...point, zoom: 15 });
+
+    deepLinkAppliedRef.current = true;
+  }, [searchParams]);
+
+  /** Once data is loaded, select the deep-linked event if it has a location. */
+  useEffect(() => {
+    if (!pendingEventId) return;
+    const c = allCandidates.find((m) => m.eventId === pendingEventId);
+    if (!c) return;
+    if (c.point) {
+      setSelected(toMarker(c));
+      setFlyTo({ lat: c.point.lat, lng: c.point.lng, zoom: 16 });
+    } else {
+      setSearch(c.title.slice(0, 120));
+    }
+    setPendingEventId(null);
+  }, [pendingEventId, allCandidates]);
+
+
 
 
   const focusMarker = (m: MapMarker) => {
@@ -305,7 +395,7 @@ const MapPage = () => {
             Reintentar
           </Button>
         </div>
-      ) : filteredMarkers.length === 0 ? (
+      ) : filteredMarkers.length === 0 && pendingLocation.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-8 text-center">
           <MapPin className="h-9 w-9 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
           <p className="text-sm font-medium">
@@ -332,8 +422,9 @@ const MapPage = () => {
           </div>
         </div>
       ) : (
+        <>
+        {filteredMarkers.map((m) => {
 
-        filteredMarkers.map((m) => {
           const when = fmtWhen(m.startAt);
           const active = selected?.id === m.id;
           return (
@@ -386,8 +477,44 @@ const MapPage = () => {
               </div>
             </button>
           );
-        })
+        })}
+
+        {pendingLocation.length > 0 && (
+          <section
+            aria-label="Puntos sin ubicación confirmada"
+            className="rounded-2xl border border-dashed border-border bg-muted/30 p-3.5"
+          >
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <CircleDashed className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              Ubicación pendiente ({pendingLocation.length})
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Estos resultados son reales, pero todavía no tenemos su dirección
+              confirmada, así que no los colocamos en el mapa.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {pendingLocation.slice(0, 20).map((c) => (
+                <li key={c.id} className="rounded-xl bg-background p-3">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {KIND_LABEL[c.kind ?? 'event']}
+                  </span>
+                  <span className="block text-sm font-medium leading-snug">{c.title}</span>
+                  {(c.subtitle || c.address) && (
+                    <span className="block text-xs text-muted-foreground mt-0.5">
+                      {c.address || c.subtitle}
+                    </span>
+                  )}
+                  {fmtWhen(c.startAt) && (
+                    <span className="block text-xs text-muted-foreground mt-0.5">{fmtWhen(c.startAt)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+        </>
       )}
+
     </div>
   );
 

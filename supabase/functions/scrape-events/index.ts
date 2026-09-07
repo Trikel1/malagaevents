@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -374,6 +375,13 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Audit 2026-09-07: privileged endpoint. Authorize BEFORE any paid fetch,
+  // any database write and before logging the request payload.
+  const auth = await authorizeAdminRequest(req);
+  if (!auth.authorized) {
+    return unauthorizedResponse(auth, corsHeaders);
+  }
+
   try {
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!firecrawlApiKey) {
@@ -406,6 +414,8 @@ Deno.serve(async (req) => {
       events_inserted: 0,
       events_updated: 0,
       events_skipped: 0,
+      /** Events dropped because their date could not be read (never invented). */
+      dates_unparseable: 0,
       errors: [] as string[],
     };
 
@@ -445,12 +455,15 @@ Deno.serve(async (req) => {
           const locationRaw = event.city || detectLocation(event.address || event.venue || '', source.defaultLocation || 'Málaga');
           const locationNormalized = normalizeText(locationRaw);
           
-          // Parse date
-          let startAt = parseSpanishDate(event.date || '', event.time);
+          // Parse date.
+          // Audit 2026-09-07: an unparseable date used to be replaced with
+          // "in 7 days at 20:00", publishing a completely invented start time.
+          // Unreadable dates are now discarded and counted instead.
+          const startAt = parseSpanishDate(event.date || '', event.time);
           if (!startAt) {
-            startAt = new Date();
-            startAt.setDate(startAt.getDate() + 7);
-            startAt.setHours(20, 0, 0, 0);
+            results.events_skipped++;
+            results.dates_unparseable++;
+            continue;
           }
           
           // Skip old events
