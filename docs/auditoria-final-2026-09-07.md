@@ -233,3 +233,98 @@ sports-sync`) sigue escribiendo `sport_category = 'other'` y recintos marcador;
 la corrección se aplica en lectura. Los duplicados masivos del mismo partido
 (hasta 12 filas) tampoco se han deduplicado: requiere cambio de ingesta y
 limpieza de datos, fuera del alcance de solo lectura de este pase.
+
+## 11. Cierre de seguridad y despliegue real (2026-09-07, pase final)
+
+### 11.1 Bloqueo corregido: nombre de la credencial compartida
+`authorizeAdminRequest` en `supabase/functions/_shared/security.ts` leía
+`SYNC_ADMIN_KEY`, credencial que este proyecto no usa para la ingesta programada.
+Ahora lee **`SYNC_SPORTS_KEY`** (constante exportada `SYNC_KEY_ENV_NAME`), que es
+la que `pg_cron` envía en la cabecera `x-sync-key`. No se ha creado ni impreso
+ninguna credencial y la autenticación no se ha relajado: el rol de administrador
+se sigue comprobando en servidor con `has_role`, nunca a partir del JWT decodificado.
+La función acepta ahora inyección de dependencias (`getEnv`, `createClient`) sólo
+para poder probarla sin red.
+
+Existencia verificada en el entorno del proyecto (sólo nombres, sin valores):
+`SYNC_SPORTS_KEY` y `SYNC_ADMIN_KEY` están configuradas; el guardia usa la primera.
+
+### 11.2 Cambios en la base de datos (realizados por el propietario)
+El propietario completó, mediante el conector de consulta de Lovable y en una
+única transacción `DO`, la actualización de cabeceras de tres trabajos de `pg_cron`
+con `cron.alter_job` (sólo el `command`; ni `schedule`, ni `name`, ni `active`; sin
+ejecutar ningún job):
+
+| Job | Nombre | Programación | Activo |
+|-----|--------|--------------|--------|
+| 1 | `scrape-malaga-events-daily` | `0 6 * * *` | sí |
+| 2 | `sync-events-every-6h` | `0 */6 * * *` | sí |
+| 5 | `refresh-pharmacies-directory` | `0 4 * * *` | sí |
+
+Cada uno conserva su URL/body/cabeceras originales y añade
+`jsonb_build_object('x-sync-key', (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name='SYNC_SPORTS_KEY' LIMIT 1))`.
+Los jobs 4 y 6 ya usaban Vault y no se tocaron. **Por tanto la auditoría en conjunto
+NO es "cero cambios en base de datos".** Este agente no ejecutó ni revirtió esos cambios.
+
+### 11.3 Farmacias: validación de fecha y seguridad de borrado
+- `parseStrictDateISO` (en `_shared/security.ts`) exige tipo cadena y fecha de
+  calendario exacta: `2026-02-30` y `2025-02-29` se rechazan (antes `Date.parse`
+  las normalizaba) y ya no se usa `.slice(0,10)`, que podía truncar basura o lanzar
+  con entradas no textuales.
+- `_shared/pharmacySweep.ts` decide la escritura:
+  - barrido parcial (`zone` o `zonesLimit`) sin `dryRun` → **rechazado con 400**
+    antes de cualquier petición externa;
+  - `zonesLimit` no entero positivo → rechazado;
+  - `dryRun` → cero escrituras (tampoco fila de estado);
+  - barrido completo con **alguna zona fallida** → no se borra ni se reemplaza nada
+    (`write_skipped_incomplete_sweep_failed_zones`): se conservan las filas existentes;
+  - sólo un barrido completo y sin fallos reemplaza el día.
+- No se ejecutó ninguna ingesta real ni se borró ningún dato en producción.
+
+### 11.4 CORS y honestidad del formulario público
+`submit-event` ya no duplica su propia lista de orígenes: importa `getCorsHeaders`
+y `getAllHeaders` de `_shared/security.ts` (misma lista pública, sin comodines).
+Se conservan la validación de categorías y fechas y la marca honesta
+`captcha_passed: false` (no hay captcha verificado en servidor).
+
+### 11.5 Métodos no soportados
+`sync-events`, `scrape-events` y `discover-sources` responden **405** a cualquier
+método distinto de `POST` (y `OPTIONS`) antes de autorizar o trabajar.
+`scrape-pharmacies` y `submit-event` ya lo hacían.
+
+### 11.6 Pruebas
+`supabase/functions/_shared/security_test.ts` — **21 pruebas Deno en verde**, sin red:
+sin credenciales, sólo `apikey` anónima, clave errónea, clave de igual longitud pero
+distinta, clave correcta bajo el nombre realmente configurado, ausencia de retroceso a
+`SYNC_ADMIN_KEY`, usuario normal sin rol, sesión inválida, administrador verificado,
+fallo de la comprobación de rol, fallo del backend de auth, servidor sin configurar;
+más fecha estricta y las seis reglas de barrido de farmacias.
+
+Frontend: `bunx tsgo --noEmit` limpio, `bunx vitest run` **263 pruebas / 32 ficheros en
+verde**, `bunx vite build` correcto. `deno check` limpio en las cinco funciones tocadas
+(se corrigió de paso un `scrapeResult` posiblemente nulo en `sync-events`).
+
+### 11.7 Despliegue real
+Desplegadas con la herramienta soportada: **`sync-events`, `scrape-events`,
+`discover-sources`, `scrape-pharmacies`, `submit-event`**. Comprobación anónima
+posterior contra el runtime desplegado (sin efectos secundarios, sin scraping de pago,
+sin envíos de eventos reales):
+
+| Función | `POST` anónimo | `GET` |
+|---------|----------------|-------|
+| `sync-events` | 401 `Missing credentials` | 405 |
+| `scrape-events` | 401 `Missing credentials` | 405 |
+| `discover-sources` | 401 `Missing credentials` | 405 |
+| `scrape-pharmacies` | 401 `Missing credentials` | 401 |
+
+Estas cuatro rutas privilegiadas **están protegidas en el backend desplegado**, no sólo
+en el código.
+
+### 11.8 Bloqueos reales que quedan
+- Otras funciones privilegiadas siguen leyendo `SYNC_ADMIN_KEY` directamente
+  (`scrape-source`, `ingest-dispatcher`, `admin-ingest`, `admin-ingest-dry-run`);
+  quedan fuera del alcance autorizado de este pase y no se han desplegado.
+- La clasificación deportiva y la deduplicación en origen siguen pendientes (sección 10).
+- El frontend **no** se ha publicado: el propietario revisará el resultado integrado.
+- El arreglo del lockfile npm y de los scripts (`bunx` → `tsx`) es trabajo paralelo del
+  propietario; aquí no se tocaron `package.json`, lockfiles ni `README`.
