@@ -364,7 +364,7 @@ const EventImage = ({
         </span>
         {!isCompact && (
           <span className="relative mt-1 text-[10.5px] font-medium text-foreground/60">
-            {noPoster ? 'Sin cartel disponible' : 'Imagen de categoría'}
+            {noPoster ? 'Imagen ilustrativa' : 'Imagen ilustrativa'}
           </span>
         )}
       </div>
