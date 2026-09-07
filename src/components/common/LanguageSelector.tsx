@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { languages } from '@/i18n';
+import { languages, normalizeLanguage } from '@/i18n';
 
 interface LanguageSelectorProps {
   variant?: 'default' | 'compact';
@@ -33,11 +33,15 @@ const ShortBadge = ({ code, size = 'md' }: { code: string; size?: 'sm' | 'md' | 
 const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
   const { i18n, t } = useTranslation();
 
-  const currentLang = languages.find((l) => l.code === i18n.language) || languages[0];
+  // Regional codes ('en-US', 'es-ES') must map to the locale actually rendered,
+  // otherwise the badge and the content disagree.
+  const active = normalizeLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const currentLang = languages.find((l) => l.code === active) || languages[0];
+  const change = (value: string) => void i18n.changeLanguage(normalizeLanguage(value));
 
   if (variant === 'compact') {
     return (
-      <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
+      <Select value={active} onValueChange={change}>
         <SelectTrigger
           aria-label={t('profile.language', 'Idioma')}
           className="w-auto border-0 bg-transparent hover:bg-white/10 px-2 py-1 h-11 min-w-[44px] focus:ring-0 focus:ring-offset-0 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:opacity-70 gap-1.5"
@@ -48,7 +52,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
         </SelectTrigger>
         <SelectContent className="bg-popover z-50 min-w-[200px]" dir="ltr">
           {languages.map((lang) => {
-            const active = lang.code === i18n.language;
+            const isActive = lang.code === active;
             return (
               <SelectItem key={lang.code} value={lang.code} className="pr-8">
                 <span className="flex items-center gap-2.5">
@@ -57,7 +61,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
                   <span dir={lang.dir} className="font-medium">
                     {lang.nativeName}
                   </span>
-                  {active && <Check className="ml-auto h-4 w-4 text-primary" aria-hidden="true" />}
+                  {isActive && <Check className="ml-auto h-4 w-4 text-primary" aria-hidden="true" />}
                 </span>
               </SelectItem>
             );
@@ -68,7 +72,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
   }
 
   return (
-    <Select value={i18n.language} onValueChange={(value) => i18n.changeLanguage(value)}>
+    <Select value={active} onValueChange={change}>
       <SelectTrigger className="w-[220px] h-11" aria-label={t('profile.language', 'Idioma')}>
         <SelectValue>
           <span className="inline-flex items-center gap-2">
@@ -80,7 +84,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
       </SelectTrigger>
       <SelectContent className="bg-popover z-50" dir="ltr">
         {languages.map((lang) => {
-          const active = lang.code === i18n.language;
+          const isActive = lang.code === active;
           return (
             <SelectItem key={lang.code} value={lang.code} className="pr-8">
               <span className="flex items-center gap-2.5">
@@ -89,7 +93,7 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
                 <span dir={lang.dir} className="font-medium">
                   {lang.nativeName}
                 </span>
-                {active && <Check className="ml-auto h-4 w-4 text-primary" aria-hidden="true" />}
+                {isActive && <Check className="ml-auto h-4 w-4 text-primary" aria-hidden="true" />}
               </span>
             </SelectItem>
           );
