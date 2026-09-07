@@ -242,7 +242,7 @@ const CultureEventsPage = () => {
   }, [userCoords, t]);
 
   const clearAllFilters = useCallback(() => {
-    setFilters({ categories: [] });
+    updateFilters({ categories: [] });
     setSelectedVenueIds([]);
     setSelectedLocationIds([]);
     setSearchQuery('');
@@ -269,7 +269,7 @@ const CultureEventsPage = () => {
       chips.push({
         key: 'preset',
         label: p ? t(p.labelKey, p.labelFallback) : String(filters.datePreset),
-        onRemove: () => setFilters((f) => ({ ...f, datePreset: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, datePreset: undefined })),
       });
     }
     if (filters.dateFrom || filters.dateTo) {
@@ -279,7 +279,7 @@ const CultureEventsPage = () => {
         key: 'daterange',
         label: `${from} – ${to}`,
         onRemove: () =>
-          setFilters((f) => ({ ...f, dateFrom: undefined, dateTo: undefined })),
+          updateFilters((f) => ({ ...f, dateFrom: undefined, dateTo: undefined })),
       });
     }
     for (const c of filters.categories) {
@@ -287,49 +287,49 @@ const CultureEventsPage = () => {
         key: `cat:${c}`,
         label: t(`categories.${c}`, c),
         onRemove: () =>
-          setFilters((f) => ({ ...f, categories: f.categories.filter((x) => x !== c) })),
+          updateFilters((f) => ({ ...f, categories: f.categories.filter((x) => x !== c) })),
       });
     }
     if (filters.isFree) {
       chips.push({
         key: 'free',
         label: t('events.freeOnly', 'Gratis'),
-        onRemove: () => setFilters((f) => ({ ...f, isFree: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, isFree: undefined })),
       });
     }
     if (filters.withTickets) {
       chips.push({
         key: 'tickets',
         label: t('events.withTickets', 'Con entradas'),
-        onRemove: () => setFilters((f) => ({ ...f, withTickets: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, withTickets: undefined })),
       });
     }
     if (filters.familyKids) {
       chips.push({
         key: 'family',
         label: t('events.familyKids', 'Infantil / Familiar'),
-        onRemove: () => setFilters((f) => ({ ...f, familyKids: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, familyKids: undefined })),
       });
     }
     if (filters.ageRange) {
       chips.push({
         key: 'age',
         label: `${filters.ageRange} ${t('events.yearsShort', 'años')}`,
-        onRemove: () => setFilters((f) => ({ ...f, ageRange: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, ageRange: undefined })),
       });
     }
     if (filters.isOutdoor) {
       chips.push({
         key: 'outdoor',
         label: t('events.outdoor', 'Al aire libre'),
-        onRemove: () => setFilters((f) => ({ ...f, isOutdoor: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, isOutdoor: undefined })),
       });
     }
     if (filters.onlyFavorites) {
       chips.push({
         key: 'fav',
         label: t('events.favorites', 'Favoritos'),
-        onRemove: () => setFilters((f) => ({ ...f, onlyFavorites: undefined })),
+        onRemove: () => updateFilters((f) => ({ ...f, onlyFavorites: undefined })),
       });
     }
     if (selectedLocationIds.length > 0) {
