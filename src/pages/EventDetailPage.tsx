@@ -338,63 +338,53 @@ const EventDetailPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">{event.title}</h1>
         </div>
 
-        {/* Quick Info — ficha 2x2 */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                <Calendar className="h-4 w-4 text-primary" />
-              </div>
+        {/* Datos prácticos — una sola tarjeta ligera, icono + valor */}
+        <Card className="rounded-2xl shadow-soft">
+          <CardContent className="p-3 sm:p-4 space-y-2.5">
+            <div className="flex items-start gap-3">
+              <Calendar className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-sm font-medium leading-snug first-letter:uppercase">
+                <span className="sr-only">{t('eventDetail.date', 'Fecha')}: </span>
+                {formattedDate}
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <Clock className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-sm font-medium leading-snug">
+                <span className="sr-only">{t('eventDetail.time', 'Hora')}: </span>
+                {formattedTime}{formattedEndTime && ` – ${formattedEndTime}`}
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              {isOnline ? (
+                <Monitor className="h-4 w-4 text-secondary shrink-0 mt-0.5" aria-hidden="true" />
+              ) : (
+                <MapPin className="h-4 w-4 text-secondary shrink-0 mt-0.5" aria-hidden="true" />
+              )}
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.date', 'Fecha')}</p>
-                <p className="text-sm font-semibold capitalize leading-snug">{formattedDate}</p>
+                <p className="text-sm font-medium leading-snug break-words" style={{ overflowWrap: 'anywhere' }}>
+                  <span className="sr-only">{t('eventDetail.place', 'Lugar')}: </span>
+                  {isOnline ? t('eventDetail.online', 'Online') : event.venue_name}
+                </p>
+                {!isOnline && event.address && (
+                  <p className="text-xs text-muted-foreground break-words mt-0.5" style={{ overflowWrap: 'anywhere' }}>
+                    {event.address}
+                  </p>
+                )}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl shadow-soft">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                <Calendar className="h-4 w-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.time', 'Hora')}</p>
-                <p className="text-sm font-semibold leading-snug">
-                  {formattedTime}{formattedEndTime && ` – ${formattedEndTime}`}
+            </div>
+            {(event.is_free || event.price_info) && (
+              <div className="flex items-start gap-3">
+                <Euro className="h-4 w-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+                <p className="text-sm font-medium leading-snug">
+                  <span className="sr-only">{t('eventDetail.price', 'Precio')}: </span>
+                  {event.is_free ? t('common.free', 'Gratis') : event.price_info}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
-          <Card className="rounded-2xl shadow-soft col-span-2">
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className="p-2 rounded-full bg-secondary/10 shrink-0">
-                <MapPin className="h-4 w-4 text-secondary" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.place', 'Lugar')}</p>
-                <p className="text-sm font-semibold break-words leading-snug" style={{ overflowWrap: 'anywhere' }}>{event.venue_name}</p>
-                <p className="text-xs text-muted-foreground break-words mt-0.5" style={{ overflowWrap: 'anywhere' }}>{event.address}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {(event.is_free || event.price_info) && (
-            <Card className="rounded-2xl shadow-soft col-span-2">
-              <CardContent className="p-3 flex items-start gap-3">
-                <div className="p-2 rounded-full bg-primary/10 shrink-0">
-                  <Euro className="h-4 w-4 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{t('eventDetail.price', 'Precio')}</p>
-                  <p className="text-sm font-semibold leading-snug">
-                    {event.is_free ? t('common.free', 'Gratis') : event.price_info}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2">
