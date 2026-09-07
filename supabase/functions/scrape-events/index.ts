@@ -203,15 +203,6 @@ function isRealDate(year: number, month: number, day: number): boolean {
   return probe.getUTCFullYear() === year && probe.getUTCMonth() === month && probe.getUTCDate() === day;
 }
 
-/**
- * Parses the date published by the source. The hour is NEVER invented: when the
- * source publishes no time, the instant is UTC midnight, which the app renders
- * as "Hora por confirmar".
- */
-function parseSpanishDate(dateText: string, timeText?: string): Date | null {
-  return parsePublishedDate(dateText, timeText).date;
-}
-
 function parsePublishedDate(dateText: string, timeText?: string): { date: Date | null; hasExplicitTime: boolean } {
   const empty = { date: null, hasExplicitTime: false };
   if (!dateText) return empty;
@@ -324,17 +315,6 @@ function isValidEventTitle(title: string): boolean {
   return true;
 }
 
-function generateDedupeKey(title: string, startAt: string, venueNormalized: string, locationNormalized: string, url: string): string {
-  const combined = `${title}|${startAt}|${venueNormalized}|${locationNormalized}|${url}`;
-  // Simple hash - in production use a proper hash function
-  let hash = 0;
-  for (let i = 0; i < combined.length; i++) {
-    const char = combined.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return `dedupe_${Math.abs(hash).toString(36)}`;
-}
 
 async function getOrCreateVenue(supabase: any, venueRaw: string, city?: string): Promise<{ id: string; name: string } | null> {
   if (!venueRaw) return null;
