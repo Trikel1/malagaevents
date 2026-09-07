@@ -76,8 +76,11 @@ export function resolveOccurrenceDate(
   // The clock arrived inside the date text: already Madrid wall time.
   if (DATE_TEXT_HAS_CLOCK.test(raw)) return base;
 
+  const hasTimeText = Boolean(timeText && String(timeText).trim());
   const clock = parseClockText(timeText);
-  if (!clock) return base; // unknown hour stays unknown
+  // No time field at all: the hour is legitimately unknown. A time field that
+  // cannot be read (e.g. "25:00") is corrupt data, not an unknown hour.
+  if (!clock) return hasTimeText ? null : base;
 
   return madridWallTimeToDate(
     base.getUTCFullYear(),
