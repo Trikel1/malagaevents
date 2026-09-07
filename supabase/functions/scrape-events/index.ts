@@ -184,9 +184,37 @@ function detectLocation(text: string, defaultLocation: string): string {
   return defaultLocation;
 }
 
+/** Instant for a wall-clock Madrid date/time. */
+function madridInstant(year: number, month: number, day: number, hour: number, minute: number): Date | null {
+  const guess = Date.UTC(year, month, day, hour, minute);
+  const asMadrid = new Date(
+    new Date(guess).toLocaleString('en-US', { timeZone: 'Europe/Madrid' }),
+  ).getTime();
+  const asUtc = new Date(new Date(guess).toLocaleString('en-US', { timeZone: 'UTC' })).getTime();
+  const instant = new Date(guess - (asMadrid - asUtc));
+  if (Number.isNaN(instant.getTime())) return null;
+  return instant;
+}
+
+/** Rejects impossible calendar days such as 30 February. */
+function isRealDate(year: number, month: number, day: number): boolean {
+  const probe = new Date(Date.UTC(year, month, day));
+  return probe.getUTCFullYear() === year && probe.getUTCMonth() === month && probe.getUTCDate() === day;
+}
+
+/**
+ * Parses the date published by the source. The hour is NEVER invented: when the
+ * source publishes no time, the instant is UTC midnight, which the app renders
+ * as "Hora por confirmar".
+ */
 function parseSpanishDate(dateText: string, timeText?: string): Date | null {
-  if (!dateText) return null;
-  
+  return parsePublishedDate(dateText, timeText).date;
+}
+
+function parsePublishedDate(dateText: string, timeText?: string): { date: Date | null; hasExplicitTime: boolean } {
+  const empty = { date: null, hasExplicitTime: false };
+  if (!dateText) return empty;
+
   const months: Record<string, number> = {
     'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
     'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
@@ -194,18 +222,33 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
     'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11,
   };
-  
-  let hour = 20, minute = 0;
-  
+
+  let hour: number | null = null;
+  let minute = 0;
+
   if (timeText) {
-    const timeMatch = timeText.match(/(\d{1,2})[:\.]?(\d{2})?/);
+    const timeMatch = timeText.match(/(\d{1,2})[:.]?(\d{2})?/);
     if (timeMatch) {
-      hour = parseInt(timeMatch[1]);
-      minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-      if (timeText.toLowerCase().includes('pm') && hour < 12) hour += 12;
+      let parsedHour = parseInt(timeMatch[1]);
+      const parsedMinute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+      if (timeText.toLowerCase().includes('pm') && parsedHour < 12) parsedHour += 12;
+      // A corrupt clock value is discarded; the day survives without a time.
+      if (parsedHour >= 0 && parsedHour <= 23 && parsedMinute >= 0 && parsedMinute <= 59) {
+        hour = parsedHour;
+        minute = parsedMinute;
+      }
     }
   }
-  
+
+  const build = (year: number, month: number, day: number): { date: Date | null; hasExplicitTime: boolean } => {
+    if (!isRealDate(year, month, day)) return empty;
+    if (hour === null) {
+      return { date: new Date(Date.UTC(year, month, day, 0, 0)), hasExplicitTime: false };
+    }
+    const instant = madridInstant(year, month, day, hour, minute);
+    return instant ? { date: instant, hasExplicitTime: true } : empty;
+  };
+
   // Spanish format
   const spanishMatch = dateText.match(/(\d{1,2})\s+de\s+(\w+)(?:\s+de\s+(\d{4}))?/i);
   if (spanishMatch) {
@@ -213,15 +256,14 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     const monthStr = spanishMatch[2].toLowerCase();
     const month = months[monthStr];
     if (!isNaN(day) && month !== undefined) {
-      let year = spanishMatch[3] ? parseInt(spanishMatch[3]) : new Date().getFullYear();
-      const date = new Date(year, month, day, hour, minute);
-      if (date < new Date() && !spanishMatch[3]) {
-        date.setFullYear(year + 1);
+      // No year published: the year is never rolled over silently.
+      if (!spanishMatch[3]) {
+        return build(new Date().getFullYear(), month, day);
       }
-      return date;
+      return build(parseInt(spanishMatch[3]), month, day);
     }
   }
-  
+
   // Numeric format
   const numericMatch = dateText.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if (numericMatch) {
@@ -229,20 +271,18 @@ function parseSpanishDate(dateText: string, timeText?: string): Date | null {
     const month = parseInt(numericMatch[2]) - 1;
     let year = parseInt(numericMatch[3]);
     if (year < 100) year += 2000;
-    return new Date(year, month, day, hour, minute);
+    return build(year, month, day);
   }
-  
+
   // ISO format
   const isoMatch = dateText.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
-    const year = parseInt(isoMatch[1]);
-    const month = parseInt(isoMatch[2]) - 1;
-    const day = parseInt(isoMatch[3]);
-    return new Date(year, month, day, hour, minute);
+    return build(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
   }
-  
-  return null;
+
+  return empty;
 }
+
 
 function cleanTitle(title: string): string {
   return title
