@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
+import { parseSpanishDateToMadrid, madridWallTimeToDate } from '../_shared/ingestion/dates.ts';
 
 // ============================================================================
 // SECURITY: Strict CORS + Security Headers
@@ -736,8 +737,9 @@ function extractJsonLdEvents(html: string, baseUrl: string): NormalizedEvent[] {
       const title = node.name || node.headline;
       const start = node.startDate;
       if (!title || !start) continue;
-      const date = String(start).split('T')[0];
-      const timeMatch = String(start).match(/T(\d{2}:\d{2})/);
+      // Keep the published value verbatim (offset/Z included); splitting it
+      // here used to throw away the real instant.
+      const date = String(start).trim();
       const venue = node.location?.name || undefined;
       const city = node.location?.address?.addressLocality || undefined;
       const img = Array.isArray(node.image) ? node.image[0] : (node.image?.url || node.image);
@@ -745,7 +747,7 @@ function extractJsonLdEvents(html: string, baseUrl: string): NormalizedEvent[] {
       out.push({
         title: cleanTitle(String(title)),
         description: node.description ? String(node.description).substring(0, 500) : undefined,
-        occurrences: [{ date, time: timeMatch?.[1] }],
+        occurrences: [{ date }],
         venue,
         city,
         image_url: typeof img === 'string' ? normalizeImageUrl(img, baseUrl) : undefined,
@@ -790,7 +792,7 @@ async function fetchParis15Cards(): Promise<DirectFetchResult> {
       const mm = String(month).padStart(2, '0');
       events.push({
         title: cleanTitle(titleHref[2]),
-        occurrences: [{ date: `${dd}/${mm}`, time: '21:00' }],
+        occurrences: [{ date: `${dd}/${mm}` }],
         venue: 'París 15',
         city: 'Málaga',
         ticket_url: ticketUrl || titleHref[1],
@@ -821,7 +823,7 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
       const year = m[3];
       events.push({
         title: cleanTitle(m[5]),
-        occurrences: [{ date: `${day}/${mm}/${year}`, time: '21:00' }],
+        occurrences: [{ date: `${day}/${mm}/${year}` }],
         venue: 'La Cochera Cabaret',
         city: 'Málaga',
         ticket_url: m[4],
@@ -854,7 +856,7 @@ async function fetchTrincheraRSS(): Promise<DirectFetchResult> {
       events.push({
         title: cleanTitle(dateMatch[3]),
         description: desc ? decodeHtmlEntities(desc).replace(/<[^>]*>/g, '').substring(0, 400) : undefined,
-        occurrences: [{ date: `${dd}/${mm}`, time: '21:00' }],
+        occurrences: [{ date: `${dd}/${mm}` }],
         venue: 'Sala Trinchera',
         city: 'Málaga',
         ticket_url: link,
