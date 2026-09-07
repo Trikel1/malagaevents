@@ -123,15 +123,25 @@ export function buildEventIcs(
     `DTSTAMP:${toIcsUtcStamp(now)}`,
   ];
 
+  // An end is only written when it exists AND was published with the same
+  // precision as the start. A timed start with a date-only end would export a
+  // fake 00:00 UTC finish; an all-day start with a timed end would invent an
+  // extra full day. In both cases the honest output is no DTEND at all.
+  const endMatchesPrecision =
+    validEnd !== null && hasExplicitTime(event.start_at) === hasExplicitTime(event.end_at);
+
   if (timed) {
     lines.push(`DTSTART:${toIcsUtcStamp(start)}`);
     // No fabricated duration: an unknown end simply is not written.
-    if (validEnd) lines.push(`DTEND:${toIcsUtcStamp(validEnd)}`);
+    if (validEnd && endMatchesPrecision) lines.push(`DTEND:${toIcsUtcStamp(validEnd)}`);
   } else {
     lines.push(`DTSTART;VALUE=DATE:${toIcsDate(start)}`);
     // Inclusive published range → exclusive DTEND, as RFC 5545 requires.
-    if (validEnd) lines.push(`DTEND;VALUE=DATE:${toIcsDate(addOneDay(validEnd))}`);
+    if (validEnd && endMatchesPrecision) {
+      lines.push(`DTEND;VALUE=DATE:${toIcsDate(addOneDay(validEnd))}`);
+    }
   }
+
 
   lines.push(`SUMMARY:${escapeIcsText(event.title ?? '')}`);
 
