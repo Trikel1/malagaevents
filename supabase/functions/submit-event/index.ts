@@ -1,46 +1,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 // ============================================================================
-// SECURITY: Strict CORS headers (no wildcards)
+// SECURITY: shared strict CORS/security headers (no wildcards, no local copy)
+// Audit 2026-09-07: this handler now uses the same allowlist as every other
+// edge function so the public origin list cannot drift.
 // ============================================================================
 
-const ALLOWED_ORIGINS = [
-  'https://malagaevents.lovable.app',
-  'https://id-preview--e27fc85d-8f7a-4dbf-a4f6-bc1aa35b0665.lovable.app',
-  'https://lovable.dev',
-  'http://localhost:5173',
-  'http://localhost:3000',
-];
+import { getCorsHeaders, getAllHeaders } from '../_shared/security.ts';
 
-function getCorsHeaders(requestOrigin?: string | null): Record<string, string> {
-  const origin = requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin) 
-    ? requestOrigin 
-    : ALLOWED_ORIGINS[0];
-
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Max-Age': '86400',
-  };
-}
-
-function getSecurityHeaders(): Record<string, string> {
-  return {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Cache-Control': 'no-store',
-  };
-}
-
-function getAllHeaders(requestOrigin?: string | null): Record<string, string> {
-  return {
-    ...getCorsHeaders(requestOrigin),
-    ...getSecurityHeaders(),
-    'Content-Type': 'application/json',
-  };
-}
 
 // ============================================================================
 // RATE LIMITING (in-memory, per-function instance)
