@@ -571,3 +571,29 @@ masiva; los cambios entran con la próxima ejecución programada.
 
 Frontend sin publicar: queda en vista previa para la revisión y publicación del
 propietario.
+
+## Fase 12 — Cierre de los dos ítems de fase 6
+
+### A) Exportación de calendario y compartir (ficha de evento)
+- Nuevo `src/lib/calendarExport.ts` conforme a RFC 5545: plegado de líneas a 75 **octetos** (UTF-8), escapado de `\ ; ,` y saltos de línea, `UID` y `DTSTAMP` estables, CRLF.
+- Eventos con hora: se exporta el instante UTC real. `DTEND` solo si la fuente publicó un fin posterior al inicio; se elimina la duración inventada de 2 h.
+- Eventos sin hora conocida: entrada de día completo `VALUE=DATE`, y el fin de un rango inclusivo se convierte en exclusivo (+1 día), como exige la norma.
+- Si la fecha no es utilizable no se exporta nada (antes se generaba un archivo con fecha falsa).
+- `EventDetailPage`: fechas y horas siempre en hora de Málaga (`formatMadrid`), locale regional resuelto (`en-US` → `en`) e incluido `ar`; el patrón español `d 'de' MMMM` ya no se filtra a otros idiomas.
+- Compartir: `AbortError` se trata como cancelación (no como error), respaldo al portapapeles, textos nulos seguros, botón con etiqueta accesible y área táctil de 44 px.
+- Nuevas claves en los 10 idiomas: `calendarError`, `shareUnavailable`, `shareError`, `linkCopied`.
+- Regresiones: `src/test/calendar-export.test.ts` (12 pruebas, ejecutadas también con `TZ=America/Los_Angeles`).
+
+### B) Ingesta deportiva normalizada (solo eventos futuros)
+- `placement.ts`: un recinto ausente o genérico (`n/a`, `por confirmar`, `Costa del Sol`, `pabellón`, `polideportivo`…) ya **no** se convierte en el municipio por defecto de la fuente.
+- El municipio solo se acepta cuando la fuente lo nombra (localidad declarada en JSON-LD, dirección o nombre del recinto). `is_in_malaga_province` deja de derivarse de `province ?? "Málaga"`.
+- `locationStatus` es `verified` únicamente con recinto real **y** municipio acreditado; el resto queda `unverified`, nunca "verificado" por defecto.
+- `classifyDiscipline` descarta contenido explícitamente no deportivo (procesiones, conciertos, exposiciones) en fuentes genéricas, conservando carreras solidarias y concentraciones con su tipo real.
+- `sync-sports-normalized`: `start_date` pasa a ser el día natural de Madrid (antes el corte UTC adelantaba un día en madrugadas de verano).
+- Regresiones: `src/test/sports-placement.test.ts` (10 pruebas). Se corrigió la expectativa del fixture de Torremolinos: el segundo evento solo publica recinto, así que su municipio queda vacío en vez de rellenarse con el valor por defecto.
+
+### Estado
+- Tipos limpios, **339 pruebas en verde**, `npm run build` correcto.
+- Desplegada únicamente `sync-sports-normalized` (auth y cron sin cambios). Sin sincronización masiva: las reglas se aplican en la próxima ejecución programada.
+- **Datos históricos**: no se han modificado. Las filas ya guardadas con municipio o provincia inferidos siguen tal cual y continúan documentadas más arriba; su reparación exigiría comprobación fuente a fuente.
+- Frontend sin publicar.

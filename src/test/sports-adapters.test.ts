@@ -74,7 +74,10 @@ describe("parseSportsHtml — Torremolinos fixture", () => {
 
   it("parses multiple events from an array-shaped JSON-LD block", () => {
     expect(events.length).toBe(2);
-    expect(events.map((e) => e.municipality)).toEqual(["Torremolinos", "Torremolinos"]);
+    // Only the first event's address names Torremolinos. The second one just
+    // gives a venue ("Club Náutico Los Álamos"), so the municipality stays
+    // unknown instead of being filled in from the source's default.
+    expect(events.map((e) => e.municipality)).toEqual(["Torremolinos", ""]);
   });
 });
 

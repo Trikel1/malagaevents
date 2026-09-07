@@ -354,7 +354,11 @@
     "howToGet": "Itinéraire",
     "buyTickets": "Acheter des billets",
     "openInMaps": "Ouvrir dans Maps",
-    "share": "Partager"
+    "share": "Partager",
+    "calendarError": "Impossible de créer le fichier de calendrier.",
+    "shareUnavailable": "Le partage n'est pas disponible dans ce navigateur.",
+    "shareError": "Impossible de partager cet événement.",
+    "linkCopied": "Lien copié"
   },
   "calendar": {
     "title": "Calendrier",

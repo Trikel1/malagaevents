@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
 import { 
   ArrowLeft, Calendar, MapPin, Euro, Users, Baby, 
   Accessibility, Heart, Share2, Ticket, Navigation, Loader2
@@ -12,7 +11,10 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { hasExplicitTime } from '@/lib/eventTime';
+import { formatMadrid } from '@/lib/madridTime';
+import { buildEventIcs, icsFileName } from '@/lib/calendarExport';
 import EventCard from '@/components/events/EventCard';
 import EventImage, { EventImageSkeleton } from '@/components/events/EventImage';
 import EmptyState from '@/components/common/EmptyState';
@@ -22,14 +24,18 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import SEO from '@/components/common/SEO';
 
 const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru, ar,
 };
+
+/** 'en-US' / 'ar-MA' must resolve to the same locale as 'en' / 'ar'. */
+const resolveDateLocale = (language: string): Locale =>
+  locales[language] ?? locales[language.split('-')[0].toLowerCase()] ?? es;
 
 const EventDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = resolveDateLocale(i18n.language);
   const { isAuthenticated } = useAuthContext();
 
   // Fetch event
@@ -122,12 +128,16 @@ const EventDetailPage = () => {
   }
 
   const showTime = hasExplicitTime(event.start_at);
-  const formattedDate = format(new Date(event.start_at), "EEEE d 'de' MMMM", { locale });
+  // The Spanish "d 'de' MMMM" pattern must not leak into other languages.
+  const datePattern = i18n.language.toLowerCase().startsWith('es')
+    ? "EEEE d 'de' MMMM"
+    : 'EEEE d MMMM';
+  const formattedDate = formatMadrid(new Date(event.start_at), datePattern, locale);
   const formattedTime = showTime
-    ? format(new Date(event.start_at), 'HH:mm', { locale })
+    ? formatMadrid(new Date(event.start_at), 'HH:mm', locale)
     : t('events.timeTBC', 'Hora por confirmar');
   const formattedEndTime = showTime && event.end_at && hasExplicitTime(event.end_at)
-    ? format(new Date(event.end_at), 'HH:mm', { locale })
+    ? formatMadrid(new Date(event.end_at), 'HH:mm', locale)
     : null;
 
   /** Internal map only — no handoff to external map providers. */
@@ -136,36 +146,43 @@ const EventDetailPage = () => {
   };
 
   const handleAddToCalendar = () => {
-    const startDate = new Date(event.start_at);
-    const endDate = event.end_at ? new Date(event.end_at) : new Date(startDate.getTime() + 7200000);
-    
-    const icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-SUMMARY:${event.title}
-DESCRIPTION:${event.description.replace(/\n/g, '\\n')}
-LOCATION:${event.venue_name}, ${event.address}
-END:VEVENT
-END:VCALENDAR`;
-
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const ics = buildEventIcs(event, { url: window.location.href });
+    if (!ics) {
+      toast.error(t('eventDetail.calendarError', 'No hemos podido crear el archivo del calendario.'));
+      return;
+    }
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${event.title}.ics`;
+    a.download = icsFileName(event.title);
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleShare = async () => {
+    const shareUrl = window.location.href;
+    const shareData = {
+      title: event.title ?? '',
+      text: (event.description ?? '').replace(/\s+/g, ' ').trim().slice(0, 100),
+      url: shareUrl,
+    };
+
     if (navigator.share) {
-      await navigator.share({
-        title: event.title,
-        text: event.description.substring(0, 100),
-        url: window.location.href,
-      });
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        // The user dismissing the share sheet is not an error.
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success(t('eventDetail.linkCopied', 'Enlace copiado'));
+    } catch {
+      toast.error(t('eventDetail.shareUnavailable', 'No se puede compartir desde este navegador.'));
     }
   };
 
@@ -252,7 +269,8 @@ END:VCALENDAR`;
             variant="ghost"
             size="icon"
             onClick={handleShare}
-            className="bg-background/80 hover:bg-background"
+            aria-label={t('eventDetail.share', 'Compartir')}
+            className="h-11 w-11 bg-background/80 hover:bg-background"
           >
             <Share2 className="h-5 w-5" />
           </Button>
