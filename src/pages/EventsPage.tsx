@@ -197,32 +197,15 @@ const CultureEventsPage = () => {
 
   const setPreset = useCallback(
     (preset: DatePreset) => {
-      const willClear = filtersRef.current.datePreset === preset;
-      setFilters((prev) => ({
+      updateFilters((prev) => ({
         ...prev,
-        datePreset: willClear ? undefined : preset,
+        datePreset: prev.datePreset === preset ? undefined : preset,
         dateFrom: undefined,
         dateTo: undefined,
       }));
-      setSearchParams(
-        (sp) =>
-          patchParams(sp, {
-            filter: null,
-            preset: willClear ? null : preset,
-          }),
-        { replace: false },
-      );
     },
-    [setSearchParams],
+    [updateFilters],
   );
-
-  // Keep the preset in sync when the user navigates back/forward. The guard
-  // returns the same state object when nothing changed, so no update loop.
-  const urlPreset = searchParams.get('preset');
-  useEffect(() => {
-    const next = isValidPreset(urlPreset) ? urlPreset : undefined;
-    setFilters((f) => (f.datePreset === next ? f : { ...f, datePreset: next, dateFrom: undefined, dateTo: undefined }));
-  }, [urlPreset]);
 
   const handleNearMe = useCallback(() => {
     if (userCoords) {
