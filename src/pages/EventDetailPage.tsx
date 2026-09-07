@@ -593,15 +593,35 @@ const EventDetailPage = () => {
           >
             <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
           </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="flex-1"
-            onClick={handleAddToCalendar}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            {t('eventDetail.addToCalendar')}
-          </Button>
+          {ticketAction.url ? (
+            <>
+              <Button
+                size="lg"
+                variant="outline"
+                className="flex-shrink-0"
+                onClick={handleAddToCalendar}
+                aria-label={t('eventDetail.addToCalendar')}
+              >
+                <Calendar className="h-5 w-5" />
+              </Button>
+              <Button asChild size="lg" className="flex-1">
+                <a href={ticketAction.url} target="_blank" rel="noopener noreferrer">
+                  {ticketLabel}
+                  <ExternalLink className="h-4 w-4 ml-2" aria-hidden="true" />
+                </a>
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="lg"
+              variant="secondary"
+              className="flex-1"
+              onClick={handleAddToCalendar}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              {t('eventDetail.addToCalendar')}
+            </Button>
+          )}
         </div>
       </div>
     </div>
