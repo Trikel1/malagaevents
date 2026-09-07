@@ -54,15 +54,21 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
     <section aria-labelledby="featured-event-title" className="glass-card overflow-hidden">
       <Link
         to={`/events/${featured.id}`}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
+        className="grid md:grid-cols-[minmax(0,340px)_1fr] md:items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-2xl"
       >
-        <EventImage
-          src={featured.image_url}
-          alt={featured.title}
-          variant="hero"
-          category={featured.category}
-          priority
-        />
+        {/* Real poster only; on desktop it sits beside the text instead of
+            filling the whole first screen. */}
+        <div className="md:p-3 md:pr-0">
+          <div className="md:rounded-xl md:overflow-hidden">
+            <EventImage
+              src={featured.image_url}
+              alt={featured.title}
+              variant="card"
+              category={featured.category}
+              priority
+            />
+          </div>
+        </div>
         <div className="p-4 sm:p-5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/12 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
             {isToday ? t('home.featured.badgeToday') : t('home.featured.badgeNext')}
