@@ -2,15 +2,26 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, Ticket, ChevronRight } from 'lucide-react';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
 
 import EventImage from '@/components/events/EventImage';
 import { useEvents } from '@/hooks/useEvents';
 import { formatMadrid } from '@/lib/madridTime';
+import { hasExplicitTime } from '@/lib/eventTime';
+import { pickFeaturedEvent } from '@/lib/featuredEvent';
 
 interface FeaturedEventProps {
   /** Reports the featured event id so other Home sections can avoid repeating it. */
   onSelect?: (id: string | null) => void;
 }
+
+const locales: Record<string, Locale> = {
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru, ar,
+};
+
+/** 'en-US' / 'ar-MA' must resolve like 'en' / 'ar', as on the detail page. */
+const resolveDateLocale = (language: string): Locale =>
+  locales[language] ?? locales[language.split('-')[0].toLowerCase()] ?? es;
 
 /**
  * First useful block of the Home screen: one real upcoming event with its own
@@ -18,11 +29,11 @@ interface FeaturedEventProps {
  * section stays silent and the rest of Home keeps working.
  */
 const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
-  const { t } = useTranslation();
-  const { data, isLoading } = useEvents({ limit: 8 });
+  const { t, i18n } = useTranslation();
+  // A wider candidate window so the pick is made on quality, not on position.
+  const { data, isLoading } = useEvents({ limit: 24 });
 
-  const events = data ?? [];
-  const featured = events.find((e) => Boolean(e.image_url)) ?? events[0] ?? null;
+  const featured = pickFeaturedEvent(data ?? []);
 
   useEffect(() => {
     onSelect?.(featured?.id ?? null);
@@ -46,8 +57,19 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
   }
   if (!featured) return null;
 
+  const locale = resolveDateLocale(i18n.language);
   const isToday =
     formatMadrid(new Date(featured.start_at), 'yyyy-MM-dd') === formatMadrid(new Date(), 'yyyy-MM-dd');
+
+  // The Spanish "d 'de' MMMM" pattern must not leak into other languages.
+  const datePattern = i18n.language.toLowerCase().startsWith('es')
+    ? "EEEE d 'de' MMMM"
+    : 'EEEE d MMMM';
+  const formattedDate = formatMadrid(new Date(featured.start_at), datePattern, locale);
+  // No invented hour: a date-only event says so instead of showing 02:00.
+  const formattedTime = hasExplicitTime(featured.start_at)
+    ? formatMadrid(new Date(featured.start_at), 'HH:mm', locale)
+    : t('events.timeTBC', 'Hora por confirmar');
 
   return (
     <section aria-labelledby="featured-event-title" className="glass-card overflow-hidden">
@@ -79,7 +101,7 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
             <p className="flex items-center gap-1.5">
               <CalendarDays className="h-4 w-4 shrink-0" aria-hidden />
               <span className="capitalize">
-                {formatMadrid(new Date(featured.start_at), "EEEE d 'de' MMMM · HH:mm")}
+                {formattedDate} · {formattedTime}
               </span>
             </p>
             {featured.venue_name && (
