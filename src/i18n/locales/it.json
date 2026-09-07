@@ -281,6 +281,34 @@
       "subtitle": "Un modo chiaro, veloce e bello per scoprire cosa succede vicino a te.",
       "exploreEvents": "Esplora eventi",
       "pharmacies": "Farmacie di turno"
+    },
+    "featured": {
+      "badgeToday": "Today",
+      "badgeNext": "Coming up",
+      "badgeFree": "Free",
+      "free": "Free entry",
+      "priceUnknown": "Price to be confirmed",
+      "cta": "View details"
+    },
+    "forYou": {
+      "title": "For you",
+      "editInterests": "Edit interests",
+      "chooseInterests": "Choose your interests",
+      "sportsBadge": "Sport",
+      "reason": "Because you like {{interest}}",
+      "moreInfo": "More information",
+      "lessInfo": "Hide information",
+      "importTitle": "You have interests saved on this device",
+      "importHelp": "Add them to your account to see them on all your devices?",
+      "importAccept": "Add to my account",
+      "importDismiss": "Not now",
+      "emptyTitle": "You haven't chosen any interests yet",
+      "emptyHelp": "Pick what you enjoy and you'll see culture and sport plans that match.",
+      "errorTitle": "We couldn't load your recommendations",
+      "errorHelp": "Please try again in a moment.",
+      "noMatchTitle": "No matches for your interests right now",
+      "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
+      "browseAll": "Browse the full agenda"
     }
   },
   "events": {
@@ -623,5 +651,55 @@
   },
   "a11y": {
     "skipToContent": "Vai al contenuto principale"
+  },
+  "interests": {
+    "title": "My interests",
+    "description": "Pick what you enjoy. You can mix culture and sport, and change it any time.",
+    "searchPlaceholder": "Search an interest…",
+    "noMatches": "No interest matches your search.",
+    "savedOnDevice": "Saved on this device",
+    "syncedWithAccount": "Synced with your account",
+    "saveError": "Couldn't save. Please try again.",
+    "saving": "Saving…",
+    "save": "Save",
+    "clear": "Reset",
+    "groups": {
+      "culture": "Culture & leisure",
+      "sports": "Sports"
+    },
+    "items": {
+      "concerts": "Concerts",
+      "electronicMusic": "Electronic music",
+      "nightlife": "Nightlife",
+      "theater": "Theatre",
+      "dance": "Dance",
+      "flamenco": "Flamenco",
+      "exhibitions": "Exhibitions",
+      "cinema": "Cinema",
+      "familyKids": "Family plans",
+      "festivals": "Festivals",
+      "literature": "Literature",
+      "gastronomy": "Food & drink",
+      "workshops": "Workshops",
+      "outdoorCulture": "Outdoor culture",
+      "basketball": "Basketball",
+      "football": "Football",
+      "motorcycling": "Motorcycling",
+      "motorsport": "Motorsport",
+      "athletics": "Athletics",
+      "cycling": "Cycling",
+      "swimming": "Swimming",
+      "watersports": "Water sports",
+      "racketSports": "Racket sports",
+      "handball": "Handball",
+      "volleyball": "Volleyball",
+      "martialArts": "Martial arts",
+      "hiking": "Hiking",
+      "familySports": "Family sport"
+    }
+  },
+  "sportsAgenda": {
+    "registrationRequired": "Registration required",
+    "ticketsUnknown": "Tickets to be confirmed"
   }
 }

@@ -22,29 +22,13 @@ import { useAppMode } from '@/contexts/AppModeContext';
 import SEO from '@/components/common/SEO';
 import { MUNICIPALITIES, VENUE_ZONES } from '@/lib/venuesCatalog';
 
-const TwoHoursSheet = lazy(() => import('@/components/home/TwoHoursSheet'));
 const SportsContent = lazy(() => import('@/components/sports/SportsContent'));
 
 
-const DISCOVER_CARDS = [
-  { icon: Music, key: 'music', to: '/events?category=music' },
-  { icon: Drama, key: 'theater', to: '/events?category=theater' },
-  { icon: PartyPopper, key: 'festivals', to: '/events?category=festivals' },
-  { icon: Building2, key: 'museums', to: '/events?category=exhibitions' },
-  { icon: Ticket, key: 'markets', to: '/events?category=markets' },
-  { icon: Trees, key: 'outdoor', to: '/events?filter=outdoor' },
-] as const;
 
-const INSTITUTIONAL_CARDS = [
-  { icon: Calendar, key: 'agenda' },
-  { icon: Baby, key: 'family' },
-  { icon: Pill, key: 'pharmacies' },
-  { icon: MapIcon, key: 'map' },
-  { icon: Landmark, key: 'province' },
-  { icon: Trophy, key: 'sportsLayer' },
-] as const;
+const FeaturedEvent = lazy(() => import('@/components/home/FeaturedEvent'));
+const ForYouSection = lazy(() => import('@/components/home/ForYouSection'));
 
-const CULTURE_CARDS = ['theaters', 'festivals', 'halls', 'museums', 'family', 'province'] as const;
 
 const Index = () => {
   const { t } = useTranslation();
@@ -95,6 +79,11 @@ const Index = () => {
     // events while that mode is active.
     enabled: appMode === 'eventos',
   });
+
+  // The featured block already shows one event; drop it from the weekend grid
+  // so the same plan never appears twice on the first screen.
+  const [featuredId, setFeaturedId] = useState<string | null>(null);
+  const weekendList = (weekendEvents ?? []).filter((e) => e.id !== featuredId);
 
   const { data: favorites } = useFavorites();
   const toggleFavorite = useToggleFavorite();
@@ -342,74 +331,16 @@ const Index = () => {
               </div>
             </section>
 
-            {/* ============== TENGO DOS HORAS — módulo de descubrimiento ciudadano ============== */}
+            {/* ============== DESTACADO REAL — primer contenido útil ============== */}
             <Suspense fallback={null}>
-              <TwoHoursSheet />
+              <FeaturedEvent onSelect={setFeaturedId} />
             </Suspense>
 
-            {/* ============== Bloque INFANTIL / FAMILIAR ============== */}
-            <section className="glass-panel p-5 sm:p-6 animate-fade-in">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="h-11 w-11 shrink-0 rounded-2xl bg-primary/15 flex items-center justify-center">
-                  <Baby className="h-5 w-5 text-primary" aria-hidden />
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.family.title')}</h2>
-                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    {t('home.family.subtitle')}
-                  </p>
-                </div>
-              </div>
+            {/* ============== PARA TI — cultura + deporte según gustos ============== */}
+            <Suspense fallback={null}>
+              <ForYouSection />
+            </Suspense>
 
-              <div className="flex flex-wrap gap-2 mb-4">
-                {[
-                  { k: 'kids', to: '/events?filter=family' },
-                  { k: 'age0_3', to: '/events?filter=family&age=0-3' },
-                  { k: 'age4_8', to: '/events?filter=family&age=4-8' },
-                  { k: 'age9_12', to: '/events?filter=family&age=9-12' },
-                  { k: 'free', to: '/events?filter=free' },
-                  { k: 'weekend', to: '/events?filter=weekend' },
-                ].map((c) => (
-                  <button
-                    key={c.k}
-                    onClick={() => navigate(c.to)}
-                    className="glass-chip liquid-press px-4 py-2 text-sm font-medium hover:bg-primary/10"
-                  >
-                    {t(`home.family.chips.${c.k}`)}
-                  </button>
-                ))}
-              </div>
-
-              <Button onClick={() => navigate('/events?filter=family')} className="liquid-press h-11 px-5 font-semibold">
-                {t('home.family.cta')}
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </section>
-
-
-            {/* ============== Qué puedes encontrar ============== */}
-            <section>
-              <h2 className="section-title mb-3">{t('home.sections.whatYouFind')}</h2>
-              <div className="section-rule mb-3" aria-hidden />
-
-              <div className="grid grid-cols-2 gap-3">
-                {DISCOVER_CARDS.map((card) => (
-                  <button
-                    key={card.key}
-                    onClick={() => navigate(card.to)}
-                    className="glass-card liquid-hover liquid-press text-left p-4 min-h-[108px] flex flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  >
-                    <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <card.icon className="h-5 w-5 text-primary" aria-hidden />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm leading-tight">{t(`home.discover.${card.key}.label`)}</div>
-                      <div className="text-[12px] text-muted-foreground leading-snug mt-1 line-clamp-2">{t(`home.discover.${card.key}.copy`)}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
 
             {/* ============== Este finde ============== */}
             <section>
@@ -439,13 +370,14 @@ const Index = () => {
                     {t('common.retry', 'Reintentar')}
                   </Button>
                 </div>
-              ) : weekendEvents && weekendEvents.length > 0 ? (
+              ) : weekendList.length > 0 ? (
                 <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
-                  {weekendEvents.map((event) => (
+                  {weekendList.map((event) => (
                     <EventCard key={event.id} event={event} dense
                       isFavorite={isFavorite(event.id)} onToggleFavorite={handleToggleFavorite} />
                   ))}
                 </div>
+
               ) : (
                 <div className="glass-card p-6 text-center">
                   <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50 text-muted-foreground" aria-hidden />
@@ -505,28 +437,6 @@ const Index = () => {
               </div>
             </section>
 
-            {/* ============== Cultura viva ============== */}
-            <section>
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-4 w-4 text-accent" aria-hidden />
-                <h2 className="section-title">{t('home.culture.title')}</h2>
-              </div>
-              <div className="section-rule mb-3" aria-hidden />
-
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-
-                {t('home.culture.subtitle')}
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {CULTURE_CARDS.map((k) => (
-                  <div key={k} className="glass-card p-4">
-                    <div className="font-semibold text-sm">{t(`home.culture.${k}.label`)}</div>
-                    <div className="text-[12px] text-muted-foreground mt-1 leading-snug">{t(`home.culture.${k}.copy`)}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
             {/* ============== Deportes teaser ============== */}
             <section className="glass-card-strong p-5 sm:p-6">
               <div className="flex items-start gap-3">
@@ -540,7 +450,7 @@ const Index = () => {
                   </p>
                   <Button
                     onClick={() => setAppMode('deportes')}
-                    className="mt-4 liquid-press h-10 px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="mt-4 liquid-press h-11 px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     {t('home.sports.cta')} <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
@@ -548,75 +458,6 @@ const Index = () => {
               </div>
             </section>
 
-            {/* ============== Bloque institucional — Una plataforma viva para Málaga ============== */}
-            <section className="glass-panel p-5 sm:p-7">
-              <div className="text-center mb-5">
-                <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-primary font-semibold mb-2">
-                  <Radar className="h-3.5 w-3.5" aria-hidden />
-                  {t('home.institutional.eyebrow')}
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.institutional.title')}</h2>
-                <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                  {t('home.institutional.subtitle')}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {INSTITUTIONAL_CARDS.map((c) => (
-                  <div key={c.key} className="glass-card p-4 flex flex-col gap-2">
-                    <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <c.icon className="h-5 w-5 text-primary" aria-hidden />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm leading-tight">{t(`home.institutional.${c.key}.label`)}</div>
-                      <div className="text-[12px] text-muted-foreground leading-snug mt-1">{t(`home.institutional.${c.key}.copy`)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Coverage stats — read-only aspirational counts */}
-              <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
-                {[
-                  { n: '35+', l: t('home.stats.venues') },
-                  { n: '24', l: t('home.stats.municipalities') },
-                  { n: '70+', l: t('home.stats.sources') },
-                  { n: t('home.stats.dailyValue'), l: t('home.stats.pharmaciesDaily') },
-                  { n: t('home.stats.familyValue'), l: t('home.stats.familyByAge') },
-                  { n: t('home.stats.sportsValue'), l: t('home.stats.sportsGrowing') },
-                ].map((s) => (
-                  <div key={s.l} className="tile-quiet px-2 py-3 text-center">
-                    <div className="text-lg sm:text-xl font-bold tracking-tight text-primary tabular-nums">{s.n}</div>
-                    <div className="text-[11px] sm:text-xs font-medium text-muted-foreground leading-tight mt-1">{s.l}</div>
-                  </div>
-
-                ))}
-
-              </div>
-              <p className="mt-3 text-center text-[11px] text-muted-foreground italic">
-                {t('home.stats.footer')}
-              </p>
-            </section>
-
-
-            {/* ============== Final CTA ============== */}
-            <section className="glass-card-strong p-6 sm:p-8 text-center">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-sunset text-white mb-3 shadow-lift">
-                <Users className="h-6 w-6" aria-hidden />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">{t('home.finalCta.title')}</h2>
-              <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto leading-relaxed">
-                {t('home.finalCta.subtitle')}
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 mt-5">
-                <Button onClick={() => navigate('/events')} className="liquid-press h-11 px-5 font-semibold">
-                  {t('home.finalCta.exploreEvents')}
-                </Button>
-                <Button onClick={() => navigate('/pharmacies')} variant="outline" className="liquid-press h-11 px-5 font-semibold glass-button border-primary/20">
-                  <Pill className="h-4 w-4 mr-1.5" />
-                  {t('home.finalCta.pharmacies')}
-                </Button>
-              </div>
-            </section>
           </>
         )}
       </main>

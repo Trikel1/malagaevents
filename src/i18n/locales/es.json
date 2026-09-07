@@ -282,6 +282,34 @@
       "subtitle": "Una forma clara, rápida y bonita de descubrir qué ocurre cerca de ti.",
       "exploreEvents": "Explorar eventos",
       "pharmacies": "Farmacias de guardia"
+    },
+    "featured": {
+      "badgeToday": "Hoy",
+      "badgeNext": "Próximamente",
+      "badgeFree": "Gratis",
+      "free": "Entrada gratuita",
+      "priceUnknown": "Precio sin confirmar",
+      "cta": "Ver detalles"
+    },
+    "forYou": {
+      "title": "Para ti",
+      "editInterests": "Editar gustos",
+      "chooseInterests": "Elige tus gustos",
+      "sportsBadge": "Deporte",
+      "reason": "Por tu interés en {{interest}}",
+      "moreInfo": "Más información",
+      "lessInfo": "Ocultar información",
+      "importTitle": "Tienes gustos guardados en este dispositivo",
+      "importHelp": "¿Quieres añadirlos a tu cuenta para verlos en todos tus dispositivos?",
+      "importAccept": "Añadir a mi cuenta",
+      "importDismiss": "Ahora no",
+      "emptyTitle": "Aún no has elegido gustos",
+      "emptyHelp": "Elige lo que te apetece y verás planes de cultura y deporte que encajan contigo.",
+      "errorTitle": "No hemos podido cargar tus recomendaciones",
+      "errorHelp": "Vuelve a intentarlo en unos momentos.",
+      "noMatchTitle": "Sin coincidencias para tus gustos ahora mismo",
+      "noMatchHelp": "No hay eventos publicados que encajen con lo que has elegido. Puedes ver la agenda completa.",
+      "browseAll": "Ver toda la agenda"
     }
   },
   "events": {
@@ -648,5 +676,55 @@
   },
   "a11y": {
     "skipToContent": "Ir al contenido principal"
+  },
+  "interests": {
+    "title": "Mis gustos",
+    "description": "Elige lo que te apetece. Puedes combinar cultura y deporte, y cambiarlo cuando quieras.",
+    "searchPlaceholder": "Buscar un gusto…",
+    "noMatches": "Ningún gusto coincide con tu búsqueda.",
+    "savedOnDevice": "Guardado en este dispositivo",
+    "syncedWithAccount": "Sincronizado con tu cuenta",
+    "saveError": "No se ha podido guardar. Inténtalo de nuevo.",
+    "saving": "Guardando…",
+    "save": "Guardar",
+    "clear": "Restablecer",
+    "groups": {
+      "culture": "Cultura y ocio",
+      "sports": "Deportes"
+    },
+    "items": {
+      "concerts": "Conciertos",
+      "electronicMusic": "Música electrónica",
+      "nightlife": "Vida nocturna",
+      "theater": "Teatro",
+      "dance": "Danza",
+      "flamenco": "Flamenco",
+      "exhibitions": "Exposiciones",
+      "cinema": "Cine",
+      "familyKids": "Planes en familia",
+      "festivals": "Festivales",
+      "literature": "Literatura",
+      "gastronomy": "Gastronomía",
+      "workshops": "Talleres",
+      "outdoorCulture": "Cultura al aire libre",
+      "basketball": "Baloncesto",
+      "football": "Fútbol",
+      "motorcycling": "Motociclismo",
+      "motorsport": "Automovilismo",
+      "athletics": "Atletismo",
+      "cycling": "Ciclismo",
+      "swimming": "Natación",
+      "watersports": "Deportes de agua",
+      "racketSports": "Deportes de raqueta",
+      "handball": "Balonmano",
+      "volleyball": "Voleibol",
+      "martialArts": "Artes marciales",
+      "hiking": "Senderismo",
+      "familySports": "Deporte en familia"
+    }
+  },
+  "sportsAgenda": {
+    "registrationRequired": "Inscripción requerida",
+    "ticketsUnknown": "Entradas sin confirmar"
   }
 }
