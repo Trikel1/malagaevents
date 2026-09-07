@@ -19,8 +19,9 @@
 //   listing nor the detail page expose an explicit time. Recorded as
 //   raw.timeAssumed = true and raw.timeSource = 'fallback'.
 
-import type { SourceAdapter, CanonicalEvent } from "../ingestion/types.ts";
+import type { SourceAdapter, CanonicalEvent, AdapterContext } from "../ingestion/types.ts";
 import { madridWallTimeToDate } from "../ingestion/dates.ts";
+import { fetchWpCptEvents } from "../ingestion/wpEventsCpt.ts";
 
 const DEFAULT_BASE = "https://teatrodelsoho.com";
 const MAX_DETAIL_FOLLOWS = 50;
@@ -403,12 +404,95 @@ function replaceWallTime(iso: string, hour: number, minute: number): string {
   return madridWallTimeToDate(y, m, day, hour, minute).toISOString();
 }
 
+// --- Primary path: WordPress "events" post type + detail JSON-LD ---------
+//
+// Auditoría 2026-09-08: la programación NO está en el listado (se pinta por
+// JS), por eso el parser de markdown devolvía 0 eventos incluso con la web
+// funcionando. El sitio publica el tipo de contenido "events" por la API de
+// WordPress y cada ficha lleva un schema.org/Event con la fecha real.
+
+async function fetchViaWordPress(ctx: AdapterContext): Promise<CanonicalEvent[] | null> {
+  const result = await fetchWpCptEvents(
+    DEFAULT_BASE,
+    "events",
+    (url) => fetch(url, { headers: { "User-Agent": USER_AGENT, Accept: "application/json" } }),
+    (url) => fetch(url, { headers: { "User-Agent": USER_AGENT, Accept: "text/html" } }),
+    { perPage: 50, maxItems: MAX_DETAIL_FOLLOWS },
+  );
+
+  if (!result.ok) {
+    ctx.logger.error("teatro-soho: WordPress API no disponible", {
+      status: result.httpStatus ?? null,
+      error: result.error ?? null,
+    });
+    return null;
+  }
+
+  const out: CanonicalEvent[] = result.events.map((event) => {
+    const occurrence = event.occurrences[0];
+    const [year, month, day] = occurrence.date.split("-").map((part) => parseInt(part, 10));
+    const [hour, minute] = occurrence.time
+      ? occurrence.time.split(":").map((part) => parseInt(part, 10))
+      : [0, 0];
+    const startAt = madridWallTimeToDate(year, month, day, hour, minute).toISOString();
+    const endAt = occurrence.end_time
+      ? madridWallTimeToDate(
+          year,
+          month,
+          day,
+          parseInt(occurrence.end_time.slice(0, 2), 10),
+          parseInt(occurrence.end_time.slice(3, 5), 10),
+        ).toISOString()
+      : null;
+
+    return {
+      title: event.title,
+      description: event.description ?? null,
+      startAt,
+      endAt,
+      timezone: "Europe/Madrid" as const,
+      venueName: "Teatro del Soho CaixaBank",
+      venueAddress: null,
+      locality: "Málaga",
+      category: inferCategory(null, event.title),
+      imageUrl: event.imageUrl ?? null,
+      sourceUrl: event.eventUrl,
+      ticketUrl: event.ticketUrl ?? null,
+      priceText: event.price ?? null,
+      externalId: event.externalId,
+      // Sin hora publicada no se inventa ninguna: la ficha dirá "Hora por confirmar".
+      timeAssumed: event.dateOnly,
+      raw: {
+        adapter: "teatro-soho",
+        strategy: "wp-rest+jsonld",
+        timeAssumed: event.dateOnly,
+        timeSource: event.dateOnly ? "unpublished" : "detail",
+        detailEnriched: true,
+        detailFailed: false,
+        ticketSource: event.ticketUrl ? "detail" : null,
+      },
+    };
+  });
+
+  ctx.logger.info("teatro-soho: WordPress API", {
+    listed: result.listed,
+    returned: out.length,
+    withoutPublishedDate: result.withoutDate,
+    coverage: result.coverage,
+  });
+  return out;
+}
+
 // --- Adapter -------------------------------------------------------------
 
 export const teatroSohoAdapter: SourceAdapter = {
   key: "teatro-soho",
   name: "Teatro del Soho CaixaBank",
   fetchEvents: async (ctx) => {
+    const viaApi = await fetchViaWordPress(ctx);
+    if (viaApi && viaApi.length > 0) return viaApi;
+    ctx.logger.warn("teatro-soho: sin resultados por API, se intenta el listado", {});
+
     const now = new Date();
     const seasons = currentSeasons(now);
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");

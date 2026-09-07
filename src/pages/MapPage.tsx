@@ -121,7 +121,9 @@ const MapPage = () => {
   const cultureEvents = eventsQuery.data ?? [];
   const sportsEvents = sportsQuery.data ?? [];
   const venues = venuesQuery.data ?? [];
-  const pharmacies = pharmaciesQuery.data ?? [];
+  // usePharmaciesOnDuty returns the duty result (rows + provenance), not a bare list.
+  const pharmacies = pharmaciesQuery.data?.rows ?? [];
+
 
   const isLoading =
     eventsQuery.isLoading || sportsQuery.isLoading || venuesQuery.isLoading || pharmaciesQuery.isLoading;
