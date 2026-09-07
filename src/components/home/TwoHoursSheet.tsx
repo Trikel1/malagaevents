@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { pickTwoHoursEvents, type TwoHoursEvent, type PickerHorizon } from '@/lib/twoHoursPicker';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 // Sheet is lazily loaded on interaction.
 const Sheet = lazy(() => import('@/components/ui/sheet').then((m) => ({ default: m.Sheet })));
@@ -20,15 +21,15 @@ const SheetDescription = lazy(() =>
 
 type Budget = 60 | 120 | 180;
 
-const BUDGETS: { value: Budget; label: string }[] = [
-  { value: 60, label: '1 hora' },
-  { value: 120, label: '2 horas' },
-  { value: 180, label: '3 horas' },
+const BUDGETS: { value: Budget; labelKey: string; fallback: string }[] = [
+  { value: 60, labelKey: 'twoHours.budget60', fallback: '1 hora' },
+  { value: 120, labelKey: 'twoHours.budget120', fallback: '2 horas' },
+  { value: 180, labelKey: 'twoHours.budget180', fallback: '3 horas' },
 ];
 
-const HORIZONS: { value: PickerHorizon; label: string }[] = [
-  { value: 'now', label: 'Ahora mismo' },
-  { value: 'today', label: 'Hoy' },
+const HORIZONS: { value: PickerHorizon; labelKey: string; fallback: string }[] = [
+  { value: 'now', labelKey: 'twoHours.horizonNow', fallback: 'Ahora mismo' },
+  { value: 'today', labelKey: 'twoHours.horizonToday', fallback: 'Hoy' },
 ];
 
 async function fetchWindowedEvents(nowIso: string, endIso: string): Promise<TwoHoursEvent[]> {
@@ -46,9 +47,9 @@ async function fetchWindowedEvents(nowIso: string, endIso: string): Promise<TwoH
   return (data ?? []) as TwoHoursEvent[];
 }
 
-function formatHora(iso: string): string {
+function formatHora(iso: string, locale: string): string {
   try {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(locale, {
       hour: '2-digit',
       minute: '2-digit',
       timeZone: 'Europe/Madrid',
@@ -68,6 +69,8 @@ function extractHost(ref?: string | null): string | null {
 }
 
 export default function TwoHoursSheet() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language || 'es';
   const [open, setOpen] = useState(false);
   const [budget, setBudget] = useState<Budget>(120);
   const [horizon, setHorizon] = useState<PickerHorizon>('now');
@@ -157,9 +160,11 @@ export default function TwoHoursSheet() {
           <Clock className="h-5 w-5 text-primary" aria-hidden />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base sm:text-lg font-bold tracking-tight">Tengo dos horas</h2>
+          <h2 className="text-base sm:text-lg font-bold tracking-tight">
+            {t('twoHours.title', 'Tengo dos horas')}
+          </h2>
           <p className="text-[13px] text-muted-foreground leading-snug mt-0.5">
-            Planes reales que caben en tu hueco. Sin inventar duraciones.
+            {t('twoHours.subtitle', 'Planes reales que caben en tu hueco. Sin inventar duraciones.')}
           </p>
         </div>
         <Button
@@ -167,7 +172,7 @@ export default function TwoHoursSheet() {
           className="liquid-press h-10 px-4 font-semibold shrink-0"
           aria-haspopup="dialog"
         >
-          Buscar plan
+          {t('twoHours.cta', 'Buscar plan')}
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
@@ -179,11 +184,13 @@ export default function TwoHoursSheet() {
               <SheetHeader className="text-left">
                 <SheetTitle className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-                  Tengo dos horas
+                  {t('twoHours.title', 'Tengo dos horas')}
                 </SheetTitle>
                 <SheetDescription>
-                  Rango determinista sobre eventos publicados. Solo confirmamos que un plan "cabe" si el
-                  evento tiene hora de fin real.
+                  {t(
+                    'twoHours.sheetDescription',
+                    'Cálculo determinista sobre eventos publicados. Solo confirmamos que un plan cabe si el evento tiene hora de fin real.',
+                  )}
                 </SheetDescription>
               </SheetHeader>
 
@@ -191,7 +198,7 @@ export default function TwoHoursSheet() {
                 {/* Duración */}
                 <fieldset>
                   <legend className="text-[11px] uppercase tracking-[0.16em] font-semibold text-muted-foreground mb-2">
-                    Duración disponible
+                    {t('twoHours.durationLegend', 'Duración disponible')}
                   </legend>
                   <div role="radiogroup" className="flex gap-2">
                     {BUDGETS.map((b) => (
@@ -205,7 +212,7 @@ export default function TwoHoursSheet() {
                           budget === b.value && 'bg-primary/15 border-primary/30 text-primary',
                         )}
                       >
-                        {b.label}
+                        {t(b.labelKey, b.fallback)}
                       </button>
                     ))}
                   </div>
@@ -214,7 +221,7 @@ export default function TwoHoursSheet() {
                 {/* Cuándo */}
                 <fieldset>
                   <legend className="text-[11px] uppercase tracking-[0.16em] font-semibold text-muted-foreground mb-2">
-                    Cuándo
+                    {t('twoHours.whenLegend', 'Cuándo')}
                   </legend>
                   <div role="radiogroup" className="flex gap-2">
                     {HORIZONS.map((h) => (
@@ -228,7 +235,7 @@ export default function TwoHoursSheet() {
                           horizon === h.value && 'bg-primary/15 border-primary/30 text-primary',
                         )}
                       >
-                        {h.label}
+                        {t(h.labelKey, h.fallback)}
                       </button>
                     ))}
                   </div>
@@ -238,13 +245,13 @@ export default function TwoHoursSheet() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="flex items-center justify-between glass-card p-3">
                     <Label htmlFor="th-free" className="text-sm font-medium cursor-pointer">
-                      Gratis
+                      {t('twoHours.free', 'Gratis')}
                     </Label>
                     <Switch id="th-free" checked={onlyFree} onCheckedChange={setOnlyFree} />
                   </div>
                   <div className="flex items-center justify-between glass-card p-3">
                     <Label htmlFor="th-family" className="text-sm font-medium cursor-pointer">
-                      Familiar
+                      {t('twoHours.family', 'Familiar')}
                     </Label>
                     <Switch id="th-family" checked={onlyFamily} onCheckedChange={setOnlyFamily} />
                   </div>
@@ -256,10 +263,10 @@ export default function TwoHoursSheet() {
                         !geoGranted && 'text-muted-foreground cursor-not-allowed',
                       )}
                     >
-                      Cerca de mí
+                      {t('twoHours.nearMe', 'Cerca de mí')}
                       {!geoGranted && (
                         <span className="block text-[10px] font-normal text-muted-foreground">
-                          Permite la ubicación en tu navegador
+                          {t('twoHours.nearMeHint', 'Permite la ubicación en tu navegador')}
                         </span>
                       )}
                     </Label>
@@ -276,16 +283,22 @@ export default function TwoHoursSheet() {
                 <div className="pt-2">
                   {isLoading && (
                     <div className="glass-card p-6 text-center text-sm text-muted-foreground">
-                      Buscando planes…
+                      {t('twoHours.searching', 'Buscando planes…')}
                     </div>
                   )}
 
                   {!isLoading && result && result.fits.length === 0 && result.unconfirmed.length === 0 && (
                     <div className="glass-card p-6 text-center">
                       <Info className="h-6 w-6 mx-auto mb-2 text-muted-foreground" aria-hidden />
-                      <p className="text-sm font-medium">Nada encaja ahora mismo</p>
+                      <p className="text-sm font-medium">
+                        {t('twoHours.emptyTitle', 'Nada encaja ahora mismo')}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        No hay eventos publicados que quepan en {budget / 60} h con los filtros elegidos.
+                        {t('twoHours.emptyDesc', {
+                          hours: budget / 60,
+                          defaultValue:
+                            'No hay eventos publicados que quepan en {{hours}} h con los filtros elegidos.',
+                        })}
                       </p>
                       <Button
                         variant="outline"
@@ -295,7 +308,7 @@ export default function TwoHoursSheet() {
                           navigate(emptyHref);
                         }}
                       >
-                        Ver toda la agenda de hoy
+                        {t('twoHours.emptyCta', 'Ver toda la agenda de hoy')}
                       </Button>
                     </div>
                   )}
@@ -303,14 +316,18 @@ export default function TwoHoursSheet() {
                   {!isLoading && result && result.fits.length > 0 && (
                     <>
                       <p className="text-[11px] uppercase tracking-[0.16em] font-semibold text-muted-foreground mb-2">
-                        Planes que caben ({result.fits.length})
+                        {t('twoHours.fitsTitle', {
+                          count: result.fits.length,
+                          defaultValue: 'Planes que caben ({{count}})',
+                        })}
                       </p>
                       <ul className="space-y-2">
                         {result.fits.map((e) => (
                           <ResultCard
                             key={e.id}
                             title={e.title}
-                            hora={formatHora(e.start_at)}
+                            hora={formatHora(e.start_at, locale)}
+                            locale={locale}
                             venue={e.venue_name}
                             durationMinutes={e.durationMinutes}
                             distanceKm={e.distanceKm}
@@ -329,17 +346,21 @@ export default function TwoHoursSheet() {
                   {!isLoading && result && result.unconfirmed.length > 0 && (
                     <div className="mt-4">
                       <p className="text-[11px] uppercase tracking-[0.16em] font-semibold text-muted-foreground mb-2">
-                        Duración sin confirmar
+                        {t('twoHours.unconfirmedTitle', 'Duración sin confirmar')}
                       </p>
                       <p className="text-[11px] text-muted-foreground mb-2">
-                        Empiezan a tiempo pero no sabemos cuándo terminan. Confírmalo en el detalle.
+                        {t(
+                          'twoHours.unconfirmedHelp',
+                          'Empiezan a tiempo pero no sabemos cuándo terminan. Confírmalo en el detalle.',
+                        )}
                       </p>
                       <ul className="space-y-2">
                         {result.unconfirmed.map((e) => (
                           <ResultCard
                             key={e.id}
                             title={e.title}
-                            hora={formatHora(e.start_at)}
+                            hora={formatHora(e.start_at, locale)}
+                            locale={locale}
                             venue={e.venue_name}
                             durationMinutes={null}
                             distanceKm={e.distanceKm}
@@ -366,6 +387,7 @@ export default function TwoHoursSheet() {
 }
 
 function ResultCard(props: {
+  locale: string;
   title: string;
   hora: string;
   venue?: string | null;
@@ -376,7 +398,9 @@ function ResultCard(props: {
   muted?: boolean;
   onOpen: () => void;
 }) {
-  const { title, hora, venue, durationMinutes, distanceKm, source, updated, muted, onOpen } = props;
+  const { title, hora, venue, durationMinutes, distanceKm, source, updated, muted, onOpen, locale } =
+    props;
+  const { t } = useTranslation();
   return (
     <li>
       <button
@@ -397,18 +421,29 @@ function ResultCard(props: {
                 <MapPin className="h-3 w-3" aria-hidden /> {venue}
               </span>
             )}
-            {durationMinutes !== null && <span>· {durationMinutes} min</span>}
+            {durationMinutes !== null && (
+              <span>
+                ·{' '}
+                {t('twoHours.minutes', {
+                  count: durationMinutes,
+                  defaultValue: '{{count}} min',
+                })}
+              </span>
+            )}
             {distanceKm !== null && <span>· {distanceKm.toFixed(1)} km</span>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             {source && (
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground bg-muted/40 rounded px-1.5 py-0.5">
-                Fuente · {source}
+                {t('twoHours.source', 'Fuente')} · {source}
               </span>
             )}
             {updated && (
               <span className="text-[10px] text-muted-foreground">
-                Actualizado {new Date(updated).toLocaleDateString('es-ES')}
+                {t('twoHours.updated', {
+                  date: new Date(updated).toLocaleDateString(locale),
+                  defaultValue: 'Actualizado {{date}}',
+                })}
               </span>
             )}
           </div>
