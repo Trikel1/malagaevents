@@ -470,19 +470,11 @@ const EventDetailPage = () => {
         </div>
 
         {/* Additional Info */}
-        {(event.price_info || event.age_restriction || event.accessibility_info || event.capacity_info) && (
+        {(event.age_restriction || event.accessibility_info || event.capacity_info) && (
           <>
             <Separator />
             <div className="space-y-3">
-              {event.price_info && (
-                <div className="flex items-center gap-3">
-                  <Euro className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{t('eventDetail.price')}</p>
-                    <p className="text-sm text-muted-foreground">{event.price_info}</p>
-                  </div>
-                </div>
-              )}
+
               {event.age_restriction && (
                 <div className="flex items-center gap-3">
                   <Baby className="h-5 w-5 text-muted-foreground" />
@@ -581,47 +573,34 @@ const EventDetailPage = () => {
         "fixed bottom-0 left-0 right-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border/60 px-4 py-3 pb-safe shadow-soft transition-transform duration-300 ease-out",
         ctaHidden ? "translate-y-full" : "translate-y-0"
       )}>
-        <div className="max-w-lg mx-auto flex gap-2">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handleToggleFavorite}
-            disabled={toggleFavorite.isPending}
-            className="flex-shrink-0"
-            aria-label={isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Guardar')}
-          >
-            <Heart className={cn('h-5 w-5', isFavorite && 'fill-red-500 text-red-500')} />
-          </Button>
+        <div className="max-w-lg mx-auto">
           {ticketAction.url ? (
             <>
-              <Button
-                size="lg"
-                variant="outline"
-                className="flex-shrink-0"
-                onClick={handleAddToCalendar}
-                aria-label={t('eventDetail.addToCalendar')}
-              >
-                <Calendar className="h-5 w-5" />
-              </Button>
-              <Button asChild size="lg" className="flex-1">
+              <Button asChild size="lg" className="w-full h-auto min-h-12 py-2.5 whitespace-normal text-center leading-snug">
                 <a href={ticketAction.url} target="_blank" rel="noopener noreferrer">
-                  {ticketLabel}
-                  <ExternalLink className="h-4 w-4 ml-2" aria-hidden="true" />
+                  <span className="break-words">{ticketLabel}</span>
+                  <ExternalLink className="h-4 w-4 ml-2 shrink-0" aria-hidden="true" />
                 </a>
               </Button>
+              {ticketAction.host && (
+                <p className="mt-1 text-center text-xs text-muted-foreground break-words" style={{ overflowWrap: 'anywhere' }}>
+                  {ticketAction.host}
+                </p>
+              )}
             </>
           ) : (
             <Button
               size="lg"
               variant="secondary"
-              className="flex-1"
+              className="w-full h-auto min-h-12 py-2.5 whitespace-normal leading-snug"
               onClick={handleAddToCalendar}
             >
-              <Calendar className="h-4 w-4 mr-2" />
-              {t('eventDetail.addToCalendar')}
+              <Calendar className="h-4 w-4 mr-2 shrink-0" aria-hidden="true" />
+              <span className="break-words">{t('eventDetail.addToCalendar')}</span>
             </Button>
           )}
         </div>
+
       </div>
     </div>
   );
