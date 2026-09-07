@@ -91,6 +91,12 @@ interface EventImageProps {
   priority?: boolean;
   eventType?: EventType;
   category?: string;
+  /**
+   * Event title, used only to pick the illustrative theme. It must not be the
+   * alt text: the alt text also carries the venue name, and venue words
+   * ("Recinto…", "Cine…") would pick an unrelated illustration.
+   */
+  title?: string | null;
 }
 
 // Aspect ratios per variant (16:9 for consistency)
