@@ -4,6 +4,8 @@ import { formatInTimeZone } from 'date-fns-tz';
 import { addDays } from 'date-fns';
 import type { SportEvent } from '@/types/sports';
 import type { SportVenue } from '@/types/venues-sports';
+import { filterEligibleSports } from '@/lib/sportsEligibility';
+
 
 const TIMEZONE = 'Europe/Madrid';
 

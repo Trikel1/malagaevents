@@ -58,7 +58,13 @@ function madridParts(iso: string | null | undefined) {
 /** Normalize one synced row into the agenda entity shape. */
 export function toAgendaEntity(row: SportsEventRow): SportsEntity | null {
   if (!hasVerifiableProvenance(row)) return null;
+  // Audit 2026-09-07: provenance alone let arts/religious content and away
+  // fixtures reach the sports agenda. Apply the shared eligibility rules and
+  // never label a locality as verified without venue/address evidence.
+  const verdict = evaluateSportsEligibility(row);
+  if (!verdict.eligible) return null;
   const start = madridParts(row.start_datetime);
+
   if (!start.date) return null;
   const end = madridParts(row.end_datetime);
 
