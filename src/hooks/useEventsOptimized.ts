@@ -1,3 +1,4 @@
+import { madridPresetRange, sanitizeIlikeTerm } from '@/lib/madridTime';
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,28 +51,8 @@ const generateQueryKey = (options: UseEventsOptions) => {
 };
 
 // Compute a [start, end) UTC range for a preset in Europe/Madrid-ish local time
-const computePresetRange = (preset: NonNullable<EventFilters['datePreset']>, now: Date): [Date, Date] => {
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const day = (n: number) => new Date(startOfToday.getTime() + n * 86400000);
-  switch (preset) {
-    case 'today':
-      return [startOfToday, day(1)];
-    case 'tomorrow':
-      return [day(1), day(2)];
-    case 'thisWeek':
-      return [startOfToday, day(7)];
-    case 'next30':
-      return [startOfToday, day(30)];
-    case 'weekend': {
-      const dow = now.getDay();
-      if (dow === 0) return [startOfToday, day(1)]; // Sun
-      if (dow === 6) return [startOfToday, day(2)]; // Sat -> Sat+Sun
-      if (dow === 5) return [startOfToday, day(3)]; // Fri -> Fri+Sat+Sun
-      const daysUntilFri = (5 - dow + 7) % 7;
-      return [day(daysUntilFri), day(daysUntilFri + 3)];
-    }
-  }
-};
+const computePresetRange = (preset: NonNullable<EventFilters['datePreset']>, now: Date): [Date, Date] =>
+  madridPresetRange(preset, now);
 
 const fetchEvents = async (
   options: UseEventsOptions,
@@ -220,15 +201,17 @@ const fetchEvents = async (
 
   // Search query - use normalized search for accent-insensitive matching
   if (options.searchQuery && options.searchQuery.trim()) {
-    const normalizedQuery = normalizeSearchText(options.searchQuery);
-    // Use ilike with the original query and also try the normalized version
-    query = query.or(
-      `title.ilike.%${options.searchQuery}%,` +
-      `title_normalized.ilike.%${normalizedQuery}%,` +
-      `venue_name.ilike.%${options.searchQuery}%,` +
-      `venue_name_normalized.ilike.%${normalizedQuery}%,` +
-      `description.ilike.%${options.searchQuery}%`
-    );
+    const raw = sanitizeIlikeTerm(options.searchQuery);
+    const normalizedQuery = sanitizeIlikeTerm(normalizeSearchText(options.searchQuery));
+    if (raw) {
+      query = query.or(
+        `title.ilike.%${raw}%,` +
+        `title_normalized.ilike.%${normalizedQuery}%,` +
+        `venue_name.ilike.%${raw}%,` +
+        `venue_name_normalized.ilike.%${normalizedQuery}%,` +
+        `description.ilike.%${raw}%`
+      );
+    }
   }
 
   // Pagination

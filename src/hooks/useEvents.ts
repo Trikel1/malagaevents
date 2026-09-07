@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Event } from '@/types';
 import type { EventFilters } from '@/components/events/FilterDrawer';
+import { madridPresetRange, madridStartOfToday, sanitizeIlikeTerm } from '@/lib/madridTime';
 import {
   mergeCalendarEntries,
   groupCalendarEntries,
@@ -56,45 +57,19 @@ const fetchEvents = async (
     .eq('status', 'published')
     .order('start_at', { ascending: true });
 
-  // Date filters - use Europe/Madrid timezone
+  // Date filters — real Europe/Madrid calendar boundaries (DST aware).
   const now = new Date();
-  
+
   if (options.todayOnly) {
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const [start, end] = madridPresetRange('today', now);
     query = query
-      .gte('start_at', todayStart.toISOString())
-      .lt('start_at', todayEnd.toISOString());
+      .gte('start_at', start.toISOString())
+      .lt('start_at', end.toISOString());
   } else if (options.weekendOnly) {
-    // "Este finde" logic with day exclusion based on current day
-    // Uses Europe/Madrid timezone logic
-    const dayOfWeek = now.getDay(); // 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
-    
-    let weekendStart: Date;
-    let weekendEnd: Date;
-    
-    if (dayOfWeek === 0) {
-      // Sunday: only show Sunday (today)
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      weekendEnd = new Date(weekendStart.getTime() + 24 * 60 * 60 * 1000); // End of Sunday
-    } else if (dayOfWeek === 6) {
-      // Saturday: show Saturday (today) + Sunday
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      weekendEnd = new Date(weekendStart.getTime() + 2 * 24 * 60 * 60 * 1000); // End of Sunday
-    } else if (dayOfWeek === 5) {
-      // Friday: show Friday (today) + Saturday + Sunday
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000); // End of Sunday
-    } else {
-      // Monday-Thursday: show next Friday + Saturday + Sunday
-      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
-      weekendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilFriday);
-      weekendEnd = new Date(weekendStart.getTime() + 3 * 24 * 60 * 60 * 1000); // End of Sunday
-    }
-    
+    const [start, end] = madridPresetRange('weekend', now);
     query = query
-      .gte('start_at', weekendStart.toISOString())
-      .lt('start_at', weekendEnd.toISOString());
+      .gte('start_at', start.toISOString())
+      .lt('start_at', end.toISOString());
   } else if (options.filters?.dateFrom || options.filters?.dateTo) {
     if (options.filters.dateFrom) {
       query = query.gte('start_at', options.filters.dateFrom.toISOString());
@@ -131,15 +106,17 @@ const fetchEvents = async (
 
   // Search query - use normalized search for accent-insensitive matching
   if (options.searchQuery && options.searchQuery.trim()) {
-    const normalizedQuery = normalizeSearchText(options.searchQuery);
-    // Use ilike with the original query and also try the normalized version
-    query = query.or(
-      `title.ilike.%${options.searchQuery}%,` +
-      `title_normalized.ilike.%${normalizedQuery}%,` +
-      `venue_name.ilike.%${options.searchQuery}%,` +
-      `venue_name_normalized.ilike.%${normalizedQuery}%,` +
-      `description.ilike.%${options.searchQuery}%`
-    );
+    const raw = sanitizeIlikeTerm(options.searchQuery);
+    const normalizedQuery = sanitizeIlikeTerm(normalizeSearchText(options.searchQuery));
+    if (raw) {
+      query = query.or(
+        `title.ilike.%${raw}%,` +
+        `title_normalized.ilike.%${normalizedQuery}%,` +
+        `venue_name.ilike.%${raw}%,` +
+        `venue_name_normalized.ilike.%${normalizedQuery}%,` +
+        `description.ilike.%${raw}%`
+      );
+    }
   }
 
   // Pagination

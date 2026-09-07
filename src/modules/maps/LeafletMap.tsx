@@ -75,6 +75,7 @@ export const LeafletMap = ({
       zoom,
       zoomControl: false,
       attributionControl: true,
+      // No external outbound links in public UI: drop Leaflet's linked prefix.
     });
     L.tileLayer(
       'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
@@ -84,7 +85,10 @@ export const LeafletMap = ({
         attribution: '© OpenStreetMap © CARTO',
       }
     ).addTo(map);
+    // No outbound links in public UI: remove Leaflet's linked attribution prefix.
+    map.attributionControl.setPrefix('');
     L.control.zoom({ position: 'topright' }).addTo(map);
+
     layerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
 

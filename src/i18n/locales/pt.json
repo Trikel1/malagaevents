@@ -620,5 +620,8 @@
       "near": "See activities near me",
       "venues": "Explore facilities"
     }
+  },
+  "a11y": {
+    "skipToContent": "Ir para o conteúdo principal"
   }
 }

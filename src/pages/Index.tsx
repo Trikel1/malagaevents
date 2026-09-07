@@ -56,6 +56,21 @@ const Index = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchToggleRef = useRef<HTMLButtonElement>(null);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
+
+  // The panel is only CSS-collapsed, so its controls stay in the tab order and
+  // keyboard users land on an invisible field. Keep them out of the tree until
+  // the panel is actually open.
+  useEffect(() => {
+    const el = searchPanelRef.current;
+    if (el) (el as HTMLDivElement & { inert?: boolean }).inert = !searchOpen;
+  }, [searchOpen]);
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    searchToggleRef.current?.focus();
+  };
 
   useEffect(() => {
     if (searchOpen) {
@@ -73,7 +88,7 @@ const Index = () => {
     setSearchOpen(false);
   };
 
-  const { data: weekendEvents, isLoading: loadingWeekend } = useEvents({
+  const { data: weekendEvents, isLoading: loadingWeekend, isError: weekendError, refetch: refetchWeekend } = useEvents({
     weekendOnly: true,
     limit: 6,
     // Deportes has its own data source and landing; avoid fetching cultural
@@ -201,7 +216,7 @@ const Index = () => {
             </h1>
             <p className={cn(
               'text-[13.5px] sm:text-sm mt-1.5 max-w-md leading-snug',
-              isSports ? 'line-clamp-2 text-sportsx-accent' : 'truncate text-white/90'
+              isSports ? 'line-clamp-2 text-sportsx-accent' : 'text-white/90'
             )}>
               {isSports
                 ? t('sportsHome.heroSubtitle', 'Agenda, instalaciones y clubes verificados de la provincia')
@@ -213,6 +228,7 @@ const Index = () => {
           {!isSports && (
             <button
               type="button"
+              ref={searchToggleRef}
               onClick={() => setSearchOpen((v) => !v)}
               aria-label={t('home.hero.searchAria')}
               aria-expanded={searchOpen}
@@ -225,7 +241,7 @@ const Index = () => {
               ) : (
                 <Search className="h-5 w-5" aria-hidden="true" />
               )}
-              <span className="hidden sm:inline text-sm font-semibold">
+              <span className="text-sm font-semibold">
                 {searchOpen
                   ? t('common.close', 'Cerrar')
                   : t('home.hero.searchLabel', 'Buscar')}
@@ -238,8 +254,15 @@ const Index = () => {
         {!isSports && (
           <div
             id="global-search-panel"
+            ref={searchPanelRef}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.stopPropagation();
+                closeSearch();
+              }
+            }}
             className={cn(
-              'grid transition-all duration-300 ease-out',
+              'grid transition-all duration-300 ease-out motion-reduce:transition-none',
               searchOpen
                 ? 'grid-rows-[1fr] opacity-100 mt-3'
                 : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none',
@@ -401,20 +424,40 @@ const Index = () => {
               </div>
 
               {loadingWeekend ? (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
                   {[1,2].map((i) => <EventCardSkeleton key={i} />)}
                 </div>
+              ) : weekendError ? (
+                <div className="glass-card p-6 text-center">
+                  <p className="text-sm text-foreground font-medium">
+                    {t('home.weekend.errorTitle', 'No hemos podido cargar los planes del finde')}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t('home.weekend.errorHelp', 'Puede ser un problema de conexión. Inténtalo de nuevo.')}
+                  </p>
+                  <Button variant="outline" className="mt-3 h-11 px-5" onClick={() => refetchWeekend()}>
+                    {t('common.retry', 'Reintentar')}
+                  </Button>
+                </div>
               ) : weekendEvents && weekendEvents.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
                   {weekendEvents.map((event) => (
                     <EventCard key={event.id} event={event} dense
                       isFavorite={isFavorite(event.id)} onToggleFavorite={handleToggleFavorite} />
                   ))}
                 </div>
               ) : (
-                <div className="glass-card p-6 text-center text-muted-foreground">
-                  <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">{t('events.noEvents')}</p>
+                <div className="glass-card p-6 text-center">
+                  <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50 text-muted-foreground" aria-hidden />
+                  <p className="text-sm text-foreground font-medium">
+                    {t('home.weekend.emptyTitle', 'Aún no hay planes publicados para este fin de semana')}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t('home.weekend.emptyHelp', 'Consulta la agenda completa para ver los próximos días.')}
+                  </p>
+                  <Button variant="outline" className="mt-3 h-11 px-5" onClick={() => navigate('/events')}>
+                    {t('home.weekend.emptyCta', 'Ver toda la agenda')}
+                  </Button>
                 </div>
               )}
             </section>
@@ -429,6 +472,9 @@ const Index = () => {
                   <h2 className="text-lg sm:text-xl font-bold tracking-tight">{t('home.cityProvince.title')}</h2>
                   <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                     {t('home.cityProvince.subtitle')}
+                  </p>
+                  <p className="text-[12px] text-muted-foreground mt-1 leading-relaxed">
+                    {t('home.cityProvince.coverageNote', 'Buscamos por nombre de municipio en la agenda publicada; la cobertura por municipio aún es parcial.')}
                   </p>
                 </div>
               </div>
