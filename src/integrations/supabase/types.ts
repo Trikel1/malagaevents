@@ -41,6 +41,41 @@ export type Database = {
         }
         Relationships: []
       }
+      event_image_quarantine: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          image_url: string
+          reason: string
+          shared_with: number | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          image_url: string
+          reason: string
+          shared_with?: number | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          image_url?: string
+          reason?: string
+          shared_with?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_image_quarantine_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_occurrences: {
         Row: {
           buy_url: string | null
