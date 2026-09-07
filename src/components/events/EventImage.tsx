@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles, Image as ImageIcon, Palette, Baby, Trophy, Wrench, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sanitizeEventImageUrl } from '@/lib/eventImageSource';
+import { categoryImageFor } from '@/lib/categoryImages';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -330,7 +331,28 @@ const EventImage = ({
 
     const config = CATEGORY_FALLBACKS[resolvedEventType];
     const IconComponent = config.icon;
+    const editorialImage = categoryImageFor(resolvedEventType);
 
+    // Preferred: an editorial image shipped with the app for this category.
+    if (editorialImage) {
+      return (
+        <div className="relative w-full h-full overflow-hidden">
+          <img
+            src={editorialImage}
+            alt={`${config.label} — imagen ilustrativa, no es el cartel oficial`}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            className="w-full h-full object-cover"
+          />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/5 to-transparent" />
+          {!isCompact && (
+            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-background/75 px-2 py-0.5 text-[10px] font-medium text-foreground/75 backdrop-blur-sm">
+              Imagen ilustrativa
+            </span>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div
