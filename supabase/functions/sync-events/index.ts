@@ -1758,9 +1758,12 @@ async function upsertEventWithOccurrences(
   // Clean description using the same HTML entity decoding
   const cleanDescription = eventData.description ? decodeHtmlEntities(eventData.description).replace(/<[^>]*>/g, '').trim() : '';
   
+  const startAt = resolution.earliest.start;
+  const address = venueName ? `${venueName}, ${locationName}` : locationName;
+
   const eventPayload = {
     title,
-    description: cleanDescription.substring(0, 500) || `Evento en ${venueName}`,
+    description: cleanDescription.substring(0, 500) || (venueName ? `Evento en ${venueName}` : `Evento en ${locationName}`),
     description_short: cleanDescription.substring(0, 150) || null,
     description_full: cleanDescription || null,
     category: source.category,
@@ -1791,22 +1794,25 @@ async function upsertEventWithOccurrences(
   
   if (existingEvent) {
     eventId = existingEvent.id;
-    await supabase.from('events').update(eventPayload).eq('id', eventId);
+    // The published date is refreshed too: a rescheduled event must not keep
+    // the date captured the first time it was seen.
+    await supabase
+      .from('events')
+      .update({ ...eventPayload, start_at: startAt.toISOString(), address })
+      .eq('id', eventId);
     isUpdated = true;
     logger.debug('persist', `Updated: ${title}`);
   } else {
-    // Earliest occurrence the source actually published.
-    const startAt = resolution.earliest.start;
-
     const { data: newEvent, error } = await supabase
       .from('events')
       .insert({
         ...eventPayload,
         start_at: startAt.toISOString(),
-        address: `${venueName}, ${locationName}`,
+        address,
       })
       .select('id')
       .single();
+
     
     if (error) {
       logger.error('persist', `Insert failed: ${title}`, { error: error.message });
