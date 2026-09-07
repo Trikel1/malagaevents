@@ -382,7 +382,8 @@
     "officialSiteShort": "Official website",
     "ticketsOnSite": "Access and availability on the organiser's website.",
     "onlineNote": "Online activity: there is no physical venue.",
-    "online": "Online"
+    "online": "Online",
+    "description": "Description"
   },
   "calendar": {
     "title": "Calendar",

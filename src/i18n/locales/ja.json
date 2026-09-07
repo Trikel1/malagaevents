@@ -382,7 +382,8 @@
     "officialSiteShort": "公式サイト",
     "ticketsOnSite": "参加方法と空き状況は主催者のサイトでご確認ください。",
     "onlineNote": "オンライン開催：会場はありません。",
-    "online": "オンライン"
+    "online": "オンライン",
+    "description": "Description"
   },
   "calendar": {
     "title": "カレンダー",

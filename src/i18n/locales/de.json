@@ -382,7 +382,8 @@
     "officialSiteShort": "Offizielle Website",
     "ticketsOnSite": "Zugang und Verfügbarkeit auf der Website des Veranstalters.",
     "onlineNote": "Online-Aktivität: kein physischer Veranstaltungsort.",
-    "online": "Online"
+    "online": "Online",
+    "description": "Beschreibung"
   },
   "calendar": {
     "title": "Kalender",

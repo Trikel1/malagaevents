@@ -382,7 +382,8 @@
     "officialSiteShort": "Sito ufficiale",
     "ticketsOnSite": "Accesso e disponibilità sul sito dell'organizzatore.",
     "onlineNote": "Attività online: non c'è una sede fisica.",
-    "online": "Online"
+    "online": "Online",
+    "description": "Descrizione"
   },
   "calendar": {
     "title": "Calendario",

@@ -382,7 +382,8 @@
     "officialSiteShort": "الموقع الرسمي",
     "ticketsOnSite": "الدخول والتوافر على موقع المنظّم.",
     "onlineNote": "نشاط عبر الإنترنت: لا يوجد مكان فعلي.",
-    "online": "عبر الإنترنت"
+    "online": "عبر الإنترنت",
+    "description": "الوصف"
   },
   "calendar": {
     "title": "التقويم",

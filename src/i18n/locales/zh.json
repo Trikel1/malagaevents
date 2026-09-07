@@ -382,7 +382,8 @@
     "officialSiteShort": "官方网站",
     "ticketsOnSite": "请在主办方网站查看参与方式与名额。",
     "onlineNote": "线上活动：没有实体场地。",
-    "online": "线上"
+    "online": "线上",
+    "description": "简介"
   },
   "calendar": {
     "title": "日历",
