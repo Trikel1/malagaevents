@@ -386,7 +386,10 @@ const CultureEventsPage = () => {
     commit,
   ]);
 
-  const totalCount = displayedEvents?.length ?? 0;
+  // Loaded on screen vs. total matching in the database (paginated list).
+  const loadedCount = displayedEvents?.length ?? 0;
+  const totalCount = onlyFavorites ? loadedCount : Math.max(totalMatching, loadedCount);
+  const isPartialList = !onlyFavorites && loadedCount < totalCount;
   const hasFilters = activeChips.length > 0;
 
   // Human-readable "range" summary shown in the header
@@ -449,9 +452,19 @@ const CultureEventsPage = () => {
             </div>
             <span
               className="shrink-0 inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
-              aria-label={`${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`}
+              aria-label={
+                isPartialList
+                  ? t('events.countPartialA11y', {
+                      loaded: loadedCount,
+                      total: totalCount,
+                      defaultValue: '{{loaded}} de {{total}} eventos mostrados',
+                    })
+                  : `${totalCount} ${totalCount === 1 ? t('events.eventSingular', 'evento') : t('events.eventPlural', 'eventos')}`
+              }
             >
-              <span className="tabular-nums text-sm">{isLoadingEvents ? '…' : totalCount}</span>
+              <span className="tabular-nums text-sm">
+                {isLoadingEvents ? '…' : isPartialList ? `${loadedCount}/${totalCount}` : totalCount}
+              </span>
               <span className="text-[10px] uppercase tracking-wide opacity-80">
                 {totalCount === 1
                   ? t('events.eventSingular', 'evento')
@@ -609,7 +622,7 @@ const CultureEventsPage = () => {
         </div>
         {isLoadingEvents ? (
           <EventListSkeleton count={4} />
-        ) : isError ? (
+        ) : hasLoadError ? (
           <EmptyState
             icon={AlertTriangle}
             title={t('errors.loadFailed', 'Error al cargar')}
@@ -618,7 +631,7 @@ const CultureEventsPage = () => {
               'No se pudieron cargar los eventos. Comprueba tu conexión e inténtalo de nuevo.',
             )}
             actionLabel={t('common.retry', 'Reintentar')}
-            onAction={() => refetch()}
+            onAction={() => retryLoad()}
             variant="error"
           />
         ) : displayedEvents && displayedEvents.length > 0 ? (
