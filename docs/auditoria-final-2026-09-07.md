@@ -395,3 +395,63 @@ función. Capturas en `/tmp/browser/smoke/`.
   adaptador ICS de Unicaja sin migrar.
 
 Commit de referencia previo a esta integración: `7e9ba79`.
+
+## 13. Cierre del requisito original: revisión de TODAS las URL y reparación de extractores (2026-09-07 20:2x UTC)
+
+### 13.1 Inventario completo (ya no 214 direcciones, sino la unión entera)
+- 270 URL históricas en bruto → 237 URL normalizadas (`docs/fuentes/trazabilidad-270-url.csv`, una fila por URL original con su URL normalizada y los mensajes donde aparece).
+- Unión con todos los campos de URL de los 4 registros de fuentes (`url`, `primary_url`, `chosen_entrypoint`, `fallback_entrypoint`, `entrypoints_detected`, `secondary_urls`) → 320 URL normalizadas, más el ICS del Unicaja descubierto = **321**; el CSV final tiene **323 filas** tras añadir las dos sustituciones verificadas.
+- Fichero: `docs/fuentes/fuentes-auditadas-321.csv`; script de auditoría sin secretos: `docs/fuentes/audit_source_inventory.py`.
+
+Resultado consolidado a 2026-09-07:
+
+| Resultado | URL |
+|---|---:|
+| Reutilizadas de la comprobación previa de Lovable | 210 |
+| HTTP 200 en la recomprobación de hoy | 63 |
+| Robots no verificable → contenido NO solicitado | 21 |
+| HTTP 404 | 11 |
+| Excluida por robots (permanece bloqueada, sin elusión) | 7 |
+| HTTP 403 | 3 |
+| Timeout persistente | 1 |
+| No procede solicitarla como agenda (API/ejemplo incompleto) | 7 |
+
+Las 100 candidatas que el propietario no pudo resolver (93 robots no verificables por timeout, 5 timeouts, 1 HTTP 200, 1 HTTP 404) se han recomprobado aquí con límite de tiempo y tamaño, máximo 3 conexiones por host y caché de robots: **58 pasaron a HTTP 200**, 21 siguen sin robots verificables (se mantienen como desconocidas, no como rotas), 10 son 404 reales, 7 quedan excluidas por robots, 3 dan 403 y 1 sigue agotando el tiempo.
+
+### 13.2 Correcciones de honestidad del informe de la fase 3
+- Un extractor vacío **no** demuestra que la web no publique programación.
+- La falta de una clave de pago en el ensayo local **no** demuestra que el proyecto desplegado no la tenga; los `sync_runs` recientes muestran ingestas de producción con éxito.
+- «Cervantes no puede usarse sin acuerdo» era una afirmación excesiva: lo único observado es un **HTTP 403 directo** desde este entorno; la ingesta desplegada puede comportarse de otro modo.
+
+### 13.3 Reparaciones concretas de fuentes
+| Fuente | Antes | Ahora | Evidencia |
+|---|---|---|---|
+| Contenedor Cultural UMA | `uma.es/servicio-cultura/info/111568/contenedor-cultural/` → **HTTP 404** | `https://www.uma.es/contenedorcultural/` → **HTTP 200** | corregido en el extractor, sus pruebas y la fila `contenedor-uma` de `event_sources` (se conserva `enabled=false`) |
+| Teatro del Soho | entrada activa fijada en `temporada-2025-2026` | `programacion/?temporada=temporada-2026-2027` → **HTTP 200** | `sources_config.teatro-soho`, `is_active` intacto. `/evento/…` 404 es un enlace de archivo, no una caída del teatro |
+| Unicaja Baloncesto | el descubrimiento sólo miraba enlaces terminados en `.ics` | descubre `/calendario/ics` y `type="text/calendar"` | ensayo real: adaptador `ics`, **28 eventos**, sin escrituras |
+
+Ensayo del extractor de la UMA con la URL nueva: la página responde 200 pero el extractor devuelve `no_current_events` («la estructura de la página no es reconocible»). Queda **pendiente**, no «sin programación».
+
+### 13.4 Integridad del calendario deportivo (parche aplicado)
+`supabase/functions/_shared/sports-sync/adapters/ics-date.ts` (nuevo) convierte la hora de pared con su zona real mediante ida y vuelta, sin offset fijo de invierno; rechaza horas inexistentes o ambiguas del cambio horario en vez de inventar una; mantiene la convención de día sin hora (medianoche UTC); rechaza fechas de calendario imposibles y `DTEND` anterior a `DTSTART`; una `TZID` desconocida se descarta en lugar de interpretarse como Madrid.
+
+Además, el ICS del Unicaja **no trae `LOCATION`**: el adaptador ya no rellena el recinto con el municipio por defecto, lo deja vacío. Con las reglas de elegibilidad de la fase 6 aplicadas al calendario real: **14 partidos descartados por jugarse fuera de casa** y **14 sin recinto acreditado** (`locality_unverified`). Es decir, hoy este calendario **no publica ningún partido en pantalla**: `defaultMunicipality='Málaga'` no prueba que un partido sea local, y no se inventa recinto.
+
+### 13.5 Fechas de ingesta (`_shared/ingestion/dates.ts`)
+Sólo afecta a ingestas futuras; no se han desplazado datos históricos.
+- Fecha sin hora ya **no** se convierte en las 20:00 inventadas: sigue la convención de hora desconocida (medianoche UTC).
+- ISO sin zona horaria ya no se interpreta con la zona del proceso: se lee como hora de pared de Madrid, con verano (CEST) e invierno (CET).
+- Los desfases explícitos (`+02:00`, `Z`) se conservan tal cual.
+- Días inexistentes (`2026-02-30`, `2025-02-29`, `30/02/2026`) y horas imposibles se rechazan.
+- Usos afectados: `admin-ingest-preflight`, `scrape-source`, `_shared/ingestion/dedupe.ts` y `_shared/adapters/ayto-malaga-csv.ts`. Pruebas: `src/test/ingestion-dates.test.ts` (8 casos).
+
+### 13.6 Puertas de regresión y despliegue
+- `bunx tsgo --noEmit` limpio · `bunx vitest run` **34 ficheros / 289 pruebas en verde** (17 nuevas del parche + 1 de recinto desconocido + 8 de fechas) · `deno check` limpio en los módulos tocados.
+- **Desplegada**: `sync-sports-normalized` (código nuevo ya en el backend). Se conservan su autenticación y los cron 4 y 6; **no se ha lanzado ninguna sincronización masiva**: el código nuevo entrará en efecto en la siguiente ejecución programada.
+- Funciones desplegadas en el pase anterior (sección 11.7) sin cambios.
+- Frontend **no publicado**: queda para revisión del propietario. Capturas en `docs/audit-preview/` (inicio móvil y tableta, perfil móvil; sin datos de cuentas).
+
+### 13.7 Estado por fuente, sin exageraciones
+`docs/fuentes/extractores-22.csv` distingue explícitamente: disponibilidad HTTP, extractor probado con fixture, ensayo real ejecutado, bloqueado/desconocido y sin extractor. **No se afirma que todas las fuentes sean correctas ni que ninguna esté certificada por los ayuntamientos.**
+
+Limitación observada al revisar la portada: los eventos con día pero sin hora se muestran como «02:00» (medianoche UTC vista en Madrid). Es una consecuencia visible de la convención de hora desconocida y queda anotada, no corregida en este pase.

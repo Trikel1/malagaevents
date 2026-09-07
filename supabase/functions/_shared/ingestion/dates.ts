@@ -20,6 +20,24 @@ const MONTHS_ES: Record<string, number> = {
   diciembre: 12, dic: 12,
 };
 
+/** True only for a real calendar day (rejects 2026-02-30, 2026-13-01, ...). */
+function isRealCalendarDate(year: number, month: number, day: number): boolean {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return false;
+  if (year < 1900 || year > 2200 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const probe = new Date(Date.UTC(year, month - 1, day));
+  return probe.getUTCFullYear() === year && probe.getUTCMonth() === month - 1 && probe.getUTCDate() === day;
+}
+
+/**
+ * A published date with no time. The established application convention is
+ * midnight UTC = "day known, hour unknown". We must not invent an hour here:
+ * a fabricated 20:00 would be indistinguishable from a real evening start.
+ */
+function dateOnlyToUnknownHour(year: number, month: number, day: number): Date | null {
+  if (!isRealCalendarDate(year, month, day)) return null;
+  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+}
+
 /** Parse "12 de julio de 2026 20:30", "12/07/2026 20:30", ISO, etc. */
 export function parseSpanishDateToMadrid(input: string | Date | null | undefined): Date | null {
   if (!input) return null;
@@ -28,10 +46,26 @@ export function parseSpanishDateToMadrid(input: string | Date | null | undefined
   const raw = String(input).trim();
   if (!raw) return null;
 
-  // 1. Try native (ISO 8601 etc.)
-  const native = new Date(raw);
-  if (!isNaN(native.getTime()) && /\d{4}-\d{2}-\d{2}/.test(raw)) {
-    return native;
+  // 1. ISO 8601 forms, handled explicitly so the runtime timezone never leaks in.
+  const isoDateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoDateOnly) {
+    return dateOnlyToUnknownHour(+isoDateOnly[1], +isoDateOnly[2], +isoDateOnly[3]);
+  }
+
+  const isoNaive = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (isoNaive) {
+    // No offset written: the publisher means local Málaga wall time, not UTC.
+    const [, y, mo, d, h, mi] = isoNaive;
+    if (!isRealCalendarDate(+y, +mo, +d) || +h > 23 || +mi > 59) return null;
+    return madridWallTimeToDate(+y, +mo, +d, +h, +mi);
+  }
+
+  const isoZoned = raw.match(/^(\d{4})-(\d{2})-(\d{2})[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(Z|[+-]\d{2}:?\d{2})$/i);
+  if (isoZoned) {
+    // Explicit offset or Z: preserve exactly what the source declared.
+    if (!isRealCalendarDate(+isoZoned[1], +isoZoned[2], +isoZoned[3])) return null;
+    const zoned = new Date(raw.replace(' ', 'T'));
+    return isNaN(zoned.getTime()) ? null : zoned;
   }
 
   // 2. Spanish long form: "12 de julio de 2026 20:30" or "12 julio 2026"
@@ -45,9 +79,12 @@ export function parseSpanishDateToMadrid(input: string | Date | null | undefined
     const day = parseInt(longMatch[1], 10);
     const month = MONTHS_ES[longMatch[2]];
     const year = parseInt(longMatch[3], 10);
-    const hour = longMatch[4] ? parseInt(longMatch[4], 10) : 20;
-    const minute = longMatch[5] ? parseInt(longMatch[5], 10) : 0;
-    if (month) return madridWallTimeToDate(year, month, day, hour, minute);
+    if (!month || !isRealCalendarDate(year, month, day)) return null;
+    if (!longMatch[4]) return dateOnlyToUnknownHour(year, month, day);
+    const hour = parseInt(longMatch[4], 10);
+    const minute = parseInt(longMatch[5], 10);
+    if (hour > 23 || minute > 59) return null;
+    return madridWallTimeToDate(year, month, day, hour, minute);
   }
 
   // 3. dd/mm/yyyy [hh:mm]
@@ -58,13 +95,17 @@ export function parseSpanishDateToMadrid(input: string | Date | null | undefined
     const month = parseInt(slashMatch[2], 10);
     let year = parseInt(slashMatch[3], 10);
     if (year < 100) year += 2000;
-    const hour = slashMatch[4] ? parseInt(slashMatch[4], 10) : 20;
-    const minute = slashMatch[5] ? parseInt(slashMatch[5], 10) : 0;
+    if (!isRealCalendarDate(year, month, day)) return null;
+    if (!slashMatch[4]) return dateOnlyToUnknownHour(year, month, day);
+    const hour = parseInt(slashMatch[4], 10);
+    const minute = parseInt(slashMatch[5], 10);
+    if (hour > 23 || minute > 59) return null;
     return madridWallTimeToDate(year, month, day, hour, minute);
   }
 
   return null;
 }
+
 
 /** Convert wall-clock time in Europe/Madrid to a UTC Date. */
 export function madridWallTimeToDate(

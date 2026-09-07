@@ -1,0 +1,24 @@
+adapter_key,entrypoint_principal,disponibilidad_http_2026_09_07,estado_extractor,evidencia
+ayto-malaga,https://www.malaga.eu/agenda/,pendiente de recomprobación en este pase,sin prueba de parser en este pase,"sin fixture ejecutado hoy; disponibilidad HTTP no acredita extracción"
+ayto-malaga-csv,https://datosabiertos.malaga.eu/,HTTP 200,probado con fixture (src/test/ayto-malaga-csv-adapter.test.ts),7 pruebas en verde
+malaga-open-data-csv,https://datosabiertos.malaga.eu/,HTTP 200,probado con fixture (malaga-open-data-csv.test.ts),pruebas Deno en verde
+teatro-cervantes,https://www.teatrocervantes.es/programacion,HTTP 403 en este entorno,probado con fixture (teatro-cervantes.test.ts),"403 observado sólo por HTTP directo; NO se ha acreditado que se requiera acuerdo con el teatro"
+teatro-soho,https://teatrodelsoho.com/programacion/?temporada=temporada-2026-2027,HTTP 200,probado con fixture (teatro-soho.test.ts),"la ruta /evento/ que devolvía 404 es un enlace de archivo, no una caída del teatro"
+teatro-canovas,https://www.juntadeandalucia.es/cultura/teatros/,pendiente,probado con fixture (teatro-canovas.test.ts),
+la-termica,https://www.latermicamalaga.com/,pendiente,probado con fixture (la-termica.test.ts),
+mva,https://www.museovirtualmalaga.es/,pendiente,probado con fixture (mva.test.ts),
+museo-picasso,https://www.museopicassomalaga.org/,pendiente,probado con fixture (museo-picasso.test.ts),
+museo-thyssen,https://www.carmenthyssenmalaga.org/,pendiente,probado con fixture (museo-thyssen.test.ts),
+sala-trinchera,https://salatrinchera.com/,pendiente,probado con fixture (sala-trinchera.test.ts),
+sala-paris-15,https://www.paris15.es/,pendiente,probado con fixture (sala-paris-15.test.ts),
+la-cochera-cabaret,https://lacocheracabaret.com/,pendiente,probado con fixture (la-cochera-cabaret.test.ts),
+contenedor-cultural-uma,https://www.uma.es/contenedorcultural/,HTTP 200 (verificado 2026-09-07),"URL corregida; ensayo real devuelve 0 eventos (no_current_events)","el antiguo /servicio-cultura/info/111568/ devuelve HTTP 404; la página nueva carga pero el extractor no reconoce su estructura: NO implica que la UMA no publique programación (archivo 2025/26 visible, último observado mayo 2026)"
+cine-albeniz,https://cinealbeniz.com/,pendiente,probado con fixture (cine-albeniz.test.ts),
+diputacion-malaga,https://www.malaga.es/,pendiente,sin prueba de parser en este pase,
+culturama,https://www.culturama.es/,pendiente,sin prueba de parser en este pase,
+junta-andalucia-cultura,https://www.juntadeandalucia.es/cultura/,pendiente,probado con fixture (src/test/junta-visit-adapters.test.ts),
+visit-costa-del-sol,https://www.visitacostadelsol.com/,pendiente,probado con fixture (junta-visit-adapters.test.ts),
+axarquia-costa-del-sol,https://www.axarquiacostadelsol.es/,pendiente,probado con fixture (comarcas-adapters.test.ts),
+serrania-de-ronda,https://www.serraniaderonda.com/,pendiente,probado con fixture (comarcas-adapters.test.ts),
+fycma,https://www.fycma.com/,pendiente,sin prueba de parser en este pase,
+unicaja-baloncesto (deportes),https://www.unicajabaloncesto.com/calendario,HTTP 200 + ICS text/calendar en /calendario/ics,"ensayo real con runSourceAdapter: 28 eventos leídos, sin escrituras","el ICS no trae LOCATION: 14 partidos se descartan por ser fuera de casa y 14 quedan sin recinto acreditado (locality_unverified). No se inventa recinto ni hora"
