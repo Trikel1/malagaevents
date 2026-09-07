@@ -118,7 +118,11 @@ Consulta directa a la base de datos:
   Flautas de Málaga", "Manipulación de Alimentos"), lo que apunta a que inicio y fin del rango diario se
   están insertando como dos eventos distintos, además del desfase horario.
 
-No se ha modificado ningún dato ni ningún extractor (ámbito de solo lectura sobre backend/scrapers).
+En esta sección concreta no se ha modificado ningún dato ni ningún extractor (ámbito de solo lectura sobre
+backend/scrapers). **Esta afirmación es local a la sección 9.1 y no vale para toda la auditoría**: en el
+cierre de seguridad (sección 11) sí hubo cambios en la base de datos —las cabeceras de tres trabajos de
+`pg_cron`— realizados por el propietario del proyecto.
+
 Corrección pendiente en el importador de `malaga.eu`: interpretar las horas publicadas como `Europe/Madrid`
 y no duplicar filas por rango.
 
