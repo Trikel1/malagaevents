@@ -496,8 +496,9 @@ const SportsContent = () => {
                   active ? 'bg-primary text-primary-foreground' : 'bg-sportsx-surface',
                 )}>
                   <tile.icon className="h-[18px] w-[18px] shrink-0" />
-                <span className="text-[13px] font-semibold leading-tight">
-                  {t(tile.labelKey, tile.fallback)}
+                  <span className="text-[13px] font-semibold leading-tight">
+                    {t(tile.labelKey, tile.fallback)}
+                  </span>
                 </span>
               </button>
             );
