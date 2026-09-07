@@ -214,21 +214,32 @@ Deno.serve(async (req) => {
     if (req.method === 'POST') {
       try { body = await req.json(); } catch { body = {}; }
     }
-    const rawDate = (params.get('date') || (body.date as string) || todayInMadrid()).slice(0, 10);
-    // Reject malformed or impossible dates instead of querying the portal with
-    // a garbage value and writing the result under a bogus key.
-    const dateISO = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && !Number.isNaN(Date.parse(rawDate))
-      ? rawDate
-      : null;
+    const rawDate = params.get('date') ?? body.date ?? todayInMadrid();
+    // Reject malformed, non-string or impossible dates (e.g. 2026-02-30)
+    // instead of querying the portal with a garbage value.
+    const dateISO = parseStrictDateISO(rawDate);
     if (!dateISO) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid date, expected YYYY-MM-DD' }),
+        JSON.stringify({ success: false, error: 'Invalid date, expected an exact YYYY-MM-DD calendar date' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
-    const zonesLimit = Number(params.get('zonesLimit') || body.zonesLimit || 0) || undefined;
-    const onlyZoneId = params.get('zone') || (body.zone as string) || undefined;
+    const rawZonesLimit = params.get('zonesLimit') ?? body.zonesLimit;
+    const zonesLimit = rawZonesLimit === undefined || rawZonesLimit === null || rawZonesLimit === ''
+      ? undefined
+      : Number(rawZonesLimit);
+    const onlyZoneId = params.get('zone') || (typeof body.zone === 'string' ? body.zone : undefined) || undefined;
     const dryRun = params.get('dryRun') === '1' || body.dryRun === true;
+
+    // Fail closed before any outbound fetch: a partial sweep may never write.
+    const requestCheck = validateSweepRequest({ dryRun, onlyZoneId, zonesLimit });
+    if (requestCheck.ok === false) {
+      return new Response(
+        JSON.stringify({ success: false, error: requestCheck.error }),
+        { status: requestCheck.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
