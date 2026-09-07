@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest';
+import { sanitizeEventImageUrl } from './eventImageSource';
 
 describe('generic venue stand-ins', () => {
   it('rejects the FYCMA "event without photo" filler', () => {
