@@ -115,6 +115,32 @@ const ProfilePage = () => {
           </CardContent>
         </Card>
 
+        {/* My interests — same picker as the Home "Para ti" block */}
+        <Card className="rounded-2xl shadow-soft">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              {t('interests.title')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">{t('interests.description')}</p>
+            <p className="text-xs text-muted-foreground">
+              {isAuthenticated ? t('interests.syncedWithAccount') : t('interests.savedOnDevice')}
+            </p>
+            <Button
+              variant="outline"
+              className="w-full min-h-11"
+              onClick={() => setInterestsOpen(true)}
+            >
+              {interests.length > 0 ? t('home.forYou.editInterests') : t('home.forYou.chooseInterests')}
+            </Button>
+          </CardContent>
+        </Card>
+        <InterestPicker open={interestsOpen} onOpenChange={setInterestsOpen} />
+
+
+
         {/* Menu Items */}
         <Card className="rounded-2xl shadow-soft">
           <CardContent className="p-0">
