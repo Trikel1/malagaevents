@@ -22,6 +22,8 @@ import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { usePharmaciesOnDuty, usePharmacyDirectory, usePharmacyGuardSyncStatus } from '@/hooks/usePharmacies';
 import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib/localitiesCatalog';
 import { haversineKm, formatDistance } from '@/lib/distance';
+import { findDirectoryMatch, parseAddress } from '@/lib/pharmacyAddressMatch';
+import { normalizeMunicipalityKey } from '@/lib/pharmacyMunicipality';
 import { cn } from '@/lib/utils';
 
 
@@ -81,14 +83,33 @@ interface PharmacyCardProps {
   };
   onDuty?: boolean;
   distanceKm?: number | null;
+  /**
+   * 'verified'    — the source published this rota for the selected date.
+   * 'unconfirmed' — rota published for the previous day, shown during the
+   *                 early-morning gap before the source publishes today.
+   */
+  dutyState?: 'verified' | 'unconfirmed';
+  /** Human date the rota was published for, e.g. "domingo, 7 de septiembre". */
+  dutyDateLabel?: string;
+  /** Official page the row was read from. */
+  sourceRef?: string | null;
+  /** True when phone/coordinates were taken from the official directory. */
+  contactFromDirectory?: boolean;
 }
 
-const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProps) => {
+const PharmacyCard = ({
+  pharmacy, onDuty = false, distanceKm,
+  dutyState = 'verified', dutyDateLabel, sourceRef, contactFromDirectory,
+}: PharmacyCardProps) => {
   const { t } = useTranslation();
+  const unconfirmed = onDuty && dutyState === 'unconfirmed';
+  const hasCoords = pharmacy.lat != null && pharmacy.lng != null;
+
   return (
     <Card className={cn(
       'overflow-hidden rounded-2xl border-border/60 transition',
-      onDuty && 'border-emerald-500/50 ring-1 ring-emerald-500/15'
+      onDuty && !unconfirmed && 'border-emerald-500/50 ring-1 ring-emerald-500/15',
+      unconfirmed && 'border-amber-500/60 ring-1 ring-amber-500/15'
     )}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
@@ -97,58 +118,107 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
               <Pill className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-semibold text-base leading-tight truncate">{pharmacy.name}</h3>
+              <h3 className="font-semibold text-base leading-tight">{pharmacy.name}</h3>
               {pharmacy.municipality && (
                 <p className="text-[11px] text-muted-foreground mt-0.5">{pharmacy.municipality}</p>
               )}
             </div>
           </div>
           {onDuty && (
-            <Badge className="shrink-0 text-white bg-emerald-600 hover:bg-emerald-600 gap-1">
-              <ShieldCheck className="h-3 w-3" />
-              {t('pharmacies.verifiedGuard', 'Guardia verificada')}
-            </Badge>
+            unconfirmed ? (
+              <Badge className="shrink-0 text-white bg-amber-600 hover:bg-amber-600 gap-1">
+                <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+                {t('pharmacies.guardUnconfirmed', 'Guardia sin confirmar')}
+              </Badge>
+            ) : (
+              <Badge className="shrink-0 text-white bg-emerald-600 hover:bg-emerald-600 gap-1">
+                <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                {t('pharmacies.verifiedGuard', 'Guardia verificada')}
+              </Badge>
+            )
           )}
         </div>
 
+        {onDuty && dutyDateLabel && (
+          <p className={cn('text-[12px] mt-1', unconfirmed ? 'text-amber-700 dark:text-amber-400' : 'text-muted-foreground')}>
+            {unconfirmed
+              ? t('pharmacies.guardPublishedForPrev', {
+                  defaultValue: 'Turno publicado para {{date}}. Puede seguir vigente de madrugada: confirma por teléfono antes de ir.',
+                  date: dutyDateLabel,
+                })
+              : t('pharmacies.guardPublishedFor', {
+                  defaultValue: 'Guardia publicada para {{date}}',
+                  date: dutyDateLabel,
+                })}
+          </p>
+        )}
+
         {typeof distanceKm === 'number' && (
           <div className="text-[11px] text-primary font-medium mt-1 flex items-center gap-1">
-            <Navigation className="h-3 w-3" />
+            <Navigation className="h-3 w-3" aria-hidden="true" />
             {formatDistance(distanceKm)} {t('pharmacies.distanceAway', 'de distancia')}
           </div>
         )}
 
         <div className="text-sm text-foreground/85 mt-2 flex items-start gap-2">
-          <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+          <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" aria-hidden="true" />
           <span>{pharmacy.address}</span>
         </div>
 
         {pharmacy.phone && (
           <div className="text-sm text-foreground/85 mt-1.5 flex items-center gap-2">
-            <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+            <Phone className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
             <span>{pharmacy.phone}</span>
           </div>
         )}
 
+        {onDuty && contactFromDirectory && (
+          <p className="text-[11px] text-muted-foreground mt-1.5">
+            {pharmacy.phone
+              ? t('pharmacies.contactFromDirectory', 'Nombre, teléfono y ubicación tomados del directorio oficial (coincidencia por dirección).')
+              : t('pharmacies.dataFromDirectory', 'Nombre y ubicación tomados del directorio oficial (coincidencia por dirección).')}
+          </p>
+        )}
+
         <div className="mt-3 flex flex-col min-[360px]:flex-row gap-2">
-          {pharmacy.phone && (
-            <Button asChild size="sm" className="flex-1 min-w-0">
+          {pharmacy.phone ? (
+            <Button asChild size="sm" className="flex-1 min-w-0 h-11">
               <a href={`tel:${formatPhoneForLink(pharmacy.phone)}`}>
-                <Phone className="h-4 w-4 mr-1.5 shrink-0" />
+                <Phone className="h-4 w-4 mr-1.5 shrink-0" aria-hidden="true" />
                 <span className="truncate">{t('pharmacies.call', 'Llamar')}</span>
               </a>
             </Button>
+          ) : (
+            <p className="flex-1 text-[11px] text-muted-foreground self-center">
+              {t('pharmacies.noPhoneKnown', 'No tenemos teléfono verificado de esta farmacia.')}
+            </p>
           )}
           {pharmacy.address && (
-            <Button asChild size="sm" variant="outline" className="flex-1 min-w-0">
+            <Button asChild size="sm" variant="outline" className="flex-1 min-w-0 h-11">
               <Link to={getMapsUrl(pharmacy)}>
-                <Navigation className="h-4 w-4 mr-1.5 shrink-0" />
-                <span className="truncate">{t('pharmacies.directions', 'Ver en el mapa')}</span>
+                <Navigation className="h-4 w-4 mr-1.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{t('pharmacies.directions', 'Cómo llegar')}</span>
               </Link>
             </Button>
           )}
         </div>
 
+        {pharmacy.address && !hasCoords && (
+          <p className="text-[11px] text-muted-foreground mt-1.5">
+            {t('pharmacies.approxLocation', 'Ubicación aproximada: solo conocemos la dirección publicada, no sus coordenadas exactas.')}
+          </p>
+        )}
+
+        {sourceRef && (
+          <a
+            href={sourceRef}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-primary underline underline-offset-2 mt-2 inline-block"
+          >
+            {t('pharmacies.viewSource', 'Ver la fuente oficial')}
+          </a>
+        )}
       </CardContent>
     </Card>
   );
@@ -284,10 +354,20 @@ const PharmaciesPage = () => {
   const isAllProvince = municipality === ALL_PROVINCE_LABEL;
   const municipalityFilter = isAllProvince ? undefined : municipality;
 
-  const { data: dutyAll, isLoading: isLoadingDuty } =
+  const { data: duty, isLoading: isLoadingDuty, isError: dutyError } =
     usePharmaciesOnDuty(selectedDate, municipalityFilter);
   const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipalityFilter);
+  // Province-wide directory used only to enrich duty rows (the duty portal
+  // publishes an address and nothing else). Same request, cached separately.
+  const { data: directoryForMatching } = usePharmacyDirectory(undefined);
   const { data: syncStatus } = usePharmacyGuardSyncStatus();
+
+  const dutyAll = duty?.rows ?? [];
+  /** Rows published for the previous day: the source has not published today yet. */
+  const dutyIsPreviousDay = !!duty?.isPreviousDay;
+  const dutySourceDate = duty?.sourceDate ?? null;
+  /** Official rows exist for this date elsewhere in the province, just not here. */
+  const dutyHasProvinceData = !!duty?.hasProvinceDataForDate;
 
   const lastSyncLabel = useMemo(() => {
     if (!syncStatus?.updated_at) return null;
@@ -297,6 +377,17 @@ const PharmaciesPage = () => {
       return null;
     }
   }, [syncStatus?.updated_at, locale]);
+
+  /** Human label of the day the shown rota was published for. */
+  const dutySourceLabel = useMemo(() => {
+    if (!dutySourceDate) return null;
+    try {
+      return formatInTimeZone(new Date(`${dutySourceDate}T12:00:00Z`), TIMEZONE, 'PPP', { locale });
+    } catch {
+      return dutySourceDate;
+    }
+  }, [dutySourceDate, locale]);
+  const prevDayLabel = dutyIsPreviousDay ? dutySourceLabel : null;
 
   const matchesSearch = (p: any) => {
     const q = stripDiacritics(search.trim());
@@ -323,9 +414,41 @@ const PharmaciesPage = () => {
     return enriched;
   };
 
+  /**
+   * Duty rows carry only an address. When the official directory holds the
+   * very same address in the same town, we borrow its name, phone and
+   * coordinates so the card can offer "Llamar" and a precise "Cómo llegar".
+   * Nothing is invented: unmatched rows keep the portal's own wording.
+   */
+  const dutyEnriched = useMemo(() => {
+    const dir = directoryForMatching ?? [];
+    // The portal returns the same pharmacy twice when it belongs to two zones.
+    const seen = new Set<string>();
+    const unique = (dutyAll ?? []).filter((p: any) => {
+      const parsed = parseAddress(p.address);
+      const key = `${normalizeMunicipalityKey(p.municipality)}|${parsed.words.join(' ')}|${parsed.number ?? ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return unique.map((p: any) => {
+      if (dir.length === 0) return p;
+      const match = findDirectoryMatch({ address: p.address, municipality: p.municipality }, dir as any);
+      if (!match) return p;
+      return {
+        ...p,
+        name: match.name || p.name,
+        phone: p.phone ?? match.phone ?? null,
+        lat: p.lat ?? match.lat ?? null,
+        lng: p.lng ?? match.lng ?? null,
+        _fromDirectory: true,
+      };
+    });
+  }, [dutyAll, directoryForMatching]);
+
   const dutyPharmacies = useMemo(
-    () => withDistanceAndSort((dutyAll ?? []).filter(matchesSearch)),
-    [dutyAll, search, userLoc]
+    () => withDistanceAndSort(dutyEnriched.filter(matchesSearch)),
+    [dutyEnriched, search, userLoc]
   );
   const dirPharmacies = useMemo(
     () => withDistanceAndSort((dirAll ?? []).filter(matchesSearch)),
@@ -390,7 +513,7 @@ const PharmaciesPage = () => {
             "@context": "https://schema.org",
             "@type": "ItemList",
             name: "Farmacias de guardia en Málaga",
-            itemListElement: (dutyAll ?? []).slice(0, 20).map((p: any, idx: number) => ({
+            itemListElement: dutyEnriched.slice(0, 20).map((p: any, idx: number) => ({
               "@type": "ListItem",
               position: idx + 1,
               item: {
@@ -530,7 +653,7 @@ const PharmaciesPage = () => {
             </div>
           )}
 
-          {mode === 'directory' && (
+          {(
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <label htmlFor="pharmacy-search" className="sr-only">
@@ -608,10 +731,49 @@ const PharmaciesPage = () => {
                 <span className="text-xs text-muted-foreground">
                   {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
                   {!isLoadingDuty && dutyPharmacies.length > 0 && (
-                    <> · {t('pharmacies.dutyCount', { defaultValue: '{{count}} guardias', count: dutyPharmacies.length })}</>
+                    <> · {dutyPharmacies.length === 1
+                        ? t('pharmacies.dutyCountOne', '1 farmacia de guardia')
+                        : t('pharmacies.dutyCount', { defaultValue: '{{count}} farmacias de guardia', count: dutyPharmacies.length })}</>
                   )}
                 </span>
               </div>
+
+              {/* Always-visible context: which town, which date, which source day. */}
+              <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                <Badge variant="secondary" className="rounded-full font-normal">
+                  <MapPin className="h-3 w-3 mr-1" aria-hidden="true" />
+                  {municipality}
+                </Badge>
+                <Badge variant="secondary" className="rounded-full font-normal">
+                  <CalendarIcon className="h-3 w-3 mr-1" aria-hidden="true" />
+                  {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
+                </Badge>
+                {search.trim() && (
+                  <Badge variant="secondary" className="rounded-full font-normal">
+                    <Search className="h-3 w-3 mr-1" aria-hidden="true" />
+                    {search.trim()}
+                  </Badge>
+                )}
+              </div>
+
+              {dutyIsPreviousDay && dutyPharmacies.length > 0 && (
+                <div
+                  role="status"
+                  className="mb-3 rounded-2xl border border-amber-500/50 bg-amber-500/10 p-3 text-[12.5px] leading-snug text-amber-900 dark:text-amber-200"
+                >
+                  <span className="font-semibold flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                    {t('pharmacies.prevDayTitle', 'Guardia sin confirmar para hoy')}
+                  </span>
+                  <p className="mt-1">
+                    {t('pharmacies.prevDayBody', {
+                      defaultValue:
+                        'La fuente oficial aún no ha publicado el turno de hoy. Mostramos el turno publicado para {{date}}, que suele seguir vigente de madrugada. No es una guardia confirmada para hoy: llama antes de desplazarte.',
+                      date: prevDayLabel ?? '',
+                    })}
+                  </p>
+                </div>
+              )}
 
               {isLoadingDuty ? (
                 <div className="space-y-2">
@@ -626,6 +788,10 @@ const PharmaciesPage = () => {
                       pharmacy={{ ...p, municipality: p.municipality }}
                       onDuty
                       distanceKm={p._distance}
+                      dutyState={dutyIsPreviousDay ? 'unconfirmed' : 'verified'}
+                      dutyDateLabel={dutySourceLabel ?? undefined}
+                      sourceRef={p.source_ref}
+                      contactFromDirectory={p._fromDirectory}
                     />
                   ))}
                 </div>
@@ -641,9 +807,15 @@ const PharmaciesPage = () => {
                             'pharmacies.syncErrorMessage',
                             'No hemos podido actualizar los datos oficiales. Consulta directamente el portal del Consejo General de Farmacéuticos para esta fecha y localidad.'
                           )
+                        : dutyHasProvinceData
+                        ? t('pharmacies.noDataForTown', {
+                            defaultValue:
+                              'La fuente oficial ha publicado guardias de esta fecha para otras zonas de la provincia, pero no para {{place}}. No significa que no haya farmacia de guardia: consulta el portal oficial o el directorio.',
+                            place: municipality,
+                          })
                         : t(
-                            'pharmacies.noOfficialData',
-                            'Sin resultados oficiales para esta localidad y fecha. Puede que la fuente no publique guardias aquí o que aún no estén disponibles. Consulta el portal oficial antes de desplazarte.'
+                            'pharmacies.noDataForDate',
+                            'Todavía no tenemos información actualizada de guardias para esta fecha. La fuente oficial publica el turno a primera hora de la mañana. No podemos afirmar que no haya farmacias de guardia.'
                           )}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
