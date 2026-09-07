@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 import { parseSpanishDateToMadrid, madridWallTimeToDate } from '../_shared/ingestion/dates.ts';
+import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
 
 // ============================================================================
 // SECURITY: Strict CORS + Security Headers
@@ -1708,7 +1709,25 @@ async function upsertEventWithOccurrences(
   if (!title) {
     return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
   }
-  
+
+  // Resolve the published dates BEFORE touching the database: an event whose
+  // occurrences are all unusable must not create a venue, a location or a row
+  // with a fabricated start_at.
+  const resolution = resolveOccurrences(occurrences);
+  if (!resolution.earliest) {
+    logger.warn('persist', `Skipped (no usable date): ${title}`, {
+      skipped_occurrences: resolution.skipped,
+      reasons: resolution.reasons.slice(0, 3),
+    });
+    return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
+  }
+  if (resolution.skipped > 0) {
+    logger.warn('persist', `Partial dates for: ${title}`, {
+      skipped_occurrences: resolution.skipped,
+      reasons: resolution.reasons.slice(0, 3),
+    });
+  }
+
   const venueName = normalizeVenue(eventData.venue || '', source.default_venue);
   const locationName = eventData.city || source.default_location || 'Málaga';
   const eventType = determineEventType(title, eventData.description || '', source.event_type);
@@ -1774,14 +1793,14 @@ async function upsertEventWithOccurrences(
     isUpdated = true;
     logger.debug('persist', `Updated: ${title}`);
   } else {
-    const firstOccurrence = occurrences[0];
-    const startAt = parseSpanishDate(firstOccurrence?.date || '', firstOccurrence?.time);
-    
+    // Earliest occurrence the source actually published.
+    const startAt = resolution.earliest.start;
+
     const { data: newEvent, error } = await supabase
       .from('events')
       .insert({
         ...eventPayload,
-        start_at: startAt?.toISOString() || new Date().toISOString(),
+        start_at: startAt.toISOString(),
         address: `${venueName}, ${locationName}`,
       })
       .select('id')
@@ -1801,11 +1820,12 @@ async function upsertEventWithOccurrences(
   let occurrencesCreated = 0;
   const now = new Date();
   
-  for (const occ of occurrences) {
-    const startDatetime = parseSpanishDate(occ.date, occ.time);
-    if (!startDatetime || startDatetime < now) continue;
-    
-    const endDatetime = occ.end_time ? parseSpanishDate(occ.date, occ.end_time) : null;
+  for (const resolved of resolution.valid) {
+    const startDatetime = resolved.start;
+    if (startDatetime < now) continue;
+
+    // Already validated: an end before its start was discarded upstream.
+    const endDatetime = resolved.end;
     
     const { data: existingOcc } = await supabase
       .from('event_occurrences')
