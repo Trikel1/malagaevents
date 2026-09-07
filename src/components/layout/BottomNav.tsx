@@ -130,6 +130,22 @@ const BottomNav = () => {
     }
   };
 
+  /**
+   * A cancelled pointer (scroll takeover, system gesture, dragged off) must
+   * never navigate, and must not swallow a later keyboard activation.
+   */
+  const cancelPointer = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (pointerIdRef.current !== e.pointerId) return;
+    pointerIdRef.current = null;
+    handledByPointerRef.current = false;
+    dragStartedRef.current = false;
+    startPointRef.current = null;
+    setDragging(false);
+    setDragX(null);
+    setHoverIndex(null);
+    measure();
+  };
+
   const displayIndex = dragging && hoverIndex != null ? hoverIndex : activeIndex;
 
   return (
@@ -170,7 +186,7 @@ const BottomNav = () => {
               onPointerDown={(e) => onPointerDown(e, i)}
               onPointerMove={onPointerMove}
               onPointerUp={(e) => endPointer(e, i)}
-              onPointerCancel={(e) => endPointer(e, i)}
+              onPointerCancel={cancelPointer}
               onClick={() => {
                 // Handles keyboard activation (Enter/Space) and clicks not
                 // preceded by a pointer sequence. Pointer taps already
@@ -188,7 +204,6 @@ const BottomNav = () => {
                 'bottom-nav-item',
                 isActive ? 'bottom-nav-item-active' : 'bottom-nav-item-idle'
               )}
-              aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
               title={item.label}
               style={{ touchAction: 'pan-y' }}
@@ -196,11 +211,12 @@ const BottomNav = () => {
               <span className="bottom-nav-icon-shell" aria-hidden>
                 <item.icon
                   className={cn(
-                    'h-[24px] w-[24px] shrink-0 transition-[transform,stroke-width] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]',
+                    'h-[21px] w-[21px] shrink-0 transition-[transform,stroke-width] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]',
                     isActive && 'stroke-[2.4px] scale-[1.12]'
                   )}
                 />
               </span>
+              <span className="bottom-nav-label">{item.label}</span>
             </button>
           );
         })}

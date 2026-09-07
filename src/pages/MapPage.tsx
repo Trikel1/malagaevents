@@ -440,7 +440,7 @@ const MapPage = () => {
   );
 
   return (
-    <div className="min-h-dvh bg-background">
+    <main className="min-h-dvh bg-background">
       <SEO
         title="Mapa de eventos y farmacias en Málaga"
         description="Mapa interactivo de Málaga con eventos culturales, deporte, recintos y farmacias de guardia. Encuentra qué ocurre cerca de ti."
@@ -612,7 +612,7 @@ const MapPage = () => {
       </div>
 
       {isMobile && <MarkerSheet marker={selected} onClose={() => setSelected(null)} />}
-    </div>
+    </main>
   );
 };
 

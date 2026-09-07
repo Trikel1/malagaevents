@@ -130,24 +130,25 @@ const PharmacyCard = ({ pharmacy, onDuty = false, distanceKm }: PharmacyCardProp
           </div>
         )}
 
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex flex-col min-[360px]:flex-row gap-2">
           {pharmacy.phone && (
-            <Button asChild size="sm" className="flex-1">
+            <Button asChild size="sm" className="flex-1 min-w-0">
               <a href={`tel:${formatPhoneForLink(pharmacy.phone)}`}>
-                <Phone className="h-4 w-4 mr-1.5" />
-                {t('pharmacies.call', 'Llamar')}
+                <Phone className="h-4 w-4 mr-1.5 shrink-0" />
+                <span className="truncate">{t('pharmacies.call', 'Llamar')}</span>
               </a>
             </Button>
           )}
           {pharmacy.address && (
-            <Button asChild size="sm" variant="outline" className="flex-1">
+            <Button asChild size="sm" variant="outline" className="flex-1 min-w-0">
               <Link to={getMapsUrl(pharmacy)}>
-                <Navigation className="h-4 w-4 mr-1.5" />
-                {t('pharmacies.directions', 'Ver en el mapa')}
+                <Navigation className="h-4 w-4 mr-1.5 shrink-0" />
+                <span className="truncate">{t('pharmacies.directions', 'Ver en el mapa')}</span>
               </Link>
             </Button>
           )}
         </div>
+
       </CardContent>
     </Card>
   );
@@ -477,7 +478,7 @@ const PharmaciesPage = () => {
           <LocalitySelector value={municipality} onChange={setMunicipality} />
 
           {mode === 'duty' && (
-            <div className="grid grid-cols-[auto_1fr] gap-2 sm:grid-cols-[auto_1fr_auto]">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto] [&>*]:min-w-0">
               <Button
                 variant={isToday ? 'default' : 'outline'}
                 className="rounded-xl h-11 px-4"
@@ -490,11 +491,11 @@ const PharmaciesPage = () => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="rounded-xl h-11 w-full justify-start bg-card"
+                    className="rounded-xl h-11 w-full min-w-0 justify-start bg-card"
                     aria-label={t('pharmacies.pickDateAria', 'Elegir fecha de guardia')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                    <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    <span className="block min-w-0 truncate text-left">
                       {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
                     </span>
                   </Button>
@@ -514,7 +515,7 @@ const PharmaciesPage = () => {
               <Button
                 type="button"
                 variant={userLoc ? 'default' : 'outline'}
-                className="rounded-xl h-11 px-4 col-span-2 sm:col-span-1"
+                className="rounded-xl h-11 px-3 min-w-0 col-span-2 sm:col-span-1"
                 onClick={handleLocate}
                 disabled={locating}
                 aria-pressed={!!userLoc}

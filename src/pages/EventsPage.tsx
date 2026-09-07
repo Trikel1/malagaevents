@@ -22,7 +22,7 @@ import { useLocations } from '@/hooks/useLocations';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useAppMode } from '@/contexts/AppModeContext';
 import SportsEventsPage from '@/components/sports/SportsEventsPage';
-import type { EventCategory } from '@/types';
+import { EVENT_CATEGORIES, type EventCategory } from '@/types';
 import SEO from '@/components/common/SEO';
 
 const EventsPage = () => {
@@ -42,6 +42,22 @@ const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: strin
   { key: 'next30', labelKey: 'events.next30Days', labelFallback: 'Próximos 30 días' },
 ];
 
+const VALID_CATEGORIES = EVENT_CATEGORIES;
+
+const VALID_PRESETS = ['today', 'tomorrow', 'thisWeek', 'weekend', 'next30'] as const;
+const isValidPreset = (v: string | null): v is DatePreset =>
+  !!v && (VALID_PRESETS as readonly string[]).includes(v);
+
+/** Update only the given params, preserving every unrelated one. */
+const patchParams = (sp: URLSearchParams, patch: Record<string, string | null>) => {
+  const next = new URLSearchParams(sp);
+  Object.entries(patch).forEach(([k, v]) => {
+    if (v === null || v === '') next.delete(k);
+    else next.set(k, v);
+  });
+  return next;
+};
+
 // ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
@@ -51,11 +67,16 @@ const CultureEventsPage = () => {
   const { isAuthenticated } = useAuthContext();
 
   const initialQuery = searchParams.get('q') || '';
-  const initialCategory = searchParams.get('category') as EventCategory | null;
+  const rawCategory = searchParams.get('category');
+  const initialCategory = (VALID_CATEGORIES as readonly string[]).includes(rawCategory ?? '')
+    ? (rawCategory as EventCategory)
+    : null;
   const initialFilter = searchParams.get('filter');
   const initialAge = searchParams.get('age') as AgeRange | null;
-  const initialPreset: DatePreset | undefined =
-    initialFilter === 'today'
+  const rawPreset = searchParams.get('preset');
+  const initialPreset: DatePreset | undefined = isValidPreset(rawPreset)
+    ? rawPreset
+    : initialFilter === 'today'
       ? 'today'
       : initialFilter === 'weekend'
         ? 'weekend'
@@ -72,6 +93,9 @@ const CultureEventsPage = () => {
     isOutdoor: initialFilter === 'outdoor' ? true : undefined,
     ageRange: initialAge && ['0-3', '4-8', '9-12'].includes(initialAge) ? initialAge : undefined,
   });
+
+  const filtersRef = useRef<EventFilters>(filters);
+  filtersRef.current = filters;
 
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
@@ -179,20 +203,32 @@ const CultureEventsPage = () => {
 
   const setPreset = useCallback(
     (preset: DatePreset) => {
+      const willClear = filtersRef.current.datePreset === preset;
       setFilters((prev) => ({
         ...prev,
-        datePreset: prev.datePreset === preset ? undefined : preset,
+        datePreset: willClear ? undefined : preset,
         dateFrom: undefined,
         dateTo: undefined,
       }));
-      setSearchParams((sp) => {
-        const next = new URLSearchParams(sp);
-        next.delete('filter');
-        return next;
-      });
+      setSearchParams(
+        (sp) =>
+          patchParams(sp, {
+            filter: null,
+            preset: willClear ? null : preset,
+          }),
+        { replace: false },
+      );
     },
     [setSearchParams],
   );
+
+  // Keep the preset in sync when the user navigates back/forward. The guard
+  // returns the same state object when nothing changed, so no update loop.
+  const urlPreset = searchParams.get('preset');
+  useEffect(() => {
+    const next = isValidPreset(urlPreset) ? urlPreset : undefined;
+    setFilters((f) => (f.datePreset === next ? f : { ...f, datePreset: next, dateFrom: undefined, dateTo: undefined }));
+  }, [urlPreset]);
 
   const handleNearMe = useCallback(() => {
     if (userCoords) {
@@ -247,7 +283,7 @@ const CultureEventsPage = () => {
         label: `“${debouncedSearch}”`,
         onRemove: () => {
           setSearchQuery('');
-          setSearchParams({});
+          setSearchParams((sp) => patchParams(sp, { q: null }));
         },
       });
     }
@@ -439,8 +475,7 @@ const CultureEventsPage = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (searchQuery.trim()) setSearchParams({ q: searchQuery });
-                else setSearchParams({});
+                setSearchParams((sp) => patchParams(sp, { q: searchQuery.trim() || null }));
               }}
               className="relative flex-1 min-w-0"
               role="search"
@@ -469,7 +504,7 @@ const CultureEventsPage = () => {
                   className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
                   onClick={() => {
                     setSearchQuery('');
-                    setSearchParams({});
+                    setSearchParams((sp) => patchParams(sp, { q: null }));
                   }}
                   aria-label={t('common.clearSearch', 'Limpiar búsqueda')}
                 >
@@ -518,7 +553,7 @@ const CultureEventsPage = () => {
 
           {/* Time presets — compact segmented row */}
           <div
-            role="tablist"
+            role="group"
             aria-label={t('events.timeRange', 'Franja temporal')}
             className="flex gap-1.5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
@@ -532,8 +567,7 @@ const CultureEventsPage = () => {
                 <button
                   key={p.key}
                   type="button"
-                  role="tab"
-                  aria-selected={active}
+                  aria-pressed={active}
                   onClick={() => setPreset(p.key)}
                   className="preset-chip shrink-0"
                 >
