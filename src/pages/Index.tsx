@@ -104,6 +104,11 @@ const Index = () => {
 
   const goLocality = (name: string) => navigate(`/events?q=${encodeURIComponent(name)}`);
 
+  // Capital vs. province: an explicit, keyboard-reachable choice that works
+  // without location permission.
+  const [areaScope, setAreaScope] = useState<'capital' | 'province'>('capital');
+  const [municipality, setMunicipality] = useState('');
+
   const QUICK_ACTIONS = [
     { k: 'today', icon: Sparkles, to: '/events?filter=today' },
     { k: 'weekend', icon: Calendar, to: '/events?filter=weekend' },
