@@ -50,8 +50,8 @@ Orden de preferencia, sin ninguna salida que acabe en el recuadro con «Evento»
 ## 5. Las dos tarjetas del curso 3D
 
 - No se borra ni se fusiona nada por compartir título.
-- Se documenta la causa concreta (clave anti-duplicados aleatoria en la Agenda Municipal + hora inventada de las 20:00 en una recogida antigua) y se propone una corrección acotada de esa fuente para futuras recogidas: clave estable a partir de título + fecha + lugar.
-- Como los dos registros son del mismo día y el mismo curso, se propone además una revisión manual acotada de ese par; no se tocan datos históricos de forma masiva sin tu visto bueno.
+- Se corrige la causa en el extractor: la identidad usa el identificador original o la URL específica del evento cuando existen; solo si faltan se deriva una clave que incluye la fuente y los campos normalizados, distinguiendo evento y sesión. Se comprueba con casos: reimportar no duplica, completar hora o dirección no duplica, dos sesiones legítimas se conservan y dos eventos distintos con el mismo título no se fusionan. Se confirma además que ese extractor ya no inventa horas ni usa claves aleatorias.
+- Corrección puntual autorizada del par del curso 3D: se reconfirma la identidad y la ausencia de hora en la fuente, se conserva un registro canónico con su información válida y sus referencias (favoritos, enlaces, ocurrencias), se retira la hora inventada y se documentan los identificadores y los valores anteriores. Sin limpieza masiva.
 
 ## 6. Comprobación visual
 
@@ -60,8 +60,9 @@ Capturas reales de la aplicación a 320, 390 y 430 píxeles y en escritorio, en 
 ## Detalle técnico
 
 - `src/lib/categoryImages.ts`: catálogo ampliado + imagen general por defecto; nueva resolución por título para categoría `other`.
-- `src/components/events/EventImage.tsx`: el placeholder geométrico deja de ser la salida habitual; queda solo como último recurso si faltara un recurso.
-- `src/pages/EventDetailPage.tsx`: bloque práctico compacto, iconos (`Clock` para la hora), formato de fecha, modo online, barra inferior con una acción y `min-w-0` + recorte controlado.
+- `src/components/events/EventImage.tsx`: se elimina el placeholder geométrico con la palabra «Evento». Toda salida acaba en una imagen editorial local del proyecto (temática o general), incluido el caso de fallo de carga del cartel principal.
+- `src/lib/categoryImages.ts`: la clasificación por título solo elige la ilustración; no altera la categoría del evento ni los filtros. Ante ambigüedad, imagen general.
+- `src/pages/EventDetailPage.tsx`: bloque práctico compacto, iconos (`Clock` para la hora), formato de fecha, modo online, y barra inferior con una sola acción cuyo texto se ve completo («Web oficial», «Ver entradas», «Inscribirme»), con ajuste de distribución o salto de línea en vez de puntos suspensivos, tamaño de letra legible con ampliación de texto y el dominio en línea secundaria.
 - Nuevo ayudante `src/lib/eventPlace.ts` con `isOnlineEvent` y sus pruebas.
 - Pruebas nuevas: resolución de imagen por categoría y título, detección online, formato de fecha en español.
 - No se publica nada; comprobación con tipos, pruebas y compilación además de las capturas.
