@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { categoryI18nKey } from '@/lib/categoryLabel';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MapPin, Heart, Calendar, Building2 } from 'lucide-react';
@@ -163,7 +164,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
         <CardContent className={cn('p-3', compact && 'flex-1 flex flex-col justify-center')}>
           {/* Category */}
           <Badge variant="secondary" className="mb-2 text-xs">
-            {t(`categories.${event.category}`)}
+            {t(`categories.${categoryI18nKey(event.category)}`)}
           </Badge>
 
           {/* Title */}

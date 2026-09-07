@@ -404,7 +404,16 @@ const EventImage = ({
               alt={alt}
               loading={priority ? 'eager' : 'lazy'}
               decoding="async"
+              /**
+               * Several official venues (teatroestepona.com among them) block
+               * hot-linked posters by Referer and answer 403. Sending no
+               * referrer makes the real poster load instead of falling back to
+               * the placeholder. It never weakens transport security: the URL
+               * is still https-only.
+               */
+              referrerPolicy="no-referrer"
               {...({ fetchpriority: priority ? 'high' : 'auto' } as any)}
+
               onLoad={handleLoad}
               onError={handleError}
               className={cn(
@@ -464,8 +473,10 @@ const EventImage = ({
               <img
                 src={lightboxSrc!}
                 alt={alt}
+                referrerPolicy="no-referrer"
                 className="max-w-full max-h-full object-contain"
               />
+
             </div>
           </DialogContent>
         </Dialog>

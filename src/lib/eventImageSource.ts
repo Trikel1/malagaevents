@@ -20,7 +20,12 @@ const GENERIC_FRAGMENTS = [
   'imagen-por-defecto',
   'blank.',
   'spacer.',
+  // Venue-specific "this event has no photo" stand-ins seen in the feeds.
+  'eventos-sin-foto',
+  'sin-foto',
+  'sinfoto',
 ];
+
 
 export function sanitizeEventImageUrl(raw: unknown): string | null {
   if (typeof raw !== 'string') return null;
