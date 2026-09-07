@@ -374,7 +374,7 @@ const CultureEventsPage = () => {
     userCoords,
     allLocations,
     t,
-    setSearchParams,
+    commit,
   ]);
 
   const totalCount = displayedEvents?.length ?? 0;
