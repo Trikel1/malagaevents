@@ -1,6 +1,8 @@
 // scrape-pharmacies v2026-07-15b — province-wide ASP zones ingestion
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
+import { authorizeAdminRequest, unauthorizedResponse, parseStrictDateISO } from '../_shared/security.ts';
+import { validateSweepRequest, planSweepWrite } from '../_shared/pharmacySweep.ts';
+
 import {
   parseOfficialGuardHtml,
   dedupeGuardRows,
