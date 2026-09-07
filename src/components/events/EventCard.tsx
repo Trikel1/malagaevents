@@ -90,7 +90,6 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
             <EventImage
               src={event.image_url}
               alt={imageAlt}
-            title={event.title}
               title={event.title}
               variant="card"
               category={event.category}
