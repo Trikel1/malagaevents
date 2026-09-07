@@ -76,7 +76,7 @@ i18n
 // Sync <html lang> and <html dir> with the active language for proper RTL support.
 const applyHtmlLangDir = (lng: string) => {
   if (typeof document === 'undefined') return;
-  const base = (lng || 'es').split('-')[0];
+  const base = normalizeLanguage(lng);
   const meta = languages.find((l) => l.code === base);
   document.documentElement.lang = base;
   document.documentElement.dir = meta?.dir === 'rtl' ? 'rtl' : 'ltr';
