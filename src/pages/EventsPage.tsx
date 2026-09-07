@@ -42,22 +42,6 @@ const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: strin
   { key: 'next30', labelKey: 'events.next30Days', labelFallback: 'Próximos 30 días' },
 ];
 
-const VALID_CATEGORIES = EVENT_CATEGORIES;
-
-const VALID_PRESETS = ['today', 'tomorrow', 'thisWeek', 'weekend', 'next30'] as const;
-const isValidPreset = (v: string | null): v is DatePreset =>
-  !!v && (VALID_PRESETS as readonly string[]).includes(v);
-
-/** Update only the given params, preserving every unrelated one. */
-const patchParams = (sp: URLSearchParams, patch: Record<string, string | null>) => {
-  const next = new URLSearchParams(sp);
-  Object.entries(patch).forEach(([k, v]) => {
-    if (v === null || v === '') next.delete(k);
-    else next.set(k, v);
-  });
-  return next;
-};
-
 // ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
@@ -66,39 +50,41 @@ const CultureEventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthContext();
 
-  const initialQuery = searchParams.get('q') || '';
-  const rawCategory = searchParams.get('category');
-  const initialCategory = (VALID_CATEGORIES as readonly string[]).includes(rawCategory ?? '')
-    ? (rawCategory as EventCategory)
-    : null;
-  const initialFilter = searchParams.get('filter');
-  const initialAge = searchParams.get('age') as AgeRange | null;
-  const rawPreset = searchParams.get('preset');
-  const initialPreset: DatePreset | undefined = isValidPreset(rawPreset)
-    ? rawPreset
-    : initialFilter === 'today'
-      ? 'today'
-      : initialFilter === 'weekend'
-        ? 'weekend'
-        : undefined;
+  // ── URL is the single source of truth for committed filters ───────────────
+  const search = searchParams.toString();
+  const urlState = useMemo(() => parseEventsUrl(new URLSearchParams(search)), [search]);
+  const { filters, venueIds: selectedVenueIds, locationIds: selectedLocationIds } = urlState;
+  const committedSearch = urlState.q;
 
-  const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [debouncedSearch, setDebouncedSearch] = useState(initialQuery);
+  const commit = useCallback(
+    (patch: Partial<EventsUrlState>, options?: { replace?: boolean }) => {
+      const current = new URLSearchParams(search);
+      const next = serializeEventsUrl(current, { ...parseEventsUrl(current), ...patch });
+      if (isSameSearch(current, next)) return; // no loops, no history spam
+      setSearchParams(next, { replace: options?.replace ?? false });
+    },
+    [search, setSearchParams],
+  );
+
+  const updateFilters = useCallback(
+    (updater: EventFilters | ((prev: EventFilters) => EventFilters)) => {
+      const current = parseEventsUrl(new URLSearchParams(search)).filters;
+      const nextFilters = typeof updater === 'function' ? updater(current) : updater;
+      commit({ filters: nextFilters });
+    },
+    [commit, search],
+  );
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<EventFilters>({
-    categories: initialCategory ? [initialCategory] : [],
-    datePreset: initialPreset,
-    familyKids: initialFilter === 'family' ? true : undefined,
-    isFree: initialFilter === 'free' ? true : undefined,
-    isOutdoor: initialFilter === 'outdoor' ? true : undefined,
-    ageRange: initialAge && ['0-3', '4-8', '9-12'].includes(initialAge) ? initialAge : undefined,
-  });
 
-  const filtersRef = useRef<EventFilters>(filters);
-  filtersRef.current = filters;
-
-  const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
-  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>([]);
+  const setSelectedVenueIds = useCallback(
+    (ids: string[]) => commit({ venueIds: ids }),
+    [commit],
+  );
+  const setSelectedLocationIds = useCallback(
+    (ids: string[]) => commit({ locationIds: ids }),
+    [commit],
+  );
 
   const { data: allLocations = [] } = useLocations();
   const priorityCities = useMemo(
@@ -113,16 +99,24 @@ const CultureEventsPage = () => {
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
 
-  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Search box: local text, committed to the URL after a debounce or on Enter.
+  const [searchQuery, setSearchQuery] = useState(committedSearch);
+
+  // Back/forward (or any external URL change) re-hydrates the input.
   useEffect(() => {
-    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    debounceTimeout.current = setTimeout(() => setDebouncedSearch(searchQuery), 300);
-    return () => {
-      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-    };
-  }, [searchQuery]);
+    setSearchQuery(committedSearch);
+  }, [committedSearch]);
+
+  // Debounced commit. `replace` keeps typing out of the history stack.
+  useEffect(() => {
+    if (searchQuery.trim() === committedSearch) return;
+    const id = setTimeout(() => commit({ q: searchQuery.trim() }, { replace: true }), 300);
+    return () => clearTimeout(id);
+  }, [searchQuery, committedSearch, commit]);
+
+  const debouncedSearch = committedSearch;
 
   const onlyFavorites = !!filters.onlyFavorites;
 
