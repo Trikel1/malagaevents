@@ -123,7 +123,43 @@ export const freshnessBonus = (startAt: string, now: Date): number => {
 export interface RankOptions {
   now?: Date;
   limit?: number;
+  /**
+   * Round-robin the shortlist across the interests that explain each item, so a
+   * single taste (or a single category) cannot monopolize the home screen when
+   * the user combined several. Pure re-ordering: nothing is added or dropped.
+   */
+  diversify?: boolean;
 }
+
+/** Interleaves the ranked list by `reasonInterestId`, best group first. */
+export const diversifyByReason = <T extends RankableItem>(
+  ranked: RankedItem<T>[],
+): RankedItem<T>[] => {
+  const groups = new Map<string, RankedItem<T>[]>();
+  for (const r of ranked) {
+    const key = r.reasonInterestId ?? '_';
+    const list = groups.get(key);
+    if (list) list.push(r);
+    else groups.set(key, [r]);
+  }
+  // Map preserves insertion order, which already follows the ranking, so the
+  // strongest match still leads the list.
+  const queues = Array.from(groups.values());
+  const out: RankedItem<T>[] = [];
+  let round = 0;
+  while (out.length < ranked.length) {
+    let moved = false;
+    for (const q of queues) {
+      if (round < q.length) {
+        out.push(q[round]);
+        moved = true;
+      }
+    }
+    if (!moved) break;
+    round += 1;
+  }
+  return out;
+};
 
 /**
  * Ranks every eligible candidate and only then applies the display limit, so
@@ -151,5 +187,54 @@ export const rankItems = <T extends RankableItem>(
     return a.item.id.localeCompare(b.item.id);
   });
 
-  return typeof options.limit === 'number' ? scored.slice(0, options.limit) : scored;
+  const ordered = options.diversify ? diversifyByReason(scored) : scored;
+
+  return typeof options.limit === 'number' ? ordered.slice(0, options.limit) : ordered;
 };
+
+/**
+ * Starter selection for visitors with no saved tastes: the soonest upcoming
+ * items, one per category before repeating any, so the first screen is useful
+ * and varied without pretending to know the person.
+ */
+export const pickStarterSelection = <T extends RankableItem>(
+  items: T[],
+  options: { now?: Date; limit?: number } = {},
+): T[] => {
+  const now = options.now ?? new Date();
+  const upcoming = items
+    .filter((i) => {
+      const t = new Date(i.startAt).getTime();
+      return !Number.isNaN(t) && t >= now.getTime();
+    })
+    .sort((a, b) => {
+      const d = new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+      return d !== 0 ? d : a.id.localeCompare(b.id);
+    });
+
+  const groups = new Map<string, T[]>();
+  for (const item of upcoming) {
+    const key = `${item.kind}:${normalize(item.category ?? '') || 'otros'}`;
+    const list = groups.get(key);
+    if (list) list.push(item);
+    else groups.set(key, [item]);
+  }
+
+  const queues = Array.from(groups.values());
+  const out: T[] = [];
+  let round = 0;
+  while (out.length < upcoming.length) {
+    let moved = false;
+    for (const q of queues) {
+      if (round < q.length) {
+        out.push(q[round]);
+        moved = true;
+      }
+    }
+    if (!moved) break;
+    round += 1;
+  }
+
+  return typeof options.limit === 'number' ? out.slice(0, options.limit) : out;
+};
+
