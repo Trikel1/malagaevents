@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles, Image as ImageIcon, Palette, Baby, Trophy, Wrench, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 // Extended event types for category-specific fallbacks
