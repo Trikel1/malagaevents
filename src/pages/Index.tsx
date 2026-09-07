@@ -34,9 +34,23 @@ const TwoHoursSheet = lazy(() => import('@/components/home/TwoHoursSheet'));
 const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  
+  const { pathname } = useLocation();
+
   const { appMode, setAppMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
+
+  // `/sports` is the shareable address of the sports section: opening it (or
+  // coming back to it from a detail page) must land in Deportes.
+  useEffect(() => {
+    if (pathname === '/sports' && appMode !== 'deportes') setAppMode('deportes');
+  }, [pathname, appMode, setAppMode]);
+
+  const switchMode = (mode: 'eventos' | 'deportes') => {
+    setAppMode(mode);
+    const target = mode === 'deportes' ? '/sports' : '/';
+    if (pathname !== target) navigate(target);
+  };
+
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
