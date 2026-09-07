@@ -145,14 +145,23 @@ const CultureEventsPage = () => {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
+    totalCount: totalMatching,
   } = useEventsOptimized(queryOptions);
 
   const { data: favorites } = useFavorites();
-  const { data: favoriteEvents, isLoading: loadingFavorites } = useFavoriteEvents(onlyFavorites);
+  const {
+    data: favoriteEvents,
+    isLoading: loadingFavorites,
+    isError: favoritesError,
+    refetch: refetchFavorites,
+  } = useFavoriteEvents(onlyFavorites);
   const toggleFavorite = useToggleFavorite();
 
   const baseDisplayed = onlyFavorites ? favoriteEvents : events;
   const isLoadingEvents = onlyFavorites ? loadingFavorites : isLoading;
+  // A failed favorites request must never be rendered as "no favourites yet".
+  const hasLoadError = onlyFavorites ? favoritesError : isError;
+  const retryLoad = onlyFavorites ? refetchFavorites : refetch;
 
   const displayedEvents = useMemo(() => {
     if (!userCoords || !baseDisplayed) return baseDisplayed;
