@@ -77,6 +77,7 @@ const App = () => (
 
                 {/* Pages without bottom nav */}
                 <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/sports/:id" element={<SportEventDetailPage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/auth/reset" element={<ResetPasswordPage />} />
                 <Route path="/tickets/add" element={<AddTicketPage />} />
