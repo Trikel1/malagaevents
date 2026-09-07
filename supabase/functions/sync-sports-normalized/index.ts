@@ -20,6 +20,8 @@ import { computeFingerprint, computePayloadHash } from "../_shared/sports-sync/f
 import { decideDeactivations } from "../_shared/sports-sync/upsert.ts";
 import { runSourceAdapter } from "../_shared/sports-sync/adapters/sources.ts";
 import { checkRobots } from "../_shared/sports-sync/robots.ts";
+import { resolvePlacement } from "../_shared/sports-sync/placement.ts";
+import { madridDayKeyFromIso } from "../_shared/ingestion/dates.ts";
 
 const MISSED_THRESHOLD = 3;
 
@@ -95,15 +97,22 @@ async function loadExistingByFingerprint(
 }
 
 function toRow(ev: CanonicalSportsEvent, hash: string, fingerprint: string, nowIso: string) {
+  const placement = resolvePlacement({
+    venueName: ev.venue_name,
+    address: ev.address,
+    declaredLocality: ev.municipality,
+  });
   return {
     title: ev.title,
     sport_category: ev.sport_category,
     sport_subcategory: ev.sport_subcategory ?? null,
     start_datetime: ev.starts_at,
     end_datetime: ev.ends_at ?? null,
-    start_date: ev.starts_at.slice(0, 10),
-    venue_name: ev.venue_name,
-    city: ev.municipality,
+    // Madrid calendar day, not the UTC slice: a 00:30 CEST start belongs to
+    // that Madrid day, not to the previous UTC one.
+    start_date: madridDayKeyFromIso(ev.starts_at) ?? ev.starts_at.slice(0, 10),
+    venue_name: placement.venueName ?? "",
+    city: placement.municipality ?? "",
     address: ev.address ?? null,
     price_info: ev.price_amount != null
       ? `${ev.price_amount} ${ev.price_currency ?? "EUR"}`
@@ -124,10 +133,11 @@ function toRow(ev: CanonicalSportsEvent, hash: string, fingerprint: string, nowI
     missed_syncs: 0,
     status: ev.status,
     normalized_title: ev.title.toLowerCase(),
-    normalized_venue: ev.venue_name.toLowerCase(),
-    is_in_malaga_province: (ev.province ?? "Málaga").toLowerCase().includes("málaga")
-      || (ev.province ?? "").toLowerCase().includes("malaga"),
-    province: ev.province ?? "Málaga",
+    normalized_venue: (placement.venueName ?? "").toLowerCase(),
+    // Only true when a real venue or address names a municipality of the
+    // province. Defaulting province to "Málaga" made every row qualify.
+    is_in_malaga_province: placement.inMalagaProvince,
+    province: placement.inMalagaProvince ? "Málaga" : null,
     organizer_name: ev.organizer_name ?? null,
     organizer_phone: ev.organizer_phone ?? null,
     organizer_email: ev.organizer_email ?? null,

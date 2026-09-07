@@ -354,7 +354,11 @@
     "howToGet": "How to get there",
     "buyTickets": "Buy tickets",
     "openInMaps": "Open in Maps",
-    "share": "Share"
+    "share": "Share",
+    "calendarError": "We could not create the calendar file.",
+    "shareUnavailable": "Sharing is not available in this browser.",
+    "shareError": "We could not share this event.",
+    "linkCopied": "Link copied"
   },
   "calendar": {
     "title": "Calendar",

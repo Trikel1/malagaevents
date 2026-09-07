@@ -354,7 +354,11 @@
     "howToGet": "アクセス方法",
     "buyTickets": "チケットを購入",
     "openInMaps": "地図で開く",
-    "share": "共有"
+    "share": "共有",
+    "calendarError": "カレンダーファイルを作成できませんでした。",
+    "shareUnavailable": "このブラウザでは共有できません。",
+    "shareError": "イベントを共有できませんでした。",
+    "linkCopied": "リンクをコピーしました"
   },
   "calendar": {
     "title": "カレンダー",

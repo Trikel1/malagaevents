@@ -15,6 +15,7 @@
 // Pure module — safe to unit test from vitest.
 
 import type { CanonicalSportsEvent } from "../types.ts";
+import { classifyDiscipline, resolvePlacement } from "../placement.ts";
 
 export interface HtmlAdapterOptions {
   sourceName: string;
@@ -96,22 +97,32 @@ function pickString(...vals: unknown[]): string | null {
   return null;
 }
 
-function pickLocation(obj: unknown): { name: string | null; address: string | null } {
-  if (!obj) return { name: null, address: null };
-  if (typeof obj === "string") return { name: obj.trim(), address: null };
+interface PickedLocation {
+  name: string | null;
+  address: string | null;
+  /** addressLocality as published — the town the source actually declares. */
+  locality: string | null;
+}
+
+function pickLocation(obj: unknown): PickedLocation {
+  const empty: PickedLocation = { name: null, address: null, locality: null };
+  if (!obj) return empty;
+  if (typeof obj === "string") return { ...empty, name: obj.trim() };
   if (Array.isArray(obj)) return pickLocation(obj[0]);
-  if (typeof obj !== "object") return { name: null, address: null };
+  if (typeof obj !== "object") return empty;
   const r = obj as Record<string, unknown>;
   const name = pickString(r.name);
   let address: string | null = null;
+  let locality: string | null = null;
   if (typeof r.address === "string") address = r.address;
   else if (r.address && typeof r.address === "object") {
     const a = r.address as Record<string, unknown>;
+    locality = pickString(a.addressLocality);
     address = [a.streetAddress, a.addressLocality, a.postalCode]
       .filter((x): x is string => typeof x === "string" && !!x.trim())
       .join(", ") || null;
   }
-  return { name, address };
+  return { name, address, locality };
 }
 
 function pickOfferPrice(obj: unknown): { amount: number | null; currency: string | null } {
@@ -191,10 +202,23 @@ export function parseSportsHtml(
       pickString(obj.url, obj["@id"]),
       opts.baseUrl ?? opts.sourceUrl,
     );
+    const desc = pickString(obj.description);
+
+    const placement = resolvePlacement({
+      venueName: loc.name,
+      address: loc.address,
+      declaredLocality: loc.locality,
+      defaultMunicipality: opts.defaultMunicipality,
+    });
+
+    // Explicit non-sport content (processions, concerts, exhibitions) must not
+    // leak into the sports agenda through a generic source.
+    const classified = classifyDiscipline(title, desc, loc.name);
+    if (classified.isNonSport) continue;
+
     const offer = pickOfferPrice(obj.offers);
     const image = absolutize(pickImage(obj.image), opts.baseUrl ?? opts.sourceUrl);
     const org = pickOrganizer(obj.organizer);
-    const desc = pickString(obj.description);
 
     const statusRaw = pickString(obj.eventStatus) ?? "";
     const status: CanonicalSportsEvent["status"] =
@@ -217,14 +241,16 @@ export function parseSportsHtml(
       canonical_url: url,
       title,
       description: desc,
-      sport_category: opts.defaultCategory,
+      sport_category: classified.discipline ?? opts.defaultCategory,
       sport_subcategory: null,
       starts_at: starts,
       ends_at: ends,
       timezone: "Europe/Madrid",
-      municipality: opts.defaultMunicipality,
-      province: "Málaga",
-      venue_name: loc.name ?? opts.defaultMunicipality,
+      // Placement comes from what the page published, never from the
+      // source's default: a missing venue must not become "Málaga".
+      municipality: placement.municipality ?? "",
+      province: placement.inMalagaProvince ? "Málaga" : "",
+      venue_name: placement.venueName ?? "",
       address: loc.address,
       lat: null,
       lng: null,

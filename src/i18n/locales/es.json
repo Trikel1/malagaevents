@@ -355,7 +355,11 @@
     "howToGet": "Cómo llegar",
     "buyTickets": "Comprar entradas",
     "openInMaps": "Abrir en Maps",
-    "share": "Compartir"
+    "share": "Compartir",
+    "calendarError": "No hemos podido crear el archivo del calendario.",
+    "shareUnavailable": "No se puede compartir desde este navegador.",
+    "shareError": "No hemos podido compartir el evento.",
+    "linkCopied": "Enlace copiado"
   },
   "calendar": {
     "title": "Calendario",

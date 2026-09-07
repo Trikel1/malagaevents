@@ -160,3 +160,15 @@ export function toMadridDateTime(input: string | Date): Date | null {
 }
 
 export const MADRID_TIMEZONE = MADRID_TZ;
+
+/** Calendar day (YYYY-MM-DD) of an instant, in Europe/Madrid. */
+export function madridDayKeyFromIso(input: string | Date): string | null {
+  const date = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: MADRID_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}

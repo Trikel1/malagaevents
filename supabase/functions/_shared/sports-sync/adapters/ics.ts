@@ -9,6 +9,7 @@
 import type { CanonicalSportsEvent } from "../types.ts";
 import { parseIcs, type IcsEvent } from "../../adapters/lib/ics.ts";
 import { sportsIcsDateToIso } from './ics-date.ts';
+import { resolvePlacement } from "../placement.ts";
 
 export interface IcsAdapterOptions {
   sourceName: string;
@@ -39,6 +40,12 @@ function toCanonical(e: IcsEvent, opts: IcsAdapterOptions): CanonicalSportsEvent
     ? uid
     : `${title}|${starts}`.toLowerCase().replace(/[^\w:/.\-]+/g, "-");
 
+  const placement = resolvePlacement({
+    venueName: e.location?.trim() || null,
+    address: e.location?.trim() || null,
+    defaultMunicipality: opts.defaultMunicipality,
+  });
+
   const ev: CanonicalSportsEvent = {
     source_name: opts.sourceName,
     source_url: opts.sourceUrl,
@@ -51,12 +58,14 @@ function toCanonical(e: IcsEvent, opts: IcsAdapterOptions): CanonicalSportsEvent
     starts_at: starts,
     ends_at: ends,
     timezone: "Europe/Madrid",
-    municipality: opts.defaultMunicipality,
-    province: "Málaga",
+    // A calendar that names no place does not put the event in a town: the
+    // source's default municipality is a hint, not evidence.
+    municipality: placement.municipality ?? "",
+    province: placement.inMalagaProvince ? "Málaga" : "",
     // A calendar without LOCATION does not tell us where the match is played.
     // Leave it empty (downstream eligibility treats it as unknown) instead of
     // fabricating the source's default municipality as a venue.
-    venue_name: e.location?.trim() || "",
+    venue_name: placement.venueName ?? "",
 
     address: e.location?.trim() || null,
     lat: e.geo?.lat ?? null,

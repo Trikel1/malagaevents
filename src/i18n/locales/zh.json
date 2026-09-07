@@ -354,7 +354,11 @@
     "howToGet": "如何前往",
     "buyTickets": "购买门票",
     "openInMaps": "在地图中打开",
-    "share": "分享"
+    "share": "分享",
+    "calendarError": "无法创建日历文件。",
+    "shareUnavailable": "此浏览器不支持分享。",
+    "shareError": "无法分享此活动。",
+    "linkCopied": "链接已复制"
   },
   "calendar": {
     "title": "日历",
