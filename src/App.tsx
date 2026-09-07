@@ -65,6 +65,9 @@ const App = () => (
                 {/* Main layout with bottom nav */}
                 <Route element={<MainLayout />}>
                   <Route path="/" element={<Index />} />
+                  {/* Shareable entry point for the sports section; the same
+                      home screen, opened in Deportes mode. */}
+                  <Route path="/sports" element={<Index />} />
                   <Route path="/events" element={<EventsPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
                   <Route path="/pharmacies" element={<PharmaciesPage />} />
