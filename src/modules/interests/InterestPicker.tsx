@@ -65,9 +65,12 @@ const InterestPicker = ({ open, onOpenChange }: InterestPickerProps) => {
     if (ok) onOpenChange(false);
   };
 
+  // Only empty the draft once the deletion actually succeeded: a blocked write
+  // must not look like a cleared selection.
   const handleReset = async () => {
-    setDraft([]);
-    await reset();
+    const ok = await reset();
+    setSaveFailed(!ok);
+    if (ok) setDraft([]);
   };
 
   const noResults = groups.every((g) => g.items.length === 0);
