@@ -1,0 +1,23 @@
+adaptador,url_base,extraidos,validos,incidencias,avisos,comprobado
+ayto-malaga,https://www.malaga.eu/,0,0,,"ayto-malaga: missing API keys, returning []",2026-09-07
+ayto-malaga-csv,https://datosabiertos.malaga.eu/recursos/cultura/agenda/2026.csv,901,526,sin_recinto=452; categoria_invalida=901; sin_imagen=901; url_canonica_invalida=374; precio_gratis_explicito=526; fecha_fuera_de_rango=2,,2026-09-07
+malaga-open-data-csv,https://datosabiertos.malaga.eu/recursos/cultura/agenda/2026.csv,901,898,categoria_invalida=901; sin_imagen=901; hora_asumida=137; fecha_fuera_de_rango=2; url_canonica_invalida=1,,2026-09-07
+teatro-cervantes,https://www.teatrocervantes.com/,0,0,,ERR teatro-cervantes: fetch failed,2026-09-07
+teatro-soho,https://www.teatrodelsoho.com/,0,0,,,2026-09-07
+teatro-canovas,https://www.juntadeandalucia.es/cultura/aaiicc/teatros/teatro-canovas,0,0,,teatro-canovas: no_current_events,2026-09-07
+la-termica,https://www.latermicamalaga.com/,35,35,categoria_invalida=35; sin_imagen=35,,2026-09-07
+mva,https://www.malaga.es/mva/,0,0,,"mva: fetch failed, trying next | mva: fetch failed, trying next",2026-09-07
+museo-picasso,https://www.museopicassomalaga.org/,0,0,,museo-picasso: no_current_events,2026-09-07
+museo-thyssen,https://www.carmenthyssenmalaga.org/,0,0,,museo-thyssen: fetch failed | museo-thyssen: no_current_events,2026-09-07
+sala-trinchera,https://salatrinchera.com/,0,0,,"sala-trinchera: fetch failed, trying next | sala-trinchera: fetch failed, trying next",2026-09-07
+sala-paris-15,https://www.paris15.es/eventos/,0,0,,sala-paris-15: no_current_events,2026-09-07
+la-cochera-cabaret,https://www.lacocheracabaret.com/,0,0,,"la-cochera-cabaret: fetch failed, trying next | la-cochera-cabaret: no_current_events",2026-09-07
+contenedor-cultural-uma,https://www.uma.es/servicio-cultura/info/111568/contenedor-cultural/,0,0,,"contenedor-cultural-uma: fetch failed, trying next | contenedor-cultural-uma: no_current_events",2026-09-07
+cine-albeniz,https://cinealbeniz.com/,0,0,,cine-albeniz: no_current_events,2026-09-07
+diputacion-malaga,https://www.malaga.es/es/laprovincia/3315/agenda,0,0,,"[diputacion-malaga] FIRECRAWL_API_KEY missing, returning []",2026-09-07
+culturama,https://www.malaga.es/culturama/2157/agenda,0,0,,"[culturama] FIRECRAWL_API_KEY missing, returning []",2026-09-07
+junta-andalucia-cultura,https://www.juntadeandalucia.es/cultura/agendaculturaldeandalucia/malaga,9,9,imagen_generica=6; sin_imagen=1; sin_recinto=1; imagen_relativa=2,[junta-andalucia-cultura] parse failed | [junta-andalucia-cultura] parse failed,2026-09-07
+visit-costa-del-sol,https://www.visitacostadelsol.com/agenda,0,0,,"[visit-costa-del-sol] FIRECRAWL_API_KEY missing, returning []",2026-09-07
+axarquia-costa-del-sol,https://axarquiacostadelsol.es/eventosaxarquiacostadelsol/,2,2,,[axarquia-costa-del-sol] parse skipped | [axarquia-costa-del-sol] parse skipped,2026-09-07
+serrania-de-ronda,https://www.serraniaderonda.com/portal/es/eventos.php,20,20,sin_recinto=20; sin_imagen=1,,2026-09-07
+fycma,https://fycma.com/wp-json/tribe/events/v1/events,41,41,hora_asumida=24; imagen_generica=1,,2026-09-07

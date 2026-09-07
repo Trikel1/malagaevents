@@ -1,0 +1,215 @@
+url,estado_http,tipo,robots,senal_agenda,nota,comprobado
+https://alhaurindelatorre.es/,200,,permitido,wp,cuerpo truncado,2026-09-07
+https://antojomalaga.es/,200,,permitido,rss;wp,,2026-09-07
+https://antojomalaga.es/programacion/,200,,permitido,rss;wp,,2026-09-07
+https://apaldeportes.rincondelavictoria.es/eventos,200,,permitido,,,2026-09-07
+https://axarquiacostadelsol.es/eventosaxarquiacostadelsol/,200,,permitido,rss;wp,,2026-09-07
+https://ayuntamientoronda.es/agenda-de-actividades-y-eventos/,200,,permitido,rss;wp,,2026-09-07
+https://brisafestival.com/,200,,permitido,rss;wp,,2026-09-07
+https://cadenaser.com/tag/serpeques/,404,,permitido,,,2026-09-07
+https://centrepompidou-malaga.eu/,200,,permitido,rss;wp,,2026-09-07
+https://coin.es/areas/deportes,200,,permitido,,,2026-09-07
+https://cultura.antequera.es/agenda/,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://cultura.malaga.eu/,200,,permitido,,,2026-09-07
+https://cultura.malaga.eu/es/agenda/index.html,200,,permitido,,,2026-09-07
+https://cultura.malaga.eu/es/agenda/index.html?calMonth=1&calYear=2026,200,,permitido,,,2026-09-07
+https://cultura.malaga.eu/es/agenda/index.html?calMonth=11&calYear=2025,conn_error,,permitido,,"HTTPSConnectionPool(host='cultura.malaga.eu', port=443): Max retries exceeded with url: /es/agenda/index.html?calMonth=1",2026-09-07
+https://cultura.malaga.eu/es/agenda/index.html?calMonth=4&calYear=2025,200,,permitido,,,2026-09-07
+https://datosabiertos.malaga.eu/,200,,permitido,,,2026-09-07
+https://datosabiertos.malaga.eu/api/3/action/package_list,,,prohibido,,robots.txt prohibe la ruta al agente,2026-09-07
+https://datosabiertos.malaga.eu/dataset/agenda-2026,200,,permitido,,,2026-09-07
+https://datosabiertos.malaga.eu/dataset/agenda-espectaculos,200,,permitido,,,2026-09-07
+https://datosabiertos.malaga.eu/group/deporte,200,,permitido,,,2026-09-07
+https://datosabiertos.malaga.eu/mk/dataset/agenda-deportes,200,,permitido,,,2026-09-07
+https://datosabiertos.malaga.eu/recursos/cultura/agenda/2024.csv,200,,permitido,,cuerpo truncado,2026-09-07
+https://datosabiertos.malaga.eu/recursos/cultura/agenda/2026.csv,200,,permitido,,cuerpo truncado,2026-09-07
+https://deporte.malaga.eu/,conn_error,,permitido,,"HTTPSConnectionPool(host='deporte.malaga.eu', port=443): Max retries exceeded with url: / (Caused by NameResolutionError",2026-09-07
+https://deporte.malaga.eu/agenda/,200,,permitido,,,2026-09-07
+https://deporte.malaga.eu/agenda/calendario-area-deporte-malaga/,200,,permitido,,,2026-09-07
+https://deporte.malaga.eu/agenda/detalle-de-actividad/index.html?id=146610,200,,permitido,,,2026-09-07
+https://deporte.malaga.eu/export/sites/deporte/.galleries/Programas/DOCUMENTOS-Deporte-en-Feria/Reglamento-Voley-playa-Deporte-en-Feria-2026.pdf,conn_error,,permitido,,"HTTPSConnectionPool(host='deporte.malaga.eu', port=443): Max retries exceeded with url: /export/sites/deporte/.galleries",2026-09-07
+https://deporte.malaga.eu/programas/deporte-en-feria/espeto-beach/,200,,permitido,,,2026-09-07
+https://deporte.malaga.eu/programas/deporte-en-feria/pickleball/,200,,permitido,,,2026-09-07
+https://deporte.malaga.eu/programas/deporte-en-feria/tiro-con-arco/,200,,permitido,,,2026-09-07
+https://deportes.antequera.es/actividades/agenda.html,200,,permitido,,,2026-09-07
+https://deportes.torremolinos.es/eventos-deportivos/agenda-anual-eventos/,200,,permitido,rss;wp,,2026-09-07
+https://deportes.velezmalaga.es/eventos,200,,permitido,,,2026-09-07
+https://entradas.fuengirola.es/content?lang=es,200,,permitido,,,2026-09-07
+https://entradas.fuengirola.es/list/events?lang=es,200,,permitido,,,2026-09-07
+https://entradas.starlitemarbella.com/,200,,permitido,,,2026-09-07
+https://fandaluzabm.org/,200,,permitido,rss;wp,,2026-09-07
+https://farmaciaguardiahoy.es/farmacia-de-guardia/malaga,200,,permitido,,,2026-09-07
+https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_p.asp?id=29,200,,permitido,,,2026-09-07
+https://farmaciasguardia.farmaceuticos.com/web_guardias/publico/Provincia_pNew.asp?id=29,200,,permitido,,,2026-09-07
+https://favoley.es/es/calendar,429,,permitido,,,2026-09-07
+https://festivaldemalaga.com/,200,,permitido,wp,,2026-09-07
+https://festivaldemalaga.com/edicion/agenda/,200,,permitido,wp,,2026-09-07
+https://festivaldemalaga.com/maf/,200,,permitido,,,2026-09-07
+https://festivaldemalaga.com/maf/index.php?seccion=actividades,200,,permitido,,,2026-09-07
+https://fycma.com/,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://fycma.com/calendario/,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://fycma.com/eventos/mes/?lang=en,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://fycma.com/organizador/fycma/,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://icofma.es/es/farmacias-de-guardia,200,,permitido,rss,,2026-09-07
+https://icofma.es/listado-farmacias-provincia-malaga,200,,permitido,,,2026-09-07
+https://info.turismoderonda.es/agenda/,200,,permitido,jsonld_event;rss;wp,cuerpo truncado,2026-09-07
+https://juventud.malaga.eu/,200,,permitido,,,2026-09-07
+https://lacocheracabaret.com/programacion/,200,,permitido,rss;wp,,2026-09-07
+https://lacocheracabaret.com/tipo-evento/comedia-humor/,200,,permitido,rss;wp,,2026-09-07
+https://lacocheracabaret.com/tipo-evento/teatro/,200,,permitido,rss;wp,,2026-09-07
+https://lacocheraentradas.com/,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://lacocheraentradas.com/categoria/teatro,200,,permitido,rss,,2026-09-07
+https://laconcepcion.malaga.eu/,200,,permitido,,,2026-09-07
+https://lafabricadecerveza.com/,200,,permitido,wp,,2026-09-07
+https://lafabricadecerveza.com/experiencias-malaga/,200,,permitido,wp,,2026-09-07
+https://latermicamalaga.com/agenda/,200,,permitido,wp,,2026-09-07
+https://latermicamalaga.com/musica-y-eventos/,200,,permitido,wp,,2026-09-07
+https://losalamosbeach.com/,ssl_error,,permitido,,"HTTPSConnectionPool(host='losalamosbeach.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLCertVe",2026-09-07
+https://malagacf.com/entradas,ssl_error,,permitido,,"HTTPSConnectionPool(host='malagacf.com', port=443): Max retries exceeded with url: /entradas (Caused by SSLError(SSLCert",2026-09-07
+https://malagacf.koobin.com/,403,,permitido,,,2026-09-07
+https://manilva.es/,200,,permitido,rss;wp,,2026-09-07
+https://marenostrumfuengirola.com/tipo_de_evento/2026/,200,,permitido,rss;wp,,2026-09-07
+https://mmalaga.es/agenda-ocio-cultural-malaga/,200,,permitido,jsonld_event;rss;wp,,2026-09-07
+https://moonlightmalaga.com/,200,,permitido,rss;wp,,2026-09-07
+https://mucac.malaga.eu/,200,,permitido,,,2026-09-07
+https://orquestafilarmonicademalaga.com/,200,,permitido,rss;wp,,2026-09-07
+https://paris15.es/,200,,permitido,rss;wp,,2026-09-07
+https://paris15.es/eventos/,200,,permitido,rss;wp,,2026-09-07
+https://pruebaspopulares.pmdt.es/,,,prohibido,,robots.txt prohibe la ruta al agente,2026-09-07
+https://qconciertos.es/salas/la-garrapata-malaga/,200,,permitido,wp,,2026-09-07
+https://runedia.mundodeportivo.com/,200,,permitido,,,2026-09-07
+https://salamartemalaga.com/,200,,permitido,rss;wp,,2026-09-07
+https://salatrinchera.com/,200,,permitido,rss;wp,,2026-09-07
+https://salatrinchera.com/category/proximos-eventos/,200,,permitido,rss;wp,,2026-09-07
+https://starlitefestival.com/,200,,permitido,wp,,2026-09-07
+https://teatrodelsoho.com/,200,,permitido,wp,,2026-09-07
+https://teatrodelsoho.com/evento/,404,,permitido,wp,,2026-09-07
+https://teatrodelsoho.com/evento/godspell/,200,,permitido,jsonld_event;wp,,2026-09-07
+https://teatrodelsoho.com/programacion/,200,,permitido,rss;wp,,2026-09-07
+https://teatrodelsoho.com/programacion/?temporada=temporada-2025-2026,200,,permitido,rss;wp,,2026-09-07
+https://teatroestepona.com/events/,200,,permitido,jsonld_event;rss;wp,,2026-09-07
+https://ticketandroll.com/local/bar-la-garrapata,200,,permitido,jsonld_event,,2026-09-07
+https://tickets.rfef.es/,200,,permitido,wp,,2026-09-07
+https://turismo.mijas.es/es/12-principal/cultura/13-agenda-cultural,200,,permitido,,,2026-09-07
+https://turismocoin.es/agenda,200,,permitido,,,2026-09-07
+https://venta.unicajabaloncesto.com/es/proximos-partidos,200,,permitido,,,2026-09-07
+https://visita.malaga.eu/es/que-ver-y-hacer/agenda,403,,permitido,,,2026-09-07
+https://www.acb.com/club/partidos/id/14,200,,permitido,,cuerpo truncado,2026-09-07
+https://www.andaluzabaloncesto.org/,200,,permitido,,,2026-09-07
+https://www.antequera.es/,200,,permitido,,,2026-09-07
+https://www.archidona.es/,403,,permitido,,,2026-09-07
+https://www.badmintonandalucia.es/calendario/,200,,permitido,rss;wp,,2026-09-07
+https://www.benalmadena.es/,200,,permitido,rss,,2026-09-07
+https://www.benalmadena.es/pags/agenda.php,200,,permitido,rss,,2026-09-07
+https://www.canelaparty.com/,200,,permitido,,,2026-09-07
+https://www.carmenthyssenmalaga.org/,200,,permitido,,,2026-09-07
+https://www.cartama.es/,403,,permitido,,,2026-09-07
+https://www.casares.es/,200,,permitido,rss;wp,,2026-09-07
+https://www.centroculturalmva.es/6806/agenda,403,,permitido,,,2026-09-07
+https://www.clubbalonmanomalaga.es/,200,,permitido,,,2026-09-07
+https://www.coin.es/,200,,permitido,,,2026-09-07
+https://www.elcorteingles.es/entradas/recintos/malaga/teatro-del-soho-caixabank/,403,,permitido,,,2026-09-07
+https://www.entradas.com/,timeout,,permitido,,,2026-09-07
+https://www.entradas.com/city/malaga-490/,timeout,,permitido,,,2026-09-07
+https://www.entradas.com/city/malaga-490/?pnum=3,timeout,,permitido,,,2026-09-07
+https://www.entradas.com/city/malaga-490/conciertos-y-festivales-85/,timeout,,permitido,,,2026-09-07
+https://www.estepona.es/,200,,permitido,,,2026-09-07
+https://www.eventbrite.es/d/spain--m%C3%A1laga/malaga/,405,,permitido,,,2026-09-07
+https://www.eventualmusic.com/,200,,permitido,,,2026-09-07
+https://www.fancine.org/,200,,permitido,wp,,2026-09-07
+https://www.farmaceuticos.com/farmacias-de-guardia/malaga/,200,,permitido,rss;wp,,2026-09-07
+https://www.farmacias.es/malaga/29001,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29002,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29003,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29004,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29005,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29006,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29007,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29008,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29009,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29010,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29011,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29012,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29013,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29014,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29015,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29016,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29017,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/29018,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/abiertas-ahora,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/fuengirola,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/malaga,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/marbella,200,,permitido,,,2026-09-07
+https://www.farmacias.es/malaga/torremolinos,200,,permitido,,,2026-09-07
+https://www.fuengirola.es/,200,,permitido,rss;wp,,2026-09-07
+https://www.fuengirola.es/concejalia/concejalia-de-deportes/,200,,permitido,rss;wp,,2026-09-07
+https://www.fundacionunicaja.com/cultura/,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://www.fycma.com/,200,,permitido,rss;wp,cuerpo truncado,2026-09-07
+https://www.i-sierradelasnieves.com/eventos/,200,,permitido,rss;wp,,2026-09-07
+https://www.icofma.es/es/,200,,permitido,rss,,2026-09-07
+https://www.icofma.es/farmacias-de-guardia,200,,permitido,rss,,2026-09-07
+https://www.ine.es/daco/daco42/codmun/26codmun.xlsx,200,,permitido,,,2026-09-07
+https://www.ironman.com/im703-malaga,200,,permitido,jsonld_event,cuerpo truncado,2026-09-07
+https://www.juntadeandalucia.es/cultura/aaiicc/teatros/teatro-canovas,200,,permitido,,,2026-09-07
+https://www.juntadeandalucia.es/cultura/agendaculturaldeandalucia/malaga,200,,permitido,,,2026-09-07
+https://www.juntadeandalucia.es/organismos/culturaydeporte/areas/deporte/entidades-deportivas/registro-entidades-deportivas.html,200,,permitido,,,2026-09-07
+https://www.lacocheracabaret.com/,200,,permitido,rss;wp,,2026-09-07
+https://www.laliga.com/clubes/malaga-cf/proximos-partidos,200,,permitido,jsonld_event,cuerpo truncado,2026-09-07
+https://www.latermicamalaga.com/,200,,permitido,wp,,2026-09-07
+https://www.latermicamalaga.com/agenda/,200,,permitido,wp,,2026-09-07
+https://www.latermicamalaga.com/programacion/,200,,permitido,wp,,2026-09-07
+https://www.malaga.es/culturama/2157/agenda,403,,permitido,,,2026-09-07
+https://www.malaga.es/deportes/1321/agenda,403,,permitido,,,2026-09-07
+https://www.malaga.es/deportes/1322/programas,403,,permitido,,,2026-09-07
+https://www.malaga.es/es/laprovincia/3315/agenda,403,,permitido,,,2026-09-07
+https://www.malaga.es/mva/,403,,permitido,,,2026-09-07
+https://www.malaga.eu/,200,,permitido,,,2026-09-07
+https://www.malaga.eu/eventos,200,,permitido,,,2026-09-07
+https://www.malaga.eu/la-ciudad/agenda/,200,,permitido,,,2026-09-07
+https://www.malaga.eu/la-ciudad/agenda/index.html?mas=true&pageNum=1,200,,permitido,,,2026-09-07
+https://www.malagacf.com/,200,,permitido,,,2026-09-07
+https://www.malagacf.com/partidos,200,,permitido,,,2026-09-07
+https://www.malagaentradas.com/,200,,permitido,,,2026-09-07
+https://www.maratonmalaga.com/,200,,permitido,rss;wp,,2026-09-07
+https://www.marbella.es/,200,,permitido,,,2026-09-07
+https://www.marbella.es/web/deportes/inicio.html,200,,permitido,,,2026-09-07
+https://www.marenostrumfuengirola.com/,200,,permitido,rss;wp,,2026-09-07
+https://www.mientrada.net/eventos/categoria/auditorio-edgar-neville/,200,,permitido,jsonld_event;rss;wp,,2026-09-07
+https://www.mientrada.net/local/teatro-ciudad-de-marbella/,200,,permitido,rss;wp,,2026-09-07
+https://www.mijas.es/,200,,permitido,wp,,2026-09-07
+https://www.museopicassomalaga.org/,200,,permitido,,,2026-09-07
+https://www.museosdeandalucia.es/web/museodemalaga,ssl_error,,permitido,,"HTTPSConnectionPool(host='www.museosdeandalucia.es', port=443): Max retries exceeded with url: /web/museodemalaga (Cause",2026-09-07
+https://www.nerja.es/,200,,permitido,rss;wp,,2026-09-07
+https://www.nocheenblancomalaga.com/,conn_error,,permitido,,"HTTPSConnectionPool(host='www.nocheenblancomalaga.com', port=443): Max retries exceeded with url: / (Caused by NameResol",2026-09-07
+https://www.ojen.es/,403,,permitido,,,2026-09-07
+https://www.paris15.es/eventos/,200,,permitido,rss;wp,,2026-09-07
+https://www.pizarra.es/,200,,permitido,,,2026-09-07
+https://www.rfaf.es/,,,prohibido,,robots.txt prohibe la ruta al agente,2026-09-07
+https://www.rfaf.es/pnfg/NPcd/NFG_CmpJornada?cod_primaria=1000120,,,prohibido,,robots.txt prohibe la ruta al agente,2026-09-07
+https://www.rfaf.es/pnfg/NPcd/NFG_LstCompeticiones_Vis?cod_primaria=1000123,,,prohibido,,robots.txt prohibe la ruta al agente,2026-09-07
+https://www.rincondelavictoria.es/,200,,permitido,,,2026-09-07
+https://www.ronda.es/,200,,permitido,rss;wp,,2026-09-07
+https://www.serraniaderonda.com/portal/es/eventos.php,200,,permitido,rss,,2026-09-07
+https://www.sportmaniacs.com/,200,,permitido,,,2026-09-07
+https://www.teatrocervantes.com/,403,,permitido,,,2026-09-07
+https://www.teatrocervantes.com/es/,403,,permitido,,,2026-09-07
+https://www.teatrocervantes.com/es/genero/musica/temporada-2025-26/,403,,permitido,,,2026-09-07
+https://www.teatrocervantes.com/es/programacion/,403,,permitido,,,2026-09-07
+https://www.teatrocervantes.com/es/programacion/factoria-echegaray/,403,,permitido,,,2026-09-07
+https://www.teatrocervantes.com/es/programacion/teatro-cervantes/,403,,permitido,,,2026-09-07
+https://www.teatrocervantes.com/es/programacion/teatro-echegaray/,403,,permitido,,,2026-09-07
+https://www.teatrodelsoho.com/,200,,permitido,wp,,2026-09-07
+https://www.torremolinos.es/,,,prohibido,,robots.txt prohibe la ruta al agente,2026-09-07
+https://www.torremolinoscultura.es/eventos/getforcategory/actividades-para-todos-los-publicos,200,,permitido,,,2026-09-07
+https://www.uma.es/servicio-cultura/info/111568/contenedor-cultural/,404,,permitido,rss,,2026-09-07
+https://www.unicajabaloncesto.com/,200,,permitido,,,2026-09-07
+https://www.unicajabaloncesto.com/calendario,200,,permitido,,,2026-09-07
+https://www.unicajabaloncesto.com/calendario/ics,200,,permitido,ics,,2026-09-07
+https://www.unicajabaloncesto.com/en/schedule,200,,permitido,,,2026-09-07
+https://www.velezmalaga.es/,200,,permitido,,,2026-09-07
+https://www.velezmalaga.es/index.php?mod=agendadeactividades&tag=teatro,200,,permitido,,,2026-09-07
+https://www.visitacostadelsol.com/agenda,403,,permitido,,,2026-09-07
+https://www.weekendbeach.es/,200,,permitido,rss;wp,,2026-09-07
+https://www.wegow.com/es/conciertos/geo/espana/malaga/cal/febrero,200,,permitido,,,2026-09-07
+https://www.wegow.com/es/conciertos/geo/espana/malaga/malaga,200,,permitido,,,2026-09-07
+https://www.zurichmaratonmalaga.es/,403,,permitido,,,2026-09-07
