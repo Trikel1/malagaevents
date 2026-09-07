@@ -22,7 +22,8 @@ import { PharmacyCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { usePharmaciesOnDuty, usePharmacyDirectory, usePharmacyGuardSyncStatus } from '@/hooks/usePharmacies';
 import { LOCALITIES_CATALOG, ZONE_LABELS, ZONE_ORDER, type ZoneKey } from '@/lib/localitiesCatalog';
 import { haversineKm, formatDistance } from '@/lib/distance';
-import { findDirectoryMatch } from '@/lib/pharmacyAddressMatch';
+import { findDirectoryMatch, parseAddress } from '@/lib/pharmacyAddressMatch';
+import { normalizeMunicipalityKey } from '@/lib/pharmacyMunicipality';
 import { cn } from '@/lib/utils';
 
 
@@ -419,7 +420,16 @@ const PharmaciesPage = () => {
    */
   const dutyEnriched = useMemo(() => {
     const dir = directoryForMatching ?? [];
-    return (dutyAll ?? []).map((p: any) => {
+    // The portal returns the same pharmacy twice when it belongs to two zones.
+    const seen = new Set<string>();
+    const unique = (dutyAll ?? []).filter((p: any) => {
+      const parsed = parseAddress(p.address);
+      const key = `${normalizeMunicipalityKey(p.municipality)}|${parsed.words.join(' ')}|${parsed.number ?? ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return unique.map((p: any) => {
       if (dir.length === 0) return p;
       const match = findDirectoryMatch({ address: p.address, municipality: p.municipality }, dir as any);
       if (!match) return p;
