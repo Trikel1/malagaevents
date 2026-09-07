@@ -346,7 +346,7 @@ const EventImage = ({
           />
           <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/5 to-transparent" />
           {!isCompact && (
-            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-background/75 px-2 py-0.5 text-[10px] font-medium text-foreground/75 backdrop-blur-sm">
+            <span className="absolute bottom-1.5 right-1.5 rounded-full bg-background/75 px-2 py-0.5 text-[10px] font-medium text-foreground/75 backdrop-blur-sm">
               Imagen ilustrativa
             </span>
           )}
