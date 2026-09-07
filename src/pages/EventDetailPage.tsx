@@ -140,8 +140,34 @@ const EventDetailPage = () => {
     ? formatMadrid(new Date(event.end_at), 'HH:mm', locale)
     : null;
 
-  /** Internal map only — no handoff to external map providers. */
+  // Real outbound destinations for this event, or nothing at all.
+  const ticketAction = resolveTicketAction(event as unknown as Parameters<typeof resolveTicketAction>[0]);
+  const point = resolvePoint({
+    lat: event.lat,
+    lng: event.lng,
+    venueLat: (event as any).venue?.lat,
+    venueLng: (event as any).venue?.lng,
+    venueName: event.venue_name,
+  });
+  const directions = buildDirectionsUrl({
+    point,
+    address: event.address,
+    venueName: event.venue_name,
+  });
+
+  const ticketLabel =
+    ticketAction.kind === 'tickets'
+      ? t('eventDetail.viewTickets', 'Ver entradas')
+      : ticketAction.kind === 'register'
+      ? t('eventDetail.register', 'Inscribirme')
+      : t('eventDetail.officialSite', 'Consultar en la web oficial');
+
+  /** External maps app when the location is verified; internal map otherwise. */
   const handleOpenMaps = () => {
+    if (directions) {
+      window.open(directions.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
     navigate(`/map?event=${event.id}`);
   };
 
