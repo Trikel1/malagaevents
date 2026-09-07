@@ -460,10 +460,12 @@ const EventDetailPage = () => {
         <Separator />
 
         {/* Description */}
-        <div>
-          <h2 className="font-semibold mb-2">{t('eventDetail.when')}</h2>
-          <p className="text-muted-foreground whitespace-pre-line">{event.description}</p>
-        </div>
+        {event.description && (
+          <div>
+            <h2 className="font-semibold mb-2">{t('eventDetail.description', 'Descripción')}</h2>
+            <p className="text-muted-foreground whitespace-pre-line">{event.description}</p>
+          </div>
+        )}
 
         {/* Additional Info */}
         {(event.age_restriction || event.accessibility_info || event.capacity_info) && (
