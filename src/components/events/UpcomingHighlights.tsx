@@ -1,8 +1,12 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { format, isToday, isTomorrow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { madridDayKey, formatMadrid, addDaysToKey } from '@/lib/madridTime';
+import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+
+const HIGHLIGHT_LOCALES: Record<string, Locale> = {
+  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
+};
 import { Sparkles, Pause, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EventImage from '@/components/events/EventImage';
@@ -144,19 +148,25 @@ interface HighlightCardProps {
 }
 
 const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = HIGHLIGHT_LOCALES[i18n.language] || es;
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
 
-  const dayBadge = isToday(startDate)
-    ? t('events.today', 'Hoy')
-    : isTomorrow(startDate)
-      ? t('events.tomorrow', 'Mañana')
-      : format(startDate, 'EEE d MMM', { locale: es });
+  // Always Europe/Madrid, never the device timezone.
+  const eventKey = madridDayKey(startDate);
+  const todayKey = madridDayKey();
+  const dayBadge =
+    eventKey === todayKey
+      ? t('events.today', 'Hoy')
+      : eventKey === addDaysToKey(todayKey, 1)
+        ? t('events.tomorrow', 'Mañana')
+        : formatMadrid(startDate, 'EEE d MMM', locale);
 
   const timeLabel = showTime
-    ? format(startDate, 'HH:mm', { locale: es })
+    ? formatMadrid(startDate, 'HH:mm', locale)
     : t('events.timeTBC', 'Hora por confirmar');
+
 
   const title = sanitizeText(event.title) || t('events.untitled', 'Sin título');
   const venue = sanitizeText(event.venue?.name || event.venue_name || '') || null;
