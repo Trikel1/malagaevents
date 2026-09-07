@@ -152,7 +152,11 @@ const SportEventDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-28">
-      <SEO title={`${title} | Deportes Málaga`} description={`${title} — ${event.venue_name}, ${event.city}.`} />
+      <SEO
+        title={`${title} | Deportes Málaga`}
+        description={`${title} — ${event.venue_name}, ${event.city}.`}
+        path={`/sports/${event.id}`}
+      />
 
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur px-3 py-2">
         <Button
