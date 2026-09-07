@@ -128,7 +128,9 @@ export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
             sourceDate: prev,
             requestedDate: dateStr,
             isPreviousDay: true,
-            hasProvinceDataForDate: false,
+            // Rows do exist for the day we are showing — just maybe not in the
+            // municipality the user picked, which is a different message.
+            hasProvinceDataForDate: true,
           };
         }
       }

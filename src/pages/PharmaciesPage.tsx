@@ -729,7 +729,9 @@ const PharmaciesPage = () => {
                 <span className="text-xs text-muted-foreground">
                   {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
                   {!isLoadingDuty && dutyPharmacies.length > 0 && (
-                    <> · {t('pharmacies.dutyCount', { defaultValue: '{{count}} guardias', count: dutyPharmacies.length })}</>
+                    <> · {dutyPharmacies.length === 1
+                        ? t('pharmacies.dutyCountOne', '1 farmacia de guardia')
+                        : t('pharmacies.dutyCount', { defaultValue: '{{count}} farmacias de guardia', count: dutyPharmacies.length })}</>
                   )}
                 </span>
               </div>
