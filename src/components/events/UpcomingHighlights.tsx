@@ -143,19 +143,25 @@ interface HighlightCardProps {
 }
 
 const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
 
-  const dayBadge = isToday(startDate)
-    ? t('events.today', 'Hoy')
-    : isTomorrow(startDate)
-      ? t('events.tomorrow', 'Mañana')
-      : format(startDate, 'EEE d MMM', { locale: es });
+  // Always Europe/Madrid, never the device timezone.
+  const eventKey = madridDayKey(startDate);
+  const todayKey = madridDayKey();
+  const dayBadge =
+    eventKey === todayKey
+      ? t('events.today', 'Hoy')
+      : eventKey === addDaysToKey(todayKey, 1)
+        ? t('events.tomorrow', 'Mañana')
+        : formatMadrid(startDate, 'EEE d MMM', locale);
 
   const timeLabel = showTime
-    ? format(startDate, 'HH:mm', { locale: es })
+    ? formatMadrid(startDate, 'HH:mm', locale)
     : t('events.timeTBC', 'Hora por confirmar');
+
 
   const title = sanitizeText(event.title) || t('events.untitled', 'Sin título');
   const venue = sanitizeText(event.venue?.name || event.venue_name || '') || null;
