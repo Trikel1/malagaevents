@@ -15,6 +15,13 @@
       "when": 1788812457099,
       "tag": "0001_repair_verified_source_entrypoints",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788817733722,
+      "tag": "0002_create_sports_favorites",
+      "breakpoints": true
     }
   ]
 }
