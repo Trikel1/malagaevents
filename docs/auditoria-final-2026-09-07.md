@@ -169,3 +169,63 @@ Recomendación (no aplicada, requiere cambio de registro en backend): apuntar `u
 3. Migración de Unicaja al adaptador ICS (verificada la viabilidad, no aplicada ni ejecutada).
 4. Verificación de `cultura.malaga.eu` pendiente.
 5. Pruebas reales de 200 %, RTL y temas pendientes en navegador.
+
+## Corrección de clasificación deportiva (QA independiente, 2026-09-07)
+
+### Defecto probado
+`status = 'confirmed' AND is_in_malaga_province = true` no basta para publicar
+una fila como plan deportivo verificado. En datos reales había:
+
+- contenido artístico o religioso con `sport_category = 'other'`
+  («Espectáculo Ronda Flamenca», conciertos homenaje, procesiones);
+- partidos **fuera de casa** anclados a Málaga por la columna `city`
+  («Celta vs Málaga CF» con `venue_name = 'Estadio La Rosaleda'` o
+  `'LaLiga Málaga CF'`), incluidos Getafe y Alavés;
+- recintos marcador (`Not specified`, `No data available`, `N/A`);
+- horas inventadas: fechas sin hora guardadas como medianoche UTC se
+  mostraban como «02:00» en horario de Madrid.
+
+### Regla aplicada (`src/lib/sportsEligibility.ts`)
+Evidencia positiva, sin listas negras de estadios:
+
+1. **Disciplina**: categoría explícita, o término deportivo con límite de
+   palabra en título/competición. `unicaja` por sí solo nunca implica
+   baloncesto; `trialbici` es ciclismo, no motor; una concentración de Vespas
+   se describe como concentración, no como competición.
+2. **Contenido no deportivo**: léxico artístico/religioso descarta la fila
+   salvo señal deportiva explícita (una carrera solidaria sigue siendo carrera).
+3. **Procedencia**: sin `source_url`/`canonical_url` no se publica.
+4. **Partido fuera de casa**: se parte «A - B»/«A vs B»; si el club local es el
+   visitante, nunca es local, diga lo que diga `city`.
+5. **Localidad en dos niveles**:
+   - `verified`: recinto o dirección nombra un municipio de la provincia
+     (catálogo `localitiesCatalog`);
+   - `provisional`: solo lo sostiene `city` y el recinto no es marcador →
+     se publica marcado `needs_review`, nunca como verificado;
+   - resto: omitido.
+
+### Impacto medido (lectura, 1 000 filas futuras `scheduled`)
+`eligibles 569` (93 verificadas + 476 provisionales), `omitidas 431`:
+`away_fixture 315`, `locality_unverified 94`, `unknown_discipline 22`,
+`non_sport_content 0` en esa muestra (sí en las `confirmed`).
+
+### Puntos de aplicación
+- `src/hooks/useSportsEvents.ts` (listado, calendario y mapa deportivos).
+- `src/lib/sportsAgendaMerge.ts` (agenda y recomendaciones de Inicio):
+  disciplina, tipo de entidad (`match`/`tournament`/`activity`) y municipio
+  derivados del veredicto; medianoche UTC → hora desconocida.
+- `src/hooks/useSportsAgenda.ts`: los filtros de deporte y tipo de las filas
+  sincronizadas se aplican tras normalizar, no en SQL.
+
+### Pruebas
+`src/lib/sportsEligibility.test.ts` (16 casos con fixtures reales) y casos
+añadidos en `src/lib/sportsAgendaMerge.test.ts`. Batería completa: 263 pruebas
+en verde. Verificación visual real en navegador (390×1400): la agenda muestra
+Montañismo/Motor/Atletismo/Ciclismo con tipo correcto y sin horas inventadas.
+
+### No corregido en este pase
+La clasificación en los adaptadores de ingesta (`supabase/functions/_shared/
+sports-sync`) sigue escribiendo `sport_category = 'other'` y recintos marcador;
+la corrección se aplica en lectura. Los duplicados masivos del mismo partido
+(hasta 12 filas) tampoco se han deduplicado: requiere cambio de ingesta y
+limpieza de datos, fuera del alcance de solo lectura de este pase.

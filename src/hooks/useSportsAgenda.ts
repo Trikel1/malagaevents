@@ -82,13 +82,13 @@ async function fetchAgenda(filters: AgendaFilters): Promise<SportsEntity[]> {
 
   if (filters.sport && filters.sport !== 'all') {
     q = q.eq('sport', filters.sport);
-    s = s.eq('sport_category', filters.sport);
   }
   if (filters.type && filters.type !== 'all') {
     q = q.eq('entity_type', filters.type);
-    // Synced rows are all fixtures; drop them for the other type filters.
-    if (filters.type !== 'match') s = null;
   }
+  // Synced rows get their discipline and entity type from the shared
+  // eligibility rules (the stored `sport_category` is often "other"), so those
+  // two filters are applied after normalization instead of in SQL.
 
   const [curatedRes, syncedRes] = await Promise.all([q, s ?? Promise.resolve({ data: [], error: null })]);
   if (curatedRes.error) throw curatedRes.error;
@@ -98,10 +98,13 @@ async function fetchAgenda(filters: AgendaFilters): Promise<SportsEntity[]> {
   const syncedRows = syncedRes?.error ? [] : ((syncedRes?.data ?? []) as SportsEventRow[]);
   const synced = syncedRows
     .map(toAgendaEntity)
-    .filter((e): e is SportsEntity => e !== null);
+    .filter((e): e is SportsEntity => e !== null)
+    .filter((e) => (filters.sport && filters.sport !== 'all' ? e.sport === filters.sport : true))
+    .filter((e) => (filters.type && filters.type !== 'all' ? e.entity_type === filters.type : true));
 
   return sortAgenda(mergeAgenda(curated, synced), ascending);
 }
+
 
 
 export function useSportsAgenda(filters: AgendaFilters) {

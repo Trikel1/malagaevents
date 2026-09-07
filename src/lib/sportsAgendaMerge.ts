@@ -11,6 +11,8 @@
 
 import { formatInTimeZone } from 'date-fns-tz';
 import type { SportsEntity } from '@/types/sportsEntities';
+import { evaluateSportsEligibility } from './sportsEligibility';
+
 
 export const MADRID_TZ = 'Europe/Madrid';
 
@@ -49,26 +51,45 @@ function madridParts(iso: string | null | undefined) {
   if (!iso) return { date: null as string | null, time: null as string | null };
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return { date: null, time: null };
+  // Audit 2026-09-07: many scraped rows carry a date with no real time and are
+  // stored as UTC midnight, which used to render as "02:00" in Madrid — an
+  // invented start time. Treat UTC midnight as "time unknown".
+  const isMidnightUtc = /T00:00(:00)?(\.000)?Z?$/.test(iso.replace('+00:00', 'Z'));
   return {
     date: formatInTimeZone(d, MADRID_TZ, 'yyyy-MM-dd'),
-    time: formatInTimeZone(d, MADRID_TZ, 'HH:mm:ss'),
+    time: isMidnightUtc ? null : formatInTimeZone(d, MADRID_TZ, 'HH:mm:ss'),
   };
+}
+
+/** Map the eligibility verdict onto the agenda's entity types. */
+function entityTypeFor(row: SportsEventRow, kind: string): 'match' | 'tournament' | 'activity' {
+  const text = `${row.title ?? ''} ${row.competition ?? ''}`.toLowerCase();
+  if (kind === 'race' || kind === 'meet' || kind === 'outdoor') return 'activity';
+  if (/(campeonato|torneo|liga|circuito|copa)/.test(text)) return 'tournament';
+  if (/\s(-|–|vs\.?)\s/i.test(row.title ?? '')) return 'match';
+  return 'activity';
 }
 
 /** Normalize one synced row into the agenda entity shape. */
 export function toAgendaEntity(row: SportsEventRow): SportsEntity | null {
   if (!hasVerifiableProvenance(row)) return null;
+  // Audit 2026-09-07: provenance alone let arts/religious content and away
+  // fixtures reach the sports agenda. Apply the shared eligibility rules and
+  // never label a locality as verified without venue/address evidence.
+  const verdict = evaluateSportsEligibility(row);
+  if (!verdict.eligible) return null;
   const start = madridParts(row.start_datetime);
+
   if (!start.date) return null;
   const end = madridParts(row.end_datetime);
 
   return {
     id: `se-${row.id}`,
-    entity_type: 'match',
+    entity_type: entityTypeFor(row, verdict.kind),
     name: row.title as string,
-    sport: row.sport_category ?? null,
-    discipline: row.sport_subcategory ?? row.competition ?? null,
-    city: row.city ?? null,
+    sport: verdict.discipline ?? row.sport_category ?? null,
+    discipline: verdict.disciplineDetail ?? row.sport_subcategory ?? row.competition ?? null,
+    city: verdict.municipality ?? row.city ?? null,
     district: null,
     address: row.address ?? null,
     latitude: null,
@@ -78,6 +99,7 @@ export function toAgendaEntity(row: SportsEventRow): SportsEntity | null {
     time_start: start.time,
     time_end: end.time,
     organizer: row.organizer_name ?? null,
+
     official_url: row.canonical_url ?? row.source_url ?? null,
     registration_url: row.registration_url ?? row.tickets_url ?? null,
     contact: null,
@@ -87,7 +109,7 @@ export function toAgendaEntity(row: SportsEventRow): SportsEntity | null {
     source_name: row.source_name ?? null,
     source_url: row.source_url ?? row.canonical_url ?? null,
     source_last_checked: row.last_seen_at ?? null,
-    status: 'verified',
+    status: verdict.tier === 'verified' ? 'verified' : 'needs_review',
     notes: row.venue_name ?? null,
     tags: null,
     created_at: row.created_at ?? new Date().toISOString(),
