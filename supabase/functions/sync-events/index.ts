@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
-import { parseSpanishDateToMadrid, madridWallTimeToDate } from '../_shared/ingestion/dates.ts';
+import { parseSpanishDateToMadrid } from '../_shared/ingestion/dates.ts';
+import { parseSpanishDate } from './parse-date.ts';
 import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
 
 // ============================================================================
