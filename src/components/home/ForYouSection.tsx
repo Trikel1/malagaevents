@@ -161,26 +161,7 @@ const ForYouSection = () => {
         </div>
       )}
 
-      {interestsLoading ? (
-        <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
-          {[1, 2].map((i) => (
-            <EventCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : interests.length === 0 ? (
-        <div className="glass-card p-5">
-          <p className="text-sm font-medium text-foreground">{t('home.forYou.emptyTitle')}</p>
-          <p className="text-sm text-muted-foreground mt-1">{t('home.forYou.emptyHelp')}</p>
-          <div className="flex flex-wrap gap-2 mt-3">
-            <Button className="h-11 px-5 font-semibold" onClick={() => setPickerOpen(true)}>
-              {t('home.forYou.chooseInterests')}
-            </Button>
-            <Button variant="outline" className="h-11 px-5" onClick={() => navigate('/events')}>
-              {t('home.forYou.browseAll')} <ChevronRight className="h-4 w-4 ml-1" aria-hidden />
-            </Button>
-          </div>
-        </div>
-      ) : isLoading ? (
+      {interestsLoading || isLoading ? (
         <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
           {[1, 2].map((i) => (
             <EventCardSkeleton key={i} />
@@ -205,25 +186,45 @@ const ForYouSection = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
-          {recommendations.map((rec) => (
-            <div key={rec.id} className="flex flex-col gap-1.5">
-              {rec.kind === 'culture' ? (
-                <EventCard
-                  event={rec.event}
-                  dense
-                  isFavorite={isFavorite(rec.event.id)}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              ) : (
-                <SportsRecommendationCard entity={rec.entity} />
+        <>
+          {isStarter && (
+            <p className="text-[12.5px] text-muted-foreground mb-2.5">
+              {t(
+                'home.forYou.starterNote',
+                'Selección variada de los próximos planes. Elige tus gustos y la ajustamos a ti.',
               )}
-              {reason(rec.reasonInterestId) && (
-                <p className="text-[11.5px] text-muted-foreground px-1">{reason(rec.reasonInterestId)}</p>
-              )}
+            </p>
+          )}
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
+            {recommendations.map((rec) => (
+              <div key={rec.id} className="flex flex-col gap-1.5">
+                {rec.kind === 'culture' ? (
+                  <EventCard
+                    event={rec.event}
+                    dense
+                    isFavorite={isFavorite(rec.event.id)}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ) : (
+                  <SportsRecommendationCard entity={rec.entity} />
+                )}
+                {reason(rec.reasonInterestId) && (
+                  <p className="text-[11.5px] text-muted-foreground px-1">{reason(rec.reasonInterestId)}</p>
+                )}
+              </div>
+            ))}
+          </div>
+          {isStarter && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Button className="h-11 px-5 font-semibold" onClick={() => setPickerOpen(true)}>
+                {t('home.forYou.chooseInterests')}
+              </Button>
+              <Button variant="outline" className="h-11 px-5" onClick={() => navigate('/events')}>
+                {t('home.forYou.browseAll')} <ChevronRight className="h-4 w-4 ml-1" aria-hidden />
+              </Button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {importConflict && (
