@@ -378,7 +378,11 @@
     "seeOnMap": "See on the map",
     "locationExact": "Verified location.",
     "locationAddress": "Directions based on the published address.",
-    "locationPending": "Location pending confirmation: we cannot give directions."
+    "locationPending": "Location pending confirmation: we cannot give directions.",
+    "officialSiteShort": "Official website",
+    "ticketsOnSite": "Access and availability on the organiser's website.",
+    "onlineNote": "Online activity: there is no physical venue.",
+    "online": "Online"
   },
   "calendar": {
     "title": "Calendar",
