@@ -13,7 +13,8 @@ const baseRow: SportsEventRow = {
   title: 'Unicaja - Real Madrid',
   sport_category: 'baloncesto',
   start_datetime: '2026-10-04T18:30:00Z',
-  venue_name: 'Martín Carpena',
+  venue_name: 'Palacio de Deportes Martín Carpena',
+  address: 'Calle Royal Tennis Club 13, Málaga',
   city: 'Málaga',
   source_url: 'https://example.org/partido',
   status: 'confirmed',
@@ -74,6 +75,16 @@ describe('toAgendaEntity', () => {
     expect(e.time_start).toBe('20:30:00'); // CEST = UTC+2
     expect(e.status).toBe('verified');
     expect(e.id).toBe('se-a1');
+  });
+
+  it('labels city-only locality evidence as needs_review', () => {
+    const e = toAgendaEntity({ ...baseRow, address: null, venue_name: 'Pabellón Ciudad Jardín' })!;
+    expect(e.status).toBe('needs_review');
+  });
+
+  it('drops arts content and away fixtures', () => {
+    expect(toAgendaEntity({ ...baseRow, title: 'Concierto homenaje', sport_category: 'other' })).toBeNull();
+    expect(toAgendaEntity({ ...baseRow, title: 'Celta - Málaga CF' })).toBeNull();
   });
 
   it('returns null for unusable rows', () => {
