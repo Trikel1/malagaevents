@@ -487,23 +487,16 @@ export async function authorizeAdminRequest(
   if (!url || !anonKey) return { authorized: false, reason: 'Server not configured' };
 
   try {
-    const createClient =
-      deps.createClient ??
-      ((u: string, k: string, o: Record<string, unknown>) =>
-        // deno-lint-ignore no-explicit-any
-        (globalThis as any).__supabaseCreateClient?.(u, k, o));
-    let client = createClient(url, anonKey, {
+    const options = {
       global: { headers: { Authorization: `Bearer ${token}` } },
       auth: { persistSession: false },
-    });
+    };
+    let client = deps.createClient?.(url, anonKey, options);
     if (!client) {
       const mod = await import('npm:@supabase/supabase-js@2');
-      client = mod.createClient(url, anonKey, {
-        global: { headers: { Authorization: `Bearer ${token}` } },
-        auth: { persistSession: false },
-        // deno-lint-ignore no-explicit-any
-      }) as any;
+      client = mod.createClient(url, anonKey, options) as unknown as NonNullable<typeof client>;
     }
+
     const { data: userData, error: userError } = await client.auth.getUser();
     if (userError || !userData?.user) {
       return { authorized: false, reason: 'Invalid session' };
