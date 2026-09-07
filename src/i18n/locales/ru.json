@@ -200,7 +200,14 @@
     },
     "cityProvince": {
       "title": "Малага: город и провинция",
-      "subtitle": "Планы в столице, Коста-дель-Соль, Ахаркии и внутри провинции."
+      "subtitle": "Планы в столице, Коста-дель-Соль, Ахаркии и внутри провинции.",
+      "capital": "Город Малага",
+      "capitalHelp": "Планы в городе",
+      "province": "Остальная провинция",
+      "provinceHelp": "Выберите муниципалитет",
+      "selectLabel": "Муниципалитет",
+      "selectPlaceholder": "Выберите муниципалитет…",
+      "go": "Смотреть планы"
     },
     "culture": {
       "title": "Живая культура",
@@ -308,7 +315,8 @@
       "errorHelp": "Please try again in a moment.",
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda"
+      "browseAll": "Browse the full agenda",
+      "starterNote": "Разнообразная подборка ближайших планов. Выберите интересы — и мы её подстроим."
     }
   },
   "events": {

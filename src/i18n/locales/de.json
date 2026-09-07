@@ -200,7 +200,14 @@
     },
     "cityProvince": {
       "title": "Málaga Stadt und Provinz",
-      "subtitle": "Entdecke Pläne in der Hauptstadt, an der Costa del Sol, in der Axarquía und im Inland."
+      "subtitle": "Entdecke Pläne in der Hauptstadt, an der Costa del Sol, in der Axarquía und im Inland.",
+      "capital": "Stadt Málaga",
+      "capitalHelp": "Pläne in der Stadt",
+      "province": "Übrige Provinz",
+      "provinceHelp": "Wählen Sie Ihre Gemeinde",
+      "selectLabel": "Gemeinde",
+      "selectPlaceholder": "Gemeinde wählen…",
+      "go": "Pläne ansehen"
     },
     "culture": {
       "title": "Lebendige Kultur",
@@ -308,7 +315,8 @@
       "errorHelp": "Please try again in a moment.",
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda"
+      "browseAll": "Browse the full agenda",
+      "starterNote": "Eine bunte Auswahl kommender Pläne. Wählen Sie Ihre Interessen, dann passen wir sie an."
     }
   },
   "events": {

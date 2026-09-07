@@ -200,7 +200,14 @@
     },
     "cityProvince": {
       "title": "Málaga city and province",
-      "subtitle": "Discover plans in the capital, Costa del Sol, Axarquía and the interior."
+      "subtitle": "Discover plans in the capital, Costa del Sol, Axarquía and the interior.",
+      "capital": "Málaga city",
+      "capitalHelp": "Plans in the city",
+      "province": "Rest of the province",
+      "provinceHelp": "Choose your town",
+      "selectLabel": "Town",
+      "selectPlaceholder": "Choose a town…",
+      "go": "See plans"
     },
     "culture": {
       "title": "Living culture",
@@ -308,7 +315,8 @@
       "errorHelp": "Please try again in a moment.",
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda"
+      "browseAll": "Browse the full agenda",
+      "starterNote": "A varied pick of upcoming plans. Choose your interests and we will tailor it."
     }
   },
   "events": {

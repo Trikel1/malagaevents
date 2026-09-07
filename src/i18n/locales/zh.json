@@ -200,7 +200,14 @@
     },
     "cityProvince": {
       "title": "马拉加市与省份",
-      "subtitle": "探索首府、太阳海岸、阿哈基亚与内陆的活动。"
+      "subtitle": "探索首府、太阳海岸、阿哈基亚与内陆的活动。",
+      "capital": "马拉加市区",
+      "capitalHelp": "市区活动",
+      "province": "省内其他城镇",
+      "provinceHelp": "选择你的城镇",
+      "selectLabel": "城镇",
+      "selectPlaceholder": "选择城镇…",
+      "go": "查看活动"
     },
     "culture": {
       "title": "活力文化",
@@ -308,7 +315,8 @@
       "errorHelp": "Please try again in a moment.",
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda"
+      "browseAll": "Browse the full agenda",
+      "starterNote": "即将举行活动的多样精选。选择你的兴趣，我们会为你调整。"
     }
   },
   "events": {

@@ -24,7 +24,11 @@ const MainLayout = () => {
    * such as /map, /calendar or /pharmacies keep the global theme untouched.
    */
   const SPORTS_ROUTES = ['home', 'events', 'venues'];
-  const isSportsSection = appMode === 'deportes' && SPORTS_ROUTES.includes(routeKey);
+  // `/sports` always belongs to Deportes, even on a first visit where the
+  // persisted mode is still `eventos` (otherwise the dark hero never loads and
+  // its light-on-dark text renders white on white).
+  const isSportsSection =
+    routeKey === 'sports' || (appMode === 'deportes' && SPORTS_ROUTES.includes(routeKey));
 
   // Route-change focus management: move focus to the top of the new page so
   // screen-reader and keyboard users are not left at the bottom nav. Skipped on
