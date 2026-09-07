@@ -471,3 +471,58 @@ Evidencia real ejecutada tras los cambios: `bunx tsgo --noEmit` sin errores, `bu
 Capturas con datos reales asentados: `docs/audit-preview/home-375.png`, `home-1440.png`, `intereses-375.png`.
 
 Limitaciones que siguen sin resolver y no se ocultan: los eventos cuya fuente solo publica el día se muestran como «02:00» en la ficha; el calendario del Unicaja no trae recinto y por eso sus partidos siguen sin aparecer; UMA `contenedorcultural` responde 200 pero el extractor no reconoce estructura de eventos; 21 direcciones siguen sin poder comprobarse, 11 dan 404, 7 bloqueadas por sus reglas y 3 dan 403. El frontend no se ha publicado.
+
+## Fase 11 — Fechas inventadas en la ingesta cultural heredada (sync-events)
+
+Hallazgo confirmado: `supabase/functions/sync-events/index.ts` tenía su propio
+`parseSpanishDate`, por lo que la corrección de `_shared/ingestion/dates.ts`
+(fase 9) no afectaba a la ingesta en producción.
+
+Corregido en código y desplegado (`sync-events`, conservando la guarda de fase 7
+y las credenciales de cron existentes):
+
+- El parser heredado delega ahora en el helper estricto Europe/Madrid.
+- Nuevo `_shared/ingestion/occurrences.ts`: resuelve las fechas publicadas
+  **antes** de cualquier escritura (evento, recinto o localidad).
+- Eliminado el `start_at: new Date()` de reserva. Si ninguna ocurrencia es
+  utilizable, el evento se omite y se registra el motivo; si alguna lo es, se
+  usa la primera ocurrencia real.
+- Eliminadas las horas fijas inventadas (20:00 del parser, 21:00 de tres
+  adaptadores de reserva). Fecha sin hora = hora desconocida (medianoche UTC
+  como sentinela), nunca una hora fabricada.
+- `extractJsonLdEvents` conserva el valor íntegro de `startDate` (offset o Z
+  incluidos) en vez de partirlo en fecha + HH:mm.
+- Suprimido el salto implícito al año siguiente (La Garrapata) cuando la fuente
+  no publica año: se rechaza la fecha.
+- Fechas imposibles (30/02) y horas corruptas (25:00) se rechazan, no se
+  reparan.
+- Un `end` anterior o igual al `start` no se persiste.
+- `_shared/adapters/ayto-malaga-csv.ts`: `normaliseIso` ya no usa `new Date()`
+  (que en el runtime edge leía las horas sin zona como UTC, origen del caso
+  Olías 12/09/2026 22:00 almacenado como 22:00Z). Un intervalo inicio/fin sigue
+  siendo un único evento; no se generan dos eventos falsos ni se fusionan
+  sesiones genuinas.
+
+Regresiones: `src/test/legacy-cultural-ingestion-dates.test.ts` (13 pruebas)
+cubre Olías 22:00 → 20:00Z, offset de invierno, UTC y offset explícitos, fechas
+imposibles, ausencia de hora, primera ocurrencia inválida con otra válida
+posterior y cero escrituras cuando todo es inválido. Totales: tipos limpios,
+316 pruebas en verde, build correcto.
+
+### Datos históricos: NO reparados
+
+No se ha ejecutado ninguna corrección masiva ni ningún borrado. Los registros
+ya almacenados con horas desplazadas o inventadas **siguen como están** y
+quedan aquí señalados con su evidencia:
+
+- Evento municipal de Olías del 12/09/2026: la fuente oficial publica 22:00
+  (hora de Málaga) y la base guarda `2026-09-12T22:00:00Z`, es decir dos horas
+  antes de lo real.
+- Cualquier registro cuya hora sea exactamente 20:00 o 21:00 local y proceda de
+  los adaptadores de reserva o del parser heredado es sospechoso de hora
+  fabricada; no es demostrable caso por caso sin volver a consultar cada ficha
+  oficial, así que no se declara reparado.
+
+El código desplegado corrige la ingesta a partir de la próxima ejecución
+programada. La reparación de lo ya almacenado requiere una verificación fuente
+a fuente que queda fuera de este encargo.
