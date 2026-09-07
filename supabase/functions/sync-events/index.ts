@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
+import { parseSpanishDateToMadrid, madridWallTimeToDate } from '../_shared/ingestion/dates.ts';
+import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
 
 // ============================================================================
 // SECURITY: Strict CORS + Security Headers
@@ -453,78 +455,57 @@ function normalizeVenue(venueRaw: string, defaultVenue: string): string {
   return VENUE_ALIASES[lower] || defaultVenue;
 }
 
+/**
+ * Legacy entry point kept for the existing extractors, now delegating to the
+ * strict shared Europe/Madrid helper.
+ *
+ * Rules (no exceptions):
+ * - never invent an hour: a source that only publishes a day yields the
+ *   "day known, hour unknown" sentinel (UTC midnight of that Madrid day);
+ * - never roll a date to the next year without the source stating the year:
+ *   an ambiguous dd/mm is rejected (null) so the caller skips and reports it;
+ * - an explicit offset or Z in the source is preserved as the real instant;
+ * - impossible dates and times (30/02, 25:00) are rejected, never wrapped.
+ */
+const ISO_WITH_EXPLICIT_ZONE =
+  /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})$/i;
+const DATE_TEXT_HAS_CLOCK = /\d{1,2}\s*[:h]\s*\d{2}/i;
+
+function parseClockText(timeText?: string): { hour: number; minute: number } | null {
+  if (!timeText) return null;
+  const match = timeText.match(/(\d{1,2})(?:[:.](\d{2}))?\s*h?/i);
+  if (!match) return null;
+  const hour = parseInt(match[1], 10);
+  const minute = match[2] ? parseInt(match[2], 10) : 0;
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  if (hour > 23 || minute > 59) return null;
+  return { hour, minute };
+}
+
 function parseSpanishDate(dateText: string, timeText?: string): Date | null {
   if (!dateText) return null;
-  
-  const months: Record<string, number> = {
-    'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
-    'julio': 6, 'agosto': 7, 'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11,
-    'ene': 0, 'feb': 1, 'mar': 2, 'abr': 3, 'may': 4, 'jun': 5,
-    'jul': 6, 'ago': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dic': 11,
-  };
-  
-  let hour = 20, minute = 0;
-  
-  if (timeText) {
-    // Accept HH:MM, HH.MM, "20h", "20 h", "20:00 h"
-    const timeMatch = timeText.match(/(\d{1,2})(?:[:\.](\d{2}))?\s*h?/i);
-    if (timeMatch) {
-      hour = parseInt(timeMatch[1]);
-      minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
-    }
-  }
-  
-  // ISO first (YYYY-MM-DD or full ISO)
-  const isoMatch = dateText.match(/(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{1,2}):(\d{2}))?/);
-  if (isoMatch) {
-    const h = isoMatch[4] ? parseInt(isoMatch[4]) : hour;
-    const m = isoMatch[5] ? parseInt(isoMatch[5]) : minute;
-    return new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]), h, m);
-  }
-  
-  const spanishMatch = dateText.match(/(\d{1,2})\s+(?:de\s+)?(\w+)(?:\s+(?:de\s+)?(\d{4}))?/i);
-  if (spanishMatch) {
-    const day = parseInt(spanishMatch[1]);
-    const monthStr = spanishMatch[2].toLowerCase();
-    const month = months[monthStr];
-    if (!isNaN(day) && month !== undefined) {
-      let year = spanishMatch[3] ? parseInt(spanishMatch[3]) : new Date().getFullYear();
-      const date = new Date(year, month, day, hour, minute);
-      if (date < new Date() && !spanishMatch[3]) {
-        date.setFullYear(year + 1);
-      }
-      return date;
-    }
-  }
-  
-  // DD/MM/YYYY or DD-MM-YYYY
-  const numericMatch = dateText.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
-  if (numericMatch) {
-    const day = parseInt(numericMatch[1]);
-    const month = parseInt(numericMatch[2]) - 1;
-    let year = parseInt(numericMatch[3]);
-    if (year < 100) year += 2000;
-    return new Date(year, month, day, hour, minute);
-  }
-  
-  // DD/MM only — infer year (next future occurrence)
-  const shortMatch = dateText.match(/^\s*(\d{1,2})[\/\-\.](\d{1,2})\b/);
-  if (shortMatch) {
-    const day = parseInt(shortMatch[1]);
-    const month = parseInt(shortMatch[2]) - 1;
-    if (day >= 1 && day <= 31 && month >= 0 && month <= 11) {
-      const now = new Date();
-      let year = now.getFullYear();
-      let date = new Date(year, month, day, hour, minute);
-      // If already past by more than 1 day, assume next year
-      if (date.getTime() < now.getTime() - 24 * 3600 * 1000) {
-        date = new Date(year + 1, month, day, hour, minute);
-      }
-      return date;
-    }
-  }
-  
-  return null;
+  const raw = String(dateText).trim();
+  if (!raw) return null;
+
+  const base = parseSpanishDateToMadrid(raw);
+  if (!base) return null;
+
+  // The source declared a real instant (Z or ±hh:mm): keep it untouched.
+  if (ISO_WITH_EXPLICIT_ZONE.test(raw)) return base;
+  // The clock travelled with the date text: already read as Madrid wall time.
+  if (DATE_TEXT_HAS_CLOCK.test(raw)) return base;
+
+  const clock = parseClockText(timeText);
+  // No hour anywhere: keep the unknown-hour sentinel rather than fabricate one.
+  if (!clock) return base;
+
+  return madridWallTimeToDate(
+    base.getUTCFullYear(),
+    base.getUTCMonth() + 1,
+    base.getUTCDate(),
+    clock.hour,
+    clock.minute,
+  );
 }
 
 /**
@@ -757,8 +738,9 @@ function extractJsonLdEvents(html: string, baseUrl: string): NormalizedEvent[] {
       const title = node.name || node.headline;
       const start = node.startDate;
       if (!title || !start) continue;
-      const date = String(start).split('T')[0];
-      const timeMatch = String(start).match(/T(\d{2}:\d{2})/);
+      // Keep the published value verbatim (offset/Z included); splitting it
+      // here used to throw away the real instant.
+      const date = String(start).trim();
       const venue = node.location?.name || undefined;
       const city = node.location?.address?.addressLocality || undefined;
       const img = Array.isArray(node.image) ? node.image[0] : (node.image?.url || node.image);
@@ -766,7 +748,7 @@ function extractJsonLdEvents(html: string, baseUrl: string): NormalizedEvent[] {
       out.push({
         title: cleanTitle(String(title)),
         description: node.description ? String(node.description).substring(0, 500) : undefined,
-        occurrences: [{ date, time: timeMatch?.[1] }],
+        occurrences: [{ date }],
         venue,
         city,
         image_url: typeof img === 'string' ? normalizeImageUrl(img, baseUrl) : undefined,
@@ -811,7 +793,7 @@ async function fetchParis15Cards(): Promise<DirectFetchResult> {
       const mm = String(month).padStart(2, '0');
       events.push({
         title: cleanTitle(titleHref[2]),
-        occurrences: [{ date: `${dd}/${mm}`, time: '21:00' }],
+        occurrences: [{ date: `${dd}/${mm}` }],
         venue: 'París 15',
         city: 'Málaga',
         ticket_url: ticketUrl || titleHref[1],
@@ -842,7 +824,7 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
       const year = m[3];
       events.push({
         title: cleanTitle(m[5]),
-        occurrences: [{ date: `${day}/${mm}/${year}`, time: '21:00' }],
+        occurrences: [{ date: `${day}/${mm}/${year}` }],
         venue: 'La Cochera Cabaret',
         city: 'Málaga',
         ticket_url: m[4],
@@ -875,7 +857,7 @@ async function fetchTrincheraRSS(): Promise<DirectFetchResult> {
       events.push({
         title: cleanTitle(dateMatch[3]),
         description: desc ? decodeHtmlEntities(desc).replace(/<[^>]*>/g, '').substring(0, 400) : undefined,
-        occurrences: [{ date: `${dd}/${mm}`, time: '21:00' }],
+        occurrences: [{ date: `${dd}/${mm}` }],
         venue: 'Sala Trinchera',
         city: 'Málaga',
         ticket_url: link,
@@ -1256,13 +1238,10 @@ function laGarrapataParseDetail(html: string, sourceUrl: string): NormalizedEven
       const monthName = mesM[1].toLowerCase()
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const month = LA_GARRAPATA_SPANISH_MONTHS[monthName];
-      if (month) {
-        let year = mesM[2] ? parseInt(mesM[2], 10) : new Date().getFullYear();
-        const candidate = new Date(year, month - 1, day);
-        // Infer next future occurrence if year missing and date already past
-        if (!mesM[2] && candidate.getTime() < Date.now() - 24 * 3600 * 1000) {
-          year += 1;
-        }
+      // Only accept the year when the source states it. Guessing "next year"
+      // for an already-past day invented dates that the venue never published.
+      if (month && mesM[2]) {
+        const year = parseInt(mesM[2], 10);
         date = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
       }
     }
@@ -1727,7 +1706,25 @@ async function upsertEventWithOccurrences(
   if (!title) {
     return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
   }
-  
+
+  // Resolve the published dates BEFORE touching the database: an event whose
+  // occurrences are all unusable must not create a venue, a location or a row
+  // with a fabricated start_at.
+  const resolution = resolveOccurrences(occurrences);
+  if (!resolution.earliest) {
+    logger.warn('persist', `Skipped (no usable date): ${title}`, {
+      skipped_occurrences: resolution.skipped,
+      reasons: resolution.reasons.slice(0, 3),
+    });
+    return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
+  }
+  if (resolution.skipped > 0) {
+    logger.warn('persist', `Partial dates for: ${title}`, {
+      skipped_occurrences: resolution.skipped,
+      reasons: resolution.reasons.slice(0, 3),
+    });
+  }
+
   const venueName = normalizeVenue(eventData.venue || '', source.default_venue);
   const locationName = eventData.city || source.default_location || 'Málaga';
   const eventType = determineEventType(title, eventData.description || '', source.event_type);
@@ -1793,14 +1790,14 @@ async function upsertEventWithOccurrences(
     isUpdated = true;
     logger.debug('persist', `Updated: ${title}`);
   } else {
-    const firstOccurrence = occurrences[0];
-    const startAt = parseSpanishDate(firstOccurrence?.date || '', firstOccurrence?.time);
-    
+    // Earliest occurrence the source actually published.
+    const startAt = resolution.earliest.start;
+
     const { data: newEvent, error } = await supabase
       .from('events')
       .insert({
         ...eventPayload,
-        start_at: startAt?.toISOString() || new Date().toISOString(),
+        start_at: startAt.toISOString(),
         address: `${venueName}, ${locationName}`,
       })
       .select('id')
@@ -1820,11 +1817,12 @@ async function upsertEventWithOccurrences(
   let occurrencesCreated = 0;
   const now = new Date();
   
-  for (const occ of occurrences) {
-    const startDatetime = parseSpanishDate(occ.date, occ.time);
-    if (!startDatetime || startDatetime < now) continue;
-    
-    const endDatetime = occ.end_time ? parseSpanishDate(occ.date, occ.end_time) : null;
+  for (const resolved of resolution.valid) {
+    const startDatetime = resolved.start;
+    if (startDatetime < now) continue;
+
+    // Already validated: an end before its start was discarded upstream.
+    const endDatetime = resolved.end;
     
     const { data: existingOcc } = await supabase
       .from('event_occurrences')
