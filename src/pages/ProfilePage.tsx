@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield, Palette } from 'lucide-react';
+import { User, Globe, LogOut, Bell, Ticket, PlusCircle, Shield, Palette, Heart } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +10,16 @@ import { ThemeSelector } from '@/components/theme/ThemeSelector';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import SEO from '@/components/common/SEO';
+import InterestPicker from '@/modules/interests/InterestPicker';
+import { useInterests } from '@/modules/interests/useInterests';
 
 const ProfilePage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading, signOut } = useAuthContext();
   const { data: isAdmin } = useIsAdmin();
+  const { interests } = useInterests();
+  const [interestsOpen, setInterestsOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
