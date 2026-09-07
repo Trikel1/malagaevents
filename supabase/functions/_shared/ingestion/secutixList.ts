@@ -30,9 +30,17 @@ const clean = (value: string): string =>
     .replace(/<[^>]*>/g, ' ')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
-    .replace(/[“”]/g, '"')
+    .replace(/&ldquo;|&rdquo;|&quot;|[“”]/g, '"')
+    .replace(/&oacute;/g, 'ó')
+    .replace(/&aacute;/g, 'á')
+    .replace(/&eacute;/g, 'é')
+    .replace(/&iacute;/g, 'í')
+    .replace(/&uacute;/g, 'ú')
+    .replace(/&ntilde;/g, 'ñ')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
     .replace(/\s+/g, ' ')
     .trim();
+
 
 /** "jueves 22 octubre 2026" -> 2026-10-22. Returns null when incomplete. */
 export function parseSpanishLongDate(text: string): string | null {
