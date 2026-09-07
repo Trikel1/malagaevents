@@ -322,76 +322,34 @@ const EventImage = ({
   }, [src, variant]);
 
   /**
-   * Editorial placeholder drawn with CSS + an existing icon. It is explicitly
-   * labelled as a category image so it can never be mistaken for the event's
-   * own poster, and it carries no photographic content.
+   * Editorial illustration shipped with the app. It is always labelled as such,
+   * so it can never be mistaken for the event's own poster.
    */
   const CategoryPlaceholder = () => {
     if (fallback) return <>{fallback}</>;
 
     const config = CATEGORY_FALLBACKS[resolvedEventType];
-    const IconComponent = config.icon;
-    const editorialImage = categoryImageFor(resolvedEventType);
-
-    // Preferred: an editorial image shipped with the app for this category.
-    if (editorialImage) {
-      return (
-        <div className="relative w-full h-full overflow-hidden">
-          <img
-            src={editorialImage}
-            alt={`${config.label} — imagen ilustrativa, no es el cartel oficial`}
-            loading={priority ? 'eager' : 'lazy'}
-            decoding="async"
-            className="w-full h-full object-cover"
-          />
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/5 to-transparent" />
-          {!isCompact && (
-            <span className="absolute bottom-1.5 right-1.5 rounded-full bg-background/75 px-2 py-0.5 text-[10px] font-medium text-foreground/75 backdrop-blur-sm">
-              Imagen ilustrativa
-            </span>
-          )}
-        </div>
-      );
-    }
+    const editorialImage = categoryImageFor(resolvedEventType, alt);
 
     return (
-      <div
-        role="img"
-        aria-label={`${config.label} — imagen ilustrativa, no es el cartel oficial`}
-        className={cn(
-          'relative w-full h-full overflow-hidden flex flex-col items-center justify-center',
-          'bg-gradient-to-br',
-          config.gradient
-        )}
-      >
-        {/* Sober geometry — brand palette, no imagery */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.18]"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(135deg, hsl(var(--primary)) 0 1px, transparent 1px 14px)',
-          }}
+      <div className="relative w-full h-full overflow-hidden">
+        <img
+          src={editorialImage}
+          alt={`${config.label} — imagen ilustrativa, no es el cartel oficial`}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          className="w-full h-full object-cover"
         />
-        <div
-          aria-hidden
-          className="absolute -right-8 -bottom-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl"
-        />
-        <IconComponent
-          className={cn('relative text-foreground/70 mb-1.5', isCompact ? 'h-7 w-7' : 'h-10 w-10')}
-          aria-hidden
-        />
-        <span className="relative text-[11px] font-semibold text-foreground/80 uppercase tracking-[0.16em]">
-          {config.label}
-        </span>
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/5 to-transparent" />
         {!isCompact && (
-          <span className="relative mt-1 text-[10.5px] font-medium text-foreground/60">
+          <span className="absolute bottom-1.5 right-1.5 rounded-full bg-background/75 px-2 py-0.5 text-[10px] font-medium text-foreground/75 backdrop-blur-sm">
             Imagen ilustrativa
           </span>
         )}
       </div>
     );
   };
+
 
 
   // Loading skeleton
