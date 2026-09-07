@@ -478,7 +478,7 @@ const PharmaciesPage = () => {
           <LocalitySelector value={municipality} onChange={setMunicipality} />
 
           {mode === 'duty' && (
-            <div className="grid grid-cols-[auto_1fr] gap-2 sm:grid-cols-[auto_1fr_auto]">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto] [&>*]:min-w-0">
               <Button
                 variant={isToday ? 'default' : 'outline'}
                 className="rounded-xl h-11 px-4"
@@ -491,11 +491,11 @@ const PharmaciesPage = () => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="rounded-xl h-11 w-full justify-start bg-card"
+                    className="rounded-xl h-11 w-full min-w-0 justify-start bg-card"
                     aria-label={t('pharmacies.pickDateAria', 'Elegir fecha de guardia')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-                    <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    <span className="block min-w-0 truncate text-left">
                       {formatInTimeZone(selectedDate, TIMEZONE, 'PPP', { locale })}
                     </span>
                   </Button>
@@ -515,7 +515,7 @@ const PharmaciesPage = () => {
               <Button
                 type="button"
                 variant={userLoc ? 'default' : 'outline'}
-                className="rounded-xl h-11 px-4 col-span-2 sm:col-span-1"
+                className="rounded-xl h-11 px-3 min-w-0 col-span-2 sm:col-span-1"
                 onClick={handleLocate}
                 disabled={locating}
                 aria-pressed={!!userLoc}
