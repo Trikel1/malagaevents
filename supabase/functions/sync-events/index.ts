@@ -2,6 +2,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 import { parseSpanishDate } from './parse-date.ts';
 import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
+import { fetchTribeEvents } from '../_shared/ingestion/tribeEvents.ts';
+
 
 // ============================================================================
 // SECURITY: Strict CORS + Security Headers
