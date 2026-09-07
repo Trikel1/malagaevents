@@ -508,7 +508,8 @@ Deno.serve(async (req) => {
           // Audit 2026-09-07: an unparseable date used to be replaced with
           // "in 7 days at 20:00", publishing a completely invented start time.
           // Unreadable dates are now discarded and counted instead.
-          const startAt = parseSpanishDate(event.date || '', event.time);
+          const parsedDate = parsePublishedDate(event.date || '', event.time);
+          const startAt = parsedDate.date;
           if (!startAt) {
             results.events_skipped++;
             results.dates_unparseable++;
@@ -523,26 +524,32 @@ Deno.serve(async (req) => {
             continue;
           }
           
-          // Generate dedupe key
-          const dedupeKey = generateDedupeKey(
-            cleanedTitle,
-            startAt.toISOString(),
+          // Stable identity: source id / event URL first, derived key otherwise.
+          const identity = buildEventIdentity({
+            sourceSlug: source.name,
+            externalId: (event as any).external_id ?? null,
+            eventUrl: (event as any).event_url ?? event.ticket_url ?? null,
+            sourceUrl: source.url,
+            title: cleanedTitle,
             venueNormalized,
             locationNormalized,
-            source.url
-          );
+            startAt: startAt.toISOString(),
+            hasExplicitTime: parsedDate.hasExplicitTime,
+          });
+          const dedupeKey = identity.key;
           
           // Check if event already exists
           const { data: existing } = await supabase
             .from('events')
             .select('id')
-            .eq('dedupe_key', dedupeKey)
+            .in('dedupe_key', identity.lookupKeys)
             .maybeSingle();
           
           if (existing) {
             results.events_skipped++;
             continue;
           }
+
           
           // Get or create venue
           const venue = await getOrCreateVenue(supabase, venueCanonical, locationRaw);
