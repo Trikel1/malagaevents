@@ -34,12 +34,10 @@ const ProfilePage = () => {
       to: '/submit-event',
       requiresAuth: false,
     },
-    {
-      icon: Bell,
-      label: t('profile.notifications'),
-      to: '/profile/notifications',
-      requiresAuth: true,
-    },
+    // Audit 2026-09-07: the notifications entry pointed to /profile/notifications,
+    // a route that does not exist and fell through to the 404 page. Removed
+    // until the preferences screen ships.
+
     ...(isAdmin ? [{
       icon: Shield,
       label: 'Panel de administración',

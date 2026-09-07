@@ -59,3 +59,42 @@ nuevas, sin publicación.
   accesibilidad; lo verificado son comprobaciones automatizadas (axe) y manuales.
 - Deriva de despliegue observada: el sitio publicado sirve una versión anterior
   del inicio. Se documenta; no se ha publicado nada en esta pasada.
+
+---
+
+# Fase 2 — Fiabilidad de ubicación, datos y autorización (2026-09-07)
+
+Autorizada por el propietario. Amplía el alcance a los hallazgos 1-8 descritos en
+la petición. **Sin publicar.** Sin cambios de esquema, RLS ni datos de producción.
+
+## Archivos e impacto
+
+| Archivo | Cambio | Rollback |
+|---|---|---|
+| `src/lib/venueCoords.ts` | Elimina el jitter inventado de ±2 km; sólo coincidencia exacta del catálogo, marcada como aproximada; validadores de coordenadas finitas y en rango | revertir archivo |
+| `src/lib/venueCoords.test.ts` (nuevo) | Pruebas de comportamiento: nunca inventa coordenadas | borrar |
+| `src/pages/MapPage.tsx` | Resolución de coordenadas por prioridad (evento → recinto unido → catálogo aprox.), separa puntos sin ubicación en "Ubicación pendiente" sin pin, arregla campos de deportes (`start_at`/`venue`/`city`), lee `event/venue/kind/lat/lng/q` validados | revertir archivo |
+| `src/hooks/useEvents.ts` | Proyecta `lat,lng,address` del evento | revertir línea |
+| `src/pages/ProfilePage.tsx` | Elimina destino roto `/profile/notifications` | revertir bloque |
+| `src/pages/MunicipalityAgendaPage.tsx` | Reconciliación por localidad exacta (slug = `location_normalized`), `lifecycle_status` nulo ya no excluye, estado de error honesto, "fuente oficial" sólo con `verified_at` | revertir archivo |
+| `src/hooks/useSportsAgenda.ts` | Une la agenda con `sports_events` `confirmed` con procedencia verificable | revertir archivo |
+| `src/lib/sportsAgendaMerge.ts` (+test, nuevo) | Normalización compartida del merge deportivo | borrar |
+| `supabase/functions/_shared/security.ts` | Origen publicado real + guard de autorización reutilizable | revertir |
+| `supabase/functions/{sync-events,scrape-events,discover-sources,scrape-pharmacies}/index.ts` | Guard **antes** de cualquier escritura, fetch externo o log de entrada | revertir |
+| `supabase/functions/scrape-pharmacies/index.ts` | `dryRun` con cero escrituras (incluido `app_config`); borrado sólo en barrido completo; validación de fecha y método | revertir |
+| `supabase/functions/scrape-events/index.ts` | Elimina la fecha inventada (+7 días a las 20:00); las fechas ilegibles se descartan y se contabilizan | revertir |
+| `supabase/functions/sync-events/index.ts` | Las fuentes con URL rechazada quedan fuera del bucle de proceso | revertir |
+| `supabase/functions/submit-event/index.ts` | Origen publicado, categorías alineadas con el frontend, `end_at >= start_at`, `captcha_passed: false` (no se finge verificación), logs sin email ni IP | revertir |
+
+## Impacto de base de datos
+
+Ninguno. No se ejecuta ingesta de pago, no se borran ni rellenan filas, no se
+tocan tablas, RLS ni secretos. Las cabeceras de los cron jobs **no** se han
+podido modificar: el rol de lectura del entorno no tiene permiso sobre el
+esquema `cron` (`permission denied for schema cron`), por lo que el endurecimiento
+de autorización queda **implementado pero sin desplegar** (ver informe final).
+
+## Rollback global
+
+Cada archivo es independiente; revertir los archivos listados restaura el
+comportamiento previo. No hay migraciones que deshacer.

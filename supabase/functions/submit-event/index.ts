@@ -5,6 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 // ============================================================================
 
 const ALLOWED_ORIGINS = [
+  'https://malagaevents.lovable.app',
   'https://id-preview--e27fc85d-8f7a-4dbf-a4f6-bc1aa35b0665.lovable.app',
   'https://lovable.dev',
   'http://localhost:5173',
@@ -111,10 +112,22 @@ interface EventSubmission {
   email: string;
 }
 
-// Allowed categories (strict enum validation)
+// Allowed categories (strict enum validation).
+// Audit 2026-09-07: must mirror EVENT_CATEGORIES in src/types/index.ts. The
+// previous list accepted categories the app cannot filter or display
+// (cinema, art, gastronomy, family, markets) and rejected ones the form
+// offers (exhibitions, kids), so valid submissions were refused.
 const ALLOWED_CATEGORIES = [
-  'music', 'theater', 'cinema', 'art', 'sports', 'gastronomy',
-  'festivals', 'family', 'nightlife', 'workshops', 'conferences', 'markets', 'other'
+  'music',
+  'theater',
+  'exhibitions',
+  'kids',
+  'sports',
+  'festivals',
+  'workshops',
+  'conferences',
+  'nightlife',
+  'other',
 ];
 
 // Email pattern (strict)
@@ -178,6 +191,10 @@ function validateSubmission(data: unknown): { valid: boolean; error?: string; sa
     end_at = sanitizeString(input.end_at);
     if (isNaN(Date.parse(end_at))) {
       return { valid: false, error: 'Invalid end date format' };
+    }
+    // An event cannot finish before it starts.
+    if (Date.parse(end_at) < Date.parse(start_at)) {
+      return { valid: false, error: 'End date must be after the start date' };
     }
   }
 
@@ -319,7 +336,8 @@ Deno.serve(async (req) => {
     const ipRateCheck = checkRateLimit(`ip:${clientIP}`);
 
     if (emailRateCheck.limited || ipRateCheck.limited) {
-      console.log('[WARN] Rate limited:', { email: data.email, ip: clientIP });
+      // Audit 2026-09-07: never log the submitter's email or IP.
+      console.log('[WARN] Rate limited submission');
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -390,7 +408,9 @@ Deno.serve(async (req) => {
         event_id: event.id,
         submitter_email: data.email,
         verification_token: verificationToken,
-        captcha_passed: true,
+        // Audit 2026-09-07: no captcha is verified server-side, so we must not
+        // record one as passed.
+        captcha_passed: false,
         email_verified: false,
       });
 

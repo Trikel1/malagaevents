@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 
 // ============================================================================
 // SECURITY: Strict CORS + Security Headers
@@ -2182,6 +2183,13 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(origin) });
   }
 
+  // Audit 2026-09-07: privileged endpoint (paid scraping + writes).
+  // Authorize before any logging, fetching or writing.
+  const auth = await authorizeAdminRequest(req);
+  if (!auth.authorized) {
+    return unauthorizedResponse(auth, getCorsHeaders(origin));
+  }
+
   const logger = new DiagnosticLogger();
   logger.setSource('main');
   logger.info('init', '=== STARTING SYNC ===');
@@ -2248,19 +2256,27 @@ Deno.serve(async (req) => {
 
     logger.info('init', `Found ${sources.length} sources: ${sources.map(s => s.name).join(', ')}`);
 
-    // Validate all source URLs before scraping (SSRF prevention)
-    for (const source of sources) {
+    // Validate all source URLs before scraping (SSRF prevention).
+    // Audit 2026-09-07: the previous loop only logged and `continue`d over
+    // itself, so a rejected URL was still scraped by the processing loop
+    // below. Rejected sources are now actually removed.
+    const safeSources = sources.filter((source) => {
       const url = source.chosen_entrypoint || `https://${source.domain}`;
       if (!isUrlAllowedForScraping(url)) {
         logger.warn('init', `Blocked source URL: ${url}`);
-        continue;
+        return false;
       }
+      return true;
+    });
+
+    if (safeSources.length !== sources.length) {
+      logger.warn('init', `${sources.length - safeSources.length} source(s) skipped by the URL allowlist`);
     }
 
     // Process each source independently
     const results: SyncSourceResult[] = [];
     
-    for (const source of sources) {
+    for (const source of safeSources) {
       const result = await syncSingleSource(source, firecrawlApiKey, supabase, logger);
       results.push(result);
       

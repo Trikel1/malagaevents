@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -167,6 +168,12 @@ async function discoverDomain(domain: string, apiKey: string): Promise<Discovery
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Audit 2026-09-07: privileged endpoint (paid discovery + writes).
+  const auth = await authorizeAdminRequest(req);
+  if (!auth.authorized) {
+    return unauthorizedResponse(auth, corsHeaders);
   }
 
   try {

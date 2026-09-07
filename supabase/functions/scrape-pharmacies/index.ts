@@ -1,5 +1,6 @@
 // scrape-pharmacies v2026-07-15b — province-wide ASP zones ingestion
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 import {
   parseOfficialGuardHtml,
   dedupeGuardRows,
@@ -192,6 +193,20 @@ function todayInMadrid(): string {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Audit 2026-09-07: privileged ingestion endpoint — authorize before any
+  // outbound request to the official portal and before any write.
+  const auth = await authorizeAdminRequest(req);
+  if (!auth.authorized) {
+    return unauthorizedResponse(auth, corsHeaders);
+  }
+
   try {
     const url = new URL(req.url);
     const params = url.searchParams;
@@ -199,7 +214,18 @@ Deno.serve(async (req) => {
     if (req.method === 'POST') {
       try { body = await req.json(); } catch { body = {}; }
     }
-    const dateISO = (params.get('date') || (body.date as string) || todayInMadrid()).slice(0, 10);
+    const rawDate = (params.get('date') || (body.date as string) || todayInMadrid()).slice(0, 10);
+    // Reject malformed or impossible dates instead of querying the portal with
+    // a garbage value and writing the result under a bogus key.
+    const dateISO = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && !Number.isNaN(Date.parse(rawDate))
+      ? rawDate
+      : null;
+    if (!dateISO) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid date, expected YYYY-MM-DD' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
     const zonesLimit = Number(params.get('zonesLimit') || body.zonesLimit || 0) || undefined;
     const onlyZoneId = params.get('zone') || (body.zone as string) || undefined;
     const dryRun = params.get('dryRun') === '1' || body.dryRun === true;
@@ -278,12 +304,21 @@ Deno.serve(async (req) => {
       results.status = 'official_data_available';
 
       if (!dryRun) {
-        // Only touch rows for the SPECIFIC target date; preserve everything else.
-        const { error: delErr } = await supabase
+        // Audit 2026-09-07: a partial sweep (single zone or zonesLimit) only
+        // knows about part of the province, so wiping the whole day would
+        // delete municipalities it never queried. Scope the delete to the
+        // municipalities actually collected in that case.
+        const partialSweep = Boolean(onlyZoneId || zonesLimit);
+        let del = supabase
           .from('pharmacies_guard')
           .delete()
           .eq('date_from', dateISO)
           .eq('date_to', dateISO);
+        if (partialSweep) {
+          const municipalities = Array.from(new Set(deduped.map((r) => r.municipality)));
+          del = del.in('municipality', municipalities);
+        }
+        const { error: delErr } = await del;
         if (delErr) results.errors.push(`delete_${delErr.message}`);
 
         const batchSize = 100;
@@ -316,9 +351,10 @@ Deno.serve(async (req) => {
       console.warn('[scrape-pharmacies] no verifiable rows, preserving existing DB state');
     }
 
-    // Persist sync status
+    // Persist sync status. A dry run must leave zero traces in the database,
+    // including this status row (audit 2026-09-07).
     try {
-      await supabase.from('app_config').upsert(
+      if (!dryRun) await supabase.from('app_config').upsert(
         {
           key: 'pharmacies_guard_last_sync',
           value: {
