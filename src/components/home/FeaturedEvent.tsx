@@ -29,7 +29,22 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
     onSelect?.(featured?.id ?? null);
   }, [featured?.id, onSelect]);
 
-  if (isLoading) return <EventCardSkeleton />;
+  // Compact placeholder: the old one reserved a full-width 21:9 block that
+  // pushed everything below the fold on a desktop screen.
+  if (isLoading) {
+    return (
+      <div className="glass-card overflow-hidden p-3 sm:p-4" aria-hidden>
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,320px)_1fr] md:items-center">
+          <div className="aspect-[16/9] w-full rounded-xl bg-muted animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+            <div className="h-5 w-3/4 rounded bg-muted animate-pulse" />
+            <div className="h-4 w-1/2 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (!featured) return null;
 
   const isToday =
