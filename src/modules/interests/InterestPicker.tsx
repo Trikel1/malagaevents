@@ -138,15 +138,18 @@ const InterestPicker = ({ open, onOpenChange }: InterestPickerProps) => {
           )}
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          {isGuest
-            ? storageBlocked
-              ? t('interests.deviceBlocked')
-              : t('interests.savedOnDevice')
-            : remoteFailed
-            ? t('interests.syncFailed')
-            : t('interests.syncedWithAccount')}
-        </p>
+        {/* Only claim a persisted state when something is actually committed. */}
+        {(interests.length > 0 || storageBlocked || remoteFailed) && (
+          <p className="text-xs text-muted-foreground">
+            {isGuest
+              ? storageBlocked
+                ? t('interests.deviceBlocked')
+                : t('interests.savedOnDevice')
+              : remoteFailed
+              ? t('interests.syncFailed')
+              : t('interests.syncedWithAccount')}
+          </p>
+        )}
 
         {(status === 'error' || saveFailed) && (
           <p className="flex items-start gap-2 text-sm text-destructive" role="alert">
