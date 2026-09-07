@@ -1728,12 +1728,14 @@ async function upsertEventWithOccurrences(
     });
   }
 
-  const venueName = normalizeVenue(eventData.venue || '', source.default_venue);
+  const venueName = normalizeVenue(eventData.venue, source.default_venue);
   const locationName = eventData.city || source.default_location || 'Málaga';
   const eventType = determineEventType(title, eventData.description || '', source.event_type);
-  
-  const venueId = await getOrCreateVenue(supabase, venueName, locationName);
+
+  // A venue is only registered when one was actually published.
+  const venueId = venueName ? await getOrCreateVenue(supabase, venueName, locationName) : null;
   const locationId = await getOrCreateLocation(supabase, locationName);
+
   
   const dedupeKey = generateDedupeKey(source.slug, title, venueName);
   
