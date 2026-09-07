@@ -103,7 +103,7 @@ const ForYouSection = () => {
   } = useInterests();
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const { recommendations, isLoading, isError } = useRecommendations(interests, 6);
+  const { recommendations, isStarter, isLoading, isError } = useRecommendations(interests, 6);
 
   const { data: favorites } = useFavorites();
   const toggleFavorite = useToggleFavorite();
