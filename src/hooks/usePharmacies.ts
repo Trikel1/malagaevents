@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Pharmacy } from '@/types';
 import { formatInTimeZone } from 'date-fns-tz';
+import { matchesMunicipality } from '@/lib/pharmacyMunicipality';
 
 const TIMEZONE = 'Europe/Madrid';
 
@@ -38,30 +39,107 @@ export interface PharmacyDirectory {
   updated_at: string;
 }
 
+export interface GuardRow extends Omit<Pharmacy, 'date_from' | 'date_to' | 'updated_at'> {
+  municipality?: string | null;
+  source_ref?: string | null;
+  date_from?: string;
+  date_to?: string;
+  updated_at?: string;
+}
+
+export interface DutyResult {
+  /** Duty rows from an official source, already filtered by municipality. */
+  rows: GuardRow[];
+  /** The calendar day (Europe/Madrid) the rows were published for. */
+  sourceDate: string;
+  /** The day the user asked for. */
+  requestedDate: string;
+  /**
+   * True when `rows` come from the previous calendar day because the source
+   * has not published the requested day yet. Shifts commonly run past
+   * midnight, so these are shown — clearly labelled, never as "today's".
+   */
+  isPreviousDay: boolean;
+  /** Official rows exist for that date, but none in the chosen municipality. */
+  hasProvinceDataForDate: boolean;
+}
+
+const previousDay = (iso: string): string => {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
+};
+
 // Get pharmacies on duty for a specific date (optionally filtered by municipality).
 // Returns ONLY rows that come from a verifiable official source. If no
 // official rows exist for that date+municipality, returns an empty list —
 // this app must never fabricate a duty rotation.
+//
+// The municipality filter is applied in memory through the shared catalog
+// matcher: the official portal spells towns without accents ("Velez-Malaga"),
+// so an SQL equality filter against the UI's display name silently returned
+// nothing. See src/lib/pharmacyMunicipality.ts.
 export const usePharmaciesOnDuty = (date: Date, municipality?: string) => {
   const dateStr = formatInTimeZone(date, TIMEZONE, 'yyyy-MM-dd');
+  const todayStr = formatInTimeZone(new Date(), TIMEZONE, 'yyyy-MM-dd');
+  const isToday = dateStr === todayStr;
 
   return useQuery({
-    queryKey: ['pharmacies', 'duty', dateStr, municipality ?? 'all'],
-    queryFn: async () => {
-      let q = supabase
-        .from('pharmacies_guard')
-        .select('*')
-        .lte('date_from', dateStr)
-        .gte('date_to', dateStr)
-        .order('name', { ascending: true });
-      if (municipality) q = q.eq('municipality', municipality);
+    queryKey: ['pharmacies', 'duty', dateStr, municipality ?? 'all', isToday],
+    queryFn: async (): Promise<DutyResult> => {
+      const fetchDay = async (day: string): Promise<GuardRow[]> => {
+        const { data, error } = await supabase
+          .from('pharmacies_guard')
+          .select('*')
+          .lte('date_from', day)
+          .gte('date_to', day)
+          .order('name', { ascending: true });
+        if (error) throw error;
+        // Client-side whitelist filter — defense in depth against any legacy
+        // row that might still be present in the table.
+        return ((data || []) as GuardRow[]).filter((r) => isOfficialGuardSource(r.source_ref));
+      };
 
-      const { data, error } = await q;
-      if (error) throw error;
-      const rows = (data || []) as (Pharmacy & { municipality?: string; source_ref?: string | null })[];
-      // Client-side whitelist filter — defense in depth against any legacy
-      // row that might still be present in the table.
-      return rows.filter((r) => isOfficialGuardSource(r.source_ref));
+      const byMunicipality = (rows: GuardRow[]) =>
+        municipality ? rows.filter((r) => matchesMunicipality(r.municipality, municipality)) : rows;
+
+      const sameDay = await fetchDay(dateStr);
+      if (sameDay.length > 0) {
+        return {
+          rows: byMunicipality(sameDay),
+          sourceDate: dateStr,
+          requestedDate: dateStr,
+          isPreviousDay: false,
+          hasProvinceDataForDate: true,
+        };
+      }
+
+      // Nothing published for the requested day. For *today* only, fall back to
+      // the previous day's published rota: the official sync runs in the early
+      // morning, so between midnight and the sync there is a real gap, and the
+      // shift on the street is still the previous day's. Never for past or
+      // future dates.
+      if (isToday) {
+        const prev = previousDay(dateStr);
+        const prevRows = await fetchDay(prev);
+        if (prevRows.length > 0) {
+          return {
+            rows: byMunicipality(prevRows),
+            sourceDate: prev,
+            requestedDate: dateStr,
+            isPreviousDay: true,
+            hasProvinceDataForDate: false,
+          };
+        }
+      }
+
+      return {
+        rows: [],
+        sourceDate: dateStr,
+        requestedDate: dateStr,
+        isPreviousDay: false,
+        hasProvinceDataForDate: false,
+      };
     },
   });
 };
@@ -97,6 +175,11 @@ export const usePharmacyGuardSyncStatus = () => {
 // Get all pharmacies from the province directory.
 // Paginates by 1000-row chunks to bypass Supabase's default row limit and return
 // the entire province directory when `municipality` is undefined.
+//
+// The municipality filter runs in memory through the shared catalog matcher:
+// pharmacies_directory holds accent variants of the same town ("Benalmadena"
+// / "Benalmádena") plus localities ("Torre del Mar", "Arroyo de la Miel"), so
+// an SQL equality filter dropped real rows.
 export const usePharmacyDirectory = (municipality?: string) => {
   return useQuery({
     queryKey: ['pharmacies', 'directory', municipality ?? '__all__'],
@@ -107,30 +190,16 @@ export const usePharmacyDirectory = (municipality?: string) => {
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        let query = (supabase as any)
+        const query = (supabase as any)
           .from('pharmacies_directory')
           .select('*')
           .order('municipality', { ascending: true })
           .order('name', { ascending: true })
           .range(from, from + PAGE - 1);
 
-        if (municipality) query = query.eq('municipality', municipality);
-
         const { data, error } = await query;
 
-        if (error) {
-          console.warn('pharmacies_directory query failed, falling back to pharmacies_guard:', error);
-          const { data: fallback, error: fbError } = await supabase
-            .from('pharmacies_guard')
-            .select('*')
-            .order('name', { ascending: true });
-          if (fbError) throw fbError;
-          const map = new Map<string, any>();
-          (fallback || []).forEach((p: any) => {
-            if (!map.has(p.name)) map.set(p.name, p);
-          });
-          return Array.from(map.values()) as PharmacyDirectory[];
-        }
+        if (error) throw error;
 
         const chunk = (data || []) as PharmacyDirectory[];
         all.push(...chunk);
@@ -138,7 +207,8 @@ export const usePharmacyDirectory = (municipality?: string) => {
         from += PAGE;
       }
 
-      return all;
+      if (!municipality) return all;
+      return all.filter((p) => matchesMunicipality(p.municipality, municipality));
     },
   });
 };
