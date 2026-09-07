@@ -387,30 +387,35 @@ const EventDetailPage = () => {
 
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button onClick={handleAddToCalendar} variant="outline" className="flex-1">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={handleAddToCalendar} variant="outline" className="flex-1 min-w-[9rem]">
             <Calendar className="h-4 w-4 mr-2" />
             {t('eventDetail.addToCalendar')}
           </Button>
-          {directions ? (
-            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
-              <Navigation className="h-4 w-4 mr-2" />
-              {t('eventDetail.howToGet')}
-            </Button>
-          ) : (
-            <Button onClick={handleOpenMaps} variant="outline" className="flex-1">
-              <MapPin className="h-4 w-4 mr-2" />
-              {t('eventDetail.seeOnMap', 'Ver en el mapa')}
-            </Button>
+          {!isOnline && (
+            directions ? (
+              <Button onClick={handleOpenMaps} variant="outline" className="flex-1 min-w-[9rem]">
+                <Navigation className="h-4 w-4 mr-2" />
+                {t('eventDetail.howToGet')}
+              </Button>
+            ) : (
+              <Button onClick={handleOpenMaps} variant="outline" className="flex-1 min-w-[9rem]">
+                <MapPin className="h-4 w-4 mr-2" />
+                {t('eventDetail.seeOnMap', 'Ver en el mapa')}
+              </Button>
+            )
           )}
         </div>
         <p className="-mt-4 text-xs text-muted-foreground">
-          {directions
+          {isOnline
+            ? t('eventDetail.onlineNote', 'Actividad online: no hay recinto físico.')
+            : directions
             ? directions.basis === 'coords'
               ? t('eventDetail.locationExact', 'Ubicación verificada.')
               : t('eventDetail.locationAddress', 'Indicaciones a partir de la dirección publicada.')
             : t('eventDetail.locationPending', 'Ubicación pendiente de confirmar: no podemos dar indicaciones.')}
         </p>
+
 
         {/* Entradas — acción real cuando la fuente publica un enlace */}
         <Card className="p-4">
@@ -419,14 +424,15 @@ const EventDetailPage = () => {
             {t('eventDetail.ticketInfoTitle', 'Información de entradas')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {event.is_free
-              ? t('common.free', 'Gratis')
-              : event.price_info
-              ? event.price_info
+            {event.is_free || event.price_info
+              ? ticketAction.url
+                ? t('eventDetail.ticketsOnSite', 'Acceso y disponibilidad en la web del organizador.')
+                : t('eventDetail.ticketPending', 'Enlace de entradas pendiente de confirmar.')
               : ticketAction.url
               ? t('eventDetail.priceOnSite', 'Precio y disponibilidad en la web del organizador.')
               : t('eventDetail.ticketsUnknown', 'No disponemos de información de entradas para este evento.')}
           </p>
+
 
           {ticketAction.url ? (
             <>
