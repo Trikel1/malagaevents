@@ -1,7 +1,7 @@
 
 import { lazy, Suspense, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Search, Calendar, Pill, ChevronRight, Sparkles, Baby,
   Music, Drama, PartyPopper, Building2, Trees, Users, Ticket, Map as MapIcon,
