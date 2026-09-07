@@ -1989,7 +1989,7 @@ async function syncSingleSource(
 
     
     // If main scrape failed or no events, try WordPress API fallback for sources that have it
-    if ((events.length === 0 || !scrapeResult.success) && config.alternativeEndpoint) {
+    if ((events.length === 0 || !scrapeResult?.success) && config.alternativeEndpoint) {
       logger.info('scrape', `Trying WordPress API fallback: ${config.alternativeEndpoint}`);
       
       try {
