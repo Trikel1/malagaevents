@@ -526,3 +526,48 @@ quedan aquí señalados con su evidencia:
 El código desplegado corrige la ingesta a partir de la próxima ejecución
 programada. La reparación de lo ya almacenado requiere una verificación fuente
 a fuente que queda fuera de este encargo.
+
+## Fase 12 — Parche final: acción "Próximos 30 días" del estado vacío
+
+Regresión confirmada: en la agenda sin resultados, el botón "Próximos 30 días"
+encadenaba `clearAllFilters()` y `setPreset()`; la segunda llamada leía una URL
+ya obsoleta, así que la búsqueda, la categoría y el filtro de gratis seguían
+aplicados y la lista continuaba vacía.
+
+Corrección (2 archivos, sin ampliar alcance):
+
+- `src/pages/EventsPage.tsx`: la acción hace una única navegación con `commit`,
+  limpiando texto de búsqueda, coordenadas, categorías, recintos y localidades
+  y fijando el preset `next30`. Los parámetros ajenos (p. ej. `utm_source`) se
+  preservan.
+- `src/test/events-url-sync.test.tsx`: regresión con el componente real que
+  comprueba la URL resultante y las opciones recibidas por la consulta.
+
+### Estado final de verificación
+
+- Tipos: limpios (`tsgo --noEmit`).
+- Pruebas: 317 en verde, 37 ficheros (antes del parche, 316).
+- Build de producción con npm: correcto, incluido el mapa del sitio y los dos
+  pases de accesibilidad.
+- Capturas responsive de la fase 10 conservadas en `docs/audit-preview`.
+
+### Despliegues de backend vigentes
+
+`sync-events` (fase 11), `sync-sports-normalized` (fase 9) y las funciones
+protegidas de la fase 7: `scrape-events`, `discover-sources`,
+`scrape-pharmacies` y `submit-event`. No se ha lanzado ninguna sincronización
+masiva; los cambios entran con la próxima ejecución programada.
+
+### Problemas de datos que siguen abiertos
+
+- Registros históricos con hora desplazada o fabricada (caso Olías 12/09/2026
+  22:00 guardado como 22:00Z, y horas exactas 20:00/21:00 procedentes del
+  parser heredado y de los adaptadores de reserva). No reparados: requieren
+  verificación fuente a fuente.
+- 21 direcciones del inventario siguen sin poder comprobarse desde aquí y se
+  mantienen como desconocidas, no como rotas.
+- El calendario ICS del Unicaja no publica recinto: 14 partidos se descartan
+  por jugarse fuera y 14 quedan sin sede acreditada; no se inventa recinto.
+
+Frontend sin publicar: queda en vista previa para la revisión y publicación del
+propietario.

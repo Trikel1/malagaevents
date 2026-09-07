@@ -195,4 +195,17 @@ describe('EventsPage URL synchronization', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Limpiar' }));
     expect(url().replace(/^\?/, '')).toBe('utm_source=news');
   });
+
+  it('the empty-state next-30-days action removes restrictive filters in one navigation', () => {
+    renderAt('/events?q=sin-resultados&category=theater&free=1&preset=weekend&utm_source=news');
+    fireEvent.click(screen.getByRole('button', { name: 'Próximos 30 días' }));
+    const out = new URLSearchParams(url());
+    expect(out.get('preset')).toBe('next30');
+    expect(out.get('utm_source')).toBe('news');
+    expect(out.has('q')).toBe(false);
+    expect(out.has('category')).toBe(false);
+    expect(out.has('free')).toBe(false);
+    expect(lastOptions.filters.categories).toEqual([]);
+    expect(lastOptions.searchQuery).toBeUndefined();
+  });
 });

@@ -671,8 +671,17 @@ const CultureEventsPage = () => {
             onAction={hasFilters ? clearAllFilters : undefined}
             secondaryActionLabel={t('events.next30Days', 'Próximos 30 días')}
             onSecondaryAction={() => {
-              clearAllFilters();
-              setPreset('next30');
+              // One navigation from the current URL: chaining clearAllFilters()
+              // with setPreset() left the second call reading a stale URL, so
+              // restrictive q/category/free survived on the empty state.
+              setSearchQuery('');
+              setUserCoords(null);
+              commit({
+                q: '',
+                filters: { categories: [], datePreset: 'next30' },
+                venueIds: [],
+                locationIds: [],
+              });
             }}
           />
         )}
