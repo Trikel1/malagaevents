@@ -185,7 +185,7 @@ const Index = () => {
               }}
             />
             <button
-              onClick={() => setAppMode('eventos')}
+              onClick={() => switchMode('eventos')}
               aria-pressed={appMode === 'eventos'}
               className={cn(
                 'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-300 min-h-[36px] whitespace-nowrap',
@@ -195,7 +195,7 @@ const Index = () => {
               {t('sports.events')}
             </button>
             <button
-              onClick={() => setAppMode('deportes')}
+              onClick={() => switchMode('deportes')}
               aria-pressed={appMode === 'deportes'}
               className={cn(
                 'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-300 min-h-[36px] whitespace-nowrap',
@@ -527,7 +527,7 @@ const Index = () => {
                     {t('home.sports.subtitle')}
                   </p>
                   <Button
-                    onClick={() => setAppMode('deportes')}
+                    onClick={() => switchMode('deportes')}
                     className="mt-4 liquid-press h-11 px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     {t('home.sports.cta')} <ChevronRight className="h-4 w-4 ml-1" />
