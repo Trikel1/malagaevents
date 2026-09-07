@@ -748,5 +748,25 @@
     "source": "المصدر",
     "updated": "آخر تحديث {{date}}",
     "minutes": "{{count}} دقيقة"
+  },
+  "sportsDetail": {
+    "notFound": "لم نعثر على هذا النشاط الرياضي",
+    "kind": {
+      "match": "مباراة",
+      "tournament": "منافسة",
+      "activity": "نشاط"
+    },
+    "illustrative": "صورة توضيحية: ليست ملصق الفعالية.",
+    "illustrativeAlt": "صورة توضيحية للرياضة",
+    "venuePending": "المكان قيد التأكيد",
+    "pricePending": "السعر غير موثق من المصدر",
+    "source": "المصدر: {{name}}",
+    "sourceUnknown": "مصدر غير موثق",
+    "updated": "آخر تحديث {{date}}",
+    "status": {
+      "cancelled": "ملغاة",
+      "postponed": "مؤجلة",
+      "pending": "قيد التأكيد"
+    }
   }
 }

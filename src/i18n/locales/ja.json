@@ -748,5 +748,25 @@
     "source": "出典",
     "updated": "更新日 {{date}}",
     "minutes": "{{count}} 分"
+  },
+  "sportsDetail": {
+    "notFound": "このスポーツ活動は見つかりませんでした",
+    "kind": {
+      "match": "試合",
+      "tournament": "大会",
+      "activity": "アクティビティ"
+    },
+    "illustrative": "イメージ画像です。実際のポスターではありません。",
+    "illustrativeAlt": "競技のイメージ画像",
+    "venuePending": "会場は未確定",
+    "pricePending": "料金は出典で確認できません",
+    "source": "出典: {{name}}",
+    "sourceUnknown": "出典不明",
+    "updated": "{{date}} に更新",
+    "status": {
+      "cancelled": "中止",
+      "postponed": "延期",
+      "pending": "未確定"
+    }
   }
 }
