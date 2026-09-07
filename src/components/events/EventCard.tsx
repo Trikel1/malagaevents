@@ -90,6 +90,8 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
             <EventImage
               src={event.image_url}
               alt={imageAlt}
+            title={event.title}
+              title={event.title}
               variant="card"
               category={event.category}
               className="group-hover:scale-105 transition-transform duration-500"
@@ -146,6 +148,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
           <EventImage
             src={event.image_url}
             alt={imageAlt}
+            title={event.title}
             variant={compact ? 'compact' : 'card'}
             category={event.category}
             className="group-hover:scale-105 transition-transform duration-300"
