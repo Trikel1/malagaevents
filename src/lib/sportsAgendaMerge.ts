@@ -11,6 +11,8 @@
 
 import { formatInTimeZone } from 'date-fns-tz';
 import type { SportsEntity } from '@/types/sportsEntities';
+import { evaluateSportsEligibility } from './sportsEligibility';
+
 
 export const MADRID_TZ = 'Europe/Madrid';
 
