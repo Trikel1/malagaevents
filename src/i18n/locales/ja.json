@@ -200,7 +200,14 @@
     },
     "cityProvince": {
       "title": "マラガの市と県",
-      "subtitle": "首都、コスタ・デル・ソル、アハルキア、内陸のプラン。"
+      "subtitle": "首都、コスタ・デル・ソル、アハルキア、内陸のプラン。",
+      "capital": "マラガ市内",
+      "capitalHelp": "市内のプラン",
+      "province": "県内のその他",
+      "provinceHelp": "自治体を選ぶ",
+      "selectLabel": "自治体",
+      "selectPlaceholder": "自治体を選択…",
+      "go": "プランを見る"
     },
     "culture": {
       "title": "生きた文化",
@@ -308,7 +315,8 @@
       "errorHelp": "Please try again in a moment.",
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda"
+      "browseAll": "Browse the full agenda",
+      "starterNote": "今後のプランを幅広く選びました。興味を選ぶと内容を調整します。"
     }
   },
   "events": {

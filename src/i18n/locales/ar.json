@@ -200,7 +200,14 @@
     },
     "cityProvince": {
       "title": "مالقة المدينة والمقاطعة",
-      "subtitle": "اكتشف خططاً في العاصمة وكوستا ديل سول والأخارقية والداخل."
+      "subtitle": "اكتشف خططاً في العاصمة وكوستا ديل سول والأخارقية والداخل.",
+      "capital": "مدينة مالقة",
+      "capitalHelp": "خطط داخل المدينة",
+      "province": "بقية المقاطعة",
+      "provinceHelp": "اختر بلديتك",
+      "selectLabel": "البلدية",
+      "selectPlaceholder": "اختر بلدية…",
+      "go": "عرض الخطط"
     },
     "culture": {
       "title": "ثقافة حية",
@@ -308,7 +315,8 @@
       "errorHelp": "Please try again in a moment.",
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda"
+      "browseAll": "Browse the full agenda",
+      "starterNote": "مجموعة متنوعة من الخطط القادمة. اختر اهتماماتك لنخصصها لك."
     }
   },
   "events": {

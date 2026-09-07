@@ -200,7 +200,14 @@
     },
     "cityProvince": {
       "title": "Málaga città e provincia",
-      "subtitle": "Scopri la capitale, la Costa del Sol, l'Axarquía e l'entroterra."
+      "subtitle": "Scopri la capitale, la Costa del Sol, l'Axarquía e l'entroterra.",
+      "capital": "Città di Málaga",
+      "capitalHelp": "Piani in città",
+      "province": "Resto della provincia",
+      "provinceHelp": "Scegli il tuo comune",
+      "selectLabel": "Comune",
+      "selectPlaceholder": "Scegli un comune…",
+      "go": "Vedi i piani"
     },
     "culture": {
       "title": "Cultura viva",
@@ -308,7 +315,8 @@
       "errorHelp": "Please try again in a moment.",
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda"
+      "browseAll": "Browse the full agenda",
+      "starterNote": "Una selezione varia dei prossimi piani. Scegli i tuoi interessi e la adatteremo."
     }
   },
   "events": {

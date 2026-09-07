@@ -201,7 +201,14 @@
     },
     "cityProvince": {
       "title": "Málaga ciudad y provincia",
-      "subtitle": "Descubre planes en la capital, la Costa del Sol, la Axarquía y el interior."
+      "subtitle": "Descubre planes en la capital, la Costa del Sol, la Axarquía y el interior.",
+      "capital": "Málaga capital",
+      "capitalHelp": "Planes en la ciudad",
+      "province": "Resto de la provincia",
+      "provinceHelp": "Elige tu municipio",
+      "selectLabel": "Municipio",
+      "selectPlaceholder": "Elige un municipio…",
+      "go": "Ver planes"
     },
     "culture": {
       "title": "Cultura viva",
@@ -309,7 +316,8 @@
       "errorHelp": "Vuelve a intentarlo en unos momentos.",
       "noMatchTitle": "Sin coincidencias para tus gustos ahora mismo",
       "noMatchHelp": "No hay eventos publicados que encajen con lo que has elegido. Puedes ver la agenda completa.",
-      "browseAll": "Ver toda la agenda"
+      "browseAll": "Ver toda la agenda",
+      "starterNote": "Selección variada de los próximos planes. Elige tus gustos y la ajustamos a ti."
     }
   },
   "events": {
