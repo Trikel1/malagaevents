@@ -375,6 +375,15 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Reject unsupported methods before any authorization or work.
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+
   // Audit 2026-09-07: privileged endpoint. Authorize BEFORE any paid fetch,
   // any database write and before logging the request payload.
   const auth = await authorizeAdminRequest(req);

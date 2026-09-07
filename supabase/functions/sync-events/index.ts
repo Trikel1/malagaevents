@@ -1989,7 +1989,7 @@ async function syncSingleSource(
 
     
     // If main scrape failed or no events, try WordPress API fallback for sources that have it
-    if ((events.length === 0 || !scrapeResult.success) && config.alternativeEndpoint) {
+    if ((events.length === 0 || !scrapeResult?.success) && config.alternativeEndpoint) {
       logger.info('scrape', `Trying WordPress API fallback: ${config.alternativeEndpoint}`);
       
       try {
@@ -2182,6 +2182,15 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: getCorsHeaders(origin) });
   }
+
+  // Reject unsupported methods before any authorization or work.
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...getCorsHeaders(origin), 'Content-Type': 'application/json' },
+    });
+  }
+
 
   // Audit 2026-09-07: privileged endpoint (paid scraping + writes).
   // Authorize before any logging, fetching or writing.

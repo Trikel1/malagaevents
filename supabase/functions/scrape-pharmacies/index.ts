@@ -1,6 +1,8 @@
 // scrape-pharmacies v2026-07-15b — province-wide ASP zones ingestion
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
+import { authorizeAdminRequest, unauthorizedResponse, parseStrictDateISO } from '../_shared/security.ts';
+import { validateSweepRequest, planSweepWrite } from '../_shared/pharmacySweep.ts';
+
 import {
   parseOfficialGuardHtml,
   dedupeGuardRows,
@@ -214,21 +216,32 @@ Deno.serve(async (req) => {
     if (req.method === 'POST') {
       try { body = await req.json(); } catch { body = {}; }
     }
-    const rawDate = (params.get('date') || (body.date as string) || todayInMadrid()).slice(0, 10);
-    // Reject malformed or impossible dates instead of querying the portal with
-    // a garbage value and writing the result under a bogus key.
-    const dateISO = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) && !Number.isNaN(Date.parse(rawDate))
-      ? rawDate
-      : null;
+    const rawDate = params.get('date') ?? body.date ?? todayInMadrid();
+    // Reject malformed, non-string or impossible dates (e.g. 2026-02-30)
+    // instead of querying the portal with a garbage value.
+    const dateISO = parseStrictDateISO(rawDate);
     if (!dateISO) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid date, expected YYYY-MM-DD' }),
+        JSON.stringify({ success: false, error: 'Invalid date, expected an exact YYYY-MM-DD calendar date' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
-    const zonesLimit = Number(params.get('zonesLimit') || body.zonesLimit || 0) || undefined;
-    const onlyZoneId = params.get('zone') || (body.zone as string) || undefined;
+    const rawZonesLimit = params.get('zonesLimit') ?? body.zonesLimit;
+    const zonesLimit = rawZonesLimit === undefined || rawZonesLimit === null || rawZonesLimit === ''
+      ? undefined
+      : Number(rawZonesLimit);
+    const onlyZoneId = params.get('zone') || (typeof body.zone === 'string' ? body.zone : undefined) || undefined;
     const dryRun = params.get('dryRun') === '1' || body.dryRun === true;
+
+    // Fail closed before any outbound fetch: a partial sweep may never write.
+    const requestCheck = validateSweepRequest({ dryRun, onlyZoneId, zonesLimit });
+    if (requestCheck.ok === false) {
+      return new Response(
+        JSON.stringify({ success: false, error: requestCheck.error }),
+        { status: requestCheck.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -303,22 +316,18 @@ Deno.serve(async (req) => {
     if (deduped.length > 0) {
       results.status = 'official_data_available';
 
-      if (!dryRun) {
-        // Audit 2026-09-07: a partial sweep (single zone or zonesLimit) only
-        // knows about part of the province, so wiping the whole day would
-        // delete municipalities it never queried. Scope the delete to the
-        // municipalities actually collected in that case.
-        const partialSweep = Boolean(onlyZoneId || zonesLimit);
-        let del = supabase
+      const plan = planSweepWrite(
+        { dryRun, onlyZoneId, zonesLimit },
+        { zonesFailed: results.zones_failed, rowCount: deduped.length },
+      );
+
+      if (plan.action === 'replace_day') {
+        // Complete, fully successful province sweep: safe to replace the day.
+        const { error: delErr } = await supabase
           .from('pharmacies_guard')
           .delete()
           .eq('date_from', dateISO)
           .eq('date_to', dateISO);
-        if (partialSweep) {
-          const municipalities = Array.from(new Set(deduped.map((r) => r.municipality)));
-          del = del.in('municipality', municipalities);
-        }
-        const { error: delErr } = await del;
         if (delErr) results.errors.push(`delete_${delErr.message}`);
 
         const batchSize = 100;
@@ -342,8 +351,14 @@ Deno.serve(async (req) => {
             results.guardia_inserted += batch.length;
           }
         }
+      } else {
+        // Fail closed: never replace complete provincial data with a partial
+        // or incomplete snapshot (audit 2026-09-07).
+        results.errors.push(`write_skipped_${plan.action === 'no_write' ? plan.reason : 'rejected'}`);
+        console.warn(`[scrape-pharmacies] write skipped, existing rows preserved`);
       }
     } else {
+
       // Honest failure signal: distinguish "no data" from "sync error".
       results.status = results.zones_failed > 0 && results.zones_with_data === 0
         ? 'sync_error'
