@@ -91,6 +91,12 @@ interface EventImageProps {
   priority?: boolean;
   eventType?: EventType;
   category?: string;
+  /**
+   * Event title, used only to pick the illustrative theme. It must not be the
+   * alt text: the alt text also carries the venue name, and venue words
+   * ("Recinto…", "Cine…") would pick an unrelated illustration.
+   */
+  title?: string | null;
 }
 
 // Aspect ratios per variant (16:9 for consistency)
@@ -272,6 +278,7 @@ const EventImage = ({
   priority = false,
   eventType,
   category,
+  title,
 }: EventImageProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -329,7 +336,7 @@ const EventImage = ({
     if (fallback) return <>{fallback}</>;
 
     const config = CATEGORY_FALLBACKS[resolvedEventType];
-    const editorialImage = categoryImageFor(resolvedEventType, alt);
+    const editorialImage = categoryImageFor(resolvedEventType, title ?? null);
 
     return (
       <div className="relative w-full h-full overflow-hidden">

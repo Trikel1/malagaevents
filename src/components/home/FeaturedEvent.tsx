@@ -84,6 +84,7 @@ const FeaturedEvent = ({ onSelect }: FeaturedEventProps) => {
             <EventImage
               src={featured.image_url}
               alt={featured.title}
+              title={featured.title}
               variant="card"
               category={featured.category}
               priority

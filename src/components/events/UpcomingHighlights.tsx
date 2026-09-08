@@ -187,6 +187,7 @@ const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCard
           <EventImage
             src={event.image_url}
             alt={generateAltText(event.title, event.venue_name)}
+            title={event.title}
             variant="card"
             category={event.category}
             aspectRatio="16/9"

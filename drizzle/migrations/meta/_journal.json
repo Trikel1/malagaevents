@@ -22,6 +22,13 @@
       "when": 1788817733722,
       "tag": "0002_create_sports_favorites",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788825229220,
+      "tag": "0003_quarantine_shared_event_images",
+      "breakpoints": true
     }
   ]
 }
