@@ -277,6 +277,7 @@ const EventDetailPage = () => {
         <EventImage
           src={event.image_url}
           alt={event.title}
+          title={event.title}
           variant="detail"
           category={event.category}
           showLightbox={!!event.image_url}
