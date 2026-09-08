@@ -24,6 +24,10 @@ const GENERIC_FRAGMENTS = [
   'eventos-sin-foto',
   'sin-foto',
   'sinfoto',
+  // Municipal agenda posters: the same monthly programme sheet is attached to
+  // many unrelated activities, so it never illustrates the event itself.
+  'agdimagedisplayer',
+  'imagenagenda',
 ];
 
 
