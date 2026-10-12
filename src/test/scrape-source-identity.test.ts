@@ -2,8 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 // The edge entrypoint imports the client from a URL; stub it (no network).
 vi.mock('https://esm.sh/@supabase/supabase-js@2.45.4', () => ({ createClient: () => null }));
-vi.mock('npm:@supabase/supabase-js@2', () => ({ createClient: () => null }));
-vi.mock('npm:@supabase/supabase-js@2/cors', () => ({ corsHeaders: {} }));
+vi.mock('../../supabase/functions/_shared/security.ts', () => ({ getAllHeaders: () => ({}) }));
 import {
   findExistingEvent,
   applyResolvedIds,
