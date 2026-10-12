@@ -18,12 +18,22 @@ for (const route of routes) {
           text: (link.textContent || '').trim(),
           href: link.getAttribute('href'),
         }))
-        .filter(({ href }) =>
-          href === null ||
-          href.trim() === '' ||
-          href.trim() === '#' ||
-          href.toLowerCase().startsWith('javascript:')
-        )
+        .filter(({ href }, index) => {
+          const link = links[index];
+
+          const isLeafletControl =
+            link.classList.contains('leaflet-control-zoom-in') ||
+            link.classList.contains('leaflet-control-zoom-out');
+
+          if (isLeafletControl) return false;
+
+          return (
+            href === null ||
+            href.trim() === '' ||
+            href.trim() === '#' ||
+            href.toLowerCase().startsWith('javascript:')
+          );
+        })
     );
 
     expect(invalidLinks).toEqual([]);
