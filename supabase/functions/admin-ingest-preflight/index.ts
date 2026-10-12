@@ -113,12 +113,34 @@ function generatePlaintextToken(): string {
   return `${crypto.randomUUID()}.${hex}`;
 }
 
-async function findExisting(
+/** Same alias key rule as scrape-source (FYCMA aliases are keyed 'FYCMA'). */
+export function venueAliasKeyFor(adapterKey: string, venueName: string | null | undefined): string | null | undefined {
+  return adapterKey === "fycma" ? "FYCMA" : venueName;
+}
+
+/**
+ * Read-only lookup mirroring scrape-source: FYCMA with externalId matches by
+ * (source_id, external_id) first so a reschedule diffs as an update of the
+ * same UUID; everything else uses dedupe_key then legacy title/venue/±5min.
+ */
+export async function findExisting(
   supabase: Deps,
   ev: CanonicalEvent,
   canonicalVenue: string | null,
   dedupeKey: string,
-): Promise<{ id: string; content_hash: string | null; dedupe_key: string | null } | null> {
+  ctx?: { adapterKey: string; sourceId: string },
+): Promise<{ id: string; content_hash: string | null; dedupe_key: string | null; matchedBy?: "external_id" } | null> {
+  const externalId = typeof ev.externalId === "string" ? ev.externalId.trim() : "";
+  if (ctx && ctx.adapterKey === "fycma" && externalId) {
+    const { data: byId } = await supabase
+      .from("events")
+      .select("id, content_hash, dedupe_key")
+      .eq("source_id", ctx.sourceId)
+      .eq("external_id", externalId)
+      .limit(1)
+      .maybeSingle();
+    if (byId) return { ...(byId as { id: string; content_hash: string | null; dedupe_key: string | null }), matchedBy: "external_id" };
+  }
   const { data: primary } = await supabase
     .from("events")
     .select("id, content_hash, dedupe_key")
@@ -145,7 +167,7 @@ async function findExisting(
   return (legacy as { id: string; content_hash: string | null; dedupe_key: string | null } | null) ?? null;
 }
 
-Deno.serve(async (req) => {
+if (typeof Deno !== "undefined") Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -267,7 +289,7 @@ Deno.serve(async (req) => {
 
     let canonicalVenue: string | null = null;
     try {
-      const v = await resolveVenueAlias(adminClient as never, ev.venueName);
+      const v = await resolveVenueAlias(adminClient as never, venueAliasKeyFor(adapter.key, ev.venueName));
       canonicalVenue = v.canonicalName;
       await resolveLocalityAlias(adminClient as never, ev.locality);
     } catch {
@@ -288,9 +310,12 @@ Deno.serve(async (req) => {
       [ev.title, ev.description ?? "", ev.startAt, ev.venueName ?? "", ev.imageUrl ?? "", ev.ticketUrl ?? ""].join("|"),
     );
 
-    let existing: { id: string; content_hash: string | null; dedupe_key: string | null } | null = null;
+    let existing: { id: string; content_hash: string | null; dedupe_key: string | null; matchedBy?: "external_id" } | null = null;
     try {
-      existing = await findExisting(adminClient, ev, canonicalVenue, dedupeKey);
+      existing = await findExisting(adminClient, ev, canonicalVenue, dedupeKey, {
+        adapterKey: adapter.key,
+        sourceId: source.id,
+      });
     } catch (e) {
       errorsCount++;
       warnings.push(`lookup_failed: ${(e as Error).message}`.slice(0, 200));
@@ -311,6 +336,11 @@ Deno.serve(async (req) => {
       action = "skip";
       reason = "identical_content_and_key";
       wouldSkip++;
+    } else if (existing.matchedBy === "external_id") {
+      // Same FYCMA id (source-scoped): a reschedule/rename updates the same UUID.
+      action = "update";
+      reason = "external_id_match";
+      wouldUpdate++;
     } else if (existing.dedupe_key && existing.dedupe_key !== dedupeKey) {
       // legacy match (title/venue/±5min) with a different stored key
       action = "conflict";
