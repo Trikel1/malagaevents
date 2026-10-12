@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright generated artifacts
+test-results/
+playwright-report/
+tests/e2e/*.png
+tests/e2e/screenshots/
