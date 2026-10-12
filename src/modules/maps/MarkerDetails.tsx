@@ -105,7 +105,7 @@ export const MarkerDetails = ({ marker, onNavigated }: MarkerDetailsProps) => {
       </dl>
 
       {(kind === 'event' || kind === 'sport') && (marker.eventId || marker.id) && (
-        <Button className="w-full min-h-11" onClick={() => go(`/events/${marker.eventId ?? marker.id}`)}>
+        <Button className="w-full min-h-11" onClick={() => go(`/${kind === 'sport' ? 'sports' : 'events'}/${marker.eventId ?? marker.id}`)}>
           Ver evento
         </Button>
       )}

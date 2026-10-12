@@ -117,7 +117,7 @@ const EventDetailPage = () => {
   if (error || !event) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="mb-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label={t('common.back', 'Volver')} className="mb-4">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <EmptyState
@@ -290,6 +290,7 @@ const EventDetailPage = () => {
           variant="ghost"
           size="icon"
           onClick={() => navigate(-1)}
+          aria-label={t('common.back', 'Volver')}
           className="absolute top-4 left-4 bg-background/80 hover:bg-background"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -310,6 +311,8 @@ const EventDetailPage = () => {
             variant="ghost"
             size="icon"
             onClick={handleToggleFavorite}
+            aria-label={isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Añadir a favoritos')}
+            aria-pressed={isFavorite}
             disabled={toggleFavorite.isPending}
             className="bg-background/80 hover:bg-background"
           >

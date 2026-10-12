@@ -46,6 +46,7 @@ export function ThemeSelector() {
             variant={isActive ? 'default' : 'outline'}
             size="sm"
             onClick={() => setTheme(option.value)}
+            aria-label={t(option.labelKey)}
             className={cn(
               'flex-1 gap-2',
               isActive && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
