@@ -196,3 +196,30 @@ Deno.test('a complete successful sweep replaces the day', () => {
   const plan = planSweepWrite({ dryRun: false }, { zonesFailed: 0, rowCount: 117 });
   assertEquals(plan, { action: 'replace_day' });
 });
+
+Deno.test('accepts a key that only matches the Vault copy (env mismatch)', async () => {
+  const result = await authorizeAdminRequest(req({ 'x-sync-key': 'vault-only-key-123' }), {
+    ...deps(),
+    verifySyncKeyInVault: (k) => Promise.resolve(k === 'vault-only-key-123'),
+  });
+  assertEquals(result.authorized, true);
+  assertEquals(result.actor, 'cron');
+});
+
+Deno.test('rejects a key matching neither env nor Vault', async () => {
+  const result = await authorizeAdminRequest(req({ 'x-sync-key': 'nope-nope-nope' }), {
+    ...deps(),
+    verifySyncKeyInVault: () => Promise.resolve(false),
+  });
+  assertEquals(result.authorized, false);
+});
+
+Deno.test('does not consult Vault when no key header is sent', async () => {
+  let called = false;
+  const result = await authorizeAdminRequest(req(), {
+    ...deps(),
+    verifySyncKeyInVault: () => { called = true; return Promise.resolve(true); },
+  });
+  assertEquals(result.authorized, false);
+  assertEquals(called, false);
+});
