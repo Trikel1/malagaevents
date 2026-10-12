@@ -51,6 +51,7 @@ type TribeEvent = {
   start_date?: string;   // "YYYY-MM-DD HH:mm:ss" wall time
   end_date?: string;
   utc_start_date?: string;
+  utc_end_date?: string;
   timezone?: string;
   all_day?: boolean;
   image?: TribeImage | null;
@@ -244,9 +245,15 @@ export function normalizeFycmaEvent(ev: TribeEvent): {
   if (!title) return { ok: false, reason: "missing_title", fieldsPresent };
   if (!rawStart) return { ok: false, reason: "missing_start_date", fieldsPresent };
 
-  const startIso = madridWallToIso(rawStart);
+  // Prefer the API's own UTC instant (exact, DST-safe); wall-time conversion
+  // is only a fallback.
+  const utcToIso = (u?: string) =>
+    u && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(u)
+      ? new Date(u.replace(" ", "T") + "Z").toISOString()
+      : null;
+  const startIso = utcToIso(ev.utc_start_date) ?? madridWallToIso(rawStart);
   if (!startIso) return { ok: false, reason: "bad_start_date", fieldsPresent };
-  const endIsoRaw = ev.end_date ? madridWallToIso(ev.end_date) : null;
+  const endIsoRaw = utcToIso(ev.utc_end_date) ?? (ev.end_date ? madridWallToIso(ev.end_date) : null);
   const endIso = endIsoRaw && endIsoRaw !== startIso ? endIsoRaw : null;
   if (endIso) fieldsPresent.push("end_date");
 
