@@ -343,6 +343,8 @@ if (typeof Deno !== "undefined") Deno.serve(async (req) => {
     // localities dozens of times.
     const venueCache = new Map<string, string | null>();
     const localityCache = new Set<string>();
+    const venueIdCache = new Map<string, string | null>();
+    const localityIdCache = new Map<string, string | null>();
 
     for (const ev of events) {
       if (!isValidCanonical(ev)) {
@@ -450,7 +452,10 @@ if (typeof Deno !== "undefined") Deno.serve(async (req) => {
         if (existing) {
           if (existing.content_hash === contentHash && existing.dedupe_key === dedupeKey) {
             skippedDupes++;
-            await supabase.from("events").update({ last_seen_at: nowIso }).eq("id", existing.id);
+            await supabase.from("events").update({
+              last_seen_at: nowIso,
+              ...(row.external_id ? { external_id: row.external_id } : {}),
+            }).eq("id", existing.id);
           } else {
             // Consolidate legacy dedupe_key to sha256 on update.
             const { error: updErr } = await supabase.from("events").update(row).eq("id", existing.id);
