@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { es, enUS, de, fr, it, pt, ja, zhCN, ru, ar, type Locale } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
@@ -41,6 +42,9 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
   const cleanTitle = cleanSportTitle(event.teams || event.title) || event.title;
 
   const image = resolveSportImage(event.imageUrl, event.sport);
+  const fallbackImage = resolveSportImage(null, event.sport);
+  const [imageFailed, setImageFailed] = useState(false);
+  const displayedImage = imageFailed ? fallbackImage : image;
   const kind = sportItemKind(event);
   const kindLabel =
     kind === 'match'
@@ -58,8 +62,11 @@ const SportEventCard = ({ event }: SportEventCardProps) => {
       >
         <div className="relative">
           <img
-            src={image.src}
-            alt={image.illustrative
+            src={displayedImage.src}
+            onError={() => {
+              if (!displayedImage.illustrative) setImageFailed(true);
+            }}
+            alt={displayedImage.illustrative
               ? t('sportsDetail.illustrativeAlt', 'Imagen ilustrativa de la disciplina')
               : cleanTitle}
             loading="lazy"
