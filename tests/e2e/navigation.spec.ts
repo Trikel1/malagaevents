@@ -21,7 +21,6 @@ for (const route of routes) {
     });
 
     await page.goto(route);
-
     await expect(page.locator('body')).toBeVisible();
 
     expect(errors).toEqual([]);

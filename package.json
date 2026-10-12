@@ -15,7 +15,9 @@
     "generate:sitemap": "node --import tsx scripts/generate-sitemap.ts",
     "predev": "npm run generate:sitemap",
     "prebuild": "npm run generate:sitemap && npm run test:a11y",
-    "qa": "npm run test && npm run build && npx playwright test"
+    "qa": "npm run test && npm run build && npx playwright test",
+    "qa:e2e": "npx playwright test",
+    "qa:setup": "bash scripts/setup-local-qa.sh"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",

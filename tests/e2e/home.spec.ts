@@ -1,26 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-test('Málaga Connect carga sin errores graves', async ({ page }, testInfo) => {
-  const consoleErrors: string[] = [];
+test('Málaga Connect carga sin errores graves', async ({ page }) => {
+  const errors: string[] = [];
 
   page.on('console', msg => {
-    if (msg.type() === 'error') {
-      consoleErrors.push(msg.text());
-    }
+    if (msg.type() === 'error') errors.push(msg.text());
   });
 
   page.on('pageerror', error => {
-    consoleErrors.push(error.message);
+    errors.push(error.message);
   });
 
   await page.goto('/');
-
   await expect(page.locator('body')).toBeVisible();
 
-  await page.screenshot({
-    path: `tests/e2e/home-${testInfo.project.name}.png`,
-    fullPage: true,
-  });
-
-  expect(consoleErrors).toEqual([]);
+  expect(errors).toEqual([]);
 });
