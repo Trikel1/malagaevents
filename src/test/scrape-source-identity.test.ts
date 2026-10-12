@@ -3,10 +3,15 @@ import { describe, it, expect, vi } from 'vitest';
 // The edge entrypoint imports the client from a URL; stub it (no network).
 vi.mock('https://esm.sh/@supabase/supabase-js@2.45.4', () => ({ createClient: () => null }));
 vi.mock('../../supabase/functions/_shared/security.ts', () => ({ getAllHeaders: () => ({}) }));
-import {
-  findExistingEvent,
-  applyResolvedIds,
-} from '../../supabase/functions/scrape-source/index';
+// Loaded through a non-literal path so the app typecheck does not pull the
+// Deno edge entrypoint (Deno globals, URL imports) into the browser project.
+const ENTRY = '../../supabase/functions/scrape-source/index';
+type Mod = {
+  findExistingEvent: (...a: unknown[]) => Promise<{ id: string } | null>;
+  applyResolvedIds: (row: Record<string, unknown>, v: unknown, l: unknown) => Record<string, unknown>;
+};
+const mod = (await import(/* @vite-ignore */ ENTRY)) as Mod;
+const { findExistingEvent, applyResolvedIds } = mod;
 import { mapCategory } from '../../supabase/functions/_shared/adapters/fycma';
 
 type Row = { id: string; content_hash: string | null; dedupe_key: string | null; source_id?: string; external_id?: string };
