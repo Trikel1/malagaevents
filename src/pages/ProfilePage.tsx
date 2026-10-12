@@ -22,8 +22,8 @@ const ProfilePage = () => {
   const [interestsOpen, setInterestsOpen] = useState(false);
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/');
+    const { error } = await signOut();
+    if (!error) navigate('/');
   };
 
   const menuItems = [

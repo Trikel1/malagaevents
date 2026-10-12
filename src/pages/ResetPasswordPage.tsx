@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/common/SEO';
 
 const ResetPasswordPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [ready, setReady] = useState(false);
@@ -57,7 +59,7 @@ const ResetPasswordPage = () => {
     <div className="min-h-screen bg-background">
       <SEO title="Restablecer contraseña — MalagaEvents" description="Elige una nueva contraseña para tu cuenta." path="/auth/reset" noindex />
       <header className="p-4 flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/auth')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/auth')} aria-label={t('common.back')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold">Restablecer contraseña</h1>
@@ -93,6 +95,8 @@ const ResetPasswordPage = () => {
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3"
                     onClick={() => setShow(!show)}
+                    aria-label={show ? t('profile.hidePassword') : t('profile.showPassword')}
+                    aria-pressed={show}
                   >
                     {show ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                   </Button>

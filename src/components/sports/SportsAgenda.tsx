@@ -6,6 +6,7 @@ import {
   CalendarDays, MapPin, Ticket, Radar,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useSportsAgenda, type AgendaWindow } from '@/hooks/useSportsAgenda';
@@ -127,7 +128,7 @@ const SportsAgenda = () => {
   const [type, setType] = useState<'all' | 'tournament' | 'match' | 'activity'>('all');
   const [sport, setSport] = useState<string>('all');
 
-  const { data: events = [], isLoading } = useSportsAgenda({ window: win, type, sport });
+  const { data: events = [], isLoading, isError, refetch } = useSportsAgenda({ window: win, type, sport });
 
   const sports = useMemo(() => {
     const set = new Set<string>();
@@ -220,6 +221,13 @@ const SportsAgenda = () => {
           <Card className="border-sportsx-line bg-sportsx-surface">
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
               {t('common.loading', 'Cargando…')}
+            </CardContent>
+          </Card>
+        ) : isError ? (
+          <Card className="border-sportsx-line bg-sportsx-surface">
+            <CardContent className="py-6 text-center text-sm text-muted-foreground space-y-3">
+              <p role="alert">{t('errors.generic')}</p>
+              <Button variant="outline" onClick={() => refetch()}>{t('common.retry')}</Button>
             </CardContent>
           </Card>
         ) : events.length === 0 ? (

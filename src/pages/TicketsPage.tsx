@@ -27,7 +27,7 @@ const TicketsPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   
-  const { data: tickets, isLoading } = useTickets();
+  const { data: tickets, isLoading, isError, refetch } = useTickets();
   const deleteTicket = useDeleteTicket();
 
   // Redirect to auth if not logged in
@@ -85,6 +85,15 @@ const TicketsPage = () => {
             <EventCardSkeleton />
             <EventCardSkeleton />
           </div>
+        ) : isError ? (
+          <EmptyState
+            icon={Ticket}
+            title={t('errors.loadFailed', 'Error al cargar')}
+            description={t('errors.generic')}
+            actionLabel={t('common.retry')}
+            onAction={() => refetch()}
+            variant="error"
+          />
         ) : tickets && tickets.length > 0 ? (
           <div className="space-y-3">
             {tickets.map((ticket) => {
@@ -126,7 +135,7 @@ const TicketsPage = () => {
                           
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                              <Button variant="ghost" size="icon" aria-label={`${t('common.delete')}: ${ticket.title}`} className="h-8 w-8 text-destructive">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>

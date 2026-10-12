@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+// Exercise navigation with the app's supported reduced-motion preference.
+// Keep normal pointer clicks and actionability checks in WebKit/Linux CI.
+test.use({ reducedMotion: 'reduce', trace: 'retain-on-failure' });
+
 test('BottomNav permite navegar realmente', async ({ page }) => {
   await page.goto('/');
 

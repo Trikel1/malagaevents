@@ -125,9 +125,11 @@ const MapPage = () => {
   const pharmacies = pharmaciesQuery.data?.rows ?? [];
 
 
-  const isLoading =
-    eventsQuery.isLoading || sportsQuery.isLoading || venuesQuery.isLoading || pharmaciesQuery.isLoading;
-  const isError = eventsQuery.isError || sportsQuery.isError || venuesQuery.isError;
+  // An unavailable domain must not block results from another selected domain.
+  const queriesByFilter = { events: eventsQuery, sports: sportsQuery, venues: venuesQuery, pharmacies: pharmaciesQuery };
+  const activeQueries = filter === 'all' ? Object.values(queriesByFilter) : [queriesByFilter[filter]];
+  const isLoading = activeQueries.some(query => query.isLoading);
+  const isError = activeQueries.some(query => query.isError);
 
   const retry = useCallback(() => {
     eventsQuery.refetch();
@@ -531,20 +533,26 @@ const MapPage = () => {
         flyTo={flyTo}
       />
 
-      {!isLoading && filteredMarkers.length === 0 && (
-        <div className="absolute inset-x-4 top-4 z-[400] rounded-xl border border-border bg-background p-3 text-center">
+      {!isLoading && (isError || filteredMarkers.length === 0) && (
+        <div role={isError ? 'alert' : undefined} className="absolute inset-x-4 top-4 z-[400] rounded-xl border border-border bg-background p-3 text-center">
           <p className="text-sm font-medium">
-            {scope === 'today' ? 'Hoy no hay puntos en el mapa' : 'No hay puntos para este alcance'}
+            {isError ? 'No hemos podido cargar los puntos del mapa.' : scope === 'today' ? 'Hoy no hay puntos en el mapa' : 'No hay puntos para este alcance'}
           </p>
           <div className="mt-2 flex flex-wrap gap-2 justify-center">
-            {scope === 'today' && (
-              <Button size="sm" className="min-h-11" onClick={() => setScope('week')}>
-                Ver esta semana
-              </Button>
+            {isError ? (
+              <Button size="sm" className="min-h-11" onClick={retry}>Reintentar</Button>
+            ) : (
+              <>
+                {scope === 'today' && (
+                  <Button size="sm" className="min-h-11" onClick={() => setScope('week')}>
+                    Ver esta semana
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" className="min-h-11" onClick={clearFilters}>
+                  Limpiar filtros
+                </Button>
+              </>
             )}
-            <Button variant="outline" size="sm" className="min-h-11" onClick={clearFilters}>
-              Limpiar filtros
-            </Button>
           </div>
         </div>
       )}

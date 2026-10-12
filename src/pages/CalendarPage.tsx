@@ -554,7 +554,7 @@ const CalendarPage = () => {
             </Card>
 
             {/* Selected day panel */}
-            {selectedDate && (
+            {selectedDate && !errored && (
               <div className="space-y-4">
                 <h3 className="font-semibold capitalize">
                   {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
@@ -612,7 +612,7 @@ const CalendarPage = () => {
           </>
         ) : (
           /* List view — the WHOLE current month, grouped by date, paginated */
-          <ListView
+          !errored && <ListView
             appMode={appMode}
             loading={loading}
             monthOccurrences={monthOccurrences}

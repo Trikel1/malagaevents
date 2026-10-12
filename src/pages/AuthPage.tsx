@@ -20,6 +20,7 @@ const AuthPage = () => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -31,10 +32,12 @@ const AuthPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setPasswordError(false);
 
     try {
       if (mode === 'signup') {
         if (formData.password !== formData.confirmPassword) {
+          setPasswordError(true);
           return;
         }
         const { error } = await signUp(formData.email, formData.password, formData.displayName);
@@ -75,7 +78,7 @@ const AuthPage = () => {
       />
       {/* Header */}
       <header className="p-4 flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label={t('common.back')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold">
@@ -155,6 +158,8 @@ const AuthPage = () => {
                       size="icon"
                       className="absolute right-0 top-0 h-full px-3"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? t('profile.hidePassword', 'Ocultar contraseña') : t('profile.showPassword', 'Mostrar contraseña')}
+                      aria-pressed={showPassword}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -172,6 +177,8 @@ const AuthPage = () => {
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="confirmPassword"
+                        aria-invalid={passwordError}
+                        aria-describedby={passwordError ? 'password-error' : undefined}
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         value={formData.confirmPassword}
@@ -181,6 +188,7 @@ const AuthPage = () => {
                         minLength={6}
                       />
                     </div>
+                    {passwordError && <p id="password-error" role="alert" className="text-sm text-destructive">{t('profile.passwordMismatch', 'Las contraseñas no coinciden')}</p>}
                   </div>
                 )}
 
