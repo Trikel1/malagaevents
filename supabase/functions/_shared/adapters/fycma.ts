@@ -114,33 +114,82 @@ function slugify(s: string): string {
   return stripAccents(s.toLowerCase()).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
-/**
- * Convert Tribe "YYYY-MM-DD HH:mm:ss" (Europe/Madrid wall time) to an ISO
- * string with the correct offset. We compute the offset by locating the
- * same instant twice and comparing UTC vs. Madrid components.
- */
-function madridWallToIso(wall: string): string | null {
-  const m = wall.match(
-    /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
+type WallParts = { y: number; mo: number; d: number; hh: number; mm: number; ss: number };
+
+/** Strict "YYYY-MM-DD HH:mm(:ss)" parse with real calendar/clock check. Never throws. */
+function parseWall(s: unknown): WallParts | null {
+  if (typeof s !== "string") return null;
+  const m = s.trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
   if (!m) return null;
-  const y = +m[1], mo = +m[2], d = +m[3], hh = +m[4], mm = +m[5], ss = +(m[6] ?? "0");
-  // Start from UTC and iteratively correct the offset.
-  const utcGuess = Date.UTC(y, mo - 1, d, hh, mm, ss);
-  const asMadrid = new Date(utcGuess).toLocaleString("en-US", {
-    timeZone: "Europe/Madrid",
-    hour12: false,
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-  });
-  const parts = asMadrid.match(/(\d+)/g);
-  if (!parts || parts.length < 6) return new Date(utcGuess).toISOString();
-  // month/day/year hh:mm:ss on the "en-US" format
-  const [mo2, d2, y2, hh2, mm2, ss2] = parts.map(Number);
-  const madridUtc = Date.UTC(y2, mo2 - 1, d2, hh2, mm2, ss2);
-  const offsetMs = madridUtc - utcGuess; // wall - real UTC
-  const real = new Date(utcGuess - offsetMs);
-  return real.toISOString();
+  const p = { y: +m[1], mo: +m[2], d: +m[3], hh: +m[4], mm: +m[5], ss: +(m[6] ?? "0") };
+  if (p.hh > 23 || p.mm > 59 || p.ss > 59 || p.mo < 1 || p.mo > 12 || p.d < 1) return null;
+  const t = new Date(Date.UTC(p.y, p.mo - 1, p.d));
+  if (t.getUTCFullYear() !== p.y || t.getUTCMonth() !== p.mo - 1 || t.getUTCDate() !== p.d) return null;
+  return p;
+}
+
+/** Strict UTC string → ISO; null when malformed or impossible. */
+export function fycmaUtcToIso(u: unknown): string | null {
+  const p = parseWall(u);
+  if (!p) return null;
+  const ms = Date.UTC(p.y, p.mo - 1, p.d, p.hh, p.mm, p.ss);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
+}
+
+/**
+ * Convert Tribe "YYYY-MM-DD HH:mm:ss" (Europe/Madrid wall time) to a UTC ISO
+ * string (DST-safe via Intl offset lookup). Null when invalid; never throws.
+ */
+function madridWallToIso(wall: unknown): string | null {
+  const p = parseWall(wall);
+  if (!p) return null;
+  const utcGuess = Date.UTC(p.y, p.mo - 1, p.d, p.hh, p.mm, p.ss);
+  const offsetAt = (ms: number): number | null => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Europe/Madrid", hourCycle: "h23",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    }).formatToParts(new Date(ms));
+    const g = (t: string) => Number(parts.find((x) => x.type === t)?.value);
+    const asUtc = Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute"), g("second"));
+    return Number.isFinite(asUtc) ? asUtc - ms : null;
+  };
+  const o1 = offsetAt(utcGuess);
+  if (o1 == null) return null;
+  const o2 = offsetAt(utcGuess - o1) ?? o1;
+  return new Date(utcGuess - o2).toISOString();
+}
+
+/** Day-only sentinel used across the app: 00:00 UTC of the Madrid calendar day. */
+function daySentinel(wall: unknown): string | null {
+  const p = parseWall(wall);
+  return p ? new Date(Date.UTC(p.y, p.mo - 1, p.d)).toISOString() : null;
+}
+
+const NAMED_ENTITIES: Record<string, string> = {
+  amp: "&", quot: '"', apos: "'", lt: "<", gt: ">", nbsp: " ",
+  ndash: "–", mdash: "—", hellip: "…", laquo: "«", raquo: "»",
+  lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”", iexcl: "¡", iquest: "¿",
+  aacute: "á", eacute: "é", iacute: "í", oacute: "ó", uacute: "ú", ntilde: "ñ",
+  Aacute: "Á", Eacute: "É", Iacute: "Í", Oacute: "Ó", Uacute: "Ú", Ntilde: "Ñ",
+  uuml: "ü", Uuml: "Ü", ccedil: "ç", euro: "€",
+};
+
+/** Decode HTML entities to plain text (output is text, never inserted as HTML). */
+export function decodeFycmaText(s: string): string {
+  return s
+    .replace(/&#(\d+);/g, (all, n) => {
+      const c = Number(n);
+      return c > 0 && c <= 0x10ffff ? String.fromCodePoint(c) : all;
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (all, h) => {
+      const c = parseInt(h, 16);
+      return c > 0 && c <= 0x10ffff ? String.fromCodePoint(c) : all;
+    })
+    .replace(/&([a-zA-Z]+);/g, (all, name) => NAMED_ENTITIES[name] ?? all)
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function firstImageUrl(img: TribeImage | null | undefined): string | null {
@@ -185,18 +234,19 @@ function firstVenueAddress(v: TribeEvent["venue"]): string | null {
   return null;
 }
 
-function mapCategory(cats: TribeCategory[] | undefined): string {
+const AUXILIARY_CATEGORY = /entrada|inscripcion/;
+
+export function mapCategory(cats: TribeCategory[] | undefined): string {
   const names = (cats ?? [])
-    .map((c) => (c?.name ? stripAccents(c.name.toLowerCase()) : ""))
-    .filter(Boolean);
+    .map((c) => (c?.name ? stripAccents(decodeFycmaText(c.name).toLowerCase()) : ""))
+    .filter((n) => n && !AUXILIARY_CATEGORY.test(n));
   const has = (needle: string) => names.some((n) => n.includes(needle));
   if (has("concierto") || has("musica")) return "music";
+  if (has("congreso") || has("jornada")) return "conferences";
+  if (has("feria") || has("salon")) return "exhibitions";
   if (has("teatro") || has("danza")) return "theater";
   if (has("infantil") || has("familiar") || has("ninos")) return "kids";
-  if (has("festival")) return "festivals";
-  if (has("deporte")) return "sports";
-  if (has("gastronom") || has("feria")) return "other";
-  if (has("congreso") || has("salon")) return "other";
+  if (has("festival")) return "festival";
   return "other";
 }
 
