@@ -28,3 +28,5 @@ test-results/
 playwright-report/
 tests/e2e/*.png
 tests/e2e/screenshots/
+.qa/
+qa-report.md
