@@ -164,6 +164,14 @@ function isValidCanonical(ev: CanonicalEvent): boolean {
 /** Adapters whose externalId is a stable per-source identity (survives reschedules). */
 export const STABLE_EXTERNAL_ID_ADAPTERS: ReadonlySet<string> = new Set(["fycma"]);
 
+/**
+ * Key passed to the existing venue-alias resolver. FYCMA emits its long
+ * canonical venue name, but the alias table is keyed by the exact 'FYCMA'.
+ */
+export function venueAliasKeyFor(adapterKey: string, venueName: string | null | undefined): string | null | undefined {
+  return adapterKey === "fycma" ? "FYCMA" : venueName;
+}
+
 /** Adds venue_id / location_id only when the existing resolvers returned real IDs. */
 export function applyResolvedIds(
   row: Record<string, unknown>,
@@ -361,7 +369,7 @@ if (typeof Deno !== "undefined") Deno.serve(async (req) => {
           canonicalVenue = venueCache.get(venueKey) ?? null;
           resolvedVenueId = venueIdCache.get(venueKey) ?? null;
         } else {
-          const v = await resolveVenueAlias(supabase as never, ev.venueName);
+          const v = await resolveVenueAlias(supabase as never, venueAliasKeyFor(adapter.key, ev.venueName));
           canonicalVenue = v.canonicalName;
           resolvedVenueId = v.venueId;
           venueCache.set(venueKey, canonicalVenue);
