@@ -43,7 +43,7 @@ const EventDetailPage = () => {
   const { isAuthenticated } = useAuthContext();
 
   // Fetch event
-  const { data: event, isLoading, error } = useEvent(id);
+  const { data: event, isLoading, error, refetch } = useEvent(id);
   
   // Fetch similar events
   const { data: similarEvents } = useSimilarEvents(event);
@@ -122,10 +122,10 @@ const EventDetailPage = () => {
         </Button>
         <EmptyState
           icon={Calendar}
-          title={t('errors.notFound')}
-          description={t('events.noEventsDesc')}
-          actionLabel={t('common.back')}
-          onAction={() => navigate('/events')}
+          title={error ? t('errors.loadFailed', 'Error al cargar') : t('errors.notFound')}
+          description={error ? t('errors.generic') : t('events.noEventsDesc')}
+          actionLabel={error ? t('common.retry') : t('common.back')}
+          onAction={() => error ? refetch() : navigate('/events')}
         />
       </div>
     );

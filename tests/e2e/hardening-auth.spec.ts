@@ -94,13 +94,14 @@ for (const path of ['/tickets', '/tickets/add', `/sports/${sportId}`]) {
   });
 }
 
-test('auth: controles con nombre, teclado y contraseña visible', async ({ page }) => {
+test('auth: controles con nombre, teclado y contraseña visible', async ({ page, browserName }) => {
   await mockAuth(page);
   await page.goto('/auth');
   await expect(page.getByRole('button', { name: 'Volver', exact: true })).toBeVisible();
   const input = page.getByLabel('Contraseña', { exact: true });
   await input.focus();
-  await page.keyboard.press('Tab');
+  // WebKit uses Option+Tab to include native buttons in sequential focus.
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
   const show = page.getByRole('button', { name: 'Mostrar contraseña', exact: true });
   await expect(show).toBeFocused();
   await page.keyboard.press('Enter');

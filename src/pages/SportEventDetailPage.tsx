@@ -34,7 +34,7 @@ const SportEventDetailPage = () => {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { data: event, isLoading, isError } = useSportsEvent(id);
+  const { data: event, isLoading, isError, refetch } = useSportsEvent(id);
   const { data: favoriteIds = [] } = useSportsFavoriteIds();
   const toggleFavorite = useToggleSportsFavorite();
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
@@ -80,10 +80,10 @@ const SportEventDetailPage = () => {
       <div className="min-h-screen bg-background p-6 text-center space-y-4">
         <AlertTriangle className="h-10 w-10 mx-auto text-muted-foreground" aria-hidden="true" />
         <h1 className="text-lg font-semibold">
-          {t('sportsDetail.notFound', 'No encontramos esta actividad deportiva')}
+          {isError ? t('errors.loadFailed', 'Error al cargar') : t('sportsDetail.notFound', 'No encontramos esta actividad deportiva')}
         </h1>
-        <Button onClick={() => navigate(-1)} variant="outline" className="min-h-11">
-          {t('common.back', 'Volver')}
+        <Button onClick={() => isError ? refetch() : navigate(-1)} variant="outline" className="min-h-11">
+          {isError ? t('common.retry') : t('common.back', 'Volver')}
         </Button>
       </div>
     );
