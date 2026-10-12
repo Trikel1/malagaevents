@@ -129,7 +129,7 @@ export async function findExisting(
   canonicalVenue: string | null,
   dedupeKey: string,
   ctx?: { adapterKey: string; sourceId: string },
-): Promise<{ id: string; content_hash: string | null; dedupe_key: string | null } | null> {
+): Promise<{ id: string; content_hash: string | null; dedupe_key: string | null; matchedBy?: "external_id" } | null> {
   const externalId = typeof ev.externalId === "string" ? ev.externalId.trim() : "";
   if (ctx && ctx.adapterKey === "fycma" && externalId) {
     const { data: byId } = await supabase
@@ -139,7 +139,7 @@ export async function findExisting(
       .eq("external_id", externalId)
       .limit(1)
       .maybeSingle();
-    if (byId) return byId as { id: string; content_hash: string | null; dedupe_key: string | null };
+    if (byId) return { ...(byId as { id: string; content_hash: string | null; dedupe_key: string | null }), matchedBy: "external_id" };
   }
   const { data: primary } = await supabase
     .from("events")
@@ -310,7 +310,7 @@ if (typeof Deno !== "undefined") Deno.serve(async (req) => {
       [ev.title, ev.description ?? "", ev.startAt, ev.venueName ?? "", ev.imageUrl ?? "", ev.ticketUrl ?? ""].join("|"),
     );
 
-    let existing: { id: string; content_hash: string | null; dedupe_key: string | null } | null = null;
+    let existing: { id: string; content_hash: string | null; dedupe_key: string | null; matchedBy?: "external_id" } | null = null;
     try {
       existing = await findExisting(adminClient, ev, canonicalVenue, dedupeKey, {
         adapterKey: adapter.key,
@@ -336,6 +336,11 @@ if (typeof Deno !== "undefined") Deno.serve(async (req) => {
       action = "skip";
       reason = "identical_content_and_key";
       wouldSkip++;
+    } else if (existing.matchedBy === "external_id") {
+      // Same FYCMA id (source-scoped): a reschedule/rename updates the same UUID.
+      action = "update";
+      reason = "external_id_match";
+      wouldUpdate++;
     } else if (existing.dedupe_key && existing.dedupe_key !== dedupeKey) {
       // legacy match (title/venue/±5min) with a different stored key
       action = "conflict";
