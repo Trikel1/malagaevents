@@ -161,13 +161,43 @@ function isValidCanonical(ev: CanonicalEvent): boolean {
 // (Edge Function) and in unit tests (vitest).
 
 
-/** Find an existing event row: first by sha256 dedupe_key, then by legacy fallback. */
-async function findExistingEvent(
+/** Adapters whose externalId is a stable per-source identity (survives reschedules). */
+export const STABLE_EXTERNAL_ID_ADAPTERS: ReadonlySet<string> = new Set(["fycma"]);
+
+/** Adds venue_id / location_id only when the existing resolvers returned real IDs. */
+export function applyResolvedIds(
+  row: Record<string, unknown>,
+  venueId: string | null | undefined,
+  locationId: string | null | undefined,
+): Record<string, unknown> {
+  if (typeof venueId === "string" && venueId) row.venue_id = venueId;
+  if (typeof locationId === "string" && locationId) row.location_id = locationId;
+  return row;
+}
+
+/**
+ * Find an existing event row. For stable-ID adapters (FYCMA) the pair
+ * (source_id, external_id) wins, so the UUID survives date/title changes.
+ * Otherwise (and as fallback): sha256 dedupe_key, then legacy fuzzy match.
+ */
+export async function findExistingEvent(
   supabase: Deps,
   ev: CanonicalEvent,
   canonicalVenue: string | null,
   dedupeKey: string,
+  ctx?: { adapterKey: string; sourceId: string },
 ): Promise<{ id: string; content_hash: string | null; dedupe_key: string | null } | null> {
+  const externalId = typeof ev.externalId === "string" ? ev.externalId.trim() : "";
+  if (ctx && STABLE_EXTERNAL_ID_ADAPTERS.has(ctx.adapterKey) && externalId) {
+    const { data: byId } = await supabase
+      .from("events")
+      .select("id, content_hash, dedupe_key")
+      .eq("source_id", ctx.sourceId)
+      .eq("external_id", externalId)
+      .limit(1)
+      .maybeSingle();
+    if (byId) return byId as { id: string; content_hash: string | null; dedupe_key: string | null };
+  }
   const { data: primary } = await supabase
     .from("events")
     .select("id, content_hash, dedupe_key")
@@ -195,7 +225,7 @@ async function findExistingEvent(
   return (legacy as { id: string; content_hash: string | null; dedupe_key: string | null } | null) ?? null;
 }
 
-Deno.serve(async (req) => {
+if (typeof Deno !== "undefined") Deno.serve(async (req) => {
   const origin = req.headers.get("origin");
 
   if (req.method === "OPTIONS") {
@@ -313,6 +343,8 @@ Deno.serve(async (req) => {
     // localities dozens of times.
     const venueCache = new Map<string, string | null>();
     const localityCache = new Set<string>();
+    const venueIdCache = new Map<string, string | null>();
+    const localityIdCache = new Map<string, string | null>();
 
     for (const ev of events) {
       if (!isValidCanonical(ev)) {
@@ -321,20 +353,27 @@ Deno.serve(async (req) => {
         continue;
       }
       let canonicalVenue: string | null = null;
+      let resolvedVenueId: string | null = null;
+      let resolvedLocationId: string | null = null;
       try {
         const venueKey = (ev.venueName ?? "").trim().toLowerCase();
         if (venueCache.has(venueKey)) {
           canonicalVenue = venueCache.get(venueKey) ?? null;
+          resolvedVenueId = venueIdCache.get(venueKey) ?? null;
         } else {
           const v = await resolveVenueAlias(supabase as never, ev.venueName);
           canonicalVenue = v.canonicalName;
+          resolvedVenueId = v.venueId;
           venueCache.set(venueKey, canonicalVenue);
+          venueIdCache.set(venueKey, resolvedVenueId);
         }
         const localityKey = (ev.locality ?? "").trim().toLowerCase();
         if (localityKey && !localityCache.has(localityKey)) {
-          await resolveLocalityAlias(supabase as never, ev.locality);
+          const l = await resolveLocalityAlias(supabase as never, ev.locality);
+          localityIdCache.set(localityKey, l.locationId);
           localityCache.add(localityKey);
         }
+        resolvedLocationId = localityKey ? localityIdCache.get(localityKey) ?? null : null;
       } catch { /* alias lookup is best-effort */ }
 
       let dedupeKey: string;
@@ -369,7 +408,10 @@ Deno.serve(async (req) => {
       }
 
       try {
-        const existing = await findExistingEvent(supabase, ev, canonicalVenue, dedupeKey);
+        const existing = await findExistingEvent(supabase, ev, canonicalVenue, dedupeKey, {
+          adapterKey: adapter.key,
+          sourceId: source.id,
+        });
 
         const contentHash = await stableHash(
           [ev.title, ev.description ?? "", ev.startAt, ev.venueName ?? "", ev.imageUrl ?? "", ev.ticketUrl ?? ""].join("|"),
@@ -402,11 +444,18 @@ Deno.serve(async (req) => {
           last_seen_at: nowIso,
           last_synced_at: nowIso,
         };
+        if (STABLE_EXTERNAL_ID_ADAPTERS.has(adapter.key) && ev.externalId) {
+          row.external_id = ev.externalId;
+        }
+        applyResolvedIds(row, resolvedVenueId, resolvedLocationId);
 
         if (existing) {
           if (existing.content_hash === contentHash && existing.dedupe_key === dedupeKey) {
             skippedDupes++;
-            await supabase.from("events").update({ last_seen_at: nowIso }).eq("id", existing.id);
+            await supabase.from("events").update({
+              last_seen_at: nowIso,
+              ...(row.external_id ? { external_id: row.external_id } : {}),
+            }).eq("id", existing.id);
           } else {
             // Consolidate legacy dedupe_key to sha256 on update.
             const { error: updErr } = await supabase.from("events").update(row).eq("id", existing.id);
