@@ -441,6 +441,8 @@ export const SYNC_KEY_ENV_NAME = 'SYNC_SPORTS_KEY';
 
 export interface AuthorizeDeps {
   getEnv?: (name: string) => string | undefined;
+  /** Injected for tests; defaults to the `verify_sync_sports_key` RPC (Vault). */
+  verifySyncKeyInVault?: (key: string) => Promise<boolean>;
   /** Injected for tests; defaults to the real supabase-js client factory. */
   createClient?: (
     url: string,
@@ -477,6 +479,25 @@ export async function authorizeAdminRequest(
   const expected = getEnv(SYNC_KEY_ENV_NAME);
   if (syncKey && expected && safeEquals(syncKey, expected)) {
     return { authorized: true, actor: 'cron' };
+  }
+  // Fallback (audit 2026-10-12): pg_cron sends the Vault copy of the key. If
+  // the function environment copy differs, verify against Vault through the
+  // existing SECURITY DEFINER RPC — same pattern sync-sports already uses.
+  if (syncKey && syncKey.length >= 8) {
+    const verify = deps.verifySyncKeyInVault ?? (async (key: string) => {
+      const url = getEnv('SUPABASE_URL');
+      const serviceKey = getEnv('SUPABASE_SERVICE_ROLE_KEY');
+      if (!url || !serviceKey) return false;
+      try {
+        const mod = await import('npm:@supabase/supabase-js@2');
+        const admin = mod.createClient(url, serviceKey, { auth: { persistSession: false } });
+        const { data, error } = await admin.rpc('verify_sync_sports_key', { _key: key });
+        return !error && data === true;
+      } catch {
+        return false;
+      }
+    });
+    if (await verify(syncKey)) return { authorized: true, actor: 'cron' };
   }
 
   const token = extractBearerToken(req.headers.get('authorization'));
