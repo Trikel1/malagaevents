@@ -288,27 +288,40 @@ export function normalizeFycmaEvent(ev: TribeEvent): {
   const fieldsPresent: string[] = [];
   if (!ev || typeof ev !== "object") return { ok: false, reason: "not_object", fieldsPresent };
 
-  const title = typeof ev.title === "string" ? ev.title.trim() : "";
+  const title = typeof ev.title === "string" ? decodeFycmaText(ev.title) : "";
   if (title) fieldsPresent.push("title");
-  const rawStart = ev.start_date;
+  const rawStart = typeof ev.start_date === "string" ? ev.start_date.trim() : "";
   if (rawStart) fieldsPresent.push("start_date");
   if (!title) return { ok: false, reason: "missing_title", fieldsPresent };
   if (!rawStart) return { ok: false, reason: "missing_start_date", fieldsPresent };
+  if (!parseWall(rawStart)) return { ok: false, reason: "bad_start_date", fieldsPresent };
+  const rawEnd = typeof ev.end_date === "string" && parseWall(ev.end_date) ? ev.end_date.trim() : null;
+  const allDay = ev.all_day === true;
 
-  // Prefer the API's own UTC instant (exact, DST-safe); wall-time conversion
-  // is only a fallback.
-  const utcToIso = (u?: string) =>
-    u && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(u)
-      ? new Date(u.replace(" ", "T") + "Z").toISOString()
-      : null;
-  const startIso = utcToIso(ev.utc_start_date) ?? madridWallToIso(rawStart);
+  // Decision: timed events prefer the API's strict UTC instant; a malformed or
+  // impossible UTC value falls back to the valid Madrid wall time (recorded in
+  // raw.utcFallback). All-day events use the day-only sentinel (00:00 UTC) and
+  // the last day inclusive. Nothing here throws.
+  const utcFallback: string[] = [];
+  let startIso: string | null;
+  let endIsoRaw: string | null;
+  if (allDay) {
+    startIso = daySentinel(rawStart);
+    endIsoRaw = rawEnd ? daySentinel(rawEnd) : null;
+  } else {
+    const us = fycmaUtcToIso(ev.utc_start_date);
+    if (ev.utc_start_date != null && !us) utcFallback.push("start");
+    startIso = us ?? madridWallToIso(rawStart);
+    const ue = fycmaUtcToIso(ev.utc_end_date);
+    if (ev.utc_end_date != null && !ue) utcFallback.push("end");
+    endIsoRaw = ue ?? (rawEnd ? madridWallToIso(rawEnd) : null);
+  }
   if (!startIso) return { ok: false, reason: "bad_start_date", fieldsPresent };
-  const endIsoRaw = utcToIso(ev.utc_end_date) ?? (ev.end_date ? madridWallToIso(ev.end_date) : null);
-  const endIso = endIsoRaw && endIsoRaw !== startIso ? endIsoRaw : null;
+  const endIso = endIsoRaw && endIsoRaw > startIso ? endIsoRaw : null;
   if (endIso) fieldsPresent.push("end_date");
 
   const startDay = rawStart.slice(0, 10);
-  const endDay = (ev.end_date ?? rawStart).slice(0, 10);
+  const endDay = endIso ? (rawEnd ?? rawStart).slice(0, 10) : startDay;
   const isMultiDay = startDay !== endDay;
 
   const description = ev.description
