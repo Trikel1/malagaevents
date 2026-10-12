@@ -354,9 +354,9 @@ const PharmaciesPage = () => {
   const isAllProvince = municipality === ALL_PROVINCE_LABEL;
   const municipalityFilter = isAllProvince ? undefined : municipality;
 
-  const { data: duty, isLoading: isLoadingDuty, isError: dutyError } =
+  const { data: duty, isLoading: isLoadingDuty, isError: dutyError, refetch: refetchDuty } =
     usePharmaciesOnDuty(selectedDate, municipalityFilter);
-  const { data: dirAll, isLoading: isLoadingDir } = usePharmacyDirectory(municipalityFilter);
+  const { data: dirAll, isLoading: isLoadingDir, isError: directoryError, refetch: refetchDirectory } = usePharmacyDirectory(municipalityFilter);
   // Province-wide directory used only to enrich duty rows (the duty portal
   // publishes an address and nothing else). Same request, cached separately.
   const { data: directoryForMatching } = usePharmacyDirectory(undefined);
@@ -780,6 +780,15 @@ const PharmaciesPage = () => {
                   <PharmacyCardSkeleton />
                   <PharmacyCardSkeleton />
                 </div>
+              ) : dutyError ? (
+                <EmptyState
+                  icon={AlertTriangle}
+                  title={t('errors.loadFailed', 'Error al cargar')}
+                  description={t('errors.generic')}
+                  actionLabel={t('common.retry')}
+                  onAction={() => refetchDuty()}
+                  variant="error"
+                />
               ) : dutyPharmacies.length > 0 ? (
                 <div className="space-y-2">
                   {dutyPharmacies.map((p: any) => (
@@ -859,6 +868,15 @@ const PharmaciesPage = () => {
                 <PharmacyCardSkeleton />
                 <PharmacyCardSkeleton />
               </div>
+            ) : directoryError ? (
+              <EmptyState
+                icon={AlertTriangle}
+                title={t('errors.loadFailed', 'Error al cargar')}
+                description={t('errors.generic')}
+                actionLabel={t('common.retry')}
+                onAction={() => refetchDirectory()}
+                variant="error"
+              />
             ) : dirPharmacies.length > 0 ? (
               <>
                 <div className="space-y-2">

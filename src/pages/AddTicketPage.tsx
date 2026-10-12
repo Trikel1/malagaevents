@@ -70,7 +70,7 @@ const AddTicketPage = () => {
       <SEO title="Añadir entrada — MalagaEvents" description="Añade una entrada a tu colección personal." path="/tickets/add" noindex />
       {/* Header */}
       <header className="p-4 flex items-center gap-3 border-b border-border">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label={t('common.back')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold">{t('tickets.addTicket')}</h1>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   CircleDollarSign,
   Clock3,
@@ -105,6 +105,7 @@ const CalendarFilterDrawer = ({
     onOpenChange(false);
   };
 
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const activeCount = countActiveGroups(draft);
   const labelFor = (id: string) =>
     mode === 'deportes'
@@ -112,8 +113,14 @@ const CalendarFilterDrawer = ({
       : (CULTURAL_GROUP_LABELS[id as CulturalGroupId] ?? id);
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="h-[92dvh] max-h-[92dvh] flex flex-col [&>div:last-child]:flex [&>div:last-child]:min-h-0 [&>div:last-child]:flex-col [&>div:last-child]:overflow-hidden">
+    <Drawer open={open} onOpenChange={onOpenChange} autoFocus>
+      <DrawerContent
+        onOpenAutoFocus={() => { returnFocusRef.current = document.activeElement as HTMLElement; }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          if (returnFocusRef.current?.isConnected) returnFocusRef.current.focus();
+        }}
+        className="h-[92dvh] max-h-[92dvh] flex flex-col [&>div:last-child]:flex [&>div:last-child]:min-h-0 [&>div:last-child]:flex-col [&>div:last-child]:overflow-hidden">
         <DrawerHeader className="flex items-start justify-between gap-2 text-left">
           <div className="min-w-0">
             <DrawerTitle>Afina tu agenda</DrawerTitle>

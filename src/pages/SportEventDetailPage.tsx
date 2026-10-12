@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -37,12 +37,17 @@ const SportEventDetailPage = () => {
   const { data: event, isLoading, isError } = useSportsEvent(id);
   const { data: favoriteIds = [] } = useSportsFavoriteIds();
   const toggleFavorite = useToggleSportsFavorite();
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
   const locale = resolveDateLocale(i18n.language);
 
   const view = useMemo(() => {
     if (!event) return null;
-    const image = resolveSportImage(event.image_url, event.sport_category);
+    const image = resolveSportImage(event.image_url === failedImageUrl ? null : event.image_url, event.sport_category);
+    let sourceName = event.source_name;
+    if (!sourceName && event.source_url) {
+      try { sourceName = new URL(event.source_url).hostname.replace(/^www\./, ''); } catch { sourceName = null; }
+    }
     const kind = sportItemKind(event);
     const price = sportPriceState(event.price_info);
     const ticket = resolveTicketAction({
@@ -56,8 +61,8 @@ const SportEventDetailPage = () => {
     const directions = event.locationVerified
       ? buildDirectionsUrl({ point, address: event.address, venueName: event.venue_name })
       : null;
-    return { image, kind, price, ticket, directions };
-  }, [event]);
+    return { image, kind, price, ticket, directions, sourceName };
+  }, [event, failedImageUrl]);
 
   if (isLoading) {
     return (
@@ -173,6 +178,7 @@ const SportEventDetailPage = () => {
         <figure className="overflow-hidden rounded-2xl border border-border/60">
           <img
             src={view.image.src}
+            onError={() => { if (!view.image.illustrative) setFailedImageUrl(event.image_url); }}
             alt={view.image.illustrative
               ? t('sportsDetail.illustrativeAlt', 'Imagen ilustrativa de la disciplina')
               : title}
@@ -297,9 +303,9 @@ const SportEventDetailPage = () => {
         <section className="text-xs text-muted-foreground space-y-1">
           <p className="flex items-center gap-1.5">
             <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
-            {event.source_name || event.source_url
+            {view.sourceName
               ? t('sportsDetail.source', 'Fuente: {{name}}', {
-                  name: event.source_name || new URL(event.source_url!).hostname.replace(/^www\./, ''),
+                  name: view.sourceName,
                 })
               : t('sportsDetail.sourceUnknown', 'Fuente sin acreditar')}
           </p>
