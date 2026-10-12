@@ -246,7 +246,8 @@ export function mapCategory(cats: TribeCategory[] | undefined): string {
   if (has("feria") || has("salon")) return "exhibitions";
   if (has("teatro") || has("danza")) return "theater";
   if (has("infantil") || has("familiar") || has("ninos")) return "kids";
-  if (has("festival")) return "festival";
+  if (has("festival")) return "festivals";
+  if (has("deporte")) return "sports";
   return "other";
 }
 
