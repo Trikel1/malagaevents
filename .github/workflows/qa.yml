@@ -29,7 +29,11 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run full QA
-        run: npm run qa
+        # Keep real pointer/actionability checks while avoiding WPE headless
+        # animation-frame stalls on Linux (microsoft/playwright#33057).
+        run: xvfb-run -a npm run qa
+        env:
+          PLAYWRIGHT_WEBKIT_HEADED: '1'
 
       - name: Upload QA report
         if: always()
