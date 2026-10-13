@@ -493,11 +493,9 @@ const EventImage = ({
                 variant="ghost"
                 size="icon"
                 aria-label={t('image.close')}
-                title="Cerrar imagen"
                 className="absolute top-4 end-4 z-10 min-h-11 min-w-11 text-white hover:bg-white/20"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
-                <span className="sr-only">Cerrar imagen</span>
               </Button>
             </DialogClose>
             <div className="flex items-center justify-center min-h-[50vh] max-h-[90vh] p-4">
