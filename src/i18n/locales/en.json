@@ -125,7 +125,8 @@
     "pharmacies": "Pharmacies",
     "profile": "Profile",
     "venues": "Venues",
-    "map": "Map"
+    "map": "Map",
+    "primary": "Main navigation"
   },
   "onboarding": {
     "title": "Welcome to Málaga Events",
@@ -140,7 +141,7 @@
     },
     "hero": {
       "title": "What's on in Málaga today",
-      "subtitle": "Events, family plans, pharmacies, sport and culture in one guide.",
+      "subtitle": "Discover Málaga today, your way.",
       "searchAria": "Search",
       "searchPlaceholder": "Search concerts, theatre, kids, museums…"
     },
@@ -207,7 +208,8 @@
       "provinceHelp": "Choose your town",
       "selectLabel": "Town",
       "selectPlaceholder": "Choose a town…",
-      "go": "See plans"
+      "go": "See plans",
+      "coverageNote": "Coverage by municipality is still partial."
     },
     "culture": {
       "title": "Living culture",
@@ -316,7 +318,15 @@
       "noMatchTitle": "No matches for your interests right now",
       "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
       "browseAll": "Browse the full agenda",
-      "starterNote": "A varied pick of upcoming plans. Choose your interests and we will tailor it."
+      "starterNote": "A varied selection of upcoming plans."
+    },
+    "pilot": {
+      "upcoming": "Coming up",
+      "featuredError": "We could not load the featured event",
+      "onlyFeatured": "The next event is featured above. Explore the agenda for more dates.",
+      "noUpcoming": "No upcoming events have been published yet.",
+      "alreadyShown": "Your recommendations are already shown above.",
+      "services": "More ways to explore Málaga"
     }
   },
   "events": {
@@ -347,7 +357,45 @@
     "halls": "Halls",
     "otherVenues": "Others",
     "timeTBC": "Time to be confirmed",
-    "countPartialA11y": "{{loaded}} of {{total}} events shown"
+    "countPartialA11y": "{{loaded}} of {{total}} events shown",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "thisWeekend": "This weekend",
+    "next30Days": "Next 30 days",
+    "next30Short": "30 days",
+    "agendaTitle": "Events",
+    "agendaKicker": "Culture · Málaga",
+    "eventSingular": "event",
+    "eventPlural": "events",
+    "timeRange": "Time period",
+    "loadMore": "See more events",
+    "upcomingHighlights": "Coming up",
+    "resumeCarousel": "Resume carousel",
+    "pauseCarousel": "Pause carousel",
+    "play": "Resume",
+    "pause": "Pause",
+    "untitled": "Untitled",
+    "family": "Kids",
+    "familyKids": "Kids / Families",
+    "outdoor": "Outdoors",
+    "withTickets": "With tickets",
+    "quickPresets": "Quick choices",
+    "showAll": "Show all",
+    "showResults": "Show results",
+    "activeFilters": "Active filters",
+    "clearAll": "Clear all",
+    "noEventsWithFilters": "No events match these filters",
+    "noEventsHint": "Try another date, town or venue.",
+    "nearMe": "Near me",
+    "venueKind": {
+      "all": "All",
+      "halls": "Music venues",
+      "theaters": "Theaters",
+      "outdoors": "Venues",
+      "hallsTitle": "Music venues",
+      "theatersTitle": "Theaters and auditoriums",
+      "outdoorsTitle": "Venues and outdoor spaces"
+    }
   },
   "eventDetail": {
     "when": "When",
@@ -383,7 +431,12 @@
     "ticketsOnSite": "Access and availability on the organiser's website.",
     "onlineNote": "Online activity: there is no physical venue.",
     "online": "Online",
-    "description": "Description"
+    "description": "Description",
+    "date": "Date",
+    "time": "Time",
+    "place": "Venue",
+    "addFavorite": "Add to favorites",
+    "removeFavorite": "Remove from favorites"
   },
   "calendar": {
     "title": "Calendar",
@@ -521,7 +574,8 @@
   "theme": {
     "system": "System",
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "toggle": "Change theme"
   },
   "categories": {
     "music": "Music",
@@ -783,6 +837,97 @@
       "cancelled": "Cancelled",
       "postponed": "Postponed",
       "pending": "To be confirmed"
+    }
+  },
+  "mapUI": {
+    "loadError": "We could not load the map points.",
+    "noCoordsToday": "No geolocated results for today",
+    "noCoordsScope": "No geolocated results in this period",
+    "emptyHelp": "Choose a wider period or clear the filters.",
+    "weekAction": "See this week",
+    "approxShort": "Approximate",
+    "exactShort": "Exact",
+    "pendingLabel": "Results without a confirmed location",
+    "pending": "Location pending ({{count}})",
+    "pendingHelp": "These are real results, but their address is not confirmed, so they are not placed on the map.",
+    "emptyToday": "No map points today",
+    "emptyScope": "No points in this period",
+    "locate": "Centre the map on my location",
+    "myLocation": "My location",
+    "geoUnsupported": "Your device cannot share its location.",
+    "geoDenied": "Location permission denied. Enable it in your browser settings to centre the map on your position.",
+    "geoError": "We could not get your location. Try again.",
+    "seoTitle": "Map of events and pharmacies in Málaga",
+    "seoDescription": "Explore cultural events, sport, venues and pharmacies on duty near you in Málaga.",
+    "title": "Málaga map",
+    "subtitle": "Find what is happening near you",
+    "search": "Search the map",
+    "searchPlaceholder": "Search events, venues or pharmacies",
+    "scopeLabel": "Time period",
+    "filters": "Map filters",
+    "view": "Change view",
+    "detail": "Details",
+    "closeDetail": "Close details",
+    "pointCount": "{{count}} points on the map",
+    "resultCount": "{{count}} results",
+    "onDuty": "On duty",
+    "approx": "Approximate location",
+    "exact": "Exact location",
+    "openEvent": "View event",
+    "openVenue": "View venue",
+    "openPharmacy": "View pharmacy",
+    "kind": {
+      "event": "Event",
+      "sport": "Sport",
+      "venue": "Venue",
+      "pharmacy": "Pharmacy",
+      "demo": "Point of interest"
+    },
+    "scopes": {
+      "today": "Today",
+      "week": "This week",
+      "all": "All"
+    },
+    "filtersByKind": {
+      "all": "All",
+      "events": "Events",
+      "sports": "Sports",
+      "venues": "Venues",
+      "pharmacies": "Pharmacies"
+    },
+    "views": {
+      "map": "Map",
+      "list": "List"
+    },
+    "scopeSummary": {
+      "today": "Showing today's events",
+      "week": "Showing this week's events",
+      "all": "Showing all events"
+    },
+    "clearSearch": "Clear search",
+    "resultCount_one": "{{count}} result",
+    "resultCount_other": "{{count}} results",
+    "pointCount_one": "{{count}} point on the map",
+    "pointCount_other": "{{count}} points on the map"
+  },
+  "image": {
+    "illustrative": "Illustrative image",
+    "illustrativeAlt": "{{category}} — illustrative image, not the official poster",
+    "expand": "Enlarge image: {{title}}",
+    "close": "Close image",
+    "categories": {
+      "dance": "Dance",
+      "music": "Music",
+      "theater": "Theater",
+      "comedy": "Comedy",
+      "festival": "Festival",
+      "nightlife": "Nightlife",
+      "exhibitions": "Exhibition",
+      "kids": "Kids",
+      "sports": "Sports",
+      "workshops": "Workshop",
+      "conferences": "Conference",
+      "other": "Event"
     }
   }
 }

@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Calendar, X, Music, Theater, PartyPopper, Mic2, Sparkles, Image as ImageIcon, Palette, Baby, Trophy, Wrench, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { sanitizeEventImageUrl } from '@/lib/eventImageSource';
@@ -80,6 +81,9 @@ const CATEGORY_FALLBACKS: Record<EventType, {
 
 export type EventImageVariant = 'card' | 'list' | 'grid' | 'detail' | 'hero' | 'compact';
 
+// A visible poster must not leave an indefinite skeleton when its host stalls.
+export const IMAGE_LOAD_TIMEOUT_MS = 10_000;
+
 interface EventImageProps {
   src?: string | null;
   alt: string;
@@ -89,6 +93,7 @@ interface EventImageProps {
   className?: string;
   showLightbox?: boolean;
   priority?: boolean;
+  onImageError?: () => void;
   eventType?: EventType;
   category?: string;
   /**
@@ -276,13 +281,16 @@ const EventImage = ({
   className,
   showLightbox = false,
   priority = false,
+  onImageError,
   eventType,
   category,
   title,
 }: EventImageProps) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   // Insecure or generic source images never stand in for the real poster.
   const src = useMemo(() => sanitizeEventImageUrl(rawSrc), [rawSrc]);
@@ -312,10 +320,45 @@ const EventImage = ({
   };
 
   // Handle real image error → category placeholder
-  const handleError = () => {
+  const handleError = useCallback(() => {
     setIsLoading(false);
     setHasError(true);
-  };
+    onImageError?.();
+  }, [onImageError]);
+
+  useEffect(() => {
+    const image = imageRef.current;
+    if (!src || !isLoading || hasError || !image) return;
+    // Cached load/error events can precede the source-reset effect.
+    if (image.complete) {
+      if (image.naturalWidth > 0) setIsLoading(false);
+      else handleError();
+      return;
+    }
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const start = () => {
+      if (timer !== undefined) return;
+      timer = setTimeout(() => {
+        if (image.complete && image.naturalWidth > 0) setIsLoading(false);
+        else handleError();
+      }, IMAGE_LOAD_TIMEOUT_MS);
+    };
+    // Do not expire a native lazy image before the user reaches it.
+    const observer = !priority && typeof IntersectionObserver !== 'undefined'
+      ? new IntersectionObserver(entries => {
+          if (entries.some(entry => entry.isIntersecting)) {
+            start();
+            observer?.disconnect();
+          }
+        })
+      : null;
+    if (observer) observer.observe(image);
+    else start();
+    return () => {
+      if (timer !== undefined) clearTimeout(timer);
+      observer?.disconnect();
+    };
+  }, [src, priority, isLoading, hasError, handleError]);
 
   // Generate srcset and optimized src
   const { srcSet, optimizedSrc, sizesAttr } = useMemo(() => {
@@ -342,15 +385,15 @@ const EventImage = ({
       <div className="relative w-full h-full overflow-hidden">
         <img
           src={editorialImage}
-          alt={`${config.label} — imagen ilustrativa, no es el cartel oficial`}
+          alt={t('image.illustrativeAlt', { category: t(`image.categories.${resolvedEventType}`, config.label) })}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           className="w-full h-full object-cover"
         />
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background/60 via-background/5 to-transparent" />
         {!isCompact && (
-          <span className="absolute bottom-1.5 right-1.5 rounded-full bg-background/75 px-2 py-0.5 text-[10px] font-medium text-foreground/75 backdrop-blur-sm">
-            Imagen ilustrativa
+          <span className="absolute bottom-1.5 end-1.5 rounded-full bg-background/75 px-2 py-0.5 text-[10px] font-medium text-foreground/75 backdrop-blur-sm">
+            {t('image.illustrative')}
           </span>
         )}
       </div>
@@ -385,6 +428,7 @@ const EventImage = ({
         (() => {
           const imgNode = (
             <img
+              ref={imageRef}
               src={optimizedSrc || src!}
               srcSet={srcSet}
               sizes={srcSet ? sizesAttr : undefined}
@@ -417,7 +461,7 @@ const EventImage = ({
             <button
               type="button"
               onClick={() => setIsLightboxOpen(true)}
-              aria-label={`Ampliar imagen: ${alt}`}
+              aria-label={t('image.expand', { title: alt })}
               className="block w-full h-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               {imgNode}
@@ -448,9 +492,9 @@ const EventImage = ({
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Cerrar imagen"
+                aria-label={t('image.close')}
                 title="Cerrar imagen"
-                className="absolute top-4 right-4 z-10 min-h-11 min-w-11 text-white hover:bg-white/20"
+                className="absolute top-4 end-4 z-10 min-h-11 min-w-11 text-white hover:bg-white/20"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
                 <span className="sr-only">Cerrar imagen</span>

@@ -4,19 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MapPin, Heart, Calendar, Building2 } from 'lucide-react';
 import { formatMadrid } from '@/lib/madridTime';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { dateLocale } from '@/lib/dateLocale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import EventImage from '@/components/events/EventImage';
 import { sanitizeText, generateAltText } from '@/lib/sanitize';
-import { hasExplicitTime } from '@/lib/eventTime';
+import { hasExplicitTime, formatEventTime } from '@/lib/eventTime';
 import type { Event } from '@/types';
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru
-};
 
 interface EventCardProps {
   event: Event;
@@ -29,18 +26,18 @@ interface EventCardProps {
 
 const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavorite, onToggleFavorite, compact, dense, priority }, ref) => {
   const { t, i18n } = useTranslation();
-  const locale = locales[i18n.language] || es;
+  const locale = dateLocale(i18n.language);
 
   const showTime = hasExplicitTime(event.start_at);
   const timeConfirmLabel = t('events.timeTBC', 'Hora por confirmar');
   // All event dates/times are rendered in Europe/Madrid, never the device tz.
   const formattedDate = showTime
-    ? formatMadrid(event.start_at, "EEE d MMM · HH:mm", locale)
-    : formatMadrid(event.start_at, "EEE d MMM", locale);
+    ? `${formatMadrid(event.start_at, "EEE d MMM", locale)} · ${formatEventTime(event.start_at, i18n.language, timeConfirmLabel)}`
+    : `${formatMadrid(event.start_at, "EEE d MMM", locale)} · ${timeConfirmLabel}`;
   const dayShort = formatMadrid(event.start_at, "d", locale);
   const monthShort = formatMadrid(event.start_at, "MMM", locale).replace('.', '');
   const timeShort = showTime
-    ? formatMadrid(event.start_at, "HH:mm", locale)
+    ? formatEventTime(event.start_at, i18n.language, t('events.timeTBC'))
     : timeConfirmLabel;
 
   // Strict cleaner: filter null/undefined/placeholders. Used for visible metadata only.
@@ -98,12 +95,12 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
               priority={priority}
             />
             {/* Floating date badge */}
-            <div className="absolute top-1.5 left-1.5 z-10 flex flex-col items-center justify-center bg-card/95 backdrop-blur-sm rounded-lg px-1.5 py-0.5 shadow-soft min-w-[34px]">
+            <div className="absolute top-1.5 start-1.5 z-10 flex flex-col items-center justify-center bg-card/95 backdrop-blur-sm rounded-lg px-1.5 py-0.5 shadow-soft min-w-[34px]">
               <span className="text-[15px] font-bold leading-none text-primary">{dayShort}</span>
               <span className="text-[11px] font-semibold uppercase leading-none text-muted-foreground mt-0.5">{monthShort}</span>
             </div>
             {event.is_free && (
-              <Badge className="absolute top-1.5 right-1.5 bg-green-700 text-white hover:bg-green-700 z-10 text-[11px] px-1.5 py-0.5">
+              <Badge className="absolute top-1.5 end-1.5 bg-green-700 text-white hover:bg-green-700 z-10 text-[11px] px-1.5 py-0.5">
                 {t('common.free')}
               </Badge>
             )}
@@ -216,7 +213,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
           size="icon"
           className="absolute top-2 right-2 h-11 w-11 min-h-[44px] min-w-[44px] rounded-full bg-background/90 hover:bg-background z-20 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           onClick={() => onToggleFavorite?.(event.id)}
-          aria-label={`${isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Añadir a favoritos')}: ${eventTitle}`}
+          aria-label={`${isFavorite ? t('eventDetail.removeFavorite', 'Quitar de favoritos') : t('eventDetail.addFavorite', 'Añadir a favoritos')}: ${eventTitle}`}
           aria-pressed={isFavorite}
         >
           <Heart

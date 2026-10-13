@@ -82,6 +82,7 @@ const CultureEventsPage = () => {
   );
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
 
   const setSelectedVenueIds = useCallback(
     (ids: string[]) => commit({ venueIds: ids }),
@@ -229,7 +230,7 @@ const CultureEventsPage = () => {
       return;
     }
     if (!('geolocation' in navigator)) {
-      toast.error(t('events.locationUnsupported', 'Tu navegador no soporta geolocalización'));
+      toast.error(t('events.locationUnsupported', 'Tu navegador no soporta geolocalización'), { position: 'top-center' });
       return;
     }
     setIsRequestingLocation(true);
@@ -237,7 +238,7 @@ const CultureEventsPage = () => {
       (pos) => {
         setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setIsRequestingLocation(false);
-        toast.success(t('events.sortedByDistance', 'Ordenado por cercanía'));
+        toast.success(t('events.sortedByDistance', 'Ordenado por cercanía'), { position: 'top-center' });
       },
       (err) => {
         setIsRequestingLocation(false);
@@ -247,9 +248,10 @@ const CultureEventsPage = () => {
               'events.locationPermissionDenied',
               'Permiso de ubicación denegado. Actívalo en los ajustes del navegador.',
             ),
+            { position: 'top-center' },
           );
         } else {
-          toast.error(t('events.locationError', 'No pudimos obtener tu ubicación'));
+          toast.error(t('events.locationError', 'No pudimos obtener tu ubicación'), { position: 'top-center' });
         }
       },
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
@@ -539,6 +541,7 @@ const CultureEventsPage = () => {
             <Button
               variant="outline"
               size="icon"
+              ref={filterTriggerRef}
               onClick={() => setIsFilterOpen(true)}
               className="h-10 w-10 rounded-full relative shrink-0"
               aria-label={t('events.filters', 'Filtros')}
@@ -688,6 +691,7 @@ const CultureEventsPage = () => {
       </main>
 
       <FilterDrawer
+        triggerRef={filterTriggerRef}
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
         filters={filters}

@@ -1,0 +1,20 @@
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+
+export default function HomeModeSwitch({ value, onChange, editorial = false }: {
+  value: 'eventos' | 'deportes'; onChange: (mode: 'eventos' | 'deportes') => void; editorial?: boolean;
+}) {
+  const { t, i18n } = useTranslation();
+  return (
+    <div className={cn('glass-button relative flex p-0.5 min-w-0 shrink text-foreground bg-card/80 overflow-hidden', editorial && 'home-mode')}>
+      <span aria-hidden className="absolute top-0.5 bottom-0.5 start-0.5 rounded-full bg-foreground/95 backdrop-blur-md transition-transform duration-500 motion-reduce:transition-none"
+        style={{ width: 'calc(50% - 2px)', transform: `translateX(${value === 'eventos' ? '0%' : i18n.dir() === 'rtl' ? '-100%' : '100%'})`, boxShadow: '0 4px 14px -8px hsl(var(--glass-shadow))' }} />
+      {(['eventos', 'deportes'] as const).map(mode => (
+        <button key={mode} type="button" onClick={() => onChange(mode)} aria-pressed={value === mode}
+          className={cn('relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-300 min-h-[36px] whitespace-nowrap', value === mode ? 'text-background' : 'text-foreground hover:text-foreground')}>
+          {t(mode === 'eventos' ? 'sports.events' : 'sports.title')}
+        </button>
+      ))}
+    </div>
+  );
+}

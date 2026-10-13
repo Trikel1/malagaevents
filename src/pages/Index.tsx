@@ -4,15 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Search, Calendar, Pill, ChevronRight, Sparkles, Baby,
-  Music, Drama, PartyPopper, Building2, Trees, Users, Ticket, Map as MapIcon,
-  Landmark, Trophy, Radar, Heart, X,
+  Map as MapIcon, Heart, X,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import LanguageSelector from '@/components/common/LanguageSelector';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
-import EventCard from '@/components/events/EventCard';
+import HomeEventCard from '@/components/home/HomeEventCard';
+import HomeModeSwitch from '@/components/home/HomeModeSwitch';
 
 import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useEvents } from '@/hooks/useEvents';
@@ -100,6 +100,11 @@ const Index = () => {
   const [featuredId, setFeaturedId] = useState<string | null>(null);
   const weekendList = (weekendEvents ?? []).filter((e) => e.id !== featuredId);
 
+  const { data: upcomingEvents, isLoading: loadingUpcoming, isError: upcomingError, refetch: refetchUpcoming } = useEvents({
+    limit: 24, enabled: appMode === 'eventos',
+  });
+  const upcomingList = (upcomingEvents ?? []).filter(event => event.id !== featuredId).slice(0, 3);
+
   const { data: favorites } = useFavorites();
   const toggleFavorite = useToggleFavorite();
 
@@ -126,10 +131,10 @@ const Index = () => {
   const QUICK_ACTIONS = [
     { k: 'today', icon: Sparkles, to: '/events?filter=today' },
     { k: 'weekend', icon: Calendar, to: '/events?filter=weekend' },
+    { k: 'free', icon: Heart, to: '/events?filter=free' },
     { k: 'family', icon: Baby, to: '/events?filter=family' },
     { k: 'pharmacies', icon: Pill, to: '/pharmacies' },
     { k: 'map', icon: MapIcon, to: '/map' },
-    { k: 'free', icon: Heart, to: '/events?filter=free' },
   ] as const;
 
   const isSports = appMode === 'deportes';
@@ -152,80 +157,35 @@ const Index = () => {
       {/* ============== HERO — sobrio, institucional ============== */}
       <header className={cn(
         'relative text-white px-4 sm:px-6 pt-4 overflow-hidden',
-        isSports ? 'sports-hero pb-5' : 'bg-gradient-hero pb-20'
+        isSports ? 'sports-hero pb-5' : 'home-header'
       )}>
 
 
-        {/* Subtle depth layer — only in Eventos to keep Deportes hero clean */}
-        {!isSports && (
-          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div className="hero-glow hero-glow--warm -top-32 -left-24 h-80 w-80" />
-            <div className="hero-glow hero-glow--cool -bottom-24 -right-20 h-72 w-72" />
-          </div>
-        )}
-
-        {/* Fundido hacia la siguiente sección — sólo Eventos (Deportes es opaco continuo) */}
-        {!isSports && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent via-background/40 to-background"
-          />
-        )}
-
         {/* Top controls */}
-        <div className="relative flex justify-between items-center gap-2 mb-4 min-w-0">
-          <div className="glass-button relative flex p-0.5 min-w-0 shrink text-white overflow-hidden">
-            <span
-              aria-hidden
-              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-white/95 backdrop-blur-md transition-transform duration-500 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]"
-              style={{
-                width: 'calc(50% - 2px)',
-                transform: `translateX(${appMode === 'eventos' ? '0%' : '100%'})`,
-                boxShadow: '0 4px 14px -8px rgba(15,23,42,0.35)',
-              }}
-            />
-            <button
-              onClick={() => switchMode('eventos')}
-              aria-pressed={appMode === 'eventos'}
-              className={cn(
-                'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-300 min-h-[36px] whitespace-nowrap',
-                appMode === 'eventos' ? 'text-slate-900' : 'text-white/90 hover:text-white'
-              )}
-            >
-              {t('sports.events')}
-            </button>
-            <button
-              onClick={() => switchMode('deportes')}
-              aria-pressed={appMode === 'deportes'}
-              className={cn(
-                'relative z-[1] px-3 sm:px-4 py-1.5 rounded-full text-[13px] sm:text-sm font-semibold transition-colors duration-300 min-h-[36px] whitespace-nowrap',
-                appMode === 'deportes' ? 'text-slate-900' : 'text-white/90 hover:text-white'
-              )}
-            >
-              {t('sports.title')}
-            </button>
-          </div>
+        <div className={cn("relative flex justify-between items-center gap-2 mb-4 min-w-0", !isSports && "home-toolbar")}>
+          <HomeModeSwitch value={appMode} onChange={switchMode} editorial={!isSports} />
 
-          <div className="flex items-center gap-1 shrink-0">
+          <div className={cn("flex items-center gap-1 shrink-0", !isSports && "home-theme-controls")}>
             <ThemeToggle />
             <LanguageSelector variant="compact" />
           </div>
         </div>
 
         {/* Título editorial + acceso a búsqueda compacto */}
-        <div className="relative flex items-end justify-between gap-3">
+        <div className={cn("relative flex items-end justify-between gap-3", !isSports && "home-heading-row")}>
           <div className="min-w-0 flex-1">
+            {!isSports && <p className="home-brand-name" dir="ltr" translate="no">Málaga Connect</p>}
             <h1 className={cn(
               'font-bold tracking-tight max-w-xl',
               isSports
                 ? 'text-[24px] sm:text-[30px] leading-[1.1]'
-                : 'text-[26px] sm:text-[38px] leading-[1.08]'
+                : 'home-display'
             )}>
               {isSports ? t('sportsHome.heroTitle', 'Deporte en Málaga') : t('home.hero.title')}
             </h1>
             <p className={cn(
               'text-[13.5px] sm:text-sm mt-1.5 max-w-md leading-snug',
-              isSports ? 'line-clamp-2 text-sportsx-accent' : 'text-white/90'
+              isSports ? 'line-clamp-2 text-sportsx-accent' : 'home-intro'
             )}>
               {isSports
                 ? t('sportsHome.heroSubtitle', 'Agenda, instalaciones y clubes verificados de la provincia')
@@ -243,7 +203,7 @@ const Index = () => {
               aria-expanded={searchOpen}
               aria-controls="global-search-panel"
               title={t('home.hero.searchAria')}
-              className="liquid-press shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-4 rounded-full bg-primary text-primary-foreground shadow-md ring-1 ring-primary/30 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="home-search-action liquid-press shrink-0 inline-flex items-center gap-2 h-11 min-w-11 px-4 rounded-full bg-primary text-primary-foreground shadow-md ring-1 ring-primary/30 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               {searchOpen ? (
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -281,7 +241,7 @@ const Index = () => {
               <form
                 onSubmit={handleSearchSubmit}
                 role="search"
-                className="flex items-center gap-2 h-12 px-3 rounded-2xl bg-white/95 dark:bg-slate-900/85 backdrop-blur border border-white/40 shadow-lg"
+                className="home-search-form flex items-center gap-2 h-12 px-3 rounded-2xl bg-white/95 dark:bg-slate-900/85 backdrop-blur border border-white/40 shadow-lg"
               >
                 <Search className="h-5 w-5 text-slate-500 shrink-0" aria-hidden="true" />
                 <input
@@ -326,7 +286,7 @@ const Index = () => {
 
       <main className={cn(
         'px-4 sm:px-6 pb-8 relative z-10 mx-auto',
-        isSports ? 'pt-4 space-y-4 max-w-[1180px]' : '-mt-14 space-y-6 max-w-6xl'
+        isSports ? 'pt-4 space-y-4 max-w-[1180px]' : 'home-main'
       )}>
 
         {isSports ? (
@@ -335,20 +295,12 @@ const Index = () => {
           </Suspense>
         ) : (
           <>
-            {/* ============== QUICK ACTIONS visible desde primer pantallazo ============== */}
-            <section aria-label={t('home.quickActions.aria')} className="glass-panel p-4 sm:p-5">
-              <div className="grid grid-cols-3 gap-2">
-                {QUICK_ACTIONS.map((qa) => (
-                  <button
-                    key={qa.k}
-                    onClick={() => navigate(qa.to)}
-                    className="liquid-press flex flex-col items-center justify-center gap-1.5 rounded-2xl py-3 px-2 bg-background/40 hover:bg-primary/10 transition-colors border border-border/40 min-h-[76px]"
-                  >
-                    <qa.icon className="h-5 w-5 text-primary" aria-hidden />
-                    <span className="text-[12px] font-semibold text-foreground leading-tight text-center">{t(`home.quickActions.${qa.k}`)}</span>
-                  </button>
-                ))}
-              </div>
+            <section aria-label={t('home.quickActions.aria')} className="home-intents">
+              {QUICK_ACTIONS.filter(qa => ['today', 'weekend', 'free', 'family'].includes(qa.k)).map(qa => (
+                <button type="button" key={qa.k} onClick={() => navigate(qa.to)} className="home-intent liquid-press">
+                  <qa.icon size={18} aria-hidden /><span>{t(`home.quickActions.${qa.k}`)}</span>
+                </button>
+              ))}
             </section>
 
             {/* ============== DESTACADO REAL — primer contenido útil ============== */}
@@ -356,35 +308,45 @@ const Index = () => {
               <FeaturedEvent onSelect={setFeaturedId} />
             </Suspense>
 
-            {/* ============== PARA TI — cultura + deporte según gustos ============== */}
-            <Suspense fallback={null}>
-              <ForYouSection />
-            </Suspense>
+            <section aria-labelledby="home-upcoming-title">
+              <div className="home-section-header">
+                <h2 id="home-upcoming-title" className="home-section-title">{t('home.pilot.upcoming')}</h2>
+                <Button variant="ghost" className="home-section-action" onClick={() => navigate('/events')}>
+                  {t('home.sections.viewAll')} <ChevronRight className="home-arrow" size={16} aria-hidden />
+                </Button>
+              </div>
+              {loadingUpcoming ? <div role="status" aria-label={t('common.loading')} className="home-compact-grid">
+                {[1, 2].map(i => <EventCardSkeleton key={i} />)}
+              </div> : upcomingError ? <div className="home-notice" role="alert">
+                <p>{t('errors.loadFailed')}</p><Button onClick={() => refetchUpcoming()}>{t('common.retry')}</Button>
+              </div> : upcomingList.length ? <div className="home-compact-grid">
+                {upcomingList.map(event => <HomeEventCard key={event.id} event={event} compact
+                  isFavorite={isFavorite(event.id)} onToggleFavorite={handleToggleFavorite} />)}
+              </div> : <p className="home-note">{t(upcomingEvents?.length ? 'home.pilot.onlyFeatured' : 'home.pilot.noUpcoming')}</p>}
+            </section>
 
-
-            {/* ============== Tengo dos horas — planificador real ============== */}
             <Suspense fallback={null}>
-              <TwoHoursSheet />
+              <ForYouSection excludedEventId={featuredId} />
             </Suspense>
 
             {/* ============== Este finde ============== */}
-            <section>
-              <div className="flex items-end justify-between gap-3 mb-3">
+            <section aria-labelledby="home-weekend-title">
+              <div className="home-section-header">
                 <div className="min-w-0">
-                  <h2 className="section-title">{t('home.sections.thisWeekend')}</h2>
-                  <div className="section-rule mt-2" aria-hidden />
+                  <h2 id="home-weekend-title" className="home-section-title">{t('home.sections.thisWeekend')}</h2>
+
                 </div>
-                <Button variant="ghost" size="sm" className="text-primary gap-1 hover:underline underline-offset-4 shrink-0" onClick={() => navigate('/events?filter=weekend')}>
+                <Button variant="ghost" size="sm" className="home-section-action gap-1" onClick={() => navigate('/events?filter=weekend')}>
                   {t('home.sections.viewAll')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
 
               {loadingWeekend ? (
-                <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
+                <div className="home-collection">
                   {[1,2].map((i) => <EventCardSkeleton key={i} />)}
                 </div>
               ) : weekendError ? (
-                <div className="glass-card p-6 text-center">
+                <div className="home-notice">
                   <p className="text-sm text-foreground font-medium">
                     {t('home.weekend.errorTitle', 'No hemos podido cargar los planes del finde')}
                   </p>
@@ -396,15 +358,15 @@ const Index = () => {
                   </Button>
                 </div>
               ) : weekendList.length > 0 ? (
-                <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
+                <div className="home-collection">
                   {weekendList.map((event) => (
-                    <EventCard key={event.id} event={event} dense
+                    <HomeEventCard key={event.id} event={event}
                       isFavorite={isFavorite(event.id)} onToggleFavorite={handleToggleFavorite} />
                   ))}
                 </div>
 
               ) : (
-                <div className="glass-card p-6 text-center">
+                <div className="home-notice">
                   <Calendar className="h-10 w-10 mx-auto mb-2 opacity-50 text-muted-foreground" aria-hidden />
                   <p className="text-sm text-foreground font-medium">
                     {t('home.weekend.emptyTitle', 'Aún no hay planes publicados para este fin de semana')}
@@ -420,31 +382,29 @@ const Index = () => {
             </section>
 
             {/* ============== Málaga ciudad y provincia — selector simple ============== */}
-            <section className="glass-panel p-5 sm:p-6" aria-labelledby="city-province-title">
+            <section className="home-location" aria-labelledby="city-province-title">
               <div className="flex items-start gap-3 mb-4">
-                <div className="h-11 w-11 shrink-0 rounded-2xl bg-secondary/15 flex items-center justify-center">
-                  <Landmark className="h-5 w-5 text-secondary" aria-hidden />
-                </div>
+
                 <div className="min-w-0">
-                  <h2 id="city-province-title" className="text-lg sm:text-xl font-bold tracking-tight">
+                  <h2 id="city-province-title" className="home-section-title">
                     {t('home.cityProvince.title')}
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                  <p className="home-note">
                     {t('home.cityProvince.subtitle')}
                   </p>
-                  <p className="text-[12px] text-muted-foreground mt-1 leading-relaxed">
+                  <p className="home-note">
                     {t('home.cityProvince.coverageNote', 'Buscamos por nombre de municipio en la agenda publicada; la cobertura por municipio aún es parcial.')}
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="home-location-choices">
                 <button
                   type="button"
                   onClick={() => goLocality('Málaga')}
                   aria-pressed={areaScope === 'capital'}
                   className={cn(
-                    'liquid-press rounded-2xl border p-4 text-left min-h-[76px] transition-colors',
+                    'home-location-choice liquid-press',
                     areaScope === 'capital'
                       ? 'border-primary bg-primary/10'
                       : 'border-border/60 bg-background/40 hover:bg-primary/5',
@@ -463,7 +423,7 @@ const Index = () => {
                   onClick={() => setAreaScope('province')}
                   aria-pressed={areaScope === 'province'}
                   className={cn(
-                    'liquid-press rounded-2xl border p-4 text-left min-h-[76px] transition-colors',
+                    'home-location-choice liquid-press',
                     areaScope === 'province'
                       ? 'border-primary bg-primary/10'
                       : 'border-border/60 bg-background/40 hover:bg-primary/5',
@@ -515,26 +475,11 @@ const Index = () => {
             </section>
 
 
-            {/* ============== Deportes teaser ============== */}
-            <section className="glass-card-strong p-5 sm:p-6">
-              <div className="flex items-start gap-3">
-                <div className="h-11 w-11 shrink-0 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
-                  <Trophy className="h-5 w-5 text-emerald-600" aria-hidden />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-bold tracking-tight">{t('home.sports.title')}</h2>
-                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                    {t('home.sports.subtitle')}
-                  </p>
-                  <Button
-                    onClick={() => switchMode('deportes')}
-                    className="mt-4 liquid-press h-11 px-4 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
-                  >
-                    {t('home.sports.cta')} <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
+            <section className="home-services" aria-label={t('home.pilot.services')}>
+              <Button variant="outline" onClick={() => navigate('/pharmacies')}><Pill size={18} aria-hidden />{t('home.quickActions.pharmacies')}</Button>
+              <Button variant="outline" onClick={() => navigate('/map')}><MapIcon size={18} aria-hidden />{t('home.quickActions.map')}</Button>
             </section>
+            <div className="home-two-hours"><Suspense fallback={null}><TwoHoursSheet /></Suspense></div>
 
           </>
         )}

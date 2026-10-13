@@ -216,7 +216,7 @@ const BottomNav = () => {
                   )}
                 />
               </span>
-              <span className="bottom-nav-label">{item.label}</span>
+              <span className="bottom-nav-label" style={{ fontSize: '12px', lineHeight: 1.2, whiteSpace: 'normal', overflow: 'visible' }}>{item.label}</span>
             </button>
           );
         })}

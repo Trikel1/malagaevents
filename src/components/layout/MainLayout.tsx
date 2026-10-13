@@ -5,6 +5,7 @@ import { useAppMode } from '@/contexts/AppModeContext';
 import { cn } from '@/lib/utils';
 
 import BottomNav from './BottomNav';
+import homeStyles from '@/components/home/HomeEditorial.module.css';
 import LiquidGlassBackdrop from './LiquidGlassBackdrop';
 
 const routeKeyFromPath = (pathname: string): string => {
@@ -30,6 +31,8 @@ const MainLayout = () => {
   const isSportsSection =
     routeKey === 'sports' || (appMode === 'deportes' && SPORTS_ROUTES.includes(routeKey));
 
+  const isEditorialHome = routeKey === 'home' && !isSportsSection;
+
   // Route-change focus management: move focus to the top of the new page so
   // screen-reader and keyboard users are not left at the bottom nav. Skipped on
   // first paint (never steal focus on entry) and while a dialog is open.
@@ -49,6 +52,7 @@ const MainLayout = () => {
       className={cn(
         'min-h-screen relative',
         isSportsSection ? 'sports-theme bg-background' : 'bg-background',
+        isEditorialHome && homeStyles.scope,
       )}
       data-mode={appMode}
       data-route={routeKey}

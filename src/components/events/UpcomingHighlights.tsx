@@ -2,16 +2,13 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { madridDayKey, formatMadrid, addDaysToKey } from '@/lib/madridTime';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { dateLocale } from '@/lib/dateLocale';
 
-const HIGHLIGHT_LOCALES: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
-};
 import { Sparkles, Pause, Play } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import EventImage from '@/components/events/EventImage';
 import { sanitizeText, generateAltText } from '@/lib/sanitize';
-import { hasExplicitTime } from '@/lib/eventTime';
+import { hasExplicitTime, formatEventTime } from '@/lib/eventTime';
 import type { Event } from '@/types';
 
 interface UpcomingHighlightsProps {
@@ -149,7 +146,7 @@ interface HighlightCardProps {
 
 const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCardProps) => {
   const { t, i18n } = useTranslation();
-  const locale = HIGHLIGHT_LOCALES[i18n.language] || es;
+  const locale = dateLocale(i18n.language);
   const startDate = new Date(event.start_at);
   const showTime = hasExplicitTime(event.start_at);
 
@@ -164,7 +161,7 @@ const HighlightCard = ({ event, 'aria-hidden': ariaHidden, snap }: HighlightCard
         : formatMadrid(startDate, 'EEE d MMM', locale);
 
   const timeLabel = showTime
-    ? formatMadrid(startDate, 'HH:mm', locale)
+    ? formatEventTime(event.start_at, i18n.language, t('events.timeTBC'))
     : t('events.timeTBC', 'Hora por confirmar');
 
 

@@ -14,7 +14,8 @@ import {
   setYear,
 } from 'date-fns';
 import SEO from '@/components/common/SEO';
-import { es, enUS, de, fr, it, pt, ja, zhCN, ru, type Locale } from 'date-fns/locale';
+import { dateLocale, longDatePattern } from '@/lib/dateLocale';
+import type { Locale } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import {
   ChevronLeft,
@@ -63,14 +64,11 @@ import {
 const TIMEZONE = 'Europe/Madrid';
 const LIST_PAGE_SIZE = 30;
 
-const locales: Record<string, Locale> = {
-  es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru,
-};
 
 const CalendarPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const locale = locales[i18n.language] || es;
+  const locale = dateLocale(i18n.language);
   const { appMode } = useAppMode();
   const { isAuthenticated } = useAuthContext();
 
@@ -525,7 +523,7 @@ const CalendarPage = () => {
                         onClick={() => handleDayClick(day)}
                         aria-pressed={isSelected}
                         aria-current={today ? 'date' : undefined}
-                        aria-label={format(day, "EEEE d 'de' MMMM", { locale })}
+                        aria-label={format(day, longDatePattern(locale.code), { locale })}
                         className={cn(
                           'min-h-11 aspect-square rounded-lg flex flex-col items-center justify-center text-sm transition-colors relative',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -557,7 +555,7 @@ const CalendarPage = () => {
             {selectedDate && !errored && (
               <div className="space-y-4">
                 <h3 className="font-semibold capitalize">
-                  {format(selectedDate, "EEEE d 'de' MMMM", { locale })}
+                  {format(selectedDate, longDatePattern(locale.code), { locale })}
                 </h3>
 
                 {appMode === 'deportes' ? (
@@ -716,7 +714,7 @@ const ListView = ({
         {Object.entries(grouped).map(([key, evs]) => (
           <section key={key} className="space-y-3">
             <h3 className="font-semibold capitalize sticky top-[7.5rem] bg-background/95 backdrop-blur-none py-1 z-10">
-              {format(parseDayKey(key), "EEEE d 'de' MMMM", { locale })}
+              {format(parseDayKey(key), longDatePattern(locale.code), { locale })}
             </h3>
             <div className="grid grid-cols-2 gap-3">
               {evs.map((ev) => (
@@ -746,7 +744,7 @@ const ListView = ({
       {Object.entries(grouped).map(([key, occs]) => (
         <section key={key} className="space-y-3">
           <h3 className="font-semibold capitalize sticky top-[7.5rem] bg-background/95 py-1 z-10">
-            {format(parseDayKey(key), "EEEE d 'de' MMMM", { locale })}
+            {format(parseDayKey(key), longDatePattern(locale.code), { locale })}
           </h3>
           <div className="space-y-3">
             {occs.map((occ) => occ.event && (

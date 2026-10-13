@@ -125,7 +125,8 @@
     "pharmacies": "Apotheken",
     "profile": "Profil",
     "venues": "Orte",
-    "map": "Karte"
+    "map": "Karte",
+    "primary": "Hauptnavigation"
   },
   "onboarding": {
     "title": "Willkommen bei Málaga Events",
@@ -140,7 +141,7 @@
     },
     "hero": {
       "title": "Was ist heute in Málaga los",
-      "subtitle": "Events, Familienpläne, Apotheken, Sport und Kultur in einem Guide.",
+      "subtitle": "Entdecke Málaga heute, auf deine Art.",
       "searchAria": "Suchen",
       "searchPlaceholder": "Konzert, Theater, Kinder, Museum suchen…"
     },
@@ -207,7 +208,8 @@
       "provinceHelp": "Wählen Sie Ihre Gemeinde",
       "selectLabel": "Gemeinde",
       "selectPlaceholder": "Gemeinde wählen…",
-      "go": "Pläne ansehen"
+      "go": "Pläne ansehen",
+      "coverageNote": "Die Abdeckung der Gemeinden ist noch unvollständig."
     },
     "culture": {
       "title": "Lebendige Kultur",
@@ -290,33 +292,41 @@
       "pharmacies": "Notapotheken"
     },
     "featured": {
-      "badgeToday": "Today",
-      "badgeNext": "Coming up",
-      "badgeFree": "Free",
-      "free": "Free entry",
-      "priceUnknown": "Price to be confirmed",
-      "cta": "View details"
+      "badgeToday": "Heute",
+      "badgeNext": "Demnächst",
+      "badgeFree": "Kostenlos",
+      "free": "Freier Eintritt",
+      "priceUnknown": "Preis noch nicht bestätigt",
+      "cta": "Details ansehen"
     },
     "forYou": {
-      "title": "For you",
-      "editInterests": "Edit interests",
-      "chooseInterests": "Choose your interests",
+      "title": "Für Sie",
+      "editInterests": "Interessen bearbeiten",
+      "chooseInterests": "Interessen auswählen",
       "sportsBadge": "Sport",
-      "reason": "Because you like {{interest}}",
-      "moreInfo": "More information",
-      "lessInfo": "Hide information",
-      "importTitle": "You have interests saved on this device",
-      "importHelp": "Add them to your account to see them on all your devices?",
-      "importAccept": "Add to my account",
-      "importDismiss": "Not now",
-      "emptyTitle": "You haven't chosen any interests yet",
-      "emptyHelp": "Pick what you enjoy and you'll see culture and sport plans that match.",
-      "errorTitle": "We couldn't load your recommendations",
-      "errorHelp": "Please try again in a moment.",
-      "noMatchTitle": "No matches for your interests right now",
-      "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda",
-      "starterNote": "Eine bunte Auswahl kommender Pläne. Wählen Sie Ihre Interessen, dann passen wir sie an."
+      "reason": "Weil Sie {{interest}} mögen",
+      "moreInfo": "Mehr Informationen",
+      "lessInfo": "Informationen ausblenden",
+      "importTitle": "Auf diesem Gerät sind Interessen gespeichert",
+      "importHelp": "Möchten Sie sie Ihrem Konto hinzufügen, um sie auf allen Geräten zu sehen?",
+      "importAccept": "Meinem Konto hinzufügen",
+      "importDismiss": "Jetzt nicht",
+      "emptyTitle": "Sie haben noch keine Interessen gewählt",
+      "emptyHelp": "Wählen Sie Ihre Interessen, um passende Kultur- und Sportangebote zu entdecken.",
+      "errorTitle": "Ihre Empfehlungen konnten nicht geladen werden",
+      "errorHelp": "Bitte versuchen Sie es gleich noch einmal.",
+      "noMatchTitle": "Zurzeit keine passenden Angebote",
+      "noMatchHelp": "Es gibt derzeit keine veröffentlichten Veranstaltungen für Ihre Auswahl. Entdecken Sie die gesamte Agenda.",
+      "browseAll": "Gesamte Agenda ansehen",
+      "starterNote": "Eine vielfältige Auswahl kommender Veranstaltungen."
+    },
+    "pilot": {
+      "upcoming": "Demnächst",
+      "featuredError": "Die hervorgehobene Veranstaltung konnte nicht geladen werden",
+      "onlyFeatured": "Die nächste Veranstaltung finden Sie oben. Entdecken Sie weitere Termine in der Agenda.",
+      "noUpcoming": "Es wurden noch keine kommenden Veranstaltungen veröffentlicht.",
+      "alreadyShown": "Ihre Empfehlungen werden bereits oben angezeigt.",
+      "services": "Weitere Möglichkeiten, Málaga zu entdecken"
     }
   },
   "events": {
@@ -347,7 +357,45 @@
     "halls": "Hallen",
     "otherVenues": "Andere",
     "timeTBC": "Uhrzeit folgt",
-    "countPartialA11y": "{{loaded}} von {{total}} Veranstaltungen angezeigt"
+    "countPartialA11y": "{{loaded}} von {{total}} Veranstaltungen angezeigt",
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "thisWeekend": "Dieses Wochenende",
+    "next30Days": "Nächste 30 Tage",
+    "next30Short": "30 Tage",
+    "agendaTitle": "Veranstaltungen",
+    "agendaKicker": "Kultur · Málaga",
+    "eventSingular": "Veranstaltung",
+    "eventPlural": "Veranstaltungen",
+    "timeRange": "Zeitraum",
+    "loadMore": "Weitere Veranstaltungen",
+    "upcomingHighlights": "Demnächst",
+    "resumeCarousel": "Karussell fortsetzen",
+    "pauseCarousel": "Karussell pausieren",
+    "play": "Fortsetzen",
+    "pause": "Pausieren",
+    "untitled": "Ohne Titel",
+    "family": "Kinder",
+    "familyKids": "Kinder / Familien",
+    "outdoor": "Im Freien",
+    "withTickets": "Mit Tickets",
+    "quickPresets": "Schnellauswahl",
+    "showAll": "Alle anzeigen",
+    "showResults": "Ergebnisse anzeigen",
+    "activeFilters": "Aktive Filter",
+    "clearAll": "Alle entfernen",
+    "noEventsWithFilters": "Keine Veranstaltungen für diese Filter",
+    "noEventsHint": "Versuchen Sie ein anderes Datum, eine andere Gemeinde oder einen anderen Ort.",
+    "nearMe": "In meiner Nähe",
+    "venueKind": {
+      "all": "Alle",
+      "halls": "Konzertsäle",
+      "theaters": "Theater",
+      "outdoors": "Orte",
+      "hallsTitle": "Konzertsäle",
+      "theatersTitle": "Theater und Auditorien",
+      "outdoorsTitle": "Orte und Außenbereiche"
+    }
   },
   "eventDetail": {
     "when": "Wann",
@@ -383,7 +431,12 @@
     "ticketsOnSite": "Zugang und Verfügbarkeit auf der Website des Veranstalters.",
     "onlineNote": "Online-Aktivität: kein physischer Veranstaltungsort.",
     "online": "Online",
-    "description": "Beschreibung"
+    "description": "Beschreibung",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "place": "Ort",
+    "addFavorite": "Zu Favoriten hinzufügen",
+    "removeFavorite": "Aus Favoriten entfernen"
   },
   "calendar": {
     "title": "Kalender",
@@ -518,7 +571,8 @@
   "theme": {
     "system": "System",
     "light": "Hell",
-    "dark": "Dunkel"
+    "dark": "Dunkel",
+    "toggle": "Darstellung ändern"
   },
   "categories": {
     "music": "Musik",
@@ -780,6 +834,97 @@
       "cancelled": "Abgesagt",
       "postponed": "Verschoben",
       "pending": "Noch zu bestätigen"
+    }
+  },
+  "mapUI": {
+    "loadError": "Die Kartenpunkte konnten nicht geladen werden.",
+    "noCoordsToday": "Heute gibt es keine Ergebnisse mit Koordinaten",
+    "noCoordsScope": "Keine Ergebnisse mit Koordinaten in diesem Zeitraum",
+    "emptyHelp": "Wählen Sie einen längeren Zeitraum oder setzen Sie die Filter zurück.",
+    "weekAction": "Diese Woche ansehen",
+    "approxShort": "Ungefähr",
+    "exactShort": "Genau",
+    "pendingLabel": "Ergebnisse ohne bestätigten Standort",
+    "pending": "Standort ausstehend ({{count}})",
+    "pendingHelp": "Diese Ergebnisse sind vorhanden, ihre Adresse ist jedoch noch nicht bestätigt. Deshalb erscheinen sie nicht auf der Karte.",
+    "emptyToday": "Heute keine Kartenpunkte",
+    "emptyScope": "Keine Punkte in diesem Zeitraum",
+    "locate": "Karte auf meinen Standort zentrieren",
+    "myLocation": "Mein Standort",
+    "geoUnsupported": "Ihr Gerät kann seinen Standort nicht teilen.",
+    "geoDenied": "Standortzugriff verweigert. Aktivieren Sie ihn in den Browsereinstellungen, um Ihren Standort auf der Karte zu sehen.",
+    "geoError": "Ihr Standort konnte nicht ermittelt werden. Versuchen Sie es erneut.",
+    "seoTitle": "Karte der Veranstaltungen und Apotheken in Málaga",
+    "seoDescription": "Entdecken Sie Kultur, Sport, Veranstaltungsorte und Notapotheken in Málaga in Ihrer Nähe.",
+    "title": "Karte von Málaga",
+    "subtitle": "Entdecken Sie, was in Ihrer Nähe stattfindet",
+    "search": "Karte durchsuchen",
+    "searchPlaceholder": "Veranstaltungen, Orte oder Apotheken suchen",
+    "scopeLabel": "Zeitraum",
+    "filters": "Kartenfilter",
+    "view": "Ansicht wechseln",
+    "detail": "Details",
+    "closeDetail": "Details schließen",
+    "pointCount": "{{count}} Punkte auf der Karte",
+    "resultCount": "{{count}} Ergebnisse",
+    "onDuty": "Notdienst",
+    "approx": "Ungefährer Standort",
+    "exact": "Genauer Standort",
+    "openEvent": "Veranstaltung ansehen",
+    "openVenue": "Ort ansehen",
+    "openPharmacy": "Apotheke ansehen",
+    "kind": {
+      "event": "Veranstaltung",
+      "sport": "Sport",
+      "venue": "Ort",
+      "pharmacy": "Apotheke",
+      "demo": "Sehenswürdigkeit"
+    },
+    "scopes": {
+      "today": "Heute",
+      "week": "Diese Woche",
+      "all": "Alle"
+    },
+    "filtersByKind": {
+      "all": "Alle",
+      "events": "Veranstaltungen",
+      "sports": "Sport",
+      "venues": "Orte",
+      "pharmacies": "Apotheken"
+    },
+    "views": {
+      "map": "Karte",
+      "list": "Liste"
+    },
+    "scopeSummary": {
+      "today": "Veranstaltungen heute",
+      "week": "Veranstaltungen diese Woche",
+      "all": "Alle Veranstaltungen"
+    },
+    "clearSearch": "Suche löschen",
+    "resultCount_one": "{{count}} Ergebnis",
+    "resultCount_other": "{{count}} Ergebnisse",
+    "pointCount_one": "{{count}} Punkt auf der Karte",
+    "pointCount_other": "{{count}} Punkte auf der Karte"
+  },
+  "image": {
+    "illustrative": "Illustratives Bild",
+    "illustrativeAlt": "{{category}} — illustratives Bild, kein offizielles Plakat",
+    "expand": "Bild vergrößern: {{title}}",
+    "close": "Bild schließen",
+    "categories": {
+      "dance": "Tanz",
+      "music": "Musik",
+      "theater": "Theater",
+      "comedy": "Komödie",
+      "festival": "Festival",
+      "nightlife": "Nachtleben",
+      "exhibitions": "Ausstellung",
+      "kids": "Kinder",
+      "sports": "Sport",
+      "workshops": "Workshop",
+      "conferences": "Konferenz",
+      "other": "Veranstaltung"
     }
   }
 }

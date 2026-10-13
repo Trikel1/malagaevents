@@ -13,7 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { hasExplicitTime } from '@/lib/eventTime';
+import { hasExplicitTime, formatEventTime } from '@/lib/eventTime';
 import { formatMadrid } from '@/lib/madridTime';
 import { buildEventIcs, icsFileName } from '@/lib/calendarExport';
 import { resolveTicketAction, buildDirectionsUrl } from '@/lib/eventLinks';
@@ -138,7 +138,7 @@ const EventDetailPage = () => {
     : 'EEEE d MMMM';
   const formattedDate = formatMadrid(new Date(event.start_at), datePattern, locale);
   const formattedTime = showTime
-    ? formatMadrid(new Date(event.start_at), 'HH:mm', locale)
+    ? formatEventTime(event.start_at, i18n.language, t('events.timeTBC'))
     : t('events.timeTBC', 'Hora por confirmar');
   const formattedEndTime = showTime && event.end_at && hasExplicitTime(event.end_at)
     ? formatMadrid(new Date(event.end_at), 'HH:mm', locale)
@@ -291,13 +291,13 @@ const EventDetailPage = () => {
           size="icon"
           onClick={() => navigate(-1)}
           aria-label={t('common.back', 'Volver')}
-          className="absolute top-4 left-4 bg-background/80 hover:bg-background"
+          className="absolute top-4 start-4 bg-background/80 hover:bg-background"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
 
         {/* Actions */}
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 end-4 flex gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -311,7 +311,7 @@ const EventDetailPage = () => {
             variant="ghost"
             size="icon"
             onClick={handleToggleFavorite}
-            aria-label={isFavorite ? t('events.removeFromFavorites', 'Quitar de favoritos') : t('events.addToFavorites', 'Añadir a favoritos')}
+            aria-label={isFavorite ? t('eventDetail.removeFavorite', 'Quitar de favoritos') : t('eventDetail.addFavorite', 'Añadir a favoritos')}
             aria-pressed={isFavorite}
             disabled={toggleFavorite.isPending}
             className="bg-background/80 hover:bg-background"

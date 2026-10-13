@@ -27,13 +27,14 @@ const pharmacy = {
 
 // Freeze only Date: timers, animations and query retries keep running normally.
 // The fixture responds through the same REST contracts used by the real hooks.
-export const test = base.extend({
-  page: async ({ page }, use) => {
+export const test = base.extend<{ language: string }>({
+  language: ['es', { option: true }],
+  page: async ({ page, language }, use) => {
     await page.clock.setFixedTime(new Date('2026-10-12T08:00:00Z'));
-    await page.addInitScript(() => {
-      localStorage.setItem('malaga-events-lang', 'es');
+    await page.addInitScript(language => {
+      localStorage.setItem('malaga-events-lang', language);
       if (!localStorage.getItem('appMode')) localStorage.setItem('appMode', 'eventos');
-    });
+    }, language);
     await page.route('**/rest/v1/**', async route => {
       const url = new URL(route.request().url());
       const table = url.pathname.split('/').pop();
