@@ -473,7 +473,7 @@ export function VenueKindFilter({
 
   return (
     <div className="space-y-2">
-      {/* Four icon buttons */}
+      {/* Keep the venue categories readable without relying on icon recognition. */}
       <div
         className="grid grid-cols-4 gap-2"
         role="toolbar"
@@ -612,7 +612,7 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       title={label}
       aria-pressed={active}
       className={cn(
-        'flex items-center justify-center h-16 w-full rounded-2xl border transition-all duration-150',
+        'flex min-h-[72px] w-full flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 transition-colors duration-150',
         'bg-primary/10 backdrop-blur-sm text-primary',
         'border-primary/25 hover:bg-primary/15 hover:border-primary/45',
         'active:scale-[0.98] motion-reduce:active:scale-100',
@@ -622,7 +622,8 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
 
 
     >
-      <Icon size={44} />
+      <Icon size={32} />
+      <span className="max-w-full break-words text-center text-xs font-medium leading-tight">{label}</span>
     </button>
   );
 }
