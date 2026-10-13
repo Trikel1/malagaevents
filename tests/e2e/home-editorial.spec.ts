@@ -47,7 +47,7 @@ for (const language of ['es', 'en', 'de', 'ar']) {
           expect(state.modeHeight).toBeGreaterThanOrEqual(44);
           expect(state.h1Size).toBeGreaterThanOrEqual(32);
           expect(state.metadataSize).toBeGreaterThanOrEqual(14);
-          expect(state.shortcuts).toHaveLength(4);
+          expect(state.shortcuts).toHaveLength(6);
           for (const shortcut of state.shortcuts) { expect(shortcut.height).toBeGreaterThanOrEqual(44); expect(shortcut.wraps).toBe(true); }
           expect(state.dir).toBe(language === 'ar' ? 'rtl' : 'ltr');
         }
@@ -71,7 +71,7 @@ test('Home: cartel vertical completo y fallo de imagen sin inventar precio u hor
   await page.route(portrait.image_url, route => route.abort());
   await page.reload();
   await expect(featured.locator('.home-event-image')).toHaveAttribute('data-failed', 'true');
-  await expect(featured.locator('.home-image-fallback')).toBeVisible();
+  await expect(featured.getByRole('img', { name: /ilustrativa/ })).toBeVisible();
   await expect(featured.locator('.home-price')).toHaveText('Precio sin confirmar');
 });
 

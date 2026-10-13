@@ -104,9 +104,9 @@ interface EventImageProps {
   title?: string | null;
 }
 
-// Aspect ratios per variant (16:9 for consistency)
+// Cards share their frame across Home, agenda and highlights.
 const ASPECT_RATIOS: Record<EventImageVariant, string> = {
-  card: '16/9',
+  card: '16/10',
   list: '16/9',
   grid: '16/9',
   detail: '16/9',

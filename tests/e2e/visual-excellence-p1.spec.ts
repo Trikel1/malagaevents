@@ -103,6 +103,9 @@ for (const viewport of [{ width: 360, height: 640 }, { width: 393, height: 852 }
     const trigger = page.getByRole('button', { name: 'Filtros', exact: true });
     await trigger.click();
     const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    // Measure the settled layout; the close/reopen tests below retain animations.
+    await page.screenshot({ animations: 'disabled' });
     const footer = dialog.getByTestId('filter-actions');
     const options = dialog.getByTestId('filter-options');
     const checkActions = async () => {

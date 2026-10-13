@@ -7,7 +7,6 @@ import { formatMadrid, madridDayKey } from '@/lib/madridTime';
 import { hasExplicitTime, formatEventTime } from '@/lib/eventTime';
 import { dateLocale, longDatePattern } from '@/lib/dateLocale';
 import { pickFeaturedEvent } from '@/lib/featuredEvent';
-import { sanitizeEventImageUrl } from '@/lib/eventImageSource';
 import { Button } from '@/components/ui/button';
 import HomeEventImage from './HomeEventImage';
 
@@ -27,12 +26,11 @@ export default function FeaturedEvent({ onSelect }: { onSelect?: (id: string | n
   if (!featured) return null;
   const date = formatMadrid(featured.start_at, longDatePattern(i18n.language), dateLocale(i18n.language));
   const time = formatEventTime(featured.start_at, i18n.language, t('events.timeTBC'));
-  const image = sanitizeEventImageUrl(featured.image_url);
   const today = madridDayKey(new Date(featured.start_at)) === madridDayKey();
   return (
     <section className="home-featured" aria-labelledby="featured-event-title">
-      <Link to={`/events/${featured.id}`} className="home-featured-link" data-image={!!image}>
-        {image && <HomeEventImage key={image} event={featured} priority />}
+      <Link to={`/events/${featured.id}`} className="home-featured-link" data-image="true">
+        <HomeEventImage key={featured.id + (featured.image_url ?? '')} event={featured} priority />
         <div className="home-featured-content">
           <p className="home-category">{t(today ? 'home.featured.badgeToday' : 'home.featured.badgeNext')}</p>
           <h2 id="featured-event-title">{featured.title}</h2>
