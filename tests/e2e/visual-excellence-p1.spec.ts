@@ -96,6 +96,43 @@ test('el aviso de ubicación no bloquea la navegación inferior', async ({ page 
   await expect(page).toHaveURL(/\/profile$/);
 });
 
+for (const viewport of [{ width: 360, height: 640 }, { width: 393, height: 852 }, { width: 1280, height: 800 }]) {
+  test(`filtros: acciones accesibles al desplazar opciones (${viewport.width}x${viewport.height})`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/events');
+    const trigger = page.getByRole('button', { name: 'Filtros', exact: true });
+    await trigger.click();
+    const dialog = page.getByRole('dialog');
+    const footer = dialog.getByTestId('filter-actions');
+    const options = dialog.getByTestId('filter-options');
+    const checkActions = async () => {
+      await expect.poll(() => footer.evaluate(el => {
+        const rect = el.getBoundingClientRect();
+        const button = el.querySelector('button:last-child')!;
+        const br = button.getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom <= innerHeight + 1 && button.contains(document.elementFromPoint(br.x + br.width / 2, br.y + br.height / 2));
+      })).toBe(true);
+    };
+    await checkActions();
+    await dialog.getByRole('button', { name: 'Gratis', exact: true }).click();
+    await options.evaluate(el => { el.scrollTop = el.scrollHeight; });
+    const scroll = await options.evaluate(el => ({ overflow: el.scrollHeight > el.clientHeight, top: el.scrollTop }));
+    if (viewport.width < 500) expect(scroll.overflow).toBe(true);
+    if (scroll.overflow) expect(scroll.top).toBeGreaterThan(0);
+    await checkActions();
+    await expect(dialog.getByRole('button', { name: 'Mostrar · 1', exact: true })).toHaveCount(1);
+    for (const button of await footer.getByRole('button').all()) {
+      const rect = await button.boundingBox();
+      expect(rect!.height).toBeGreaterThanOrEqual(44);
+      expect(rect!.width).toBeGreaterThanOrEqual(44);
+    }
+    await footer.getByRole('button', { name: 'Mostrar · 1', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Quitar Solo gratis', exact: true })).toBeVisible();
+  });
+}
+
 const filterActions = new WeakMap<object, string>();
 
 for (const action of ['escape', 'close', 'apply'] as const) {
