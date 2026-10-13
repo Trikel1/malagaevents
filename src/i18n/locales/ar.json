@@ -125,7 +125,8 @@
     "pharmacies": "الصيدليات",
     "profile": "الملف الشخصي",
     "venues": "الأماكن",
-    "map": "الخريطة"
+    "map": "الخريطة",
+    "primary": "التنقل الرئيسي"
   },
   "onboarding": {
     "title": "مرحباً بك في Málaga Events",
@@ -140,7 +141,7 @@
     },
     "hero": {
       "title": "ماذا تفعل اليوم في مالقة",
-      "subtitle": "فعاليات، خطط عائلية، صيدليات، رياضة وثقافة في دليل واحد.",
+      "subtitle": "اكتشف فعاليات مالقة اليوم بطريقتك.",
       "searchAria": "بحث",
       "searchPlaceholder": "حفل، مسرح، أطفال، متحف…"
     },
@@ -207,7 +208,8 @@
       "provinceHelp": "اختر بلديتك",
       "selectLabel": "البلدية",
       "selectPlaceholder": "اختر بلدية…",
-      "go": "عرض الخطط"
+      "go": "عرض الخطط",
+      "coverageNote": "التغطية حسب البلدة لا تزال جزئية."
     },
     "culture": {
       "title": "ثقافة حية",
@@ -290,33 +292,41 @@
       "pharmacies": "صيدليات مناوبة"
     },
     "featured": {
-      "badgeToday": "Today",
-      "badgeNext": "Coming up",
-      "badgeFree": "Free",
-      "free": "Free entry",
-      "priceUnknown": "Price to be confirmed",
-      "cta": "View details"
+      "badgeToday": "اليوم",
+      "badgeNext": "قريبًا",
+      "badgeFree": "مجاني",
+      "free": "دخول مجاني",
+      "priceUnknown": "السعر غير مؤكد",
+      "cta": "عرض التفاصيل"
     },
     "forYou": {
-      "title": "For you",
-      "editInterests": "Edit interests",
-      "chooseInterests": "Choose your interests",
-      "sportsBadge": "Sport",
-      "reason": "Because you like {{interest}}",
-      "moreInfo": "More information",
-      "lessInfo": "Hide information",
-      "importTitle": "You have interests saved on this device",
-      "importHelp": "Add them to your account to see them on all your devices?",
-      "importAccept": "Add to my account",
-      "importDismiss": "Not now",
-      "emptyTitle": "You haven't chosen any interests yet",
-      "emptyHelp": "Pick what you enjoy and you'll see culture and sport plans that match.",
-      "errorTitle": "We couldn't load your recommendations",
-      "errorHelp": "Please try again in a moment.",
-      "noMatchTitle": "No matches for your interests right now",
-      "noMatchHelp": "There are no published events matching your choices. You can browse the full agenda.",
-      "browseAll": "Browse the full agenda",
-      "starterNote": "مجموعة متنوعة من الخطط القادمة. اختر اهتماماتك لنخصصها لك."
+      "title": "لك",
+      "editInterests": "تعديل الاهتمامات",
+      "chooseInterests": "اختر اهتماماتك",
+      "sportsBadge": "رياضة",
+      "reason": "لأنك تحب {{interest}}",
+      "moreInfo": "مزيد من المعلومات",
+      "lessInfo": "إخفاء المعلومات",
+      "importTitle": "لديك اهتمامات محفوظة على هذا الجهاز",
+      "importHelp": "هل تريد إضافتها إلى حسابك لرؤيتها على جميع أجهزتك؟",
+      "importAccept": "إضافة إلى حسابي",
+      "importDismiss": "ليس الآن",
+      "emptyTitle": "لم تختر اهتماماتك بعد",
+      "emptyHelp": "اختر ما تحبه لتكتشف أنشطة ثقافية ورياضية تناسبك.",
+      "errorTitle": "تعذّر تحميل اقتراحاتك",
+      "errorHelp": "حاول مرة أخرى بعد قليل.",
+      "noMatchTitle": "لا توجد خيارات تناسب اهتماماتك الآن",
+      "noMatchHelp": "لا توجد فعاليات منشورة تناسب اختياراتك حاليًا. يمكنك استعراض الجدول الكامل.",
+      "browseAll": "استعرض الجدول الكامل",
+      "starterNote": "مجموعة متنوعة من الفعاليات القادمة."
+    },
+    "pilot": {
+      "upcoming": "قريبًا",
+      "featuredError": "تعذّر تحميل الفعالية الرئيسية",
+      "onlyFeatured": "الفعالية القادمة معروضة أعلاه. استكشف الجدول للاطّلاع على المزيد من التواريخ.",
+      "noUpcoming": "لم تُنشر فعاليات قادمة بعد.",
+      "alreadyShown": "اقتراحاتك معروضة بالفعل أعلاه.",
+      "services": "طرق أخرى لاستكشاف مالقة"
     }
   },
   "events": {
@@ -347,7 +357,45 @@
     "halls": "الصالات",
     "otherVenues": "أخرى",
     "timeTBC": "الوقت قيد التأكيد",
-    "countPartialA11y": "عرض {{loaded}} من {{total}} فعالية"
+    "countPartialA11y": "عرض {{loaded}} من {{total}} فعالية",
+    "today": "اليوم",
+    "tomorrow": "غدًا",
+    "thisWeekend": "عطلة نهاية الأسبوع",
+    "next30Days": "الأيام الثلاثون القادمة",
+    "next30Short": "٣٠ يومًا",
+    "agendaTitle": "الفعاليات",
+    "agendaKicker": "ثقافة · مالقة",
+    "eventSingular": "فعالية",
+    "eventPlural": "فعاليات",
+    "timeRange": "الفترة الزمنية",
+    "loadMore": "عرض مزيد من الفعاليات",
+    "upcomingHighlights": "فعاليات قادمة",
+    "resumeCarousel": "استئناف العرض",
+    "pauseCarousel": "إيقاف العرض مؤقتًا",
+    "play": "استئناف",
+    "pause": "إيقاف مؤقت",
+    "untitled": "بلا عنوان",
+    "family": "أطفال",
+    "familyKids": "أطفال / عائلات",
+    "outdoor": "في الهواء الطلق",
+    "withTickets": "بتذاكر",
+    "quickPresets": "خيارات سريعة",
+    "showAll": "عرض الكل",
+    "showResults": "عرض النتائج",
+    "activeFilters": "عوامل التصفية النشطة",
+    "clearAll": "مسح الكل",
+    "noEventsWithFilters": "لا توجد فعاليات تطابق عوامل التصفية",
+    "noEventsHint": "جرّب تاريخًا أو بلدة أو مكانًا آخر.",
+    "nearMe": "بالقرب مني",
+    "venueKind": {
+      "all": "الكل",
+      "halls": "قاعات الموسيقى",
+      "theaters": "المسارح",
+      "outdoors": "الأماكن",
+      "hallsTitle": "قاعات الموسيقى",
+      "theatersTitle": "المسارح وقاعات العروض",
+      "outdoorsTitle": "الأماكن والمساحات الخارجية"
+    }
   },
   "eventDetail": {
     "when": "متى",
@@ -383,7 +431,12 @@
     "ticketsOnSite": "الدخول والتوافر على موقع المنظّم.",
     "onlineNote": "نشاط عبر الإنترنت: لا يوجد مكان فعلي.",
     "online": "عبر الإنترنت",
-    "description": "الوصف"
+    "description": "الوصف",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "place": "المكان",
+    "addFavorite": "إضافة إلى المفضلة",
+    "removeFavorite": "إزالة من المفضلة"
   },
   "calendar": {
     "title": "التقويم",
@@ -518,7 +571,8 @@
   "theme": {
     "system": "النظام",
     "light": "فاتح",
-    "dark": "داكن"
+    "dark": "داكن",
+    "toggle": "تغيير المظهر"
   },
   "categories": {
     "music": "موسيقى",
@@ -780,6 +834,97 @@
       "cancelled": "ملغاة",
       "postponed": "مؤجلة",
       "pending": "قيد التأكيد"
+    }
+  },
+  "mapUI": {
+    "loadError": "تعذّر تحميل نقاط الخريطة.",
+    "noCoordsToday": "لا توجد نتائج بإحداثيات لليوم",
+    "noCoordsScope": "لا توجد نتائج بإحداثيات لهذه الفترة",
+    "emptyHelp": "اختر فترة أوسع أو امسح عوامل التصفية.",
+    "weekAction": "عرض هذا الأسبوع",
+    "approxShort": "تقريبي",
+    "exactShort": "دقيق",
+    "pendingLabel": "نتائج دون موقع مؤكد",
+    "pending": "الموقع غير مؤكد ({{count}})",
+    "pendingHelp": "هذه نتائج حقيقية، لكن عناوينها لم تُؤكد بعد، لذلك لا نضعها على الخريطة.",
+    "emptyToday": "لا توجد نقاط على الخريطة اليوم",
+    "emptyScope": "لا توجد نقاط لهذه الفترة",
+    "locate": "توسيط الخريطة على موقعي",
+    "myLocation": "موقعي",
+    "geoUnsupported": "جهازك لا يدعم مشاركة الموقع.",
+    "geoDenied": "تم رفض إذن الموقع. فعّله في إعدادات المتصفح لتوسيط الخريطة على موقعك.",
+    "geoError": "تعذّر تحديد موقعك. حاول مرة أخرى.",
+    "seoTitle": "خريطة الفعاليات والصيدليات في مالقة",
+    "seoDescription": "استكشف الفعاليات الثقافية والرياضة والأماكن والصيدليات المناوبة بالقرب منك في مالقة.",
+    "title": "خريطة مالقة",
+    "subtitle": "اكتشف ما يحدث بالقرب منك",
+    "search": "البحث في الخريطة",
+    "searchPlaceholder": "ابحث عن فعاليات أو أماكن أو صيدليات",
+    "scopeLabel": "الفترة الزمنية",
+    "filters": "عوامل تصفية الخريطة",
+    "view": "تغيير العرض",
+    "detail": "التفاصيل",
+    "closeDetail": "إغلاق التفاصيل",
+    "pointCount": "{{count}} نقطة على الخريطة",
+    "resultCount": "{{count}} نتيجة",
+    "onDuty": "مناوبة",
+    "approx": "موقع تقريبي",
+    "exact": "موقع دقيق",
+    "openEvent": "عرض الفعالية",
+    "openVenue": "عرض المكان",
+    "openPharmacy": "عرض الصيدلية",
+    "kind": {
+      "event": "فعالية",
+      "sport": "رياضة",
+      "venue": "مكان",
+      "pharmacy": "صيدلية",
+      "demo": "نقطة اهتمام"
+    },
+    "scopes": {
+      "today": "اليوم",
+      "week": "هذا الأسبوع",
+      "all": "الكل"
+    },
+    "filtersByKind": {
+      "all": "الكل",
+      "events": "الفعاليات",
+      "sports": "الرياضة",
+      "venues": "الأماكن",
+      "pharmacies": "الصيدليات"
+    },
+    "views": {
+      "map": "الخريطة",
+      "list": "القائمة"
+    },
+    "scopeSummary": {
+      "today": "عرض فعاليات اليوم",
+      "week": "عرض فعاليات هذا الأسبوع",
+      "all": "عرض جميع الفعاليات"
+    },
+    "clearSearch": "مسح البحث",
+    "resultCount_one": "نتيجة واحدة",
+    "resultCount_other": "{{count}} نتيجة",
+    "pointCount_one": "نقطة واحدة على الخريطة",
+    "pointCount_other": "{{count}} نقطة على الخريطة"
+  },
+  "image": {
+    "illustrative": "صورة توضيحية",
+    "illustrativeAlt": "{{category}} — صورة توضيحية وليست الملصق الرسمي",
+    "expand": "تكبير الصورة: {{title}}",
+    "close": "إغلاق الصورة",
+    "categories": {
+      "dance": "رقص",
+      "music": "موسيقى",
+      "theater": "مسرح",
+      "comedy": "كوميديا",
+      "festival": "مهرجان",
+      "nightlife": "سهرات",
+      "exhibitions": "معرض",
+      "kids": "أطفال",
+      "sports": "رياضة",
+      "workshops": "ورشة",
+      "conferences": "مؤتمر",
+      "other": "فعالية"
     }
   }
 }

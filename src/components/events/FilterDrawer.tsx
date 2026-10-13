@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import { dateLocale } from '@/lib/dateLocale';
 import { CalendarIcon, X, Baby, Users, Heart, Trees, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -48,6 +49,7 @@ interface FilterDrawerProps {
   filters: EventFilters;
   onApplyFilters: (filters: EventFilters) => void;
   showFavoritesFilter?: boolean;
+  triggerRef?: React.RefObject<HTMLButtonElement>;
 }
 
 const FilterDrawer = ({
@@ -56,9 +58,12 @@ const FilterDrawer = ({
   filters,
   onApplyFilters,
   showFavoritesFilter = false,
+  triggerRef,
 }: FilterDrawerProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = dateLocale(i18n.language);
   const [localFilters, setLocalFilters] = useState<EventFilters>(filters);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   const handleCategoryToggle = (category: EventCategory) => {
     setLocalFilters((prev) => ({
@@ -137,14 +142,14 @@ const FilterDrawer = ({
     if (localFilters.dateFrom) {
       chips.push({
         key: 'from',
-        label: `${t('events.dateFrom', 'Desde')} ${format(localFilters.dateFrom, 'd MMM')}`,
+        label: `${t('events.dateFrom', 'Desde')} ${format(localFilters.dateFrom, 'd MMM', { locale })}`,
         onRemove: () => setLocalFilters((p) => ({ ...p, dateFrom: undefined })),
       });
     }
     if (localFilters.dateTo) {
       chips.push({
         key: 'to',
-        label: `${t('events.dateTo', 'Hasta')} ${format(localFilters.dateTo, 'd MMM')}`,
+        label: `${t('events.dateTo', 'Hasta')} ${format(localFilters.dateTo, 'd MMM', { locale })}`,
         onRemove: () => setLocalFilters((p) => ({ ...p, dateTo: undefined })),
       });
     }
@@ -160,13 +165,19 @@ const FilterDrawer = ({
       });
     }
     return chips;
-  }, [localFilters, t]);
+  }, [localFilters, t, locale]);
 
   const activeCount = activeChips.length;
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh] h-[90vh] flex flex-col">
+    <Drawer open={open} onOpenChange={onOpenChange} autoFocus>
+      <DrawerContent
+        onOpenAutoFocus={() => { returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement; }}
+        onCloseAutoFocus={(event) => {
+          event.preventDefault();
+          if (returnFocusRef.current?.isConnected) returnFocusRef.current.focus();
+        }}
+        className="max-h-[90vh] h-[90vh] flex flex-col">
         <DrawerHeader className="flex items-center justify-between">
           <DrawerTitle className="flex items-center gap-2">
             {t('events.filters')}
@@ -177,7 +188,7 @@ const FilterDrawer = ({
             )}
           </DrawerTitle>
           <DrawerClose asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label={t('common.close')}>
               <X className="h-4 w-4" />
             </Button>
           </DrawerClose>
@@ -274,7 +285,7 @@ const FilterDrawer = ({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {localFilters.dateFrom
-                      ? format(localFilters.dateFrom, 'PP')
+                      ? format(localFilters.dateFrom, 'PP', { locale })
                       : t('events.dateFrom')}
                   </Button>
                 </PopoverTrigger>
@@ -285,6 +296,7 @@ const FilterDrawer = ({
                     onSelect={(date) =>
                       setLocalFilters((prev) => ({ ...prev, dateFrom: date }))
                     }
+                    locale={locale}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
@@ -302,7 +314,7 @@ const FilterDrawer = ({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {localFilters.dateTo
-                      ? format(localFilters.dateTo, 'PP')
+                      ? format(localFilters.dateTo, 'PP', { locale })
                       : t('events.dateTo')}
                   </Button>
                 </PopoverTrigger>
@@ -313,6 +325,7 @@ const FilterDrawer = ({
                     onSelect={(date) =>
                       setLocalFilters((prev) => ({ ...prev, dateTo: date }))
                     }
+                    locale={locale}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />

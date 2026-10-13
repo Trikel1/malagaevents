@@ -27,5 +27,21 @@ export function isMidnightUtc(iso: string | Date | null | undefined): boolean {
  * a numeric HH:mm value.
  */
 export function hasExplicitTime(iso: string | Date | null | undefined): boolean {
-  return !!iso && !isMidnightUtc(iso);
+  return !!iso && !Number.isNaN(new Date(iso).getTime()) && !isMidnightUtc(iso);
+}
+
+/** One certainty rule and Madrid clock for all cultural event surfaces. */
+export function formatEventTime(iso: string | Date, language: string, unknownTime: string): string {
+  if (!hasExplicitTime(iso)) return unknownTime;
+  return new Intl.DateTimeFormat(language, {
+    timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).format(new Date(iso));
+}
+
+export function formatEventWhen(iso: string | null | undefined, language: string, unknownTime: string): string {
+  if (!iso || Number.isNaN(new Date(iso).getTime())) return '';
+  const date = new Intl.DateTimeFormat(language, {
+    timeZone: 'Europe/Madrid', day: 'numeric', month: 'short',
+  }).format(new Date(iso));
+  return `${date} · ${formatEventTime(iso, language, unknownTime)}`;
 }

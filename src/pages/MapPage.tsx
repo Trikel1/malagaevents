@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { formatEventWhen } from '@/lib/eventTime';
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -23,7 +25,7 @@ import { useVenues } from '@/hooks/useVenues';
 import { usePharmaciesOnDuty } from '@/hooks/usePharmacies';
 import { LeafletMap } from '@/modules/maps/LeafletMap';
 import { MarkerSheet } from '@/modules/maps/MarkerSheet';
-import MarkerDetails, { KIND_LABEL } from '@/modules/maps/MarkerDetails';
+import MarkerDetails from '@/modules/maps/MarkerDetails';
 import type { MapMarker, MarkerKind } from '@/modules/maps/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import SEO from '@/components/common/SEO';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { resolvePoint, toLatLng, MALAGA_CENTER } from '@/lib/venueCoords';
-import { isWithinScope, SCOPE_LABEL, type MapTimeScope } from '@/lib/mapTimeScope';
+import { isWithinScope, type MapTimeScope } from '@/lib/mapTimeScope';
 import { cn } from '@/lib/utils';
 
 const MAX_MARKERS = 200;
@@ -53,18 +55,18 @@ const COLOR_OF: Record<MarkerKind, string> = {
   demo: 'hsl(215, 15%, 50%)',
 };
 
-const FILTERS: { id: FilterKind; label: string; icon: typeof CalendarDays; color?: string }[] = [
-  { id: 'all', label: 'Todos', icon: MapPin },
-  { id: 'events', label: 'Eventos', icon: CalendarDays, color: COLOR_OF.event },
-  { id: 'sports', label: 'Deportes', icon: Trophy, color: COLOR_OF.sport },
-  { id: 'venues', label: 'Recintos', icon: Building2, color: COLOR_OF.venue },
-  { id: 'pharmacies', label: 'Farmacias', icon: Cross, color: COLOR_OF.pharmacy },
+const FILTERS: { id: FilterKind; icon: typeof CalendarDays; color?: string }[] = [
+  { id: 'all', icon: MapPin },
+  { id: 'events', icon: CalendarDays, color: COLOR_OF.event },
+  { id: 'sports', icon: Trophy, color: COLOR_OF.sport },
+  { id: 'venues', icon: Building2, color: COLOR_OF.venue },
+  { id: 'pharmacies', icon: Cross, color: COLOR_OF.pharmacy },
 ];
 
-const SCOPES: { id: MapTimeScope; label: string }[] = [
-  { id: 'today', label: 'Hoy' },
-  { id: 'week', label: 'Esta semana' },
-  { id: 'all', label: 'Todos' },
+const SCOPES: { id: MapTimeScope }[] = [
+  { id: 'today' },
+  { id: 'week' },
+  { id: 'all' },
 ];
 
 /** Accepted `?kind=` deep-link values. */
@@ -83,20 +85,10 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 
 
-const fmtWhen = (iso?: string | null) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Europe/Madrid',
-  }).format(d);
-};
 
 const MapPage = () => {
+  const { t, i18n } = useTranslation();
+  const fmtWhen = (iso?: string | null) => formatEventWhen(iso, i18n.language, t('events.timeTBC'));
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const [pendingEventId, setPendingEventId] = useState<string | null>(null);
@@ -284,7 +276,7 @@ const MapPage = () => {
 
   const handleMyLocation = useCallback(() => {
     if (!('geolocation' in navigator)) {
-      setLocError('Tu dispositivo no permite compartir la ubicación.');
+      setLocError(t('mapUI.geoUnsupported'));
       return;
     }
     setLocError(null);
@@ -300,13 +292,13 @@ const MapPage = () => {
         setLocating(false);
         setLocError(
           err.code === err.PERMISSION_DENIED
-            ? 'Permiso denegado. Actívalo en los ajustes del navegador para centrar el mapa en tu posición.'
-            : 'No hemos podido obtener tu ubicación. Inténtalo de nuevo.'
+            ? t('mapUI.geoDenied')
+            : t('mapUI.geoError')
         );
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     setSelected(null);
@@ -393,10 +385,10 @@ const MapPage = () => {
         ))
       ) : isError ? (
         <div className="rounded-2xl border border-border bg-card p-8 text-center">
-          <p className="text-sm text-muted-foreground mb-4">No hemos podido cargar los puntos del mapa.</p>
+          <p className="text-sm text-muted-foreground mb-4">{t('mapUI.loadError')}</p>
           <Button onClick={retry} className="min-h-11">
             <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
-            Reintentar
+            {t('common.retry')}
           </Button>
         </div>
       ) : filteredMarkers.length === 0 && pendingLocation.length === 0 ? (
@@ -404,24 +396,24 @@ const MapPage = () => {
           <MapPin className="h-9 w-9 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
           <p className="text-sm font-medium">
             {scope === 'today'
-              ? 'No hay puntos con coordenadas para hoy'
-              : 'No hay puntos con coordenadas para este alcance'}
+              ? t('mapUI.noCoordsToday')
+              : t('mapUI.noCoordsScope')}
           </p>
           <p className="text-xs text-muted-foreground mt-1 mb-4">
-            Amplía el alcance temporal o quita los filtros.
+            {t('mapUI.emptyHelp')}
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
             {scope === 'today' && (
               <Button className="min-h-11" onClick={() => setScope('week')}>
-                Ver esta semana
+                {t('mapUI.weekAction')}
               </Button>
             )}
             <Button variant="outline" className="min-h-11" onClick={clearFilters}>
-              Limpiar filtros
+              {t('events.clearFilters')}
             </Button>
             <Button variant="outline" className="min-h-11" onClick={retry}>
               <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
-              Reintentar
+              {t('common.retry')}
             </Button>
           </div>
         </div>
@@ -437,7 +429,7 @@ const MapPage = () => {
               type="button"
               onClick={() => focusMarker(m)}
               className={cn(
-                'w-full text-left rounded-2xl border bg-card p-3.5 min-h-[44px] transition-transform duration-200 motion-reduce:transition-none',
+                'w-full text-start rounded-2xl border bg-card p-3.5 min-h-[44px] transition-transform duration-200 motion-reduce:transition-none',
                 'hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 active ? 'border-primary' : 'border-border'
               )}
@@ -448,7 +440,7 @@ const MapPage = () => {
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-[11px] font-semibold uppercase tracking-wide text-primary">
-                    {KIND_LABEL[m.kind ?? 'event']}
+                    {t(`mapUI.kind.${m.kind ?? 'event'}`)}
                   </span>
                   <span className="block font-semibold text-sm leading-snug line-clamp-2">{m.title}</span>
                   {(m.address || m.subtitle) && (
@@ -467,12 +459,12 @@ const MapPage = () => {
                       {m.approximate ? (
                         <>
                           <CircleDashed className="h-3.5 w-3.5" aria-hidden="true" />
-                          Aproximada
+                          {t('mapUI.approxShort')}
                         </>
                       ) : (
                         <>
                           <Crosshair className="h-3.5 w-3.5" aria-hidden="true" />
-                          Exacta
+                          {t('mapUI.exactShort')}
                         </>
                       )}
                     </span>
@@ -485,22 +477,21 @@ const MapPage = () => {
 
         {pendingLocation.length > 0 && (
           <section
-            aria-label="Puntos sin ubicación confirmada"
+            aria-label={t('mapUI.pendingLabel')}
             className="rounded-2xl border border-dashed border-border bg-muted/30 p-3.5"
           >
             <h3 className="text-sm font-semibold flex items-center gap-2">
               <CircleDashed className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-              Ubicación pendiente ({pendingLocation.length})
+              {t('mapUI.pending', { count: pendingLocation.length })}
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Estos resultados son reales, pero todavía no tenemos su dirección
-              confirmada, así que no los colocamos en el mapa.
+              {t('mapUI.pendingHelp')}
             </p>
             <ul className="mt-3 space-y-2">
               {pendingLocation.slice(0, 20).map((c) => (
                 <li key={c.id} className="rounded-xl bg-background p-3">
                   <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    {KIND_LABEL[c.kind ?? 'event']}
+                    {t(`mapUI.kind.${c.kind ?? 'event'}`)}
                   </span>
                   <span className="block text-sm font-medium leading-snug">{c.title}</span>
                   {(c.subtitle || c.address) && (
@@ -536,11 +527,11 @@ const MapPage = () => {
       {!isLoading && (isError || filteredMarkers.length === 0) && (
         <div role={isError ? 'alert' : undefined} className="absolute inset-x-4 top-4 z-[400] rounded-xl border border-border bg-background p-3 text-center">
           <p className="text-sm font-medium">
-            {isError ? 'No hemos podido cargar los puntos del mapa.' : scope === 'today' ? 'Hoy no hay puntos en el mapa' : 'No hay puntos para este alcance'}
+            {isError ? t('mapUI.loadError') : scope === 'today' ? t('mapUI.emptyToday') : t('mapUI.emptyScope')}
           </p>
           <div className="mt-2 flex flex-wrap gap-2 justify-center">
             {isError ? (
-              <Button size="sm" className="min-h-11" onClick={retry}>Reintentar</Button>
+              <Button size="sm" className="min-h-11" onClick={retry}>{t('common.retry')}</Button>
             ) : (
               <>
                 {scope === 'today' && (
@@ -549,7 +540,7 @@ const MapPage = () => {
                   </Button>
                 )}
                 <Button variant="outline" size="sm" className="min-h-11" onClick={clearFilters}>
-                  Limpiar filtros
+                  {t('events.clearFilters')}
                 </Button>
               </>
             )}
@@ -558,19 +549,19 @@ const MapPage = () => {
       )}
 
 
-      <div className="absolute bottom-20 left-3 lg:bottom-3 z-[400]">
+      <div className="absolute bottom-20 start-3 lg:bottom-3 z-[400]">
         <Button
           onClick={handleMyLocation}
           disabled={locating}
           className="min-h-11 rounded-full bg-background text-foreground border border-border hover:bg-muted shadow-sm"
-          aria-label="Centrar el mapa en mi ubicación"
+          aria-label={t('mapUI.locate')}
         >
           {locating ? (
             <Loader2 className="h-4 w-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden="true" />
           ) : (
             <Locate className="h-4 w-4 mr-2" aria-hidden="true" />
           )}
-          Mi ubicación
+          {t('mapUI.myLocation')}
         </Button>
       </div>
     </div>
@@ -579,8 +570,8 @@ const MapPage = () => {
   return (
     <main className="min-h-dvh bg-background">
       <SEO
-        title="Mapa de eventos y farmacias en Málaga"
-        description="Mapa interactivo de Málaga con eventos culturales, deporte, recintos y farmacias de guardia. Encuentra qué ocurre cerca de ti."
+        title={t('mapUI.seoTitle')}
+        description={t('mapUI.seoDescription')}
         path="/map"
       />
 
@@ -591,28 +582,28 @@ const MapPage = () => {
             <MapIcon className="h-5 w-5" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-tight">Mapa de Málaga</h1>
-            <p className="text-[13px] text-muted-foreground leading-snug">Encuentra qué ocurre cerca de ti</p>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight leading-tight">{t('mapUI.title')}</h1>
+            <p className="text-[13px] text-muted-foreground leading-snug">{t('mapUI.subtitle')}</p>
           </div>
         </header>
 
         {/* Search */}
         <div className="relative mt-3">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-          <label htmlFor="map-search" className="sr-only">Buscar en el mapa</label>
+          <Search className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <label htmlFor="map-search" className="sr-only">{t('mapUI.search')}</label>
           <Input
             id="map-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar eventos, recintos o farmacias"
-            className="h-12 pl-10 pr-11 rounded-xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary"
+            placeholder={t('mapUI.searchPlaceholder')}
+            className="h-12 ps-10 pe-11 rounded-xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              aria-label="Limpiar búsqueda"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 h-11 w-11 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={t('mapUI.clearSearch')}
+              className="absolute end-1.5 top-1/2 -translate-y-1/2 h-11 w-11 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -620,7 +611,7 @@ const MapPage = () => {
         </div>
 
         {/* Time scope */}
-        <div className="mt-3 flex rounded-full border border-border bg-card p-1" role="group" aria-label="Alcance temporal">
+        <div className="mt-3 flex rounded-full border border-border bg-card p-1" role="group" aria-label={t('mapUI.scopeLabel')}>
           {SCOPES.map((s) => (
             <button
               key={s.id}
@@ -633,18 +624,17 @@ const MapPage = () => {
                 scope === s.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              {s.label}
+              {t(`mapUI.scopes.${s.id}`)}
             </button>
           ))}
         </div>
 
         <p role="status" className="mt-2 text-xs text-muted-foreground">
-          {SCOPE_LABEL[scope]} · {filteredMarkers.length}{' '}
-          {filteredMarkers.length === 1 ? 'resultado' : 'resultados'}
+          {t(`mapUI.scopeSummary.${scope}`)} · {t('mapUI.resultCount', { count: filteredMarkers.length })}
         </p>
 
         {/* Filters */}
-        <div className="mt-2 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="toolbar" aria-label="Filtros del mapa">
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" role="toolbar" aria-label={t('mapUI.filters')}>
           {FILTERS.map((f) => {
             const active = filter === f.id;
             const Icon = f.icon;
@@ -670,7 +660,7 @@ const MapPage = () => {
                   />
                 )}
                 <Icon className="h-4 w-4" aria-hidden="true" />
-                {f.label}
+                {t(`mapUI.filtersByKind.${f.id}`)}
                 <span className={cn('tabular-nums', active ? 'opacity-90' : 'text-muted-foreground')}>
                   {counts[f.id]}
                 </span>
@@ -683,13 +673,13 @@ const MapPage = () => {
         {/* View toggle */}
         <div className="mt-3 flex flex-wrap items-center gap-3">
 
-          <div className="inline-flex rounded-full border border-border bg-card p-1" role="group" aria-label="Cambiar vista">
+          <div className="inline-flex rounded-full border border-border bg-card p-1" role="group" aria-label={t('mapUI.view')}>
             {(
               [
-                { id: 'map' as const, label: 'Mapa', icon: MapIcon },
-                { id: 'list' as const, label: 'Lista', icon: List },
+                { id: 'map' as const, icon: MapIcon },
+                { id: 'list' as const, icon: List },
               ]
-            ).map(({ id, label, icon: Icon }) => (
+            ).map(({ id, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
@@ -702,7 +692,7 @@ const MapPage = () => {
                 )}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
-                {label}
+                {t(`mapUI.views.${id}`)}
               </button>
             ))}
           </div>
@@ -725,11 +715,11 @@ const MapPage = () => {
             {!isMobile && selected && (
               <div className="mb-3 rounded-2xl border border-border bg-card p-4">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Detalle</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('mapUI.detail')}</p>
                   <button
                     type="button"
                     onClick={() => setSelected(null)}
-                    aria-label="Cerrar detalle"
+                    aria-label={t('mapUI.closeDetail')}
                     className="h-8 w-8 -mt-1 -mr-1 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
@@ -741,7 +731,7 @@ const MapPage = () => {
               </div>
             )}
             <p className="mb-2 text-xs text-muted-foreground">
-              {filteredMarkers.length} {filteredMarkers.length === 1 ? 'punto' : 'puntos'} en el mapa
+              {t('mapUI.pointCount', { count: filteredMarkers.length })}
             </p>
             {resultsList}
           </aside>

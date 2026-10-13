@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, CalendarDays, MapPin, Ticket, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Sparkles, CalendarDays, MapPin, Ticket, SlidersHorizontal } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import EventCard from '@/components/events/EventCard';
+import HomeEventCard from './HomeEventCard';
 import { EventCardSkeleton } from '@/components/common/LoadingSkeleton';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -15,10 +15,10 @@ import { getInterest } from '@/modules/interests/catalog';
 import type { SportsEntity } from '@/types/sportsEntities';
 
 const SportsRecommendationCard = ({ entity }: { entity: SportsEntity }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const date = entity.date_start
-    ? new Date(`${entity.date_start}T12:00:00`).toLocaleDateString('es-ES', {
+    ? new Date(`${entity.date_start}T12:00:00Z`).toLocaleDateString(i18n.language, {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
@@ -85,7 +85,7 @@ const SportsRecommendationCard = ({ entity }: { entity: SportsEntity }) => {
   );
 };
 
-const ForYouSection = () => {
+const ForYouSection = ({ excludedEventId }: { excludedEventId?: string | null }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthContext();
@@ -104,6 +104,7 @@ const ForYouSection = () => {
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const { recommendations, isStarter, isLoading, isError } = useRecommendations(interests, 6);
+  const visibleRecommendations = recommendations.filter(rec => rec.kind !== 'culture' || rec.event.id !== excludedEventId);
 
   const { data: favorites } = useFavorites();
   const toggleFavorite = useToggleFavorite();
@@ -124,21 +125,21 @@ const ForYouSection = () => {
   };
 
   return (
-    <section aria-labelledby="for-you-title">
-      <div className="flex items-end justify-between gap-3 mb-3">
+    <section aria-labelledby="for-you-title" className="home-personalization">
+      <div className="home-section-header">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-            <h2 id="for-you-title" className="section-title">
+            <h2 id="for-you-title" className="home-section-title">
               {t('home.forYou.title')}
             </h2>
           </div>
-          <div className="section-rule mt-2" aria-hidden />
+
         </div>
         <Button
           variant="ghost"
           size="sm"
-          className="shrink-0 gap-1.5 text-primary min-h-11"
+          className="home-section-action gap-1.5"
           onClick={() => setPickerOpen(true)}
         >
           <SlidersHorizontal className="h-4 w-4" aria-hidden />
@@ -162,7 +163,7 @@ const ForYouSection = () => {
       )}
 
       {interestsLoading || isLoading ? (
-        <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
+        <div className="home-collection home-collection-personalized">
           {[1, 2].map((i) => (
             <EventCardSkeleton key={i} />
           ))}
@@ -180,28 +181,25 @@ const ForYouSection = () => {
             <Button variant="outline" className="h-11 px-5" onClick={() => navigate('/events')}>
               {t('home.forYou.browseAll')}
             </Button>
-            <Button variant="ghost" className="h-11 px-5" onClick={() => setPickerOpen(true)}>
-              {t('home.forYou.editInterests')}
-            </Button>
+
           </div>
         </div>
       ) : (
         <>
           {isStarter && (
-            <p className="text-[12.5px] text-muted-foreground mb-2.5">
+            <p className="home-note">
               {t(
                 'home.forYou.starterNote',
                 'Selección variada de los próximos planes. Elige tus gustos y la ajustamos a ti.',
               )}
             </p>
           )}
-          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
-            {recommendations.map((rec) => (
+          <div className="home-collection home-collection-personalized">
+            {visibleRecommendations.map((rec) => (
               <div key={rec.id} className="flex flex-col gap-1.5">
                 {rec.kind === 'culture' ? (
-                  <EventCard
+                  <HomeEventCard
                     event={rec.event}
-                    dense
                     isFavorite={isFavorite(rec.event.id)}
                     onToggleFavorite={handleToggleFavorite}
                   />
@@ -209,21 +207,12 @@ const ForYouSection = () => {
                   <SportsRecommendationCard entity={rec.entity} />
                 )}
                 {reason(rec.reasonInterestId) && (
-                  <p className="text-[11.5px] text-muted-foreground px-1">{reason(rec.reasonInterestId)}</p>
+                  <p className="home-reason">{reason(rec.reasonInterestId)}</p>
                 )}
               </div>
             ))}
           </div>
-          {isStarter && (
-            <div className="flex flex-wrap gap-2 mt-3">
-              <Button className="h-11 px-5 font-semibold" onClick={() => setPickerOpen(true)}>
-                {t('home.forYou.chooseInterests')}
-              </Button>
-              <Button variant="outline" className="h-11 px-5" onClick={() => navigate('/events')}>
-                {t('home.forYou.browseAll')} <ChevronRight className="h-4 w-4 ml-1" aria-hidden />
-              </Button>
-            </div>
-          )}
+          {visibleRecommendations.length === 0 && <p className="home-note">{t('home.pilot.alreadyShown')}</p>}
         </>
       )}
 

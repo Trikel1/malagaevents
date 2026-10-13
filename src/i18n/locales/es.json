@@ -125,7 +125,8 @@
     "pharmacies": "Farmacias",
     "profile": "Perfil",
     "venues": "Recintos",
-    "map": "Mapa"
+    "map": "Mapa",
+    "primary": "Navegación principal"
   },
   "onboarding": {
     "title": "Bienvenido a Málaga Events",
@@ -208,7 +209,8 @@
       "provinceHelp": "Elige tu municipio",
       "selectLabel": "Municipio",
       "selectPlaceholder": "Elige un municipio…",
-      "go": "Ver planes"
+      "go": "Ver planes",
+      "coverageNote": "Buscamos por nombre de municipio en la agenda publicada; la cobertura por municipio aún es parcial."
     },
     "culture": {
       "title": "Cultura viva",
@@ -317,7 +319,15 @@
       "noMatchTitle": "Sin coincidencias para tus gustos ahora mismo",
       "noMatchHelp": "No hay eventos publicados que encajen con lo que has elegido. Puedes ver la agenda completa.",
       "browseAll": "Ver toda la agenda",
-      "starterNote": "Selección variada de los próximos planes. Elige tus gustos y la ajustamos a ti."
+      "starterNote": "Selección variada de los próximos planes."
+    },
+    "pilot": {
+      "upcoming": "Próximamente",
+      "featuredError": "No hemos podido cargar el plan destacado",
+      "onlyFeatured": "El próximo plan está destacado arriba. Explora la agenda para ver más fechas.",
+      "noUpcoming": "Aún no hay próximos eventos publicados.",
+      "alreadyShown": "Tus recomendaciones ya aparecen arriba.",
+      "services": "Más formas de explorar Málaga"
     }
   },
   "events": {
@@ -348,7 +358,45 @@
     "halls": "Salas",
     "otherVenues": "Otros",
     "timeTBC": "Hora por confirmar",
-    "countPartialA11y": "{{loaded}} de {{total}} eventos mostrados"
+    "countPartialA11y": "{{loaded}} de {{total}} eventos mostrados",
+    "today": "Hoy",
+    "tomorrow": "Mañana",
+    "thisWeekend": "Este finde",
+    "next30Days": "Próximos 30 días",
+    "next30Short": "30 días",
+    "agendaTitle": "Agenda",
+    "agendaKicker": "Cultura · Málaga",
+    "eventSingular": "evento",
+    "eventPlural": "eventos",
+    "timeRange": "Franja temporal",
+    "loadMore": "Ver más eventos",
+    "upcomingHighlights": "Destacados próximos",
+    "resumeCarousel": "Reanudar carrusel",
+    "pauseCarousel": "Pausar carrusel",
+    "play": "Reanudar",
+    "pause": "Pausar",
+    "untitled": "Sin título",
+    "family": "Infantil",
+    "familyKids": "Infantil / Familiar",
+    "outdoor": "Al aire libre",
+    "withTickets": "Con entradas",
+    "quickPresets": "Accesos rápidos",
+    "showAll": "Mostrar todo",
+    "showResults": "Mostrar",
+    "activeFilters": "Filtros activos",
+    "clearAll": "Quitar todos",
+    "noEventsWithFilters": "No hay eventos con estos filtros",
+    "noEventsHint": "Prueba otra fecha, localidad o recinto.",
+    "nearMe": "Cerca de mí",
+    "venueKind": {
+      "all": "Todo",
+      "halls": "Salas",
+      "theaters": "Teatros",
+      "outdoors": "Recintos",
+      "hallsTitle": "Salas",
+      "theatersTitle": "Teatros y auditorios",
+      "outdoorsTitle": "Recintos y exteriores"
+    }
   },
   "eventDetail": {
     "when": "Cuándo",
@@ -384,7 +432,12 @@
     "ticketsOnSite": "Acceso y disponibilidad en la web del organizador.",
     "onlineNote": "Actividad online: no hay recinto físico.",
     "online": "Online",
-    "description": "Descripción"
+    "description": "Descripción",
+    "date": "Fecha",
+    "time": "Hora",
+    "place": "Lugar",
+    "addFavorite": "Añadir a favoritos",
+    "removeFavorite": "Quitar de favoritos"
   },
   "calendar": {
     "title": "Calendario",
@@ -546,7 +599,8 @@
   "theme": {
     "system": "Sistema",
     "light": "Claro",
-    "dark": "Oscuro"
+    "dark": "Oscuro",
+    "toggle": "Cambiar tema"
   },
   "categories": {
     "music": "Música",
@@ -808,6 +862,97 @@
       "cancelled": "Cancelado",
       "postponed": "Aplazado",
       "pending": "Pendiente de confirmar"
+    }
+  },
+  "mapUI": {
+    "loadError": "No hemos podido cargar los puntos del mapa.",
+    "noCoordsToday": "No hay puntos con coordenadas para hoy",
+    "noCoordsScope": "No hay puntos con coordenadas para este alcance",
+    "emptyHelp": "Amplía el alcance temporal o quita los filtros.",
+    "weekAction": "Ver esta semana",
+    "approxShort": "Aproximada",
+    "exactShort": "Exacta",
+    "pendingLabel": "Puntos sin ubicación confirmada",
+    "pending": "Ubicación pendiente ({{count}})",
+    "pendingHelp": "Estos resultados son reales, pero todavía no tenemos su dirección confirmada, así que no los colocamos en el mapa.",
+    "emptyToday": "Hoy no hay puntos en el mapa",
+    "emptyScope": "No hay puntos para este alcance",
+    "locate": "Centrar el mapa en mi ubicación",
+    "myLocation": "Mi ubicación",
+    "geoUnsupported": "Tu dispositivo no permite compartir la ubicación.",
+    "geoDenied": "Permiso denegado. Actívalo en los ajustes del navegador para centrar el mapa en tu posición.",
+    "geoError": "No hemos podido obtener tu ubicación. Inténtalo de nuevo.",
+    "seoTitle": "Mapa de eventos y farmacias en Málaga",
+    "seoDescription": "Mapa interactivo de Málaga con eventos culturales, deporte, recintos y farmacias de guardia. Encuentra qué ocurre cerca de ti.",
+    "title": "Mapa de Málaga",
+    "subtitle": "Encuentra qué ocurre cerca de ti",
+    "search": "Buscar en el mapa",
+    "searchPlaceholder": "Buscar eventos, recintos o farmacias",
+    "scopeLabel": "Alcance temporal",
+    "filters": "Filtros del mapa",
+    "view": "Cambiar vista",
+    "detail": "Detalle",
+    "closeDetail": "Cerrar detalle",
+    "pointCount": "{{count}} puntos en el mapa",
+    "resultCount": "{{count}} resultados",
+    "onDuty": "De guardia",
+    "approx": "Ubicación aproximada",
+    "exact": "Ubicación exacta",
+    "openEvent": "Ver evento",
+    "openVenue": "Ver recinto",
+    "openPharmacy": "Ver farmacia",
+    "kind": {
+      "event": "Evento",
+      "sport": "Deporte",
+      "venue": "Recinto",
+      "pharmacy": "Farmacia",
+      "demo": "Punto de interés"
+    },
+    "scopes": {
+      "today": "Hoy",
+      "week": "Esta semana",
+      "all": "Todos"
+    },
+    "filtersByKind": {
+      "all": "Todos",
+      "events": "Eventos",
+      "sports": "Deportes",
+      "venues": "Recintos",
+      "pharmacies": "Farmacias"
+    },
+    "views": {
+      "map": "Mapa",
+      "list": "Lista"
+    },
+    "scopeSummary": {
+      "today": "Mostrando eventos de hoy",
+      "week": "Mostrando eventos de esta semana",
+      "all": "Mostrando todos los eventos"
+    },
+    "clearSearch": "Limpiar búsqueda",
+    "resultCount_one": "{{count}} resultado",
+    "resultCount_other": "{{count}} resultados",
+    "pointCount_one": "{{count}} punto en el mapa",
+    "pointCount_other": "{{count}} puntos en el mapa"
+  },
+  "image": {
+    "illustrative": "Imagen ilustrativa",
+    "illustrativeAlt": "{{category}} — imagen ilustrativa, no es el cartel oficial",
+    "expand": "Ampliar imagen: {{title}}",
+    "close": "Cerrar imagen",
+    "categories": {
+      "dance": "Danza",
+      "music": "Música",
+      "theater": "Teatro",
+      "comedy": "Comedia",
+      "festival": "Festival",
+      "nightlife": "Noche",
+      "exhibitions": "Exposición",
+      "kids": "Infantil",
+      "sports": "Deportes",
+      "workshops": "Taller",
+      "conferences": "Conferencia",
+      "other": "Evento"
     }
   }
 }

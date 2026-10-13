@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { format, isToday, isTomorrow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { dateLocale } from '@/lib/dateLocale';
+import { madridDayKey, addDaysToKey, formatMadrid } from '@/lib/madridTime';
 import EventCard from '@/components/events/EventCard';
 import type { Event } from '@/types';
 
@@ -31,20 +31,20 @@ const GroupedEventsList = ({
   isFavorite,
   onToggleFavorite,
 }: GroupedEventsListProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const buckets = useMemo<Bucket[]>(() => {
     const map = new Map<string, Bucket>();
     for (const event of events) {
       const d = new Date(event.start_at);
       if (Number.isNaN(d.getTime())) continue;
-      const key = format(d, 'yyyy-MM-dd');
+      const key = madridDayKey(d);
       let bucket = map.get(key);
       if (!bucket) {
         bucket = {
           key,
-          label: labelFor(d, t),
-          date: new Date(d.getFullYear(), d.getMonth(), d.getDate()),
+          label: labelFor(d, t, i18n.language),
+          date: new Date(`${key}T12:00:00Z`),
           items: [],
         };
         map.set(key, bucket);
@@ -52,7 +52,7 @@ const GroupedEventsList = ({
       bucket.items.push(event);
     }
     return Array.from(map.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [events, t]);
+  }, [events, t, i18n.language]);
 
   return (
     <div className="space-y-6">
@@ -92,10 +92,10 @@ const GroupedEventsList = ({
   );
 };
 
-function labelFor(d: Date, t: TFunction): string {
-  if (isToday(d)) return t('events.today', 'Hoy');
-  if (isTomorrow(d)) return t('events.tomorrow', 'Mañana');
-  const label = format(d, "EEE d 'de' MMM", { locale: es });
+function labelFor(d: Date, t: TFunction, language: string): string {
+  if (madridDayKey(d) === madridDayKey()) return t('events.today', 'Hoy');
+  if (madridDayKey(d) === addDaysToKey(madridDayKey(), 1)) return t('events.tomorrow', 'Mañana');
+  const label = formatMadrid(d, language.startsWith('es') ? "EEE d 'de' MMM" : 'EEE d MMM', dateLocale(language));
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
