@@ -171,6 +171,7 @@ const FilterDrawer = ({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} autoFocus>
+      {open && (
       <DrawerContent
         onOpenAutoFocus={() => { returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement; }}
         onCloseAutoFocus={(event) => {
@@ -456,6 +457,7 @@ const FilterDrawer = ({
         </DrawerFooter>
 
       </DrawerContent>
+      )}
     </Drawer>
   );
 };

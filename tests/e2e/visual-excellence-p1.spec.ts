@@ -95,3 +95,24 @@ test('el aviso de ubicación no bloquea la navegación inferior', async ({ page 
   await profile.click();
   await expect(page).toHaveURL(/\/profile$/);
 });
+
+test('filtros: cierre y foco no dependen de finalizar la animación', async ({ page }) => {
+  // Replay the CI state: Radix is closed but the native exit animation cannot finish.
+  await page.goto('/events');
+  await page.addStyleTag({ content: '[data-vaul-drawer][data-state="closed"], [data-vaul-overlay][data-state="closed"] { animation-play-state: paused !important; }' });
+  const trigger = page.getByRole('button', { name: 'Filtros', exact: true });
+  for (const action of ['escape', 'close', 'apply']) {
+    await trigger.click();
+    const dialog = page.getByRole('dialog', { name: 'Filtros', exact: true });
+    await expect(dialog).toBeVisible();
+    if (action === 'escape') await page.keyboard.press('Escape');
+    if (action === 'close') await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+    if (action === 'apply') await dialog.getByRole('button', { name: 'Mostrar todo', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    expect(await trigger.evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return el.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+    })).toBe(true);
+  }
+});

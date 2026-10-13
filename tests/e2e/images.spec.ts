@@ -16,12 +16,18 @@ async function expectHealthyImages(page: Page, timeout?: number) {
   await expect.poll(async () => {
     if (timeout) {
       for (const image of await page.locator('img').elementHandles()) {
-        if (await image.evaluate(el => el.isConnected)) await image.scrollIntoViewIfNeeded();
+        await image.evaluate(el => new Promise<void>(resolve => {
+          if (!el.isConnected) return resolve();
+          // Moving marquee images need not become stable to enter the viewport.
+          el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+          // Allow native intersection callbacks to arm the production load budget.
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        }));
       }
     }
-    return page.locator('img').evaluateAll(elements => {
+    return page.locator('img').evaluateAll((elements, liveNetwork) => {
       const images = elements as HTMLImageElement[];
-      for (const image of images) image.loading = 'eager';
+      if (!liveNetwork) for (const image of images) image.loading = 'eager';
       const pendingImages = images
         .filter(image => !image.complete || image.naturalWidth === 0)
         .map(image => ({
@@ -32,7 +38,7 @@ async function expectHealthyImages(page: Page, timeout?: number) {
         }));
       const loadingSkeletons = document.querySelectorAll('main .animate-pulse').length;
       return { loadingSkeletons, pendingImages };
-    });
+    }, !!timeout);
   }, { message: 'Todas las imágenes deben cargar o mostrar un fallback válido', ...(timeout ? { timeout } : {}) })
     .toEqual({ loadingSkeletons: 0, pendingImages: [] });
 }
@@ -140,4 +146,13 @@ fixtureTest('el checker rechaza un fallback local realmente roto', async ({ page
   await page.goto('/');
   await expect(page.locator('.home-image-fallback img')).toBeVisible();
   await expect(expectHealthyImages(page)).rejects.toThrow('Todas las imágenes deben cargar o mostrar un fallback válido');
+});
+
+fixtureTest('/events: el checker funciona con imágenes que siguen en movimiento', async ({ page }) => {
+  await page.route('**/rest/v1/events?**', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ ...culture, image_url: poster }]) }));
+  await page.route(poster, route => route.fulfill({ contentType: 'image/jpeg', body: posterBytes }));
+  await page.goto('/events');
+  await expect(page.locator(`img[src="${poster}"]`).first()).toBeVisible();
+  await page.addStyleTag({ content: `img[src="${poster}"] { animation: qa-continuous-image 1s linear infinite !important; } @keyframes qa-continuous-image { from { transform: translateX(0); } to { transform: translateX(50px); } }` });
+  await expectHealthyImages(page, imageBudgetMs + 5_000);
 });
