@@ -96,21 +96,25 @@ test('el aviso de ubicación no bloquea la navegación inferior', async ({ page 
   await expect(page).toHaveURL(/\/profile$/);
 });
 
-test('filtros: cierre y foco no dependen de finalizar la animación', async ({ page }) => {
-  // Replay the CI state: Radix is closed but the native exit animation cannot finish.
-  await page.goto('/events');
-  await page.addStyleTag({ content: '[data-vaul-drawer][data-state="closed"], [data-vaul-overlay][data-state="closed"] { animation-play-state: paused !important; }' });
-  const trigger = page.getByRole('button', { name: 'Filtros', exact: true });
-  let currentAction = 'opening';
-  try {
-    for (const action of ['escape', 'close', 'apply']) {
-      currentAction = action;
+const filterActions = new WeakMap<object, string>();
+
+for (const action of ['escape', 'close', 'apply'] as const) {
+  test(`filtros: ${action}, cierre y reapertura sin finalizar la animación`, async ({ page }) => {
+    filterActions.set(page, 'opening');
+    // Replay the CI state: Radix is closed but the native exit animation cannot finish.
+    await page.goto('/events');
+    await page.addStyleTag({ content: '[data-vaul-drawer][data-state="closed"], [data-vaul-overlay][data-state="closed"] { animation-play-state: paused !important; }' });
+    const trigger = page.getByRole('button', { name: 'Filtros', exact: true });
+    // Each close path gets an isolated page and the normal per-test budget.
+    // Reopen after that path to prove no closed overlay blocks the next click.
+    for (const [cycle, closeAction] of [action, 'escape'].entries()) {
+      filterActions.set(page, cycle === 0 ? action : `reopen-after-${action}`);
       await trigger.click();
       const dialog = page.getByRole('dialog', { name: 'Filtros', exact: true });
       await expect(dialog).toBeVisible();
-      if (action === 'escape') await page.keyboard.press('Escape');
-      if (action === 'close') await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
-      if (action === 'apply') await dialog.getByRole('button', { name: 'Mostrar todo', exact: true }).click();
+      if (closeAction === 'escape') await page.keyboard.press('Escape');
+      if (closeAction === 'close') await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+      if (closeAction === 'apply') await dialog.getByRole('button', { name: 'Mostrar todo', exact: true }).click();
       await expect(dialog).toHaveCount(0);
       await expect(trigger).toBeFocused();
       expect(await trigger.evaluate(el => {
@@ -118,8 +122,12 @@ test('filtros: cierre y foco no dependen de finalizar la animación', async ({ p
         return el.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
       })).toBe(true);
     }
-  } catch (error) {
-    // Capture the failed state without changing focus, animation or click behavior.
+  });
+}
+
+test.afterEach(async ({ page }, testInfo) => {
+  // Capture the failed state without changing focus, animation or click behavior.
+  if (filterActions.has(page) && (testInfo.status === 'failed' || testInfo.status === 'timedOut')) {
     try {
       const state = await page.evaluate(() => {
         const describe = (element: Element) => {
@@ -143,12 +151,11 @@ test('filtros: cierre y foco no dependen de finalizar la animación', async ({ p
           elements: Array.from(document.querySelectorAll('[role="dialog"], [data-vaul-overlay], [data-vaul-drawer], [role="dialog"] button')).map(describe),
         };
       });
-      await test.info().attach('filter-failure-state', {
-        body: JSON.stringify({ action: currentAction, state }, null, 2), contentType: 'application/json',
+      await testInfo.attach('filter-failure-state', {
+        body: JSON.stringify({ action: filterActions.get(page), status: testInfo.status, state }, null, 2), contentType: 'application/json',
       });
     } catch {
       // A closed page must not replace the original test failure with a diagnostic error.
     }
-    throw error;
   }
 });
