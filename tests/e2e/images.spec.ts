@@ -16,13 +16,11 @@ async function expectHealthyImages(page: Page, timeout?: number) {
   await expect.poll(async () => {
     if (timeout) {
       for (const image of await page.locator('img').elementHandles()) {
-        await image.evaluate(el => new Promise<void>(resolve => {
-          if (!el.isConnected) return resolve();
+        await image.evaluate(el => {
+          if (!el.isConnected) return;
           // Moving marquee images need not become stable to enter the viewport.
           el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
-          // Allow native intersection callbacks to arm the production load budget.
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-        }));
+        });
       }
     }
     return page.locator('img').evaluateAll((elements, liveNetwork) => {
@@ -54,13 +52,16 @@ for (const route of routes) {
     page.on('requestfailed', request => {
       if (request.resourceType() === 'image') network.push({ url: request.url(), failure: request.failure()?.errorText });
     });
-    await page.goto(route);
-    await expect(page.getByRole('main')).toBeVisible();
-    // The checker visits lazy posters as they appear, starting their real budget.
-    // Network smoke uses the production deadline + the normal 5s assertion
-    // budget for replacement/decode. Controlled checks below keep default waits.
-    await expectHealthyImages(page, imageBudgetMs + 5_000);
-    await test.info().attach('real-image-network', { body: JSON.stringify(network, null, 2), contentType: 'application/json' });
+    try {
+      await page.goto(route);
+      await expect(page.getByRole('main')).toBeVisible();
+      // The checker visits lazy posters as they appear, starting their real budget.
+      // Network smoke uses the production deadline + the normal 5s assertion
+      // budget for replacement/decode. Controlled checks below keep default waits.
+      await expectHealthyImages(page, imageBudgetMs + 5_000);
+    } finally {
+      await test.info().attach('real-image-network', { body: JSON.stringify(network, null, 2), contentType: 'application/json' });
+    }
   });
 }
 
@@ -154,5 +155,7 @@ fixtureTest('/events: el checker funciona con imágenes que siguen en movimiento
   await page.goto('/events');
   await expect(page.locator(`img[src="${poster}"]`).first()).toBeVisible();
   await page.addStyleTag({ content: `img[src="${poster}"] { animation: qa-continuous-image 1s linear infinite !important; } @keyframes qa-continuous-image { from { transform: translateX(0); } to { transform: translateX(50px); } }` });
+  // A suspended rendering clock must not suspend the checker itself.
+  await page.evaluate(() => { window.requestAnimationFrame = () => 0; });
   await expectHealthyImages(page, imageBudgetMs + 5_000);
 });

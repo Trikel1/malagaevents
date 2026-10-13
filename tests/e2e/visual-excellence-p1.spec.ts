@@ -101,18 +101,54 @@ test('filtros: cierre y foco no dependen de finalizar la animación', async ({ p
   await page.goto('/events');
   await page.addStyleTag({ content: '[data-vaul-drawer][data-state="closed"], [data-vaul-overlay][data-state="closed"] { animation-play-state: paused !important; }' });
   const trigger = page.getByRole('button', { name: 'Filtros', exact: true });
-  for (const action of ['escape', 'close', 'apply']) {
-    await trigger.click();
-    const dialog = page.getByRole('dialog', { name: 'Filtros', exact: true });
-    await expect(dialog).toBeVisible();
-    if (action === 'escape') await page.keyboard.press('Escape');
-    if (action === 'close') await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
-    if (action === 'apply') await dialog.getByRole('button', { name: 'Mostrar todo', exact: true }).click();
-    await expect(dialog).toHaveCount(0);
-    await expect(trigger).toBeFocused();
-    expect(await trigger.evaluate(el => {
-      const rect = el.getBoundingClientRect();
-      return el.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
-    })).toBe(true);
+  let currentAction = 'opening';
+  try {
+    for (const action of ['escape', 'close', 'apply']) {
+      currentAction = action;
+      await trigger.click();
+      const dialog = page.getByRole('dialog', { name: 'Filtros', exact: true });
+      await expect(dialog).toBeVisible();
+      if (action === 'escape') await page.keyboard.press('Escape');
+      if (action === 'close') await dialog.getByRole('button', { name: 'Cerrar', exact: true }).click();
+      if (action === 'apply') await dialog.getByRole('button', { name: 'Mostrar todo', exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(trigger).toBeFocused();
+      expect(await trigger.evaluate(el => {
+        const rect = el.getBoundingClientRect();
+        return el.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2));
+      })).toBe(true);
+    }
+  } catch (error) {
+    // Capture the failed state without changing focus, animation or click behavior.
+    try {
+      const state = await page.evaluate(() => {
+        const describe = (element: Element) => {
+          const rect = element.getBoundingClientRect();
+          const style = getComputedStyle(element);
+          const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+          return {
+            tag: element.tagName, role: element.getAttribute('role'),
+            state: element.getAttribute('data-state'), text: element.textContent?.trim().slice(0, 300),
+            rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+            display: style.display, visibility: style.visibility, opacity: style.opacity,
+            pointerEvents: style.pointerEvents, transform: style.transform, zIndex: style.zIndex,
+            animationName: style.animationName, animationPlayState: style.animationPlayState,
+            hit: hit ? { tag: hit.tagName, role: hit.getAttribute('role'), state: hit.getAttribute('data-state') } : null,
+            receivesPointer: !!hit && element.contains(hit),
+            animations: element.getAnimations().map(animation => ({ playState: animation.playState, currentTime: animation.currentTime })),
+          };
+        };
+        return {
+          activeElement: document.activeElement ? describe(document.activeElement) : null,
+          elements: Array.from(document.querySelectorAll('[role="dialog"], [data-vaul-overlay], [data-vaul-drawer], [role="dialog"] button')).map(describe),
+        };
+      });
+      await test.info().attach('filter-failure-state', {
+        body: JSON.stringify({ action: currentAction, state }, null, 2), contentType: 'application/json',
+      });
+    } catch {
+      // A closed page must not replace the original test failure with a diagnostic error.
+    }
+    throw error;
   }
 });

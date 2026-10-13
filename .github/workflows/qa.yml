@@ -38,6 +38,7 @@ jobs:
           name: qa-report
           path: |
             qa-report.md
-            .qa/
+            .qa/*.log
             test-results/
+          include-hidden-files: true
           if-no-files-found: ignore
