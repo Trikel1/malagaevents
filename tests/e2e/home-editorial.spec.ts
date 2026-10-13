@@ -1,5 +1,20 @@
 import { test, expect, culture } from './fixtures/app';
 
+test('Home: conserva el precio publicado al consultar los campos de la tarjeta', async ({ page }) => {
+  await page.route('**/rest/v1/events?**', route => {
+    const record = { ...culture, is_free: false, price_info: 'Desde 18 €' };
+    const select = new URL(route.request().url()).searchParams.get('select') ?? '*';
+    // Match REST column projection: unrequested fields are absent in real data.
+    const fields = select.split(',');
+    const projected = fields.includes('*') ? record : Object.fromEntries(
+      Object.entries(record).filter(([key]) => fields.includes(key)),
+    );
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify([projected]) });
+  });
+  await page.goto('/');
+  await expect(page.locator('.home-featured .home-price')).toHaveText('Desde 18 €');
+});
+
 const sizes = [
   { width: 360, height: 800 }, { width: 390, height: 844 },
   { width: 430, height: 932 }, { width: 768, height: 1024 },
