@@ -3,6 +3,7 @@ import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security
 import { parseSpanishDate } from './parse-date.ts';
 import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
 import { fetchTribeEvents } from '../_shared/ingestion/tribeEvents.ts';
+import { extractCocheraPosters, resolveCocheraCardUrl } from '../_shared/ingestion/cochera-posters.ts';
 
 
 // ============================================================================
@@ -776,6 +777,7 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
     const html = await r.text();
     const events: NormalizedEvent[] = [];
     // pattern: event_brick_date "DD mes YYYY" + post_item_title <a href>title</a>
+    const posters = extractCocheraPosters(html, 'https://lacocheracabaret.com/programacion/');
     const cardRe = /event_brick_date">\s*[^,]*,?\s*(\d{1,2})\s+(\w+)\s+(\d{4})\s*<\/div>\s*<div class="post_item_title">\s*<a href="([^"]+)">\s*([^<]+?)\s*<\/a>/g;
     let m: RegExpExecArray | null;
     while ((m = cardRe.exec(html)) !== null) {
@@ -791,6 +793,7 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
         venue: 'La Cochera Cabaret',
         city: 'Málaga',
         ticket_url: m[4],
+        image_url: posters.get(resolveCocheraCardUrl(m[4], 'https://lacocheracabaret.com/programacion/') ?? ''),
       });
     }
     return { ok: true, http_status: 200, events, strategy: 'cochera-cards' };
