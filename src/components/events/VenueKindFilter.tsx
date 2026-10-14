@@ -348,9 +348,9 @@ export function VenueKindFilter({
 
 
   const body = (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Search */}
-      <div className="p-3 border-b">
+      <div className="p-3 border-b shrink-0">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -450,7 +450,7 @@ export function VenueKindFilter({
       </ScrollArea>
 
       {/* Sticky footer */}
-      <div className="border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] flex items-center gap-2 bg-background/95 backdrop-blur-sm">
+      <div className="shrink-0 border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] flex items-center gap-2 bg-background/95 backdrop-blur-sm">
         <Button
           variant="ghost"
           size="sm"
@@ -566,14 +566,14 @@ export function VenueKindFilter({
             <span className="sr-only" aria-hidden />
           </PopoverTrigger>
           <PopoverContent
-            className="w-[min(460px,calc(100vw-24px))] p-0 flex flex-col h-[560px]"
+            className="w-[min(460px,calc(100vw-24px))] p-0 flex flex-col h-[560px] max-h-[var(--radix-popover-content-available-height)]"
             align="center"
             side="bottom"
             sideOffset={8}
             collisionPadding={16}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
-            <div className="px-4 pt-3 pb-2 border-b flex items-center gap-2 text-sm font-semibold">
+            <div className="shrink-0 px-4 pt-3 pb-2 border-b flex items-center gap-2 text-sm font-semibold">
               {currentKind && <PickerHeaderIcon kind={currentKind} />}
               {pickerTitle}
             </div>
