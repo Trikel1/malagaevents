@@ -12,7 +12,7 @@
 .scope :global(.home-toolbar) { margin-bottom: 16px; }
 .scope :global(.home-mode) { color: hsl(var(--foreground)); }
 .scope :global(.home-mode > span) { background: hsl(var(--primary)); box-shadow: none !important; }
-.scope :global(.home-mode button) { color: hsl(var(--foreground)); min-height: 44px; padding-inline: 12px; }
+.scope :global(.home-mode button) { color: hsl(var(--foreground)); }
 .scope :global(.home-mode button[aria-pressed=true]) { color: hsl(var(--primary-foreground)); }
 .scope :global(.home-theme-controls) { color: hsl(var(--foreground)); }
 .scope :global(.home-theme-controls > button) { min-height: 44px; min-width: 44px; }

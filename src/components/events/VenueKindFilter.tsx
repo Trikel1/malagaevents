@@ -609,11 +609,10 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      title={label}
       aria-pressed={active}
       className={cn(
         'flex min-h-[72px] w-full flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 transition-colors duration-150',
-        'bg-primary/10 backdrop-blur-sm text-primary',
+        'bg-primary/10 text-primary',
         'border-primary/25 hover:bg-primary/15 hover:border-primary/45',
         'active:scale-[0.98] motion-reduce:active:scale-100',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',

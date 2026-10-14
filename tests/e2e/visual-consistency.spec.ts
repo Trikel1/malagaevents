@@ -1,5 +1,26 @@
 import { test, expect, culture } from './fixtures/app';
 
+test('inicio: el selector de modo conserva sus dimensiones al ir y volver', async ({ page }) => {
+  await page.goto('/');
+  const modes = page.getByRole('banner').locator('button[aria-pressed]');
+  const geometry = async () => modes.evaluateAll(elements => elements.map(el => {
+    const r = el.getBoundingClientRect();
+    const parent = el.parentElement!.getBoundingClientRect();
+    const px = (value: number) => Math.round(value * 1000) / 1000;
+    return { width: px(r.width), height: px(r.height), parentWidth: px(parent.width), parentHeight: px(parent.height) };
+  }));
+  await expect(modes).toHaveCount(2);
+  const initial = await geometry();
+  expect(initial[0].height).toBeGreaterThanOrEqual(44);
+  expect(Math.abs(initial[0].width - initial[1].width)).toBeLessThan(1);
+  await modes.nth(1).click();
+  await expect(page).toHaveURL(/\/sports$/);
+  expect(await geometry()).toEqual(initial);
+  await modes.nth(0).click();
+  await expect(page).toHaveURL(/\/$/);
+  expect(await geometry()).toEqual(initial);
+});
+
 for (const route of ['/', '/profile']) {
   test(`idioma: un indicador visible en ${route}`, async ({ page }) => {
     await page.goto(route);
