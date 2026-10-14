@@ -65,27 +65,47 @@ const FilterDrawer = ({
   const [localFilters, setLocalFilters] = useState<EventFilters>(filters);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [activeCalendar, setActiveCalendar] = useState<'from' | 'to' | null>(null);
+  const fromCalendarRef = useRef<HTMLDivElement>(null);
+  const toCalendarRef = useRef<HTMLDivElement>(null);
+  const fromTriggerRef = useRef<HTMLButtonElement>(null);
+  const toTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useLayoutEffect(() => {
+    if (open) returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement;
+    else setActiveCalendar(null);
+  }, [open, triggerRef]);
 
   useLayoutEffect(() => {
     if (!open) return;
-    returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement;
     // Cover the initial render before the modal layer's capturing listener is
     // attached. Its normal Escape handler still has priority when ready.
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return;
       const content = contentRef.current;
       if (!content) return;
+      const calendar = activeCalendar === 'from' ? fromCalendarRef.current
+        : activeCalendar === 'to' ? toCalendarRef.current : null;
       const nestedDialog = Array.from(document.querySelectorAll('[role="dialog"][data-state="open"]'))
-        .some(dialog => dialog !== content && !content.contains(dialog));
+        .some(dialog => dialog !== content && dialog !== calendar && !content.contains(dialog)
+          && !calendar?.contains(dialog));
       if (nestedDialog) return;
       const target = event.target;
+      if (activeCalendar) {
+        const calendarTrigger = activeCalendar === 'from' ? fromTriggerRef.current : toTriggerRef.current;
+        if (!calendar || target instanceof Node && target !== document.body
+          && !calendar.contains(target) && target !== calendarTrigger) return;
+        event.preventDefault();
+        setActiveCalendar(null);
+        return;
+      }
       if (target instanceof Node && target !== document.body && !content.contains(target) && target !== triggerRef?.current) return;
       event.preventDefault();
       onOpenChange(false);
     };
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [open, onOpenChange, triggerRef]);
+  }, [open, onOpenChange, triggerRef, activeCalendar]);
 
   const handleCategoryToggle = (category: EventCategory) => {
     setLocalFilters((prev) => ({
@@ -292,9 +312,11 @@ const FilterDrawer = ({
           <div className="space-y-3">
             <Label>{t('events.date')}</Label>
             <div className="flex gap-2">
-              <Popover>
+              <Popover open={activeCalendar === 'from'} onOpenChange={isOpen =>
+                setActiveCalendar(current => isOpen ? 'from' : current === 'from' ? null : current)}>
                 <PopoverTrigger asChild>
                   <Button
+                    ref={fromTriggerRef}
                     variant="outline"
                     className={cn(
                       'flex-1 justify-start text-left font-normal',
@@ -307,7 +329,7 @@ const FilterDrawer = ({
                       : t('events.dateFrom')}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                <PopoverContent ref={fromCalendarRef} className="w-auto p-0 z-50 bg-popover" align="start">
                   <Calendar
                     mode="single"
                     selected={localFilters.dateFrom}
@@ -321,9 +343,11 @@ const FilterDrawer = ({
                 </PopoverContent>
               </Popover>
 
-              <Popover>
+              <Popover open={activeCalendar === 'to'} onOpenChange={isOpen =>
+                setActiveCalendar(current => isOpen ? 'to' : current === 'to' ? null : current)}>
                 <PopoverTrigger asChild>
                   <Button
+                    ref={toTriggerRef}
                     variant="outline"
                     className={cn(
                       'flex-1 justify-start text-left font-normal',
@@ -336,7 +360,7 @@ const FilterDrawer = ({
                       : t('events.dateTo')}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                <PopoverContent ref={toCalendarRef} className="w-auto p-0 z-50 bg-popover" align="start">
                   <Calendar
                     mode="single"
                     selected={localFilters.dateTo}

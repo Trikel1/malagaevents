@@ -32,3 +32,29 @@ test('filtros: Escape cierra el calendario anidado y conserva el panel', async (
   await expect(page.getByRole('grid')).toHaveCount(0);
   await expect(drawer).toBeVisible();
 });
+
+for (const label of ['Desde', 'Hasta']) {
+  test(`filtros: Escape inicial cierra calendario ${label} y luego el panel`, async ({ page }) => {
+    await page.addInitScript(() => {
+      const add = document.addEventListener.bind(document);
+      document.addEventListener = ((type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) => {
+        if (type === 'keydown' && (options === true || typeof options === 'object' && options.capture)) return;
+        add(type, listener, options);
+      }) as typeof document.addEventListener;
+    });
+    await page.goto('/events');
+    const trigger = page.getByRole('button', { name: 'Filtros', exact: true });
+    await trigger.click();
+    const drawer = page.getByRole('dialog', { name: 'Filtros', exact: true });
+    const dateTrigger = drawer.getByRole('button', { name: label, exact: true });
+    await dateTrigger.click();
+    await expect(page.getByRole('grid')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('grid')).toHaveCount(0);
+    await expect(drawer).toBeVisible();
+    await expect(dateTrigger).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+  });
+}
