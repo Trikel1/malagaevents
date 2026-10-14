@@ -2,6 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 import { parseSpanishDate } from './parse-date.ts';
 import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
+import { planCocheraHourRetention } from '../_shared/ingestion/cochera-hours.ts';
 import { fetchTribeEvents } from '../_shared/ingestion/tribeEvents.ts';
 import { extractCocheraPosters, resolveCocheraCardUrl } from '../_shared/ingestion/cochera-posters.ts';
 import { fetchVerifiedTrincheraEvents } from '../_shared/ingestion/trinchera.ts';
@@ -1741,12 +1742,37 @@ async function upsertEventWithOccurrences(
   
   const dedupeKey = generateDedupeKey(source.slug, title, venueName);
   
-  const { data: existingEvent } = await supabase
+  const { data: existingEvent, error: existingEventError } = await supabase
     .from('events')
     .select('id')
     .eq('dedupe_key', dedupeKey)
     .maybeSingle();
   
+  if (existingEventError) {
+    logger.error('persist', `Identity lookup failed: ${title}`, { error: existingEventError.message });
+    return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
+  }
+
+  // A Cochera listing publishes a date and an exact page, but omits the clock.
+  // Read stronger evidence BEFORE changing the parent or inserting a weaker copy.
+  const persistenceNow = new Date();
+  let retainedHours = new Map<string, Date>();
+  if (source.slug === 'la-cochera-cabaret' && existingEvent && eventData.ticket_url
+    && resolution.valid.some(occurrence => occurrence.hourUnknown)) {
+    const { data: publishedOccurrences, error: publishedError } = await supabase
+      .from('event_occurrences')
+      .select('event_id,start_datetime,buy_url')
+      .eq('event_id', existingEvent.id)
+      .eq('buy_url', eventData.ticket_url)
+      .gte('start_datetime', persistenceNow.toISOString());
+    if (publishedError) {
+      logger.error('persist', `Known-hour lookup failed: ${title}`, { error: publishedError.message });
+      return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
+    }
+    retainedHours = planCocheraHourRetention(existingEvent.id, eventData.ticket_url,
+      resolution.valid, publishedOccurrences ?? []);
+  }
+
   let eventId: string;
   let isNew = false;
   let isUpdated = false;
@@ -1760,7 +1786,9 @@ async function upsertEventWithOccurrences(
   // Clean description using the same HTML entity decoding
   const cleanDescription = eventData.description ? decodeHtmlEntities(eventData.description).replace(/<[^>]*>/g, '').trim() : '';
   
-  const startAt = resolution.earliest.start;
+  const startAt = resolution.valid.map(occurrence =>
+    retainedHours.get(occurrence.start.toISOString()) ?? occurrence.start)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
   const address = venueName ? `${venueName}, ${locationName}` : locationName;
 
   const eventPayload = {
@@ -1828,11 +1856,11 @@ async function upsertEventWithOccurrences(
   
   // Upsert occurrences
   let occurrencesCreated = 0;
-  const now = new Date();
+  const now = persistenceNow;
   
   for (const resolved of resolution.valid) {
     const startDatetime = resolved.start;
-    if (startDatetime < now) continue;
+    if (startDatetime < now || retainedHours.has(startDatetime.toISOString())) continue;
 
     // Already validated: an end before its start was discarded upstream.
     const endDatetime = resolved.end;
