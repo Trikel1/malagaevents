@@ -350,6 +350,8 @@
     "countPartialA11y": "{{loaded}} de {{total}} eventos mostrados"
   },
   "eventDetail": {
+    "sessions": "Sessões",
+    "soldOut": "Esgotado",
     "when": "Quando",
     "where": "Onde",
     "price": "Preço",

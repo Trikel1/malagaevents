@@ -398,6 +398,8 @@
     }
   },
   "eventDetail": {
+    "sessions": "المواعيد",
+    "soldOut": "نفدت التذاكر",
     "when": "متى",
     "where": "أين",
     "price": "السعر",
