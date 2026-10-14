@@ -1,13 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// WPE headless can stop delivering animation frames on Linux, stalling normal
-// actionability checks. CI opts into headed WebKit under Xvfb instead of forcing
-// clicks or removing stability checks: microsoft/playwright#33057.
-const headedWebKit = process.env.PLAYWRIGHT_WEBKIT_HEADED === '1';
-
 export default defineConfig({
   testDir: './tests/e2e',
   timeout: 30000,
+  // Run CI browser checks serially to isolate resource/focus contention.
+  workers: process.env.CI ? 1 : undefined,
 
   use: {
     baseURL: 'http://127.0.0.1:8080',
@@ -29,11 +26,11 @@ export default defineConfig({
     },
     {
       name: 'iphone',
-      use: { ...devices['iPhone 15'], headless: !headedWebKit },
+      use: { ...devices['iPhone 15'] },
     },
     {
       name: 'ipad',
-      use: { ...devices['iPad Pro 11'], headless: !headedWebKit },
+      use: { ...devices['iPad Pro 11'] },
     },
   ],
 });
