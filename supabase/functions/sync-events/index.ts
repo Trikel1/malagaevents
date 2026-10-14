@@ -4,6 +4,7 @@ import { parseSpanishDate } from './parse-date.ts';
 import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
 import { fetchTribeEvents } from '../_shared/ingestion/tribeEvents.ts';
 import { extractCocheraPosters, resolveCocheraCardUrl } from '../_shared/ingestion/cochera-posters.ts';
+import { fetchVerifiedTrincheraEvents } from '../_shared/ingestion/trinchera.ts';
 
 
 // ============================================================================
@@ -647,6 +648,7 @@ function addJitter(baseMs: number, jitterMs: number): number {
 const UA = 'Mozilla/5.0 (compatible; MalagaEventsBot/1.0; +https://malagaevents.lovable.app)';
 
 interface NormalizedEvent {
+  event_url?: string;
   title: string;
   description?: string;
   occurrences: Array<{ date: string; time?: string; end_time?: string }>;
@@ -802,36 +804,33 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
   }
 }
 
-/** Sala Trinchera: RSS with `<title>DD/MM Título</title>` */
-async function fetchTrincheraRSS(): Promise<DirectFetchResult> {
-  const url = 'https://salatrinchera.com/category/proximos-eventos/feed/';
+/** Sala Trinchera: full dates from ticket pages explicitly linked by the venue. */
+async function fetchTrincheraProgramme(): Promise<DirectFetchResult> {
   try {
-    const r = await fetchWithTimeout(url, 12000);
-    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'trinchera-rss', error: `HTTP ${r.status}` };
-    const xml = await r.text();
-    const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-    const events: NormalizedEvent[] = [];
-    for (const item of items) {
-      const titleRaw = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1]?.trim() || '';
-      const link = item.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim();
-      const desc = item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/)?.[1]?.trim();
-      const decoded = decodeHtmlEntities(titleRaw);
-      const dateMatch = decoded.match(/^(\d{1,2})\/(\d{1,2})\s+(.+)$/);
-      if (!dateMatch) continue;
-      const dd = dateMatch[1].padStart(2, '0');
-      const mm = dateMatch[2].padStart(2, '0');
-      events.push({
-        title: cleanTitle(dateMatch[3]),
-        description: desc ? decodeHtmlEntities(desc).replace(/<[^>]*>/g, '').substring(0, 400) : undefined,
-        occurrences: [{ date: `${dd}/${mm}` }],
+    const result = await fetchVerifiedTrincheraEvents();
+    const events: NormalizedEvent[] = result.events.map(event => {
+      const raw = event.metadata;
+      const image = Array.isArray(raw.image) ? raw.image[0] : raw.image;
+      const imageUrl = typeof image === 'string' ? image :
+        image && typeof image === 'object' && 'url' in image && typeof image.url === 'string' ? image.url : undefined;
+      return {
+        title: cleanTitle(event.officialTitle.replace(/^\d{1,2}\/\d{1,2}\s+/, '')),
+        event_url: event.officialUrl,
+        description: typeof raw.description === 'string' ? raw.description : undefined,
+        occurrences: [{ date: String(raw.startDate) }],
         venue: 'Sala Trinchera',
         city: 'Málaga',
-        ticket_url: link,
-      });
-    }
-    return { ok: true, http_status: 200, events, strategy: 'trinchera-rss' };
-  } catch (e) {
-    return { ok: false, events: [], strategy: 'trinchera-rss', error: e instanceof Error ? e.message : String(e) };
+        image_url: imageUrl,
+        ticket_url: event.ticketUrl,
+      };
+    });
+    return {
+      ok: true, http_status: 200, events,
+      strategy: `trinchera-verified-tickets${result.partial ? '-partial' : ''}`,
+      error: result.partial ? `Verified ${events.length}/${result.cards} cards; ${result.diagnostics.join('; ').slice(0, 1800)}` : undefined,
+    };
+  } catch (error) {
+    return { ok: false, events: [], strategy: 'trinchera-verified-tickets', error: String(error) };
   }
 }
 
@@ -1442,7 +1441,7 @@ async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchR
     case 'la-garrapata':
       return fetchLaGarrapata();
     case 'sala-trinchera':
-      return fetchTrincheraRSS();
+      return fetchTrincheraProgramme();
     case 'paris-15':
       return fetchParis15Cards();
     case 'sala-marte':
@@ -1774,7 +1773,7 @@ async function upsertEventWithOccurrences(
     source: source.slug,
     source_type: 'official_feed',
     source_ref: sourceUrl,
-    url: sourceUrl,
+    url: typeof eventData.event_url === 'string' && isUrlAllowedForScraping(eventData.event_url) ? eventData.event_url : sourceUrl,
     venue_name: venueName,
     venue_id: venueId,
     venue_name_raw: eventData.venue || null,
