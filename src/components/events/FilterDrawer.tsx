@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { dateLocale } from '@/lib/dateLocale';
@@ -64,6 +64,28 @@ const FilterDrawer = ({
   const locale = dateLocale(i18n.language);
   const [localFilters, setLocalFilters] = useState<EventFilters>(filters);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement;
+    // Cover the initial render before the modal layer's capturing listener is
+    // attached. Its normal Escape handler still has priority when ready.
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return;
+      const content = contentRef.current;
+      if (!content) return;
+      const nestedDialog = Array.from(document.querySelectorAll('[role="dialog"][data-state="open"]'))
+        .some(dialog => dialog !== content && !content.contains(dialog));
+      if (nestedDialog) return;
+      const target = event.target;
+      if (target instanceof Node && target !== document.body && !content.contains(target) && target !== triggerRef?.current) return;
+      event.preventDefault();
+      onOpenChange(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [open, onOpenChange, triggerRef]);
 
   const handleCategoryToggle = (category: EventCategory) => {
     setLocalFilters((prev) => ({
@@ -173,6 +195,7 @@ const FilterDrawer = ({
     <Drawer open={open} onOpenChange={onOpenChange} autoFocus>
       {open && (
       <DrawerContent
+        ref={contentRef}
         onOpenAutoFocus={() => { returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement; }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
