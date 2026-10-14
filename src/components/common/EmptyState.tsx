@@ -22,7 +22,7 @@ const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(
           "rounded-full p-4 mb-4",
           variant === 'error' ? 'bg-destructive/10' : 'bg-muted'
         )}>
-          <Icon className={cn(
+          <Icon aria-hidden="true" className={cn(
             "h-10 w-10",
             variant === 'error' ? 'text-destructive' : 'text-muted-foreground'
           )} />

@@ -348,9 +348,9 @@ export function VenueKindFilter({
 
 
   const body = (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Search */}
-      <div className="p-3 border-b">
+      <div className="p-3 border-b shrink-0">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -450,7 +450,7 @@ export function VenueKindFilter({
       </ScrollArea>
 
       {/* Sticky footer */}
-      <div className="border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] flex items-center gap-2 bg-background/95 backdrop-blur-sm">
+      <div className="shrink-0 border-t p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] flex items-center gap-2 bg-background/95 backdrop-blur-sm">
         <Button
           variant="ghost"
           size="sm"
@@ -473,7 +473,7 @@ export function VenueKindFilter({
 
   return (
     <div className="space-y-2">
-      {/* Four icon buttons */}
+      {/* Keep the venue categories readable without relying on icon recognition. */}
       <div
         className="grid grid-cols-4 gap-2"
         role="toolbar"
@@ -566,14 +566,14 @@ export function VenueKindFilter({
             <span className="sr-only" aria-hidden />
           </PopoverTrigger>
           <PopoverContent
-            className="w-[min(460px,calc(100vw-24px))] p-0 flex flex-col h-[560px]"
+            className="w-[min(460px,calc(100vw-24px))] p-0 flex flex-col h-[560px] max-h-[var(--radix-popover-content-available-height)]"
             align="center"
             side="bottom"
             sideOffset={8}
             collisionPadding={16}
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
-            <div className="px-4 pt-3 pb-2 border-b flex items-center gap-2 text-sm font-semibold">
+            <div className="shrink-0 px-4 pt-3 pb-2 border-b flex items-center gap-2 text-sm font-semibold">
               {currentKind && <PickerHeaderIcon kind={currentKind} />}
               {pickerTitle}
             </div>
@@ -609,11 +609,10 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
       type="button"
       onClick={onClick}
       aria-label={label}
-      title={label}
       aria-pressed={active}
       className={cn(
-        'flex items-center justify-center h-16 w-full rounded-2xl border transition-all duration-150',
-        'bg-primary/10 backdrop-blur-sm text-primary',
+        'flex min-h-[72px] w-full flex-col items-center justify-center gap-1 rounded-2xl border px-1 py-2 transition-colors duration-150',
+        'bg-primary/10 text-primary',
         'border-primary/25 hover:bg-primary/15 hover:border-primary/45',
         'active:scale-[0.98] motion-reduce:active:scale-100',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
@@ -622,7 +621,8 @@ function KindButton({ label, Icon, active, onClick }: KindButtonProps) {
 
 
     >
-      <Icon size={44} />
+      <Icon size={32} />
+      <span className="max-w-full break-words text-center text-xs font-medium leading-tight">{label}</span>
     </button>
   );
 }

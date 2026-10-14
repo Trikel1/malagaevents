@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Check, Languages } from 'lucide-react';
+import { Languages } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -52,7 +52,6 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
         </SelectTrigger>
         <SelectContent className="bg-popover z-50 min-w-[200px]" dir="ltr">
           {languages.map((lang) => {
-            const isActive = lang.code === active;
             return (
               <SelectItem key={lang.code} value={lang.code} className="pr-8">
                 <span className="flex items-center gap-2.5">
@@ -61,7 +60,6 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
                   <span dir={lang.dir} className="font-medium">
                     {lang.nativeName}
                   </span>
-                  {isActive && <Check className="ml-auto h-4 w-4 text-primary" aria-hidden="true" />}
                 </span>
               </SelectItem>
             );
@@ -84,7 +82,6 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
       </SelectTrigger>
       <SelectContent className="bg-popover z-50" dir="ltr">
         {languages.map((lang) => {
-          const isActive = lang.code === active;
           return (
             <SelectItem key={lang.code} value={lang.code} className="pr-8">
               <span className="flex items-center gap-2.5">
@@ -93,7 +90,6 @@ const LanguageSelector = ({ variant = 'default' }: LanguageSelectorProps) => {
                 <span dir={lang.dir} className="font-medium">
                   {lang.nativeName}
                 </span>
-                {isActive && <Check className="ml-auto h-4 w-4 text-primary" aria-hidden="true" />}
               </span>
             </SelectItem>
           );
