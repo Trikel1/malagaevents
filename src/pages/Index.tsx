@@ -130,11 +130,11 @@ const Index = () => {
 
   const QUICK_ACTIONS = [
     { k: 'today', icon: Sparkles, to: '/events?filter=today' },
+    { k: 'pharmacies', icon: Pill, to: '/pharmacies' },
     { k: 'weekend', icon: Calendar, to: '/events?filter=weekend' },
+    { k: 'map', icon: MapIcon, to: '/map' },
     { k: 'free', icon: Heart, to: '/events?filter=free' },
     { k: 'family', icon: Baby, to: '/events?filter=family' },
-    { k: 'pharmacies', icon: Pill, to: '/pharmacies' },
-    { k: 'map', icon: MapIcon, to: '/map' },
   ] as const;
 
   const isSports = appMode === 'deportes';
@@ -296,7 +296,7 @@ const Index = () => {
         ) : (
           <>
             <section aria-label={t('home.quickActions.aria')} className="home-intents">
-              {QUICK_ACTIONS.filter(qa => ['today', 'weekend', 'free', 'family'].includes(qa.k)).map(qa => (
+              {QUICK_ACTIONS.map(qa => (
                 <button type="button" key={qa.k} onClick={() => navigate(qa.to)} className="home-intent liquid-press">
                   <qa.icon size={18} aria-hidden /><span>{t(`home.quickActions.${qa.k}`)}</span>
                 </button>
@@ -475,10 +475,6 @@ const Index = () => {
             </section>
 
 
-            <section className="home-services" aria-label={t('home.pilot.services')}>
-              <Button variant="outline" onClick={() => navigate('/pharmacies')}><Pill size={18} aria-hidden />{t('home.quickActions.pharmacies')}</Button>
-              <Button variant="outline" onClick={() => navigate('/map')}><MapIcon size={18} aria-hidden />{t('home.quickActions.map')}</Button>
-            </section>
             <div className="home-two-hours"><Suspense fallback={null}><TwoHoursSheet /></Suspense></div>
 
           </>

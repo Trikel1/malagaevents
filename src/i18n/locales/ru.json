@@ -350,6 +350,8 @@
     "countPartialA11y": "Показано {{loaded}} из {{total}} событий"
   },
   "eventDetail": {
+    "sessions": "Сеансы",
+    "soldOut": "Билеты распроданы",
     "when": "Когда",
     "where": "Где",
     "price": "Цена",

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { dateLocale } from '@/lib/dateLocale';
@@ -64,6 +64,48 @@ const FilterDrawer = ({
   const locale = dateLocale(i18n.language);
   const [localFilters, setLocalFilters] = useState<EventFilters>(filters);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [activeCalendar, setActiveCalendar] = useState<'from' | 'to' | null>(null);
+  const fromCalendarRef = useRef<HTMLDivElement>(null);
+  const toCalendarRef = useRef<HTMLDivElement>(null);
+  const fromTriggerRef = useRef<HTMLButtonElement>(null);
+  const toTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useLayoutEffect(() => {
+    if (open) returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement;
+    else setActiveCalendar(null);
+  }, [open, triggerRef]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    // Cover the initial render before the modal layer's capturing listener is
+    // attached. Its normal Escape handler still has priority when ready.
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return;
+      const content = contentRef.current;
+      if (!content) return;
+      const calendar = activeCalendar === 'from' ? fromCalendarRef.current
+        : activeCalendar === 'to' ? toCalendarRef.current : null;
+      const nestedDialog = Array.from(document.querySelectorAll('[role="dialog"][data-state="open"]'))
+        .some(dialog => dialog !== content && dialog !== calendar && !content.contains(dialog)
+          && !calendar?.contains(dialog));
+      if (nestedDialog) return;
+      const target = event.target;
+      if (activeCalendar) {
+        const calendarTrigger = activeCalendar === 'from' ? fromTriggerRef.current : toTriggerRef.current;
+        if (!calendar || target instanceof Node && target !== document.body
+          && !calendar.contains(target) && target !== calendarTrigger) return;
+        event.preventDefault();
+        setActiveCalendar(null);
+        return;
+      }
+      if (target instanceof Node && target !== document.body && !content.contains(target) && target !== triggerRef?.current) return;
+      event.preventDefault();
+      onOpenChange(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [open, onOpenChange, triggerRef, activeCalendar]);
 
   const handleCategoryToggle = (category: EventCategory) => {
     setLocalFilters((prev) => ({
@@ -173,13 +215,15 @@ const FilterDrawer = ({
     <Drawer open={open} onOpenChange={onOpenChange} autoFocus>
       {open && (
       <DrawerContent
+        ref={contentRef}
         onOpenAutoFocus={() => { returnFocusRef.current = triggerRef?.current ?? document.activeElement as HTMLElement; }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
           if (returnFocusRef.current?.isConnected) returnFocusRef.current.focus();
         }}
         className="max-h-[90vh] h-[90vh] flex flex-col">
-        <DrawerHeader className="flex items-center justify-between">
+        <div className="flex h-full min-h-0 flex-col">
+        <DrawerHeader className="flex shrink-0 items-center justify-between">
           <DrawerTitle className="flex items-center gap-2">
             {t('events.filters')}
             {activeCount > 0 && (
@@ -195,9 +239,9 @@ const FilterDrawer = ({
           </DrawerClose>
         </DrawerHeader>
 
-        {/* Active filters summary — sticky under the header, con botón Mostrar */}
+        {/* Active filters summary stays above the scrollable options. */}
         {activeCount > 0 && (
-          <div className="px-4 pb-3 -mt-1 border-b border-border/60 bg-background">
+          <div className="shrink-0 px-4 pb-3 -mt-1 border-b border-border/60 bg-background">
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {t('events.activeFilters', 'Filtros activos')}
@@ -228,17 +272,10 @@ const FilterDrawer = ({
                 </span>
               ))}
             </div>
-            <Button
-              onClick={handleApply}
-              size="sm"
-              className="w-full mt-2.5 font-semibold shadow-sm"
-            >
-              {`${t('events.showResults', 'Mostrar')} · ${activeCount}`}
-            </Button>
           </div>
         )}
 
-        <div className="flex-1 min-h-0 px-4 pt-4 pb-6 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
+        <div data-testid="filter-options" className="flex-1 min-h-0 px-4 pt-4 pb-6 overflow-y-auto space-y-6 [-webkit-overflow-scrolling:touch] overscroll-contain">
 
           {/* Quick presets — infantil/familiar priorizados arriba */}
 
@@ -275,9 +312,11 @@ const FilterDrawer = ({
           <div className="space-y-3">
             <Label>{t('events.date')}</Label>
             <div className="flex gap-2">
-              <Popover>
+              <Popover open={activeCalendar === 'from'} onOpenChange={isOpen =>
+                setActiveCalendar(current => isOpen ? 'from' : current === 'from' ? null : current)}>
                 <PopoverTrigger asChild>
                   <Button
+                    ref={fromTriggerRef}
                     variant="outline"
                     className={cn(
                       'flex-1 justify-start text-left font-normal',
@@ -290,7 +329,7 @@ const FilterDrawer = ({
                       : t('events.dateFrom')}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                <PopoverContent ref={fromCalendarRef} className="w-auto p-0 z-50 bg-popover" align="start">
                   <Calendar
                     mode="single"
                     selected={localFilters.dateFrom}
@@ -304,9 +343,11 @@ const FilterDrawer = ({
                 </PopoverContent>
               </Popover>
 
-              <Popover>
+              <Popover open={activeCalendar === 'to'} onOpenChange={isOpen =>
+                setActiveCalendar(current => isOpen ? 'to' : current === 'to' ? null : current)}>
                 <PopoverTrigger asChild>
                   <Button
+                    ref={toTriggerRef}
                     variant="outline"
                     className={cn(
                       'flex-1 justify-start text-left font-normal',
@@ -319,7 +360,7 @@ const FilterDrawer = ({
                       : t('events.dateTo')}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50 bg-popover" align="start">
+                <PopoverContent ref={toCalendarRef} className="w-auto p-0 z-50 bg-popover" align="start">
                   <Calendar
                     mode="single"
                     selected={localFilters.dateTo}
@@ -440,21 +481,22 @@ const FilterDrawer = ({
           )}
         </div>
 
-        <DrawerFooter className="flex-row gap-2 border-t border-border/60 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+        <DrawerFooter data-testid="filter-actions" className="shrink-0 flex-row gap-2 border-t border-border/60 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
           <Button
             variant="ghost"
             onClick={handleClearFilters}
             disabled={activeCount === 0}
-            className="flex-1"
+            className="min-h-11 flex-1"
           >
             {t('events.clearFilters', 'Limpiar')}
           </Button>
-          <Button onClick={handleApply} className="flex-[2] font-semibold">
+          <Button onClick={handleApply} className="min-h-11 flex-[2] font-semibold">
             {activeCount > 0
               ? `${t('events.showResults', 'Mostrar')} · ${activeCount}`
               : t('events.showAll', 'Mostrar todo')}
           </Button>
         </DrawerFooter>
+        </div>
 
       </DrawerContent>
       )}

@@ -6,7 +6,6 @@ import { categoryI18nKey } from '@/lib/categoryLabel';
 import { formatEventWhen, hasExplicitTime } from '@/lib/eventTime';
 import { madridDayKey } from '@/lib/madridTime';
 import { sanitizeText } from '@/lib/sanitize';
-import { sanitizeEventImageUrl } from '@/lib/eventImageSource';
 import HomeEventImage from './HomeEventImage';
 import type { Event } from '@/types';
 
@@ -16,14 +15,13 @@ export default function HomeEventCard({ event, compact = false, isFavorite, onTo
 }) {
   const { t, i18n } = useTranslation();
   const titleId = useId();
-  const image = sanitizeEventImageUrl(event.image_url);
   const when = formatEventWhen(event.start_at, i18n.language, t('events.timeTBC'));
   const venue = event.venue?.name || event.venue_name;
   const dateTime = when ? hasExplicitTime(event.start_at) ? event.start_at : madridDayKey(new Date(event.start_at)) : undefined;
   return (
-    <article className={`home-event-card ${compact ? 'home-event-card-compact' : ''}`} data-image={!!image}>
+    <article className={`home-event-card ${compact ? 'home-event-card-compact' : ''}`} data-image="true">
       <Link to={`/events/${event.id}`} aria-labelledby={titleId} className="home-event-link">
-        {image && <HomeEventImage key={image} event={event} compact={compact} />}
+        <HomeEventImage key={event.id + (event.image_url ?? '')} event={event} compact={compact} />
         <div className="home-event-content">
           <p className="home-category">{t(`categories.${categoryI18nKey(event.category)}`)}</p>
           <h3 id={titleId}>{sanitizeText(event.title) || t('events.untitled')}</h3>

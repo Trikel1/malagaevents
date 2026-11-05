@@ -91,7 +91,7 @@ const EventCard = forwardRef<HTMLAnchorElement, EventCardProps>(({ event, isFavo
               variant="card"
               category={event.category}
               className="group-hover:scale-105 transition-transform duration-500"
-              aspectRatio="3/2"
+              aspectRatio="16/10"
               priority={priority}
             />
             {/* Floating date badge */}

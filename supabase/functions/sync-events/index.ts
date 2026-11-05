@@ -2,7 +2,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { authorizeAdminRequest, unauthorizedResponse } from '../_shared/security.ts';
 import { parseSpanishDate } from './parse-date.ts';
 import { resolveOccurrences } from '../_shared/ingestion/occurrences.ts';
+import { planCocheraHourRetention } from '../_shared/ingestion/cochera-hours.ts';
 import { fetchTribeEvents } from '../_shared/ingestion/tribeEvents.ts';
+import { extractCocheraPosters, resolveCocheraCardUrl } from '../_shared/ingestion/cochera-posters.ts';
+import { fetchVerifiedTrincheraEvents } from '../_shared/ingestion/trinchera.ts';
 
 
 // ============================================================================
@@ -646,6 +649,7 @@ function addJitter(baseMs: number, jitterMs: number): number {
 const UA = 'Mozilla/5.0 (compatible; MalagaEventsBot/1.0; +https://malagaevents.lovable.app)';
 
 interface NormalizedEvent {
+  event_url?: string;
   title: string;
   description?: string;
   occurrences: Array<{ date: string; time?: string; end_time?: string }>;
@@ -776,6 +780,7 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
     const html = await r.text();
     const events: NormalizedEvent[] = [];
     // pattern: event_brick_date "DD mes YYYY" + post_item_title <a href>title</a>
+    const posters = extractCocheraPosters(html, 'https://lacocheracabaret.com/programacion/');
     const cardRe = /event_brick_date">\s*[^,]*,?\s*(\d{1,2})\s+(\w+)\s+(\d{4})\s*<\/div>\s*<div class="post_item_title">\s*<a href="([^"]+)">\s*([^<]+?)\s*<\/a>/g;
     let m: RegExpExecArray | null;
     while ((m = cardRe.exec(html)) !== null) {
@@ -791,6 +796,7 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
         venue: 'La Cochera Cabaret',
         city: 'Málaga',
         ticket_url: m[4],
+        image_url: posters.get(resolveCocheraCardUrl(m[4], 'https://lacocheracabaret.com/programacion/') ?? ''),
       });
     }
     return { ok: true, http_status: 200, events, strategy: 'cochera-cards' };
@@ -799,36 +805,33 @@ async function fetchCocheraCards(): Promise<DirectFetchResult> {
   }
 }
 
-/** Sala Trinchera: RSS with `<title>DD/MM Título</title>` */
-async function fetchTrincheraRSS(): Promise<DirectFetchResult> {
-  const url = 'https://salatrinchera.com/category/proximos-eventos/feed/';
+/** Sala Trinchera: full dates from ticket pages explicitly linked by the venue. */
+async function fetchTrincheraProgramme(): Promise<DirectFetchResult> {
   try {
-    const r = await fetchWithTimeout(url, 12000);
-    if (!r.ok) return { ok: false, http_status: r.status, events: [], strategy: 'trinchera-rss', error: `HTTP ${r.status}` };
-    const xml = await r.text();
-    const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-    const events: NormalizedEvent[] = [];
-    for (const item of items) {
-      const titleRaw = item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/)?.[1]?.trim() || '';
-      const link = item.match(/<link>([\s\S]*?)<\/link>/)?.[1]?.trim();
-      const desc = item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/)?.[1]?.trim();
-      const decoded = decodeHtmlEntities(titleRaw);
-      const dateMatch = decoded.match(/^(\d{1,2})\/(\d{1,2})\s+(.+)$/);
-      if (!dateMatch) continue;
-      const dd = dateMatch[1].padStart(2, '0');
-      const mm = dateMatch[2].padStart(2, '0');
-      events.push({
-        title: cleanTitle(dateMatch[3]),
-        description: desc ? decodeHtmlEntities(desc).replace(/<[^>]*>/g, '').substring(0, 400) : undefined,
-        occurrences: [{ date: `${dd}/${mm}` }],
+    const result = await fetchVerifiedTrincheraEvents();
+    const events: NormalizedEvent[] = result.events.map(event => {
+      const raw = event.metadata;
+      const image = Array.isArray(raw.image) ? raw.image[0] : raw.image;
+      const imageUrl = typeof image === 'string' ? image :
+        image && typeof image === 'object' && 'url' in image && typeof image.url === 'string' ? image.url : undefined;
+      return {
+        title: cleanTitle(event.officialTitle.replace(/^\d{1,2}\/\d{1,2}\s+/, '')),
+        event_url: event.officialUrl,
+        description: typeof raw.description === 'string' ? raw.description : undefined,
+        occurrences: [{ date: String(raw.startDate) }],
         venue: 'Sala Trinchera',
         city: 'Málaga',
-        ticket_url: link,
-      });
-    }
-    return { ok: true, http_status: 200, events, strategy: 'trinchera-rss' };
-  } catch (e) {
-    return { ok: false, events: [], strategy: 'trinchera-rss', error: e instanceof Error ? e.message : String(e) };
+        image_url: imageUrl,
+        ticket_url: event.ticketUrl,
+      };
+    });
+    return {
+      ok: true, http_status: 200, events,
+      strategy: `trinchera-verified-tickets${result.partial ? '-partial' : ''}`,
+      error: result.partial ? `Verified ${events.length}/${result.cards} cards; ${result.diagnostics.join('; ').slice(0, 1800)}` : undefined,
+    };
+  } catch (error) {
+    return { ok: false, events: [], strategy: 'trinchera-verified-tickets', error: String(error) };
   }
 }
 
@@ -1439,7 +1442,7 @@ async function tryDirectFetcher(slug: string, source: any): Promise<DirectFetchR
     case 'la-garrapata':
       return fetchLaGarrapata();
     case 'sala-trinchera':
-      return fetchTrincheraRSS();
+      return fetchTrincheraProgramme();
     case 'paris-15':
       return fetchParis15Cards();
     case 'sala-marte':
@@ -1739,12 +1742,37 @@ async function upsertEventWithOccurrences(
   
   const dedupeKey = generateDedupeKey(source.slug, title, venueName);
   
-  const { data: existingEvent } = await supabase
+  const { data: existingEvent, error: existingEventError } = await supabase
     .from('events')
     .select('id')
     .eq('dedupe_key', dedupeKey)
     .maybeSingle();
   
+  if (existingEventError) {
+    logger.error('persist', `Identity lookup failed: ${title}`, { error: existingEventError.message });
+    return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
+  }
+
+  // A Cochera listing publishes a date and an exact page, but omits the clock.
+  // Read stronger evidence BEFORE changing the parent or inserting a weaker copy.
+  const persistenceNow = new Date();
+  let retainedHours = new Map<string, Date>();
+  if (source.slug === 'la-cochera-cabaret' && existingEvent && eventData.ticket_url
+    && resolution.valid.some(occurrence => occurrence.hourUnknown)) {
+    const { data: publishedOccurrences, error: publishedError } = await supabase
+      .from('event_occurrences')
+      .select('event_id,start_datetime,buy_url')
+      .eq('event_id', existingEvent.id)
+      .eq('buy_url', eventData.ticket_url)
+      .gte('start_datetime', persistenceNow.toISOString());
+    if (publishedError) {
+      logger.error('persist', `Known-hour lookup failed: ${title}`, { error: publishedError.message });
+      return { inserted: false, updated: false, occurrences_created: 0, skipped: true };
+    }
+    retainedHours = planCocheraHourRetention(existingEvent.id, eventData.ticket_url,
+      resolution.valid, publishedOccurrences ?? []);
+  }
+
   let eventId: string;
   let isNew = false;
   let isUpdated = false;
@@ -1758,7 +1786,9 @@ async function upsertEventWithOccurrences(
   // Clean description using the same HTML entity decoding
   const cleanDescription = eventData.description ? decodeHtmlEntities(eventData.description).replace(/<[^>]*>/g, '').trim() : '';
   
-  const startAt = resolution.earliest.start;
+  const startAt = resolution.valid.map(occurrence =>
+    retainedHours.get(occurrence.start.toISOString()) ?? occurrence.start)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
   const address = venueName ? `${venueName}, ${locationName}` : locationName;
 
   const eventPayload = {
@@ -1771,7 +1801,7 @@ async function upsertEventWithOccurrences(
     source: source.slug,
     source_type: 'official_feed',
     source_ref: sourceUrl,
-    url: sourceUrl,
+    url: typeof eventData.event_url === 'string' && isUrlAllowedForScraping(eventData.event_url) ? eventData.event_url : sourceUrl,
     venue_name: venueName,
     venue_id: venueId,
     venue_name_raw: eventData.venue || null,
@@ -1826,11 +1856,11 @@ async function upsertEventWithOccurrences(
   
   // Upsert occurrences
   let occurrencesCreated = 0;
-  const now = new Date();
+  const now = persistenceNow;
   
   for (const resolved of resolution.valid) {
     const startDatetime = resolved.start;
-    if (startDatetime < now) continue;
+    if (startDatetime < now || retainedHours.has(startDatetime.toISOString())) continue;
 
     // Already validated: an end before its start was discarded upstream.
     const endDatetime = resolved.end;

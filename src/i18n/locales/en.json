@@ -398,6 +398,8 @@
     }
   },
   "eventDetail": {
+    "sessions": "Sessions",
+    "soldOut": "Sold out",
     "when": "When",
     "where": "Where",
     "price": "Price",

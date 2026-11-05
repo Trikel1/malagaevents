@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/e2e',
   timeout: 30000,
+  // Run CI browser checks serially to isolate resource/focus contention.
+  workers: process.env.CI ? 1 : undefined,
 
   use: {
     baseURL: 'http://127.0.0.1:8080',

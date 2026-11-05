@@ -45,7 +45,7 @@ const normalizeSearchText = (text: string): string => {
 };
 
 const EVENT_LIST_FIELDS =
-  'id,title,category,start_at,venue_name,address,lat,lng,location_normalized,province,image_url,is_free,tags,venue_id,location_id, venues(id,name,lat,lng), locations(id,name)';
+  'id,title,category,start_at,venue_name,address,lat,lng,location_normalized,province,image_url,is_free,price_info,tags,venue_id,location_id, venues(id,name,lat,lng), locations(id,name)';
 
 
 const fetchEvents = async (
@@ -176,7 +176,7 @@ export const useEvent = (id: string | undefined) => {
       
       const { data, error } = await supabase
         .from('events')
-        .select('*, venues(*), locations(*)')
+        .select('*, venues(*), locations(*), event_occurrences(id,event_id,start_datetime,end_datetime,buy_url,sold_out)')
         .eq('id', id)
         .eq('status', 'published')
         .maybeSingle();
@@ -187,6 +187,7 @@ export const useEvent = (id: string | undefined) => {
       
       return {
         ...data,
+        occurrences: data.event_occurrences ?? [],
         venue: data.venues || undefined,
         location: data.locations || undefined,
       } as Event;

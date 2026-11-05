@@ -30,6 +30,7 @@ import {
   type EventsUrlState,
 } from '@/pages/events/eventsUrlState';
 import SEO from '@/components/common/SEO';
+import styles from './EventsPage.module.css';
 
 const EventsPage = () => {
   const { appMode } = useAppMode();
@@ -431,7 +432,7 @@ const CultureEventsPage = () => {
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <header
-        className="glass-nav sticky top-0 z-40 rounded-none border-b border-border/40"
+        className={styles.header}
         style={{ ['--events-header-h' as string]: 'calc(env(safe-area-inset-top, 0px) + 148px)' }}
       >
         <div className="px-4 pt-3 pb-2.5 sm:px-6 sm:pt-4 space-y-2.5 max-w-6xl mx-auto">

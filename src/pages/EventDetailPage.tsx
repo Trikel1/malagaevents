@@ -26,6 +26,7 @@ import { useEvent, useSimilarEvents } from '@/hooks/useEvents';
 import { useFavorites, useToggleFavorite } from '@/hooks/useFavorites';
 import { useAuthContext } from '@/contexts/AuthContext';
 import SEO from '@/components/common/SEO';
+import EventSessions, { eventSessions } from '@/components/events/EventSessions';
 
 const locales: Record<string, Locale> = {
   es, en: enUS, de, fr, it, pt, ja, zh: zhCN, ru, ar,
@@ -41,6 +42,8 @@ const EventDetailPage = () => {
   const { t, i18n } = useTranslation();
   const locale = resolveDateLocale(i18n.language);
   const { isAuthenticated } = useAuthContext();
+
+  const [selectedSessionId, setSelectedSessionId] = useState<string>();
 
   // Fetch event
   const { data: event, isLoading, error, refetch } = useEvent(id);
@@ -131,21 +134,34 @@ const EventDetailPage = () => {
     );
   }
 
-  const showTime = hasExplicitTime(event.start_at);
+  const sessions = eventSessions(event);
+  const selectedSession = sessions.length > 1
+    ? sessions.find(session => session.id === selectedSessionId && !session.sold_out)
+      ?? sessions.find(session => !session.sold_out && Date.parse(session.start_datetime) === Date.parse(event.start_at))
+      ?? sessions.find(session => !session.sold_out)
+    : undefined;
+  const activeEvent = selectedSession ? {
+    ...event,
+    start_at: selectedSession.start_datetime,
+    end_at: selectedSession.end_datetime ?? undefined,
+    buy_url: selectedSession.buy_url ?? event.buy_url,
+    ticket_url: selectedSession.buy_url ?? event.ticket_url,
+  } : event;
+  const showTime = hasExplicitTime(activeEvent.start_at);
   // The Spanish "d 'de' MMMM" pattern must not leak into other languages.
   const datePattern = i18n.language.toLowerCase().startsWith('es')
     ? "EEEE d 'de' MMMM"
     : 'EEEE d MMMM';
-  const formattedDate = formatMadrid(new Date(event.start_at), datePattern, locale);
+  const formattedDate = formatMadrid(new Date(activeEvent.start_at), datePattern, locale);
   const formattedTime = showTime
-    ? formatEventTime(event.start_at, i18n.language, t('events.timeTBC'))
+    ? formatEventTime(activeEvent.start_at, i18n.language, t('events.timeTBC'))
     : t('events.timeTBC', 'Hora por confirmar');
-  const formattedEndTime = showTime && event.end_at && hasExplicitTime(event.end_at)
-    ? formatMadrid(new Date(event.end_at), 'HH:mm', locale)
+  const formattedEndTime = showTime && activeEvent.end_at && hasExplicitTime(activeEvent.end_at)
+    ? formatMadrid(new Date(activeEvent.end_at!), 'HH:mm', locale)
     : null;
 
   // Real outbound destinations for this event, or nothing at all.
-  const ticketAction = resolveTicketAction(event as unknown as Parameters<typeof resolveTicketAction>[0]);
+  const ticketAction = resolveTicketAction(activeEvent as unknown as Parameters<typeof resolveTicketAction>[0]);
   const point = resolvePoint({
     lat: event.lat,
     lng: event.lng,
@@ -177,7 +193,7 @@ const EventDetailPage = () => {
   };
 
   const handleAddToCalendar = () => {
-    const ics = buildEventIcs(event, { url: window.location.href });
+    const ics = buildEventIcs({ ...activeEvent, id: selectedSession ? `${event.id}:${selectedSession.id}` : event.id }, { url: window.location.href });
     if (!ics) {
       toast.error(t('eventDetail.calendarError', 'No hemos podido crear el archivo del calendario.'));
       return;
@@ -385,6 +401,8 @@ const EventDetailPage = () => {
           </CardContent>
         </Card>
 
+
+        <EventSessions sessions={sessions} selectedId={selectedSession?.id} onSelect={setSelectedSessionId} locale={locale} />
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">

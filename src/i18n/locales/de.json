@@ -398,6 +398,8 @@
     }
   },
   "eventDetail": {
+    "sessions": "Termine",
+    "soldOut": "Ausverkauft",
     "when": "Wann",
     "where": "Wo",
     "price": "Preis",

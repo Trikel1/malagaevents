@@ -143,9 +143,9 @@ for (const path of ['/', '/events']) {
 fixtureTest('el checker rechaza un fallback local realmente roto', async ({ page }) => {
   await page.route('**/rest/v1/events?**', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify([{ ...culture, image_url: poster }]) }));
   await page.route(poster, route => route.abort('failed'));
-  await page.route('**/src/assets/categories/general.jpg', route => route.abort('failed'));
+  await page.route('**/src/assets/categories/musica.jpg', route => route.abort('failed'));
   await page.goto('/');
-  await expect(page.locator('.home-image-fallback img')).toBeVisible();
+  await expect(page.locator('.home-featured').getByRole('img', { name: /ilustrativa/ })).toBeVisible();
   await expect(expectHealthyImages(page)).rejects.toThrow('Todas las imágenes deben cargar o mostrar un fallback válido');
 });
 

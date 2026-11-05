@@ -350,6 +350,8 @@
     "countPartialA11y": "已显示 {{total}} 个活动中的 {{loaded}} 个"
   },
   "eventDetail": {
+    "sessions": "场次",
+    "soldOut": "已售罄",
     "when": "何时",
     "where": "何地",
     "price": "价格",

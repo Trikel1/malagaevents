@@ -73,7 +73,8 @@ const MainLayout = () => {
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 104px)',
         }}
       >
-        <div key={routeKey} className="liquid-page-shell">
+        <div key={routeKey} className="liquid-page-shell"
+          style={routeKey === 'events' && !isSportsSection ? { animationFillMode: 'backwards' } : undefined}>
           <Outlet />
         </div>
       </div>

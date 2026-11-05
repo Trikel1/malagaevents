@@ -42,6 +42,7 @@ export interface Event {
   description_full?: string;
   title_normalized?: string;
   venue_name_normalized?: string;
+  occurrences?: Pick<EventOccurrence, 'id' | 'event_id' | 'start_datetime' | 'end_datetime' | 'buy_url' | 'sold_out'>[];
   // Joined data
   venue?: Venue;
   location?: Location;

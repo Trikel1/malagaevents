@@ -158,7 +158,7 @@ export const VENUES_CATALOG: CatalogVenue[] = [
   { slug: 'palacio-congresos-marbella', name: 'Palacio de Congresos de Marbella', city: 'Marbella', zone: 'costa-occidental', kind: 'ferial', status: 'candidate' },
   { slug: 'teatro-ciudad-marbella', name: 'Teatro Ciudad de Marbella', city: 'Marbella', zone: 'costa-occidental', kind: 'teatro', status: 'candidate', searchAliases: ['ciudad marbella'] },
   { slug: 'marbella-arena', name: 'Marbella Arena', city: 'Marbella', zone: 'costa-occidental', kind: 'auditorio', status: 'candidate', searchAliases: ['arena marbella'] },
-  { slug: 'auditorio-felipe-vi', name: 'Auditorio Felipe VI', city: 'Estepona', zone: 'costa-occidental', kind: 'auditorio', status: 'candidate', searchAliases: ['felipe vi', 'estepona'] },
+  { slug: 'auditorio-felipe-vi', name: 'Teatro Auditorio Felipe VI', city: 'Estepona', zone: 'costa-occidental', kind: 'auditorio', status: 'candidate', searchAliases: ['felipe vi', 'estepona'] },
   { slug: 'centro-cultural-padre-manuel', name: 'Centro Cultural Padre Manuel', city: 'Estepona', zone: 'costa-occidental', kind: 'espacio', status: 'candidate', searchAliases: ['padre manuel', 'estepona'] },
   { slug: 'palacio-congresos-estepona', name: 'Palacio de Exposiciones y Congresos', city: 'Estepona', zone: 'costa-occidental', kind: 'ferial', status: 'candidate', searchAliases: ['estepona'] },
   { slug: 'teatro-las-lagunas', name: 'Teatro Las Lagunas', city: 'Mijas', zone: 'costa-occidental', kind: 'teatro', status: 'candidate', searchAliases: ['las lagunas', 'mijas'] },

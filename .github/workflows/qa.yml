@@ -10,7 +10,9 @@ on:
 
 jobs:
   qa:
-    runs-on: ubuntu-latest
+    # Native WebKit matches Safari more closely; Linux WPE has shown long
+    # animation-frame stalls in our retained traces (playwright#33057).
+    runs-on: macos-15
 
     steps:
       - name: Checkout

@@ -1,5 +1,20 @@
 import { test, expect, culture } from './fixtures/app';
 
+test('Home: conserva el precio publicado al consultar los campos de la tarjeta', async ({ page }) => {
+  await page.route('**/rest/v1/events?**', route => {
+    const record = { ...culture, is_free: false, price_info: 'Desde 18 €' };
+    const select = new URL(route.request().url()).searchParams.get('select') ?? '*';
+    // Match REST column projection: unrequested fields are absent in real data.
+    const fields = select.split(',');
+    const projected = fields.includes('*') ? record : Object.fromEntries(
+      Object.entries(record).filter(([key]) => fields.includes(key)),
+    );
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify([projected]) });
+  });
+  await page.goto('/');
+  await expect(page.locator('.home-featured .home-price')).toHaveText('Desde 18 €');
+});
+
 const sizes = [
   { width: 360, height: 800 }, { width: 390, height: 844 },
   { width: 430, height: 932 }, { width: 768, height: 1024 },
@@ -47,7 +62,7 @@ for (const language of ['es', 'en', 'de', 'ar']) {
           expect(state.modeHeight).toBeGreaterThanOrEqual(44);
           expect(state.h1Size).toBeGreaterThanOrEqual(32);
           expect(state.metadataSize).toBeGreaterThanOrEqual(14);
-          expect(state.shortcuts).toHaveLength(4);
+          expect(state.shortcuts).toHaveLength(6);
           for (const shortcut of state.shortcuts) { expect(shortcut.height).toBeGreaterThanOrEqual(44); expect(shortcut.wraps).toBe(true); }
           expect(state.dir).toBe(language === 'ar' ? 'rtl' : 'ltr');
         }
@@ -71,7 +86,7 @@ test('Home: cartel vertical completo y fallo de imagen sin inventar precio u hor
   await page.route(portrait.image_url, route => route.abort());
   await page.reload();
   await expect(featured.locator('.home-event-image')).toHaveAttribute('data-failed', 'true');
-  await expect(featured.locator('.home-image-fallback')).toBeVisible();
+  await expect(featured.getByRole('img', { name: /ilustrativa/ })).toBeVisible();
   await expect(featured.locator('.home-price')).toHaveText('Precio sin confirmar');
 });
 
