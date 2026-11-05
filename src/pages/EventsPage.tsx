@@ -394,11 +394,13 @@ const CultureEventsPage = () => {
   const isPartialList = !onlyFavorites && loadedCount < totalCount;
   const hasFilters = activeChips.length > 0;
 
+  const restoredRef = useRef(false);
   // Remember filters + scroll so the detail page can return to this context.
   useEffect(() => {
     rememberAgendaSearch(search);
     let raf = 0;
     const onScroll = () => {
+      if (!restoredRef.current) return; // don't overwrite before restoring
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => rememberAgendaScroll(search, window.scrollY));
     };
@@ -408,7 +410,6 @@ const CultureEventsPage = () => {
       window.removeEventListener('scroll', onScroll);
     };
   }, [search]);
-  const restoredRef = useRef(false);
   useEffect(() => {
     if (restoredRef.current || isLoadingEvents || !displayedEvents?.length) return;
     restoredRef.current = true;
