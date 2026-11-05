@@ -400,7 +400,7 @@ const CultureEventsPage = () => {
     rememberAgendaSearch(search);
     let raf = 0;
     const onScroll = () => {
-      if (!restoredRef.current) return; // don't overwrite before restoring
+      if (!restoredRef.current || window.location.pathname !== '/events') return;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => rememberAgendaScroll(search, window.scrollY));
     };
