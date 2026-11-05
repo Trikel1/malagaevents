@@ -396,8 +396,7 @@
       "hallsTitle": "Salas",
       "theatersTitle": "Teatros y auditorios",
       "outdoorsTitle": "Recintos y exteriores"
-    },
-    "backToAgenda": "Volver a la agenda"
+    }
   },
   "eventDetail": {
     "sessions": "Sesiones",

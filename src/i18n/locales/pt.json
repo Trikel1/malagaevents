@@ -347,8 +347,7 @@
     "halls": "Salas",
     "otherVenues": "Outros",
     "timeTBC": "Horário a confirmar",
-    "countPartialA11y": "{{loaded}} de {{total}} eventos mostrados",
-    "backToAgenda": "Voltar à agenda"
+    "countPartialA11y": "{{loaded}} de {{total}} eventos mostrados"
   },
   "eventDetail": {
     "sessions": "Sessões",
