@@ -164,7 +164,9 @@ function isValidCanonical(ev: CanonicalEvent): boolean {
 
 
 /** Adapters whose externalId is a stable per-source identity (survives reschedules). */
-export const STABLE_EXTERNAL_ID_ADAPTERS: ReadonlySet<string> = new Set(["fycma"]);
+export const STABLE_EXTERNAL_ID_ADAPTERS: ReadonlySet<string> = new Set([
+  "fycma", "marbella-congresos", "eventos-uma", "palacio-congresos-torremolinos",
+]);
 
 /**
  * Key passed to the existing venue-alias resolver. FYCMA emits its long
