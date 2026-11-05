@@ -819,8 +819,8 @@
 
   /* Segmented preset chip — used by Eventos preset row */
   .preset-chip {
-    height: 2.25rem;
-    padding-inline: 0.9rem;
+    height: 2.75rem;
+    padding-inline: 1rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -838,7 +838,8 @@
     color: hsl(var(--foreground));
     border-color: hsl(var(--border));
   }
-  .preset-chip[aria-selected="true"] {
+  .preset-chip[aria-selected="true"],
+  .preset-chip[aria-pressed="true"] {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     border-color: hsl(var(--primary));
