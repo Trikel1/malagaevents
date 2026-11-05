@@ -395,7 +395,8 @@
       "hallsTitle": "Konzertsäle",
       "theatersTitle": "Theater und Auditorien",
       "outdoorsTitle": "Orte und Außenbereiche"
-    }
+    },
+    "backToAgenda": "Zurück zum Kalender"
   },
   "eventDetail": {
     "sessions": "Termine",
