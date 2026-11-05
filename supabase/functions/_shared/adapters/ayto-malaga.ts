@@ -56,7 +56,7 @@ ${markdown.slice(0, 12000)}`;
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-3.8-flash",
       messages: [
         { role: "system", content: "You are a strict JSON extractor. Output ONLY valid JSON arrays." },
         { role: "user", content: prompt },
