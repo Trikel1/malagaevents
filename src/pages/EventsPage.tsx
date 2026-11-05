@@ -289,8 +289,8 @@ const CultureEventsPage = () => {
       });
     }
     if (filters.dateFrom || filters.dateTo) {
-      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale: es }) : '…';
-      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale: es }) : '…';
+      const from = filters.dateFrom ? new Intl.DateTimeFormat(i18n.language || 'es', { day: 'numeric', month: 'short' }).format(filters.dateFrom) : '…';
+      const to = filters.dateTo ? new Intl.DateTimeFormat(i18n.language || 'es', { day: 'numeric', month: 'short' }).format(filters.dateTo) : '…';
       chips.push({
         key: 'daterange',
         label: `${from} – ${to}`,
