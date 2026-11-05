@@ -347,8 +347,7 @@
     "halls": "ホール",
     "otherVenues": "その他",
     "timeTBC": "時間未定",
-    "countPartialA11y": "{{total}} 件中 {{loaded}} 件を表示",
-    "backToAgenda": "Volver a la agenda"
+    "countPartialA11y": "{{total}} 件中 {{loaded}} 件を表示"
   },
   "eventDetail": {
     "sessions": "公演日時",

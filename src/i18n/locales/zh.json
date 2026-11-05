@@ -347,8 +347,7 @@
     "halls": "大厅",
     "otherVenues": "其他",
     "timeTBC": "时间待定",
-    "countPartialA11y": "已显示 {{total}} 个活动中的 {{loaded}} 个",
-    "backToAgenda": "返回日程"
+    "countPartialA11y": "已显示 {{total}} 个活动中的 {{loaded}} 个"
   },
   "eventDetail": {
     "sessions": "场次",

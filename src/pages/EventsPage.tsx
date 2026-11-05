@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, X, AlertTriangle, Navigation, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,7 +29,6 @@ import {
   isSameSearch,
   type EventsUrlState,
 } from '@/pages/events/eventsUrlState';
-import { rememberAgendaSearch, rememberAgendaScroll, takeAgendaScroll } from '@/pages/events/agendaReturn';
 import SEO from '@/components/common/SEO';
 import styles from './EventsPage.module.css';
 
@@ -51,7 +52,7 @@ const PRIMARY_PRESETS: { key: DatePreset; labelKey: string; labelFallback: strin
 // ────────────────────────────────────────────────────────────────────────────
 
 const CultureEventsPage = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuthContext();
@@ -289,8 +290,8 @@ const CultureEventsPage = () => {
       });
     }
     if (filters.dateFrom || filters.dateTo) {
-      const from = filters.dateFrom ? new Intl.DateTimeFormat(i18n.language || 'es', { day: 'numeric', month: 'short' }).format(filters.dateFrom) : '…';
-      const to = filters.dateTo ? new Intl.DateTimeFormat(i18n.language || 'es', { day: 'numeric', month: 'short' }).format(filters.dateTo) : '…';
+      const from = filters.dateFrom ? format(filters.dateFrom, 'd MMM', { locale: es }) : '…';
+      const to = filters.dateTo ? format(filters.dateTo, 'd MMM', { locale: es }) : '…';
       chips.push({
         key: 'daterange',
         label: `${from} – ${to}`,
@@ -394,34 +395,9 @@ const CultureEventsPage = () => {
   const isPartialList = !onlyFavorites && loadedCount < totalCount;
   const hasFilters = activeChips.length > 0;
 
-  const restoredRef = useRef(false);
-  // Remember filters + scroll so the detail page can return to this context.
-  useEffect(() => {
-    rememberAgendaSearch(search);
-    let raf = 0;
-    const onScroll = () => {
-      if (!restoredRef.current || window.location.pathname !== '/events') return;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => rememberAgendaScroll(search, window.scrollY));
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('scroll', onScroll);
-    };
-  }, [search]);
-  useEffect(() => {
-    if (restoredRef.current || isLoadingEvents || !displayedEvents?.length) return;
-    restoredRef.current = true;
-    const y = takeAgendaScroll(search);
-    if (y != null) window.setTimeout(() => window.scrollTo(0, y), 60);
-  }, [isLoadingEvents, displayedEvents, search]);
-
   // Human-readable "range" summary shown in the header
   const rangeSummary = useMemo(() => {
-    const today = new Intl.DateTimeFormat(i18n.language || 'es', {
-      weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Madrid',
-    }).format(new Date());
+    const today = format(new Date(), "EEEE d 'de' MMMM", { locale: es });
     const nice = today.charAt(0).toUpperCase() + today.slice(1);
     if (filters.datePreset === 'today') return nice;
     if (filters.datePreset === 'tomorrow') return t('events.tomorrow', 'Mañana');
@@ -429,7 +405,7 @@ const CultureEventsPage = () => {
     if (filters.datePreset === 'next30') return t('events.next30Days', 'Próximos 30 días');
     if (filters.datePreset === 'thisWeek') return t('events.thisWeek', 'Esta semana');
     return `${t('events.today', 'Hoy')} · ${nice}`;
-  }, [filters.datePreset, t, i18n.language]);
+  }, [filters.datePreset, t]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -478,8 +454,6 @@ const CultureEventsPage = () => {
               </p>
             </div>
             <span
-              role="status"
-              aria-live="polite"
               className="shrink-0 inline-flex items-baseline gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold border border-primary/20"
               aria-label={
                 isPartialList
@@ -517,7 +491,7 @@ const CultureEventsPage = () => {
                 {t('common.search', 'Buscar')}
               </label>
               <Search
-                className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
                 aria-hidden="true"
               />
               <Input
@@ -527,14 +501,14 @@ const CultureEventsPage = () => {
                 placeholder={t('events.searchPlaceholderShort', 'Buscar…')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="ps-9 pe-11 h-11 rounded-full text-sm bg-background/70 border-border/60 focus-visible:ring-primary"
+                className="pl-9 pr-9 h-10 rounded-full text-sm bg-background/70 border-border/60 focus-visible:ring-primary"
               />
               {searchQuery && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute end-1 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
                   onClick={() => {
                     setSearchQuery('');
                     commit({ q: '' });
@@ -558,7 +532,7 @@ const CultureEventsPage = () => {
               aria-pressed={!!userCoords}
               aria-label={t('events.nearMe', 'Cerca de mí')}
               className={cn(
-                'h-11 w-11 rounded-full shrink-0 transition-colors',
+                'h-10 w-10 rounded-full shrink-0 transition-colors',
                 userCoords && 'bg-primary text-primary-foreground border-primary hover:bg-primary/90',
                 isRequestingLocation && 'opacity-60',
               )}
@@ -570,7 +544,7 @@ const CultureEventsPage = () => {
               size="icon"
               ref={filterTriggerRef}
               onClick={() => setIsFilterOpen(true)}
-              className="h-11 w-11 rounded-full relative shrink-0"
+              className="h-10 w-10 rounded-full relative shrink-0"
               aria-label={t('events.filters', 'Filtros')}
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -620,7 +594,7 @@ const CultureEventsPage = () => {
                   key={chip.key}
                   type="button"
                   onClick={chip.onRemove}
-                  className="inline-flex items-center gap-1 min-h-9 ps-3 pe-2 py-1 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-[12px] border border-border/60 max-w-full"
+                  className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-0.5 rounded-full bg-secondary/70 hover:bg-secondary text-secondary-foreground text-[12px] border border-border/60 max-w-full"
                   aria-label={`${t('common.remove', 'Quitar')} ${chip.label}`}
                 >
                   <span className="truncate max-w-[160px]">{chip.label}</span>
@@ -631,7 +605,7 @@ const CultureEventsPage = () => {
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="ms-auto h-9 px-3 text-[13px] text-muted-foreground hover:text-foreground"
+                className="ml-auto h-7 px-2 text-[12px] text-muted-foreground hover:text-foreground"
               >
                 {t('events.clearFilters', 'Limpiar')}
               </Button>
