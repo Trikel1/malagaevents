@@ -395,7 +395,8 @@
       "hallsTitle": "قاعات الموسيقى",
       "theatersTitle": "المسارح وقاعات العروض",
       "outdoorsTitle": "الأماكن والمساحات الخارجية"
-    }
+    },
+    "backToAgenda": "العودة إلى البرنامج"
   },
   "eventDetail": {
     "sessions": "المواعيد",

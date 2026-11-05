@@ -347,7 +347,8 @@
     "halls": "Залы",
     "otherVenues": "Другие",
     "timeTBC": "Время уточняется",
-    "countPartialA11y": "Показано {{loaded}} из {{total}} событий"
+    "countPartialA11y": "Показано {{loaded}} из {{total}} событий",
+    "backToAgenda": "Назад к афише"
   },
   "eventDetail": {
     "sessions": "Сеансы",

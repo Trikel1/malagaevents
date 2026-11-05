@@ -1,3 +1,4 @@
+import { agendaReturnPath } from '@/pages/events/agendaReturn';
 import { useEffect, useRef, useState } from 'react';
 import { categoryI18nKey } from '@/lib/categoryLabel';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -39,6 +40,11 @@ const resolveDateLocale = (language: string): Locale =>
 const EventDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const goBackToAgenda = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+    if (idx > 0) navigate(-1);
+    else navigate(agendaReturnPath());
+  };
   const { t, i18n } = useTranslation();
   const locale = resolveDateLocale(i18n.language);
   const { isAuthenticated } = useAuthContext();
@@ -120,8 +126,8 @@ const EventDetailPage = () => {
   if (error || !event) {
     return (
       <div className="min-h-screen bg-background p-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label={t('common.back', 'Volver')} className="mb-4">
-          <ArrowLeft className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={goBackToAgenda} aria-label={t('events.backToAgenda', 'Volver a la agenda')} className="mb-4">
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
         </Button>
         <EmptyState
           icon={Calendar}
@@ -305,11 +311,11 @@ const EventDetailPage = () => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(-1)}
-          aria-label={t('common.back', 'Volver')}
-          className="absolute top-4 start-4 bg-background/80 hover:bg-background"
+          onClick={goBackToAgenda}
+          aria-label={t('events.backToAgenda', 'Volver a la agenda')}
+          className="absolute top-4 start-4 h-11 w-11 rounded-full bg-background/80 hover:bg-background"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 rtl:rotate-180" aria-hidden="true" />
         </Button>
 
         {/* Actions */}
