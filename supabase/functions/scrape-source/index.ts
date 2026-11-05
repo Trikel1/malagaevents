@@ -17,7 +17,7 @@
 //  - Every run writes to event_source_runs; failures write to ingestion_errors.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { getAllHeaders } from "../_shared/security.ts";
+import { authorizeAdminRequest, getAllHeaders } from "../_shared/security.ts";
 import type {
   CanonicalEvent,
   EventSourceRow,
@@ -47,11 +47,13 @@ function json(body: unknown, status = 200, origin?: string | null) {
   return new Response(JSON.stringify(body), { status, headers: getAllHeaders(origin) });
 }
 
-function checkAuth(req: Request): boolean {
+async function checkAuth(req: Request): Promise<boolean> {
   const expected = Deno.env.get("SYNC_ADMIN_KEY");
-  if (!expected) return false;
   const provided = req.headers.get("x-sync-key");
-  return !!provided && provided === expected;
+  if (expected && provided && provided === expected) return true;
+  // Scheduled pg_cron jobs send the Vault SYNC_SPORTS_KEY (shared guard).
+  const res = await authorizeAdminRequest(req);
+  return res.authorized;
 }
 
 async function loadSource(supabase: Deps, sourceId: string): Promise<EventSourceRow | null> {
@@ -242,7 +244,7 @@ if (typeof Deno !== "undefined") Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return json({ error: "method_not_allowed" }, 405, origin);
   }
-  if (!checkAuth(req)) {
+  if (!(await checkAuth(req))) {
     return json({ error: "unauthorized" }, 401, origin);
   }
 
