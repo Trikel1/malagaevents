@@ -397,15 +397,23 @@ const CultureEventsPage = () => {
   // Remember filters + scroll so the detail page can return to this context.
   useEffect(() => {
     rememberAgendaSearch(search);
-    const save = () => rememberAgendaScroll(search, window.scrollY);
-    return save;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => rememberAgendaScroll(search, window.scrollY));
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [search]);
   const restoredRef = useRef(false);
   useEffect(() => {
     if (restoredRef.current || isLoadingEvents || !displayedEvents?.length) return;
     restoredRef.current = true;
     const y = takeAgendaScroll(search);
-    if (y != null) requestAnimationFrame(() => window.scrollTo(0, y));
+    if (y != null) window.setTimeout(() => window.scrollTo(0, y), 60);
   }, [isLoadingEvents, displayedEvents, search]);
 
   // Human-readable "range" summary shown in the header
