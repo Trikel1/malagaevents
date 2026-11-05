@@ -43,9 +43,9 @@ async function generateImageBase64(prompt: string): Promise<string> {
       "Lovable-API-Key": LOVABLE_API_KEY,
     },
     body: JSON.stringify({
-      model: "google/gemini-3.1-flash-image",
-      messages: [{ role: "user", content: prompt }],
-      modalities: ["image", "text"],
+      model: "openai/gpt-image-2.5-sunburst",
+      prompt,
+      n: 1,
     }),
   });
 
