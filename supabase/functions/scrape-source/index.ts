@@ -467,6 +467,7 @@ if (typeof Deno !== "undefined") Deno.serve(async (req) => {
             await supabase.from("events").update({
               last_seen_at: nowIso,
               ...(row.external_id ? { external_id: row.external_id } : {}),
+              ...(row.venue_id ? { venue_id: row.venue_id } : {}),
             }).eq("id", existing.id);
           } else {
             // Consolidate legacy dedupe_key to sha256 on update.
